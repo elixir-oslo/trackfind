@@ -5,14 +5,22 @@ import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
 import com.google.gson.stream.JsonReader;
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.core.KeywordAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.StringField;
-import org.apache.lucene.index.*;
+import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.queryparser.analyzing.AnalyzingQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
-import org.apache.lucene.search.*;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.BytesRef;
@@ -27,7 +35,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 @Service
@@ -43,6 +50,7 @@ public class TrackFindService {
 
     private final Gson gson;
 
+    private Analyzer analyzer;
     private Directory index;
     private Multimap<String, String> metamodel;
 
@@ -57,7 +65,7 @@ public class TrackFindService {
 
         LinkedTreeMap grid = loadGrid();
 
-        StandardAnalyzer analyzer = new StandardAnalyzer();
+        analyzer = new KeywordAnalyzer();
         index = new RAMDirectory();
         IndexWriterConfig config = new IndexWriterConfig(analyzer);
         IndexWriter indexWriter = new IndexWriter(index, config);
@@ -74,15 +82,12 @@ public class TrackFindService {
         return metamodel;
     }
 
-    public Collection<Document> search(Map<String, String> attributesToValues) throws IOException, ParseException {
+    // Sample query: "sample_id: SRS306625_*_471 AND other_attributes>lab: UCSD AND ihec_data_portal>assay: (WGB-Seq OR somethingp)"
+    public Collection<Document> search(String query) throws IOException, ParseException {
         IndexReader reader = DirectoryReader.open(index);
         IndexSearcher searcher = new IndexSearcher(reader);
-        BooleanQuery.Builder queryBuilder = new BooleanQuery.Builder();
-        for (Map.Entry<String, String> entry : attributesToValues.entrySet()) {
-            queryBuilder.add(new TermQuery(new Term(entry.getKey(), entry.getValue())), BooleanClause.Occur.MUST);
-        }
-        BooleanQuery query = queryBuilder.build();
-        TopDocs topDocs = searcher.search(query, Integer.MAX_VALUE);
+        Query parsedQuery = new AnalyzingQueryParser("sample_id", analyzer).parse(query);
+        TopDocs topDocs = searcher.search(parsedQuery, Integer.MAX_VALUE);
         ScoreDoc[] scoreDocs = topDocs.scoreDocs;
         Collection<Document> result = new HashSet<>();
         for (ScoreDoc scoreDoc : scoreDocs) {
