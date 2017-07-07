@@ -46,6 +46,8 @@ public class TrackFindService {
 
     private Analyzer analyzer;
     private Directory index;
+    private IndexReader indexReader;
+    private IndexSearcher searcher;
     private Multimap<String, String> metamodel;
 
     private final Collection<DataProvider> dataProviders;
@@ -61,12 +63,13 @@ public class TrackFindService {
     @PostConstruct
     public void postConstruct() throws Exception {
         if (DirectoryReader.indexExists(index)) {
-            return;
+            reinitIndexSearcher();
+        } else {
+            updateIndex();
         }
-        reinit();
     }
 
-    public synchronized void reinit() {
+    public synchronized void updateIndex() {
         log.info("Fetching and indexing data...");
         IndexWriterConfig config = new IndexWriterConfig(analyzer);
         config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
@@ -76,8 +79,28 @@ public class TrackFindService {
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
+            return;
         }
+        reinitIndexSearcher();
         log.info("Success");
+    }
+
+    private void reinitIndexSearcher() {
+        if (indexReader != null) {
+            try {
+                indexReader.close();
+            } catch (IOException e) {
+                log.error(e.getMessage(), e);
+                return;
+            }
+        }
+        try {
+            indexReader = DirectoryReader.open(index);
+        } catch (IOException e) {
+            log.error(e.getMessage(), e);
+            return;
+        }
+        searcher = new IndexSearcher(indexReader);
     }
 
     public Multimap<String, String> getMetamodel() {
@@ -86,8 +109,7 @@ public class TrackFindService {
 
     // Sample query: "sample_id: SRS306625_*_471 AND other_attributes>lab: U??D AND ihec_data_portal>assay: (WGB-Seq OR something)"
     public Collection<Map> search(String query) {
-        try (IndexReader reader = DirectoryReader.open(index)) {
-            IndexSearcher searcher = new IndexSearcher(reader);
+        try {
             Query parsedQuery = new AnalyzingQueryParser("", analyzer).parse(query);
             TopDocs topDocs = searcher.search(parsedQuery, Integer.MAX_VALUE);
             ScoreDoc[] scoreDocs = topDocs.scoreDocs;
