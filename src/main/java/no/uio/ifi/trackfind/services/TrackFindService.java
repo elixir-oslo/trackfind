@@ -74,7 +74,7 @@ public class TrackFindService {
         return metamodel;
     }
 
-    // Sample query: "sample_id: SRS306625_*_471 AND other_attributes>lab: UCSD AND ihec_data_portal>assay: (WGB-Seq OR somethingp)"
+    // Sample query: "sample_id: SRS306625_*_471 AND other_attributes>lab: U??D AND ihec_data_portal>assay: (WGB-Seq OR something)"
     public Collection<Document> search(String query) throws IOException, ParseException {
         IndexReader reader = DirectoryReader.open(index);
         IndexSearcher searcher = new IndexSearcher(reader);
