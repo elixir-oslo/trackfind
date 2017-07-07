@@ -2,9 +2,8 @@ package no.uio.ifi.trackfind.services;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
-import com.google.gson.stream.JsonReader;
+import no.uio.ifi.trackfind.data.providers.DataProvider;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.KeywordAnalyzer;
 import org.apache.lucene.document.Document;
@@ -29,9 +28,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.SerializationUtils;
 
 import javax.annotation.PostConstruct;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
@@ -43,36 +39,32 @@ public class TrackFindService {
     public static final String DATASET = "dataset";
 
     private static final String DATASETS = "datasets";
-    private static final String FILENAME = "getDataHub.json";
     private static final String HTTP = "http://";
     private static final String HTTPS = "https://";
     private static final String PATH_SEPARATOR = ">";
 
-    private final Gson gson;
+    private Analyzer analyzer = new KeywordAnalyzer();
+    private Directory index = new RAMDirectory();
+    private Multimap<String, String> metamodel = HashMultimap.create();
 
-    private Analyzer analyzer;
-    private Directory index;
-    private Multimap<String, String> metamodel;
+    private final Collection<DataProvider> dataProviders;
 
     @Autowired
-    public TrackFindService(Gson gson) {
-        this.gson = gson;
+    public TrackFindService(Collection<DataProvider> dataProviders) {
+        this.dataProviders = dataProviders;
     }
 
     @PostConstruct
     public void postConstruct() throws Exception {
-        metamodel = HashMultimap.create();
-
-        LinkedTreeMap grid = loadGrid();
-
-        analyzer = new KeywordAnalyzer();
-        index = new RAMDirectory();
         IndexWriterConfig config = new IndexWriterConfig(analyzer);
         IndexWriter indexWriter = new IndexWriter(index, config);
 
-        LinkedTreeMap datasets = (LinkedTreeMap) grid.get(DATASETS);
-        for (Object dataset : datasets.values()) {
-            processDataset(indexWriter, (LinkedTreeMap) dataset);
+        for (DataProvider dataProvider : dataProviders) {
+            LinkedTreeMap grid = dataProvider.fetchData();
+            LinkedTreeMap datasets = (LinkedTreeMap) grid.get(DATASETS);
+            for (Object dataset : datasets.values()) {
+                processDataset(indexWriter, (LinkedTreeMap) dataset);
+            }
         }
 
         indexWriter.close();
@@ -86,7 +78,7 @@ public class TrackFindService {
     public Collection<Document> search(String query) throws IOException, ParseException {
         IndexReader reader = DirectoryReader.open(index);
         IndexSearcher searcher = new IndexSearcher(reader);
-        Query parsedQuery = new AnalyzingQueryParser("sample_id", analyzer).parse(query);
+        Query parsedQuery = new AnalyzingQueryParser("", analyzer).parse(query);
         TopDocs topDocs = searcher.search(parsedQuery, Integer.MAX_VALUE);
         ScoreDoc[] scoreDocs = topDocs.scoreDocs;
         Collection<Document> result = new HashSet<>();
@@ -96,6 +88,7 @@ public class TrackFindService {
         return result;
     }
 
+    @SuppressWarnings("ConstantConditions")
     private void processDataset(IndexWriter indexWriter, LinkedTreeMap dataset) throws IOException {
         Document document = new Document();
         convertDatasetToDocument(document, dataset, "");
@@ -118,13 +111,6 @@ public class TrackFindService {
             }
             document.add(new StringField(attribute, value, Field.Store.YES));
         }
-    }
-
-    private LinkedTreeMap loadGrid() throws FileNotFoundException {
-        ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource(FILENAME).getFile());
-        JsonReader reader = new JsonReader(new FileReader(file));
-        return gson.fromJson(reader, Object.class);
     }
 
 
