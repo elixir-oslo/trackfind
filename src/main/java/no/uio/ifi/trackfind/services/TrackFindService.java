@@ -21,14 +21,12 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.BytesRef;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.SerializationUtils;
 
 import javax.annotation.PostConstruct;
-import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -37,32 +35,31 @@ import java.util.stream.Collectors;
 @Service
 public class TrackFindService {
 
-    private static final String INDICES_FOLDER = "indices";
-
     private static final String DATASET = "dataset";
     private static final String HTTP = "http://";
     private static final String HTTPS = "https://";
     private static final String PATH_SEPARATOR = ">";
 
     private Analyzer analyzer;
-    private Directory index;
     private IndexReader indexReader;
     private IndexSearcher searcher;
     private Multimap<String, String> metamodel;
 
+    private final Directory directory;
     private final Collection<DataProvider> dataProviders;
 
     @Autowired
-    public TrackFindService(Collection<DataProvider> dataProviders) throws IOException {
+    public TrackFindService(Directory directory, Collection<DataProvider> dataProviders) throws IOException {
+        this.directory = directory;
         this.dataProviders = dataProviders;
+
         this.analyzer = new KeywordAnalyzer();
-        this.index = FSDirectory.open(new File(INDICES_FOLDER).toPath());
         this.metamodel = HashMultimap.create();
     }
 
     @PostConstruct
     public void postConstruct() throws Exception {
-        if (DirectoryReader.indexExists(index)) {
+        if (DirectoryReader.indexExists(directory)) {
             reinitIndexSearcher();
         } else {
             updateIndex();
@@ -73,7 +70,7 @@ public class TrackFindService {
         log.info("Fetching and indexing data...");
         IndexWriterConfig config = new IndexWriterConfig(analyzer);
         config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
-        try (IndexWriter indexWriter = new IndexWriter(index, config)) {
+        try (IndexWriter indexWriter = new IndexWriter(directory, config)) {
             for (DataProvider dataProvider : dataProviders) {
                 indexWriter.addDocuments(dataProvider.fetchData().stream().map(this::processDataset).collect(Collectors.toSet()));
             }
@@ -95,7 +92,7 @@ public class TrackFindService {
             }
         }
         try {
-            indexReader = DirectoryReader.open(index);
+            indexReader = DirectoryReader.open(directory);
         } catch (IOException e) {
             log.error(e.getMessage(), e);
             return;
