@@ -1,10 +1,12 @@
 package no.uio.ifi.trackfind;
 
+import com.google.common.collect.Multimap;
 import no.uio.ifi.trackfind.data.providers.DataProvider;
 import no.uio.ifi.trackfind.services.TrackFindService;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
 import org.assertj.core.api.Assertions;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +17,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.mockito.BDDMockito.given;
 
@@ -23,20 +28,38 @@ import static org.mockito.BDDMockito.given;
 @SpringBootTest
 public class TrackFindApplicationTests {
 
+    private static boolean setUpIsDone = false;
+
     @MockBean
     private DataProvider ihecDataProvider;
 
     @Autowired
     private TrackFindService trackFindService;
 
+    @Before
+    public void setUp() {
+        if (setUpIsDone) {
+            return;
+        }
+        setUpIsDone = true;
+
+        Map<String, String> track = new HashMap<>();
+        track.put("key", "value");
+        given(ihecDataProvider.fetchData()).willReturn(Collections.singleton(track));
+        trackFindService.updateIndex();
+    }
+
+    @Test
+    public void metamodelTest() {
+        Multimap<String, String> metamodel = trackFindService.getMetamodel();
+        Assertions.assertThat(metamodel).isNotNull();
+        Assertions.assertThat(metamodel.keySet()).contains("key");
+        Assertions.assertThat(metamodel.get("key")).contains("value");
+    }
+
     @SuppressWarnings("unchecked")
     @Test
     public void indexingTest() {
-        Map<String, String> track = new HashMap<>();
-        track.put("key", "value");
-        Set<Map> data = Collections.singleton(track);
-        given(ihecDataProvider.fetchData()).willReturn(data);
-        trackFindService.updateIndex();
         Collection<Map> search = trackFindService.search("key: value");
         Assertions.assertThat(search).size().isEqualTo(1);
         Map map = search.iterator().next();
