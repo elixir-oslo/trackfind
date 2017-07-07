@@ -1,9 +1,10 @@
 package no.uio.ifi.trackfind.data.providers;
 
-import com.google.gson.internal.LinkedTreeMap;
+import java.util.Collection;
+import java.util.Map;
 
 public interface DataProvider {
 
-    LinkedTreeMap fetchData() throws Exception;
+    Collection<Map> fetchData();
 
 }

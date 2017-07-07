@@ -1,17 +1,13 @@
 package no.uio.ifi.trackfind.rest.controllers;
 
 import no.uio.ifi.trackfind.services.TrackFindService;
-import org.apache.lucene.document.Document;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.SerializationUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.stream.Collectors;
 
 @RestController
 public class TrackFindController {
@@ -23,6 +19,11 @@ public class TrackFindController {
         this.trackFindService = trackFindService;
     }
 
+    @GetMapping(path = "/reinit", produces = "application/json")
+    public void reinit() throws Exception {
+        trackFindService.reinit();
+    }
+
     @GetMapping(path = "/metamodel", produces = "application/json")
     public Object getMetamodel() throws IOException, ParseException {
         return trackFindService.getMetamodel();
@@ -30,8 +31,7 @@ public class TrackFindController {
 
     @GetMapping(path = "/search", produces = "application/json")
     public Object search(@RequestParam String query) throws IOException, ParseException {
-        Collection<Document> documents = trackFindService.search(query);
-        return documents.stream().map(d -> SerializationUtils.deserialize(d.getBinaryValue(TrackFindService.DATASET).bytes)).collect(Collectors.toSet());
+        return trackFindService.search(query);
     }
 
 }
