@@ -1,9 +1,7 @@
 package no.uio.ifi.trackfind;
 
-import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,11 +32,6 @@ public class TrackFindApplication {
     @PostConstruct
     public void setup() {
         objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
-    }
-
-    @Bean
-    public Module guavaModule() {
-        return new GuavaModule();
     }
 
     @Bean

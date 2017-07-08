@@ -10,10 +10,7 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.StringField;
-import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.*;
 import org.apache.lucene.queryparser.analyzing.AnalyzingQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.search.IndexSearcher;
@@ -23,6 +20,7 @@ import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.util.BytesRef;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.SerializationUtils;
 
@@ -43,7 +41,6 @@ public class TrackFindService {
     private Analyzer analyzer;
     private IndexReader indexReader;
     private IndexSearcher searcher;
-    private Multimap<String, String> metamodel;
 
     private final Directory directory;
     private final Collection<DataProvider> dataProviders;
@@ -54,7 +51,6 @@ public class TrackFindService {
         this.dataProviders = dataProviders;
 
         this.analyzer = new KeywordAnalyzer();
-        this.metamodel = HashMultimap.create();
     }
 
     @PostConstruct
@@ -100,7 +96,27 @@ public class TrackFindService {
         searcher = new IndexSearcher(indexReader);
     }
 
+    @Cacheable("metamodel")
     public Multimap<String, String> getMetamodel() {
+        Multimap<String, String> metamodel = HashMultimap.create();
+        try {
+            Collection<String> fieldNames = MultiFields.getIndexedFields(indexReader);
+            Fields fields = MultiFields.getFields(indexReader);
+            for (String fieldName : fieldNames) {
+                Terms terms = fields.terms(fieldName);
+                TermsEnum iterator = terms.iterator();
+                BytesRef next = iterator.next();
+                while (next != null) {
+                    String value = next.utf8ToString();
+                    if (!value.contains(HTTP) && !value.contains(HTTPS)) {
+                        metamodel.put(fieldName, value);
+                    }
+                    next = iterator.next();
+                }
+            }
+        } catch (IOException e) {
+            log.error(e.getMessage(), e);
+        }
         return metamodel;
     }
 
@@ -139,9 +155,6 @@ public class TrackFindService {
         } else if (object instanceof String) {
             String attribute = path.substring(1);
             String value = (String) object;
-            if (!value.contains(HTTP) && !value.contains(HTTPS)) {
-                metamodel.put(attribute, value);
-            }
             document.add(new StringField(attribute, value, Field.Store.YES));
         }
     }

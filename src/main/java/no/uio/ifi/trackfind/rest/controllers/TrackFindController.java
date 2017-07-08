@@ -26,7 +26,7 @@ public class TrackFindController {
 
     @GetMapping(path = "/metamodel", produces = "application/json")
     public Object getMetamodel() throws IOException, ParseException {
-        return trackFindService.getMetamodel();
+        return trackFindService.getMetamodel().asMap();
     }
 
     @GetMapping(path = "/search", produces = "application/json")
