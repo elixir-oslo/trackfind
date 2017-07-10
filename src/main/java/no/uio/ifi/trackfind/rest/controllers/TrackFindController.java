@@ -38,13 +38,9 @@ public class TrackFindController {
     }
 
     @GetMapping(path = "/attributes", produces = "application/json")
-    public Object getAttributes(@RequestParam(required = false) String expression) throws IOException, ParseException {
+    public Object getAttributes(@RequestParam(required = false, defaultValue = "") String expression) throws IOException, ParseException {
         Set<String> attributes = trackFindService.getMetamodelFlat().asMap().keySet();
-        if (StringUtils.isEmpty(expression)) {
-            return attributes;
-        } else {
-            return attributes.stream().filter(a -> a.contains(expression)).collect(Collectors.toSet());
-        }
+        return attributes.stream().filter(a -> a.contains(expression)).collect(Collectors.toSet());
     }
 
     @GetMapping(path = "/values", produces = "application/json")
