@@ -120,7 +120,7 @@ public class TrackFindService {
         return metamodel;
     }
 
-    // Sample query: "sample_id: SRS306625_*_471 AND other_attributes>lab: U??D AND ihec_data_portal>assay: (WGB-Seq OR something)"
+    // Sample query: "sample_id: SRS306625_*_471 OR other_attributes>lab: U??D AND ihec_data_portal>assay: (WGB-Seq OR something)"
     public Collection<Map> search(String query) {
         try {
             Query parsedQuery = new AnalyzingQueryParser("", analyzer).parse(query);
