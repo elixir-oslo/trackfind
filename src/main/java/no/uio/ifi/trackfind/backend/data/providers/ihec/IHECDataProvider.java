@@ -79,8 +79,8 @@ public class IHECDataProvider implements DataProvider {
         private Integer taxonId;
 
         @Override
-        public int compareTo(Release o) {
-            return getIntegrationDate().compareTo(o.getIntegrationDate());
+        public int compareTo(Release that) {
+            return this.getIntegrationDate().compareTo(that.getIntegrationDate());
         }
 
     }
