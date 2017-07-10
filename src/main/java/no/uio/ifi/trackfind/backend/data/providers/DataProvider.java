@@ -1,4 +1,4 @@
-package no.uio.ifi.trackfind.data.providers;
+package no.uio.ifi.trackfind.backend.data.providers;
 
 import java.util.Collection;
 import java.util.Map;

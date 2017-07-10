@@ -1,8 +1,8 @@
 package no.uio.ifi.trackfind;
 
 import com.google.common.collect.Multimap;
-import no.uio.ifi.trackfind.data.providers.DataProvider;
-import no.uio.ifi.trackfind.services.TrackFindService;
+import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
+import no.uio.ifi.trackfind.backend.services.TrackFindService;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
 import org.assertj.core.api.Assertions;

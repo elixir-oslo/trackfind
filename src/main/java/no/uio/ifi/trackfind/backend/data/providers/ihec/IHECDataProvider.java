@@ -1,4 +1,4 @@
-package no.uio.ifi.trackfind.data.providers.ihec;
+package no.uio.ifi.trackfind.backend.data.providers.ihec;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -6,7 +6,7 @@ import com.google.gson.annotations.SerializedName;
 import com.google.gson.reflect.TypeToken;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import no.uio.ifi.trackfind.data.providers.DataProvider;
+import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;

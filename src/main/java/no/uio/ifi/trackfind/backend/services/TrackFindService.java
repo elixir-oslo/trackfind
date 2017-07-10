@@ -1,9 +1,9 @@
-package no.uio.ifi.trackfind.services;
+package no.uio.ifi.trackfind.backend.services;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import lombok.extern.slf4j.Slf4j;
-import no.uio.ifi.trackfind.data.providers.DataProvider;
+import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.KeywordAnalyzer;
 import org.apache.lucene.document.Document;
