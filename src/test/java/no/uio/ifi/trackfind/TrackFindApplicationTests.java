@@ -49,9 +49,20 @@ public class TrackFindApplicationTests {
         trackFindService.updateIndex();
     }
 
+    @SuppressWarnings("unchecked")
     @Test
-    public void metamodelTest() {
-        Multimap<String, String> metamodel = trackFindService.getMetamodel();
+    public void metamodelTreeTest() {
+        Map<String, Object> metamodel = trackFindService.getMetamodelTree();
+        Assertions.assertThat(metamodel).isNotNull();
+        Assertions.assertThat(metamodel).containsKey("key");
+        Object value = metamodel.get("key");
+        Assertions.assertThat(value).isInstanceOf(Collection.class);
+        Assertions.assertThat((Collection) value).containsOnly("value");
+    }
+
+    @Test
+    public void metamodelFlatTest() {
+        Multimap<String, String> metamodel = trackFindService.getMetamodelFlat();
         Assertions.assertThat(metamodel).isNotNull();
         Assertions.assertThat(metamodel.keySet()).contains("key");
         Assertions.assertThat(metamodel.get("key")).contains("value");

@@ -7,12 +7,14 @@ import org.apache.lucene.store.FSDirectory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 
+@EnableCaching
 @SpringBootApplication
 public class TrackFindApplication {
 

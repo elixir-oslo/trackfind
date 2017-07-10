@@ -96,8 +96,40 @@ public class TrackFindService {
         searcher = new IndexSearcher(indexReader);
     }
 
-    @Cacheable("metamodel")
-    public Multimap<String, String> getMetamodel() {
+    @SuppressWarnings("unchecked")
+    @Cacheable("metamodel-tree")
+    public Map<String, Object> getMetamodelTree() {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            Collection<String> fieldNames = MultiFields.getIndexedFields(indexReader);
+            Fields fields = MultiFields.getFields(indexReader);
+            for (String fieldName : fieldNames) {
+                Map<String, Object> metamodel = result;
+                String[] path = fieldName.split(PATH_SEPARATOR);
+                for (int i = 0; i < path.length - 1; i++) {
+                    String attribute = path[i];
+                    metamodel = (Map<String, Object>) metamodel.computeIfAbsent(attribute, k -> new HashMap<String, Object>());
+                }
+                Collection<String> values = (Collection<String>) metamodel.computeIfAbsent(path[path.length - 1], k -> new HashSet<String>());
+                Terms terms = fields.terms(fieldName);
+                TermsEnum iterator = terms.iterator();
+                BytesRef next = iterator.next();
+                while (next != null) {
+                    String value = next.utf8ToString();
+                    if (!value.contains(HTTP) & !value.contains(HTTPS)) {
+                        values.add(value);
+                    }
+                    next = iterator.next();
+                }
+            }
+        } catch (IOException e) {
+            log.error(e.getMessage(), e);
+        }
+        return result;
+    }
+
+    @Cacheable("metamodel-flat")
+    public Multimap<String, String> getMetamodelFlat() {
         Multimap<String, String> metamodel = HashMultimap.create();
         try {
             Collection<String> fieldNames = MultiFields.getIndexedFields(indexReader);

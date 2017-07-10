@@ -27,14 +27,19 @@ public class TrackFindController {
         trackFindService.updateIndex();
     }
 
-    @GetMapping(path = "/metamodel", produces = "application/json")
-    public Object getMetamodel() throws IOException, ParseException {
-        return trackFindService.getMetamodel().asMap();
+    @GetMapping(path = "/metamodel-tree", produces = "application/json")
+    public Object getMetamodelTree() throws IOException, ParseException {
+        return trackFindService.getMetamodelTree();
+    }
+
+    @GetMapping(path = "/metamodel-flat", produces = "application/json")
+    public Object getMetamodelFlat() throws IOException, ParseException {
+        return trackFindService.getMetamodelFlat().asMap();
     }
 
     @GetMapping(path = "/attributes", produces = "application/json")
     public Object getAttributes(@RequestParam(required = false) String expression) throws IOException, ParseException {
-        Set<String> attributes = trackFindService.getMetamodel().asMap().keySet();
+        Set<String> attributes = trackFindService.getMetamodelFlat().asMap().keySet();
         if (StringUtils.isEmpty(expression)) {
             return attributes;
         } else {
@@ -44,7 +49,7 @@ public class TrackFindController {
 
     @GetMapping(path = "/values", produces = "application/json")
     public Object getValues(@RequestParam String attribute) throws IOException, ParseException {
-        return trackFindService.getMetamodel().get(attribute);
+        return trackFindService.getMetamodelFlat().get(attribute);
     }
 
     @GetMapping(path = "/search", produces = "application/json")
