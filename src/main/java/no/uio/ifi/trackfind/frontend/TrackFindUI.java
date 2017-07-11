@@ -2,6 +2,7 @@ package no.uio.ifi.trackfind.frontend;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.vaadin.annotations.Theme;
 import com.vaadin.data.HasValue;
 import com.vaadin.event.MouseEvents;
 import com.vaadin.server.VaadinRequest;
@@ -17,6 +18,7 @@ import java.util.Collection;
 import java.util.Map;
 
 @SpringUI
+@Theme("trackfind")
 public class TrackFindUI extends UI {
 
     private final TrackFindService trackFindService;
@@ -66,6 +68,7 @@ public class TrackFindUI extends UI {
         TextArea dataTextArea = new TextArea();
         dataTextArea.setSizeFull();
         dataTextArea.setReadOnly(true);
+        dataTextArea.addStyleName("scrollable-text-area");
         Panel dataPanel = new Panel("Data", dataTextArea);
         dataPanel.setSizeFull();
         queryPanel.addClickListener((MouseEvents.ClickListener) event -> {
