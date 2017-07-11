@@ -46,6 +46,10 @@ public class TrackDataProvider extends AbstractHierarchicalDataProvider<TreeNode
         return true;
     }
 
+    public void setRoot(TreeNode root) {
+        this.root = root;
+    }
+
     public void setValuesFilter(String valuesFilter) {
         this.valuesFilter = valuesFilter.toLowerCase();
     }
