@@ -46,7 +46,7 @@ public class TrackFindUI extends UI {
         valuesFilterTextField.setValueChangeMode(ValueChangeMode.EAGER);
         valuesFilterTextField.setWidth(100, Unit.PERCENTAGE);
         tree.setSizeFull();
-        Panel treePanel = new Panel("Model Browser", tree);
+        Panel treePanel = new Panel("Model browser", tree);
         treePanel.setSizeFull();
         VerticalLayout treeLayout = new VerticalLayout(treePanel, valuesFilterTextField);
         treeLayout.setSizeFull();
