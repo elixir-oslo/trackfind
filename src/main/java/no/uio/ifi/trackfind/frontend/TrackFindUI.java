@@ -1,6 +1,8 @@
 package no.uio.ifi.trackfind.frontend;
 
+import com.vaadin.data.HasValue;
 import com.vaadin.server.VaadinRequest;
+import com.vaadin.shared.ui.ValueChangeMode;
 import com.vaadin.spring.annotation.SpringUI;
 import com.vaadin.ui.*;
 import no.uio.ifi.trackfind.backend.services.TrackFindService;
@@ -22,15 +24,20 @@ public class TrackFindUI extends UI {
     protected void init(VaadinRequest vaadinRequest) {
         Tree<TreeNode> tree = new Tree<>();
         tree.setSelectionMode(Grid.SelectionMode.MULTI);
-        tree.setWidth(30, Unit.PERCENTAGE);
         TrackDataProvider trackDataProvider = new TrackDataProvider(new TreeNode(trackFindService.getMetamodelTree()));
         tree.setDataProvider(trackDataProvider);
 
         HorizontalLayout headerLayout = new HorizontalLayout();
 
-        Panel treePanel = new Panel("Metamodel", tree);
+        TextField valuesFilterField = new TextField("Filter values", (HasValue.ValueChangeListener<String>) event -> {
+            trackDataProvider.setValuesFilter(event.getValue());
+            trackDataProvider.refreshAll();
+        });
+        valuesFilterField.setValueChangeMode(ValueChangeMode.EAGER);
+        valuesFilterField.setWidth(100, Unit.PERCENTAGE);
+        Panel treePanel = new Panel("Model Browser", tree);
         treePanel.setSizeFull();
-        VerticalLayout treeLayout = new VerticalLayout(treePanel);
+        VerticalLayout treeLayout = new VerticalLayout(treePanel, valuesFilterField);
         treeLayout.setSizeFull();
         treeLayout.setExpandRatio(treePanel, 1f);
 

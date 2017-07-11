@@ -10,6 +10,7 @@ import java.util.stream.Stream;
 public class TrackDataProvider extends AbstractHierarchicalDataProvider<TreeNode, Predicate<? super TreeNode>> {
 
     private TreeNode root;
+    private String valuesFilter = "";
 
     public TrackDataProvider(TreeNode root) {
         this.root = root;
@@ -25,6 +26,7 @@ public class TrackDataProvider extends AbstractHierarchicalDataProvider<TreeNode
         TreeNode parent = query.getParentOptional().orElse(root);
         return parent.fetchChildren()
                 .filter(query.getFilter().orElse(tr -> true))
+                .filter(tn -> (getChildCount(getQuery(tn)) != 0) || tn.toString().toLowerCase().contains(valuesFilter))
                 .sorted()
                 .skip(query.getOffset())
                 .limit(query.getLimit());
@@ -32,12 +34,20 @@ public class TrackDataProvider extends AbstractHierarchicalDataProvider<TreeNode
 
     @Override
     public boolean hasChildren(TreeNode item) {
-        return item.hasChildren();
+        return getChildCount(getQuery(item)) != 0;
+    }
+
+    private HierarchicalQuery<TreeNode, Predicate<? super TreeNode>> getQuery(TreeNode item) {
+        return new HierarchicalQuery<>(null, item);
     }
 
     @Override
     public boolean isInMemory() {
         return true;
+    }
+
+    public void setValuesFilter(String valuesFilter) {
+        this.valuesFilter = valuesFilter.toLowerCase();
     }
 
 }
