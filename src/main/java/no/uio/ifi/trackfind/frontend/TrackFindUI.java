@@ -1,9 +1,11 @@
 package no.uio.ifi.trackfind.frontend;
 
+import com.google.common.collect.Iterables;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.vaadin.annotations.Theme;
 import com.vaadin.data.HasValue;
+import com.vaadin.event.selection.SelectionListener;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.shared.ui.ValueChangeMode;
 import com.vaadin.spring.annotation.SpringUI;
@@ -12,6 +14,8 @@ import no.uio.ifi.trackfind.backend.services.TrackFindService;
 import no.uio.ifi.trackfind.frontend.data.TreeNode;
 import no.uio.ifi.trackfind.frontend.providers.TrackDataProvider;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.Set;
 
 @SpringUI
 @Theme("trackfind")
@@ -83,6 +87,13 @@ public class TrackFindUI extends UI {
     private VerticalLayout buildTreeLayout() {
         Tree<TreeNode> tree = new Tree<>();
         tree.setSelectionMode(Grid.SelectionMode.MULTI);
+        tree.addSelectionListener((SelectionListener<TreeNode>) event -> {
+            if (event.isUserOriginated()) {
+                Set<TreeNode> allSelectedItems = event.getAllSelectedItems();
+                TreeNode last = Iterables.getLast(allSelectedItems);
+                allSelectedItems.stream().filter(tn -> tn.getLevel() != last.getLevel()).forEach(tree::deselect);
+            }
+        });
         TrackDataProvider trackDataProvider = new TrackDataProvider(new TreeNode(trackFindService.getMetamodelTree()));
         tree.setDataProvider(trackDataProvider);
         TextField valuesFilterTextField = new TextField("Filter values", (HasValue.ValueChangeListener<String>) event -> {

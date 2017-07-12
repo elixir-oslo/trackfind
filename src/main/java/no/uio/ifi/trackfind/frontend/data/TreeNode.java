@@ -7,10 +7,12 @@ import java.util.stream.Stream;
 
 public class TreeNode implements Comparable<TreeNode> {
 
+    private int level;
     private TreeNode parent;
     private Map.Entry<String, Object> node;
 
     public TreeNode(Map<String, Object> root) {
+        this.level = 0;
         this.parent = null;
         this.node = new AbstractMap.SimpleEntry<>(null, root);
     }
@@ -18,6 +20,11 @@ public class TreeNode implements Comparable<TreeNode> {
     private TreeNode(TreeNode parent, Map.Entry<String, Object> node) {
         this.parent = parent;
         this.node = node;
+        this.level = parent.getLevel() + 1;
+    }
+
+    public int getLevel() {
+        return level;
     }
 
     public TreeNode getParent() {
