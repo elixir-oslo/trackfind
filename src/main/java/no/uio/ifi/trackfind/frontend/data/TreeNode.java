@@ -57,4 +57,14 @@ public class TreeNode implements Comparable<TreeNode> {
         return node.getKey();
     }
 
+    @Override
+    public int hashCode() {
+        return toString().hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof TreeNode && toString().equals(obj.toString());
+    }
+
 }

@@ -5,8 +5,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.vaadin.annotations.Theme;
 import com.vaadin.data.HasValue;
-import com.vaadin.event.selection.SelectionListener;
 import com.vaadin.server.VaadinRequest;
+import com.vaadin.shared.MouseEventDetails;
 import com.vaadin.shared.ui.ValueChangeMode;
 import com.vaadin.spring.annotation.SpringUI;
 import com.vaadin.ui.*;
@@ -15,7 +15,10 @@ import no.uio.ifi.trackfind.frontend.data.TreeNode;
 import no.uio.ifi.trackfind.frontend.providers.TrackDataProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @SpringUI
 @Theme("trackfind")
@@ -87,11 +90,52 @@ public class TrackFindUI extends UI {
     private VerticalLayout buildTreeLayout() {
         Tree<TreeNode> tree = new Tree<>();
         tree.setSelectionMode(Grid.SelectionMode.MULTI);
-        tree.addSelectionListener((SelectionListener<TreeNode>) event -> {
-            if (event.isUserOriginated()) {
-                Set<TreeNode> allSelectedItems = event.getAllSelectedItems();
-                TreeNode last = Iterables.getLast(allSelectedItems);
-                allSelectedItems.stream().filter(tn -> tn.getLevel() != last.getLevel()).forEach(tree::deselect);
+        tree.addItemClickListener((Tree.ItemClickListener<TreeNode>) event -> {
+            MouseEventDetails mouseEventDetails = event.getMouseEventDetails();
+            Tree<TreeNode> source = event.getSource();
+            Set<TreeNode> selectedItems = source.getSelectedItems();
+            TreeNode last;
+            try {
+                last = Iterables.getLast(selectedItems);
+            } catch (NoSuchElementException e) {
+                return;
+            }
+            TreeNode current = event.getItem();
+
+            if (mouseEventDetails.isCtrlKey() || mouseEventDetails.isMetaKey()) {
+                selectedItems.stream().filter(tn -> tn.getLevel() != current.getLevel() || tn.getParent() != current.getParent()).forEach(tree::deselect);
+            } else if (mouseEventDetails.isShiftKey()) {
+                selectedItems.stream().filter(tn -> tn.getLevel() != current.getLevel() || tn.getParent() != current.getParent()).forEach(tree::deselect);
+                selectedItems = source.getSelectedItems();
+                if (selectedItems.contains(last)) {
+                    TreeNode parent = current.getParent();
+                    List<TreeNode> children = parent.fetchChildren().sorted().collect(Collectors.toList());
+                    int indexOfLast = children.indexOf(last);
+                    int indexOfCurrent = children.indexOf(current);
+                    TreeNode from;
+                    TreeNode to;
+                    if (indexOfCurrent > indexOfLast) {
+                        from = last;
+                        to = current;
+                    } else {
+                        from = current;
+                        to = last;
+                    }
+                    boolean started = false;
+                    boolean finished = false;
+                    for (TreeNode child : children) {
+                        if (from.equals(child)) {
+                            started = true;
+                        } else if (to.equals(child)) {
+                            finished = true;
+                        }
+                        if (started && !finished) {
+                            tree.select(child);
+                        }
+                    }
+                }
+            } else {
+                selectedItems.forEach(tree::deselect);
             }
         });
         TrackDataProvider trackDataProvider = new TrackDataProvider(new TreeNode(trackFindService.getMetamodelTree()));
