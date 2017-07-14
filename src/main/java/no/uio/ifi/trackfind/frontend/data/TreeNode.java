@@ -43,6 +43,16 @@ public class TreeNode implements Comparable<TreeNode> {
         }
     }
 
+    public String getPath() {
+        String path = "";
+        TreeNode parent = getParent();
+        while (parent != null) {
+            path = ">" + parent.toString() + path;
+            parent = parent.getParent();
+        }
+        return path.replace(">null>", "") + (isLeaf() ? ":" : ">") + toString();
+    }
+
     public boolean isLeaf() {
         return node.getValue() == null;
     }

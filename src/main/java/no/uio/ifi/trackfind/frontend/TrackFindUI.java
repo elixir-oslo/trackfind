@@ -4,6 +4,7 @@ import com.google.common.collect.Iterables;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.vaadin.annotations.Theme;
+import com.vaadin.annotations.Title;
 import com.vaadin.data.HasValue;
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.event.ShortcutListener;
@@ -11,17 +12,27 @@ import com.vaadin.event.selection.SelectionListener;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.shared.MouseEventDetails;
 import com.vaadin.shared.ui.ValueChangeMode;
+import com.vaadin.shared.ui.dnd.DropEffect;
+import com.vaadin.shared.ui.dnd.EffectAllowed;
 import com.vaadin.spring.annotation.SpringUI;
 import com.vaadin.ui.*;
+import com.vaadin.ui.components.grid.TreeGridDragSource;
+import com.vaadin.ui.dnd.DropTargetExtension;
+import com.vaadin.ui.dnd.event.DropListener;
 import no.uio.ifi.trackfind.backend.services.TrackFindService;
+import no.uio.ifi.trackfind.frontend.components.TrackFindTree;
 import no.uio.ifi.trackfind.frontend.data.TreeNode;
 import no.uio.ifi.trackfind.frontend.providers.TrackDataProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.*;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @SpringUI
+@Title("TrackFind")
 @Theme("trackfind")
 public class TrackFindUI extends UI {
 
@@ -91,7 +102,18 @@ public class TrackFindUI extends UI {
                 executeQuery(queryTextArea.getValue());
             }
         });
-
+        DropTargetExtension<TextArea> dropTarget = new DropTargetExtension<>(queryTextArea);
+        dropTarget.setDropEffect(DropEffect.COPY);
+        dropTarget.addDropListener((DropListener<TextArea>) event -> {
+            Optional<AbstractComponent> componentOptional = event.getDragSourceComponent();
+            if (componentOptional.isPresent() && componentOptional.get() instanceof TreeGrid) {
+                TreeGrid<TreeNode> treeGrid = (TreeGrid<TreeNode>) componentOptional.get();
+                Set<TreeNode> selectedItems = treeGrid.getSelectedItems();
+                for (TreeNode selectedItem : selectedItems) {
+                    queryTextArea.setValue(queryTextArea.getValue() + " AND " + selectedItem.getPath());
+                }
+            }
+        });
         Panel queryPanel = new Panel("Search query", queryTextArea);
         queryPanel.setSizeFull();
         TextField sampleQueryTextField = new TextField("Sample query", "sample_id: SRS306625_*_471 OR other_attributes>lab: U??D AND ihec_data_portal>assay: (WGB-Seq OR something)");
@@ -108,7 +130,7 @@ public class TrackFindUI extends UI {
     }
 
     private VerticalLayout buildTreeLayout() {
-        Tree<TreeNode> tree = new Tree<>();
+        TrackFindTree<TreeNode> tree = new TrackFindTree<>();
         tree.setSelectionMode(Grid.SelectionMode.MULTI);
         tree.addItemClickListener((Tree.ItemClickListener<TreeNode>) event -> {
             MouseEventDetails mouseEventDetails = event.getMouseEventDetails();
@@ -166,6 +188,8 @@ public class TrackFindUI extends UI {
                 }
             }
         });
+        TreeGridDragSource<TreeNode> dragSource = new TreeGridDragSource<>((TreeGrid<TreeNode>) tree.getCompositionRoot());
+        dragSource.setEffectAllowed(EffectAllowed.COPY);
         TrackDataProvider trackDataProvider = new TrackDataProvider(new TreeNode(trackFindService.getMetamodelTree()));
         tree.setDataProvider(trackDataProvider);
         TextField valuesFilterTextField = new TextField("Filter values", (HasValue.ValueChangeListener<String>) event -> {
