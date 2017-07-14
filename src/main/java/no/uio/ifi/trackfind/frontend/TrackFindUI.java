@@ -180,6 +180,16 @@ public class TrackFindUI extends UI {
                 selectedItems.forEach(tree::deselect);
             }
         });
+        tree.addItemClickListener((Tree.ItemClickListener<TreeNode>) event -> {
+            if (event.getMouseEventDetails().isDoubleClick()) {
+                TreeNode item = event.getItem();
+                if (tree.isExpanded(item)) {
+                    tree.collapse(item);
+                } else {
+                    tree.expand(item);
+                }
+            }
+        });
         tree.addSelectionListener((SelectionListener<TreeNode>) event -> {
             if (event.isUserOriginated()) {
                 TreeNode last = Iterables.getLast(event.getAllSelectedItems());
