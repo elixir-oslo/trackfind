@@ -5,6 +5,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.vaadin.annotations.Theme;
 import com.vaadin.data.HasValue;
+import com.vaadin.event.ShortcutAction;
+import com.vaadin.event.ShortcutListener;
 import com.vaadin.event.selection.SelectionListener;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.shared.MouseEventDetails;
@@ -16,9 +18,7 @@ import no.uio.ifi.trackfind.frontend.data.TreeNode;
 import no.uio.ifi.trackfind.frontend.providers.TrackDataProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @SpringUI
@@ -27,6 +27,8 @@ public class TrackFindUI extends UI {
 
     private final TrackFindService trackFindService;
     private final Gson gson;
+
+    private TextArea dataTextArea;
 
     @Autowired
     public TrackFindUI(TrackFindService trackFindService) {
@@ -62,7 +64,7 @@ public class TrackFindUI extends UI {
     }
 
     private VerticalLayout buildDataLayout() {
-        TextArea dataTextArea = new TextArea();
+        dataTextArea = new TextArea();
         dataTextArea.setSizeFull();
         dataTextArea.setReadOnly(true);
         dataTextArea.addStyleName("scrollable-text-area");
@@ -77,6 +79,19 @@ public class TrackFindUI extends UI {
     private VerticalLayout buildQueryLayout() {
         TextArea queryTextArea = new TextArea();
         queryTextArea.setSizeFull();
+        queryTextArea.addShortcutListener(new ShortcutListener("Execute query", ShortcutAction.KeyCode.ENTER, new int[]{ShortcutAction.ModifierKey.CTRL}) {
+            @Override
+            public void handleAction(Object sender, Object target) {
+                executeQuery(queryTextArea.getValue());
+            }
+        });
+        queryTextArea.addShortcutListener(new ShortcutListener("Execute query", ShortcutAction.KeyCode.ENTER, new int[]{ShortcutAction.ModifierKey.META}) {
+            @Override
+            public void handleAction(Object sender, Object target) {
+                executeQuery(queryTextArea.getValue());
+            }
+        });
+
         Panel queryPanel = new Panel("Search query", queryTextArea);
         queryPanel.setSizeFull();
         TextField sampleQueryTextField = new TextField("Sample query", "sample_id: SRS306625_*_471 OR other_attributes>lab: U??D AND ihec_data_portal>assay: (WGB-Seq OR something)");
@@ -86,6 +101,10 @@ public class TrackFindUI extends UI {
         queryLayout.setSizeFull();
         queryLayout.setExpandRatio(queryPanel, 1f);
         return queryLayout;
+    }
+
+    private void executeQuery(String query) {
+        dataTextArea.setValue(gson.toJson(trackFindService.search(query)));
     }
 
     private VerticalLayout buildTreeLayout() {
