@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.vaadin.annotations.Theme;
 import com.vaadin.data.HasValue;
+import com.vaadin.event.selection.SelectionListener;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.shared.MouseEventDetails;
 import com.vaadin.shared.ui.ValueChangeMode;
@@ -138,6 +139,14 @@ public class TrackFindUI extends UI {
                 selectedItems.forEach(tree::deselect);
             }
         });
+        tree.addSelectionListener((SelectionListener<TreeNode>) event -> {
+            if (event.isUserOriginated()) {
+                TreeNode last = Iterables.getLast(event.getAllSelectedItems());
+                if (!(last.isFinalAttribute() || last.isLeaf())) {
+                    tree.deselect(last);
+                }
+            }
+        });
         TrackDataProvider trackDataProvider = new TrackDataProvider(new TreeNode(trackFindService.getMetamodelTree()));
         tree.setDataProvider(trackDataProvider);
         TextField valuesFilterTextField = new TextField("Filter values", (HasValue.ValueChangeListener<String>) event -> {
@@ -147,6 +156,7 @@ public class TrackFindUI extends UI {
         valuesFilterTextField.setValueChangeMode(ValueChangeMode.EAGER);
         valuesFilterTextField.setWidth(100, Unit.PERCENTAGE);
         tree.setSizeFull();
+        tree.setStyleGenerator((StyleGenerator<TreeNode>) item -> item.isFinalAttribute() || item.isLeaf() ? null : "disabled-tree-node");
         Panel treePanel = new Panel("Model browser", tree);
         treePanel.setSizeFull();
         VerticalLayout treeLayout = new VerticalLayout(treePanel, valuesFilterTextField);

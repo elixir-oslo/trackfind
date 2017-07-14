@@ -47,6 +47,10 @@ public class TreeNode implements Comparable<TreeNode> {
         return node.getValue() == null;
     }
 
+    public boolean isFinalAttribute() {
+        return fetchChildren().anyMatch(TreeNode::isLeaf);
+    }
+
     @Override
     public int compareTo(TreeNode that) {
         return String.valueOf(this).compareTo(String.valueOf(that));
