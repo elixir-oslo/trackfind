@@ -50,7 +50,11 @@ public class TreeNode implements Comparable<TreeNode> {
             path = ">" + parent.toString() + path;
             parent = parent.getParent();
         }
-        return path.replace(">null>", "") + (isLeaf() ? ":" : ">") + toString();
+        if (isLeaf()) {
+            return path.replace(">null>", "") + ": " + toString();
+        } else {
+            return (path.replace(">null", "") + ">" + toString() + ": ").substring(1);
+        }
     }
 
     public boolean isLeaf() {
