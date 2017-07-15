@@ -104,25 +104,25 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
-            <!--<plugin>-->
-                <!--<groupId>com.vaadin</groupId>-->
-                <!--<artifactId>vaadin-maven-plugin</artifactId>-->
-                <!--<version>8.0.6</version>-->
-                <!--<configuration>-->
-                    <!--<extraJvmArgs>-Xmx2048M -Xss1024k</extraJvmArgs>-->
-                    <!--<webappDirectory>${basedir}/target/classes/VAADIN/widgetsets</webappDirectory>-->
-                    <!--<module>TrackFindWidgetSet</module>-->
-                    <!--<style>detailed</style>-->
-                <!--</configuration>-->
-                <!--<executions>-->
-                    <!--<execution>-->
-                        <!--<goals>-->
-                            <!--<goal>update-widgetset</goal>-->
-                            <!--<goal>compile</goal>-->
-                        <!--</goals>-->
-                    <!--</execution>-->
-                <!--</executions>-->
-            <!--</plugin>-->
+            <plugin>
+                <groupId>com.vaadin</groupId>
+                <artifactId>vaadin-maven-plugin</artifactId>
+                <version>8.0.6</version>
+                <configuration>
+                    <extraJvmArgs>-Xmx2048M -Xss1024k</extraJvmArgs>
+                    <webappDirectory>${basedir}/target/classes/VAADIN/widgetsets</webappDirectory>
+                    <module>TrackFindWidgetSet</module>
+                    <style>detailed</style>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>update-widgetset</goal>
+                            <goal>compile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 

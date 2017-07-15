@@ -1,0 +1,9 @@
+<!DOCTYPE module PUBLIC "-//Google Inc.//DTD Google Web Toolkit 2.7.0//EN"
+        "http://gwtproject.org/doctype/2.7.0/gwt-module.dtd">
+<module>
+    <inherits name="com.vaadin.DefaultWidgetSet"/>
+
+    <set-configuration-property name="devModeRedirectEnabled" value="true" />
+
+    <source path="no/uio/ifi/trackfind/frontend/components/client"></source>
+</module>
