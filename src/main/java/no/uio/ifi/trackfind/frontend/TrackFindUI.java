@@ -1,16 +1,14 @@
 package no.uio.ifi.trackfind.frontend;
 
-import com.google.common.collect.Iterables;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Title;
+import com.vaadin.annotations.Widgetset;
 import com.vaadin.data.HasValue;
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.event.ShortcutListener;
-import com.vaadin.event.selection.SelectionListener;
 import com.vaadin.server.VaadinRequest;
-import com.vaadin.shared.MouseEventDetails;
 import com.vaadin.shared.ui.ValueChangeMode;
 import com.vaadin.shared.ui.dnd.DropEffect;
 import com.vaadin.shared.ui.dnd.EffectAllowed;
@@ -18,20 +16,18 @@ import com.vaadin.spring.annotation.SpringUI;
 import com.vaadin.ui.*;
 import com.vaadin.ui.components.grid.TreeGridDragSource;
 import com.vaadin.ui.dnd.DropTargetExtension;
-import com.vaadin.ui.dnd.event.DropListener;
 import no.uio.ifi.trackfind.backend.services.TrackFindService;
+import no.uio.ifi.trackfind.frontend.components.KeyboardInterceptorExtension;
 import no.uio.ifi.trackfind.frontend.components.TrackFindTree;
 import no.uio.ifi.trackfind.frontend.data.TreeNode;
+import no.uio.ifi.trackfind.frontend.listeners.TextAreaDropListener;
+import no.uio.ifi.trackfind.frontend.listeners.TreeItemClickListener;
+import no.uio.ifi.trackfind.frontend.listeners.TreeSelectionListener;
 import no.uio.ifi.trackfind.frontend.providers.TrackDataProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 @SpringUI
+@Widgetset("TrackFindWidgetSet")
 @Title("TrackFind")
 @Theme("trackfind")
 public class TrackFindUI extends UI {
@@ -39,6 +35,8 @@ public class TrackFindUI extends UI {
     private final TrackFindService trackFindService;
     private final Gson gson;
 
+    private KeyboardInterceptorExtension keyboardInterceptorExtension;
+    private TextArea queryTextArea;
     private TextArea dataTextArea;
 
     @Autowired
@@ -88,7 +86,7 @@ public class TrackFindUI extends UI {
     }
 
     private VerticalLayout buildQueryLayout() {
-        TextArea queryTextArea = new TextArea();
+        queryTextArea = new TextArea();
         queryTextArea.setSizeFull();
         queryTextArea.addShortcutListener(new ShortcutListener("Execute query", ShortcutAction.KeyCode.ENTER, new int[]{ShortcutAction.ModifierKey.CTRL}) {
             @Override
@@ -104,16 +102,7 @@ public class TrackFindUI extends UI {
         });
         DropTargetExtension<TextArea> dropTarget = new DropTargetExtension<>(queryTextArea);
         dropTarget.setDropEffect(DropEffect.COPY);
-        dropTarget.addDropListener((DropListener<TextArea>) event -> {
-            Optional<AbstractComponent> componentOptional = event.getDragSourceComponent();
-            if (componentOptional.isPresent() && componentOptional.get() instanceof TreeGrid) {
-                TreeGrid<TreeNode> treeGrid = (TreeGrid<TreeNode>) componentOptional.get();
-                Set<TreeNode> selectedItems = treeGrid.getSelectedItems();
-                for (TreeNode selectedItem : selectedItems) {
-                    queryTextArea.setValue(queryTextArea.getValue() + " AND " + selectedItem.getPath());
-                }
-            }
-        });
+        dropTarget.addDropListener(new TextAreaDropListener(queryTextArea));
         Panel queryPanel = new Panel("Search query", queryTextArea);
         queryPanel.setSizeFull();
         TextField sampleQueryTextField = new TextField("Sample query", "sample_id: SRS306625_*_471 OR other_attributes>lab: U??D AND ihec_data_portal>assay: (WGB-Seq OR something)");
@@ -129,75 +118,13 @@ public class TrackFindUI extends UI {
         dataTextArea.setValue(gson.toJson(trackFindService.search(query)));
     }
 
+    @SuppressWarnings("unchecked")
     private VerticalLayout buildTreeLayout() {
         TrackFindTree<TreeNode> tree = new TrackFindTree<>();
         tree.setSelectionMode(Grid.SelectionMode.MULTI);
-        tree.addItemClickListener((Tree.ItemClickListener<TreeNode>) event -> {
-            MouseEventDetails mouseEventDetails = event.getMouseEventDetails();
-            Tree<TreeNode> source = event.getSource();
-            Set<TreeNode> selectedItems = source.getSelectedItems();
-            TreeNode last;
-            try {
-                last = Iterables.getLast(selectedItems);
-            } catch (NoSuchElementException e) {
-                return;
-            }
-            TreeNode current = event.getItem();
-
-            if (mouseEventDetails.isCtrlKey() || mouseEventDetails.isMetaKey()) {
-                selectedItems.stream().filter(tn -> tn.getLevel() != current.getLevel() || tn.getParent() != current.getParent()).forEach(tree::deselect);
-            } else if (mouseEventDetails.isShiftKey()) {
-                selectedItems.stream().filter(tn -> tn.getLevel() != current.getLevel() || tn.getParent() != current.getParent()).forEach(tree::deselect);
-                selectedItems = source.getSelectedItems();
-                if (selectedItems.contains(last)) {
-                    TreeNode parent = current.getParent();
-                    List<TreeNode> children = parent.fetchChildren().sorted().collect(Collectors.toList());
-                    int indexOfLast = children.indexOf(last);
-                    int indexOfCurrent = children.indexOf(current);
-                    TreeNode from;
-                    TreeNode to;
-                    if (indexOfCurrent > indexOfLast) {
-                        from = last;
-                        to = current;
-                    } else {
-                        from = current;
-                        to = last;
-                    }
-                    boolean started = false;
-                    boolean finished = false;
-                    for (TreeNode child : children) {
-                        if (from.equals(child)) {
-                            started = true;
-                        } else if (to.equals(child)) {
-                            finished = true;
-                        }
-                        if (started && !finished) {
-                            tree.select(child);
-                        }
-                    }
-                }
-            } else {
-                selectedItems.forEach(tree::deselect);
-            }
-        });
-        tree.addItemClickListener((Tree.ItemClickListener<TreeNode>) event -> {
-            if (event.getMouseEventDetails().isDoubleClick()) {
-                TreeNode item = event.getItem();
-                if (tree.isExpanded(item)) {
-                    tree.collapse(item);
-                } else {
-                    tree.expand(item);
-                }
-            }
-        });
-        tree.addSelectionListener((SelectionListener<TreeNode>) event -> {
-            if (event.isUserOriginated()) {
-                TreeNode last = Iterables.getLast(event.getAllSelectedItems());
-                if (!(last.isFinalAttribute() || last.isLeaf())) {
-                    tree.deselect(last);
-                }
-            }
-        });
+        keyboardInterceptorExtension = new KeyboardInterceptorExtension(tree);
+        tree.addItemClickListener(new TreeItemClickListener(tree));
+        tree.addSelectionListener(new TreeSelectionListener(tree, keyboardInterceptorExtension));
         TreeGridDragSource<TreeNode> dragSource = new TreeGridDragSource<>((TreeGrid<TreeNode>) tree.getCompositionRoot());
         dragSource.setEffectAllowed(EffectAllowed.COPY);
         TrackDataProvider trackDataProvider = new TrackDataProvider(new TreeNode(trackFindService.getMetamodelTree()));
