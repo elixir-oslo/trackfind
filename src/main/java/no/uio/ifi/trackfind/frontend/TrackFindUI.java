@@ -35,7 +35,6 @@ public class TrackFindUI extends UI {
     private final TrackFindService trackFindService;
     private final Gson gson;
 
-    private KeyboardInterceptorExtension keyboardInterceptorExtension;
     private TextArea queryTextArea;
     private TextArea dataTextArea;
 
@@ -122,9 +121,8 @@ public class TrackFindUI extends UI {
     private VerticalLayout buildTreeLayout() {
         TrackFindTree<TreeNode> tree = new TrackFindTree<>();
         tree.setSelectionMode(Grid.SelectionMode.MULTI);
-        keyboardInterceptorExtension = new KeyboardInterceptorExtension(tree);
         tree.addItemClickListener(new TreeItemClickListener(tree));
-        tree.addSelectionListener(new TreeSelectionListener(tree, keyboardInterceptorExtension));
+        tree.addSelectionListener(new TreeSelectionListener(tree, new KeyboardInterceptorExtension(tree)));
         TreeGridDragSource<TreeNode> dragSource = new TreeGridDragSource<>((TreeGrid<TreeNode>) tree.getCompositionRoot());
         dragSource.setEffectAllowed(EffectAllowed.COPY);
         TrackDataProvider trackDataProvider = new TrackDataProvider(new TreeNode(trackFindService.getMetamodelTree()));
