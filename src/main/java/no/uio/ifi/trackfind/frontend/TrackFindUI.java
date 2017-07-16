@@ -8,6 +8,9 @@ import com.vaadin.annotations.Widgetset;
 import com.vaadin.data.HasValue;
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.event.ShortcutListener;
+import com.vaadin.server.FileDownloader;
+import com.vaadin.server.Resource;
+import com.vaadin.server.StreamResource;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.shared.ui.ValueChangeMode;
 import com.vaadin.shared.ui.dnd.DropEffect;
@@ -16,6 +19,7 @@ import com.vaadin.spring.annotation.SpringUI;
 import com.vaadin.ui.*;
 import com.vaadin.ui.components.grid.TreeGridDragSource;
 import com.vaadin.ui.dnd.DropTargetExtension;
+import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.services.TrackFindService;
 import no.uio.ifi.trackfind.frontend.components.KeyboardInterceptorExtension;
 import no.uio.ifi.trackfind.frontend.components.TrackFindTree;
@@ -26,17 +30,29 @@ import no.uio.ifi.trackfind.frontend.listeners.TreeSelectionListener;
 import no.uio.ifi.trackfind.frontend.providers.TrackDataProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.io.ByteArrayInputStream;
+import java.nio.charset.Charset;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
+
 @SpringUI
 @Widgetset("TrackFindWidgetSet")
 @Title("TrackFind")
 @Theme("trackfind")
+@Slf4j
 public class TrackFindUI extends UI {
 
     private final TrackFindService trackFindService;
     private final Gson gson;
 
     private TextArea queryTextArea;
-    private TextArea dataTextArea;
+    private TextArea resultsTextArea;
+
+    private FileDownloader fileDownloader;
+    private Button exportButton;
+
+    private Collection<Map> lastResults = Collections.emptyList();
 
     @Autowired
     public TrackFindUI(TrackFindService trackFindService) {
@@ -49,8 +65,8 @@ public class TrackFindUI extends UI {
         HorizontalLayout headerLayout = buildHeaderLayout();
         VerticalLayout treeLayout = buildTreeLayout();
         VerticalLayout queryLayout = buildQueryLayout();
-        VerticalLayout dataLayout = buildDataLayout();
-        HorizontalLayout mainLayout = buildMainLayout(treeLayout, queryLayout, dataLayout);
+        VerticalLayout resultsLayout = buildResultsLayout();
+        HorizontalLayout mainLayout = buildMainLayout(treeLayout, queryLayout, resultsLayout);
         HorizontalLayout footerLayout = buildFooterLayout();
         VerticalLayout outerLayout = buildOuterLayout(headerLayout, mainLayout, footerLayout);
         setContent(outerLayout);
@@ -65,23 +81,24 @@ public class TrackFindUI extends UI {
         return outerLayout;
     }
 
-    private HorizontalLayout buildMainLayout(VerticalLayout treeLayout, VerticalLayout queryLayout, VerticalLayout dataLayout) {
-        HorizontalLayout mainLayout = new HorizontalLayout(treeLayout, queryLayout, dataLayout);
+    private HorizontalLayout buildMainLayout(VerticalLayout treeLayout, VerticalLayout queryLayout, VerticalLayout resultsLayout) {
+        HorizontalLayout mainLayout = new HorizontalLayout(treeLayout, queryLayout, resultsLayout);
         mainLayout.setSizeFull();
         return mainLayout;
     }
 
-    private VerticalLayout buildDataLayout() {
-        dataTextArea = new TextArea();
-        dataTextArea.setSizeFull();
-        dataTextArea.setReadOnly(true);
-        dataTextArea.addStyleName("scrollable-text-area");
-        Panel dataPanel = new Panel("Data", dataTextArea);
-        dataPanel.setSizeFull();
-
-        VerticalLayout dataLayout = new VerticalLayout(dataPanel);
-        dataLayout.setSizeFull();
-        return dataLayout;
+    private VerticalLayout buildResultsLayout() {
+        resultsTextArea = new TextArea();
+        resultsTextArea.setSizeFull();
+        resultsTextArea.setReadOnly(true);
+        resultsTextArea.addStyleName("scrollable-text-area");
+        Panel resultsPanel = new Panel("Data", resultsTextArea);
+        resultsPanel.setSizeFull();
+        exportButton = new Button("Export");
+        VerticalLayout resultsLayout = new VerticalLayout(resultsPanel, exportButton);
+        resultsLayout.setSizeFull();
+        resultsLayout.setExpandRatio(resultsPanel, 1f);
+        return resultsLayout;
     }
 
     private VerticalLayout buildQueryLayout() {
@@ -107,14 +124,23 @@ public class TrackFindUI extends UI {
         TextField sampleQueryTextField = new TextField("Sample query", "sample_id: SRS306625_*_471 OR other_attributes>lab: U??D AND ihec_data_portal>assay: (WGB-Seq OR something)");
         sampleQueryTextField.setEnabled(false);
         sampleQueryTextField.setWidth(100, Unit.PERCENTAGE);
-        VerticalLayout queryLayout = new VerticalLayout(queryPanel, sampleQueryTextField);
+        PopupView popup = new PopupView("Help", sampleQueryTextField);
+        VerticalLayout queryLayout = new VerticalLayout(queryPanel, popup);
         queryLayout.setSizeFull();
         queryLayout.setExpandRatio(queryPanel, 1f);
         return queryLayout;
     }
 
     private void executeQuery(String query) {
-        dataTextArea.setValue(gson.toJson(trackFindService.search(query)));
+        lastResults = trackFindService.search(query);
+        resultsTextArea.setValue(gson.toJson(lastResults));
+
+        if (fileDownloader != null) {
+            exportButton.removeExtension(fileDownloader);
+        }
+        Resource resource = new StreamResource((StreamResource.StreamSource) () -> new ByteArrayInputStream(resultsTextArea.getValue().getBytes(Charset.defaultCharset())), "result.json");
+        fileDownloader = new FileDownloader(resource);
+        fileDownloader.extend(exportButton);
     }
 
     @SuppressWarnings("unchecked")
