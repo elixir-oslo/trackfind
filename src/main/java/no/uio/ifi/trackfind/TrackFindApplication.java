@@ -1,5 +1,6 @@
 package no.uio.ifi.trackfind;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import org.apache.lucene.store.Directory;
@@ -34,6 +35,7 @@ public class TrackFindApplication {
     @PostConstruct
     public void setup() {
         objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
     }
 
     @Bean

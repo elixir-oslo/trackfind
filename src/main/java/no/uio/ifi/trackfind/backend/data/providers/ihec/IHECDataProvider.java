@@ -25,6 +25,8 @@ public class IHECDataProvider implements DataProvider {
     private static final String FETCH_URL = "http://epigenomesportal.ca/cgi-bin/api/getDataHub.py?data_release_id=";
     private static final String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
     private static final String DATASETS = "datasets";
+    private static final String HUB_DESCRIPTION = "hub_description";
+    private static final String SAMPLES = "samples";
 
     @SuppressWarnings("unchecked")
     @Override
@@ -43,8 +45,17 @@ public class IHECDataProvider implements DataProvider {
         Integer lastReleaseId = lastRelease.getId();
         try (InputStreamReader reader = new InputStreamReader(new URL(FETCH_URL + lastReleaseId).openStream())) {
             Map grid = gson.fromJson(reader, Map.class);
-            Map datasets = (Map) grid.get(DATASETS);
-            return datasets.values();
+            Map datasetsMap = (Map) grid.get(DATASETS);
+            Collection<Map> datasets = datasetsMap.values();
+            Map samplesMap = (Map) grid.get(SAMPLES);
+            Object hubDescription = grid.get(HUB_DESCRIPTION);
+            for (Map<String, Object> dataset : datasets) {
+                String sampleId = dataset.get("sample_id").toString();
+                Object sample = samplesMap.get(sampleId);
+                dataset.put("sample_data", sample);
+                dataset.put("hub_description", hubDescription);
+            }
+            return datasets;
         } catch (IOException e) {
             log.error(e.getMessage(), e);
             return Collections.emptyList();

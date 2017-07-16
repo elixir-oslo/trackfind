@@ -22,6 +22,7 @@ import org.apache.lucene.util.BytesRef;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.SerializationUtils;
 
 import javax.annotation.PostConstruct;
@@ -36,6 +37,7 @@ public class TrackFindService {
     private static final String DATASET = "dataset";
     private static final String HTTP = "http://";
     private static final String HTTPS = "https://";
+    private static final String CHECK = "CHECK";
     private static final String PATH_SEPARATOR = ">";
 
     private Analyzer analyzer;
@@ -110,16 +112,20 @@ public class TrackFindService {
                     String attribute = path[i];
                     metamodel = (Map<String, Object>) metamodel.computeIfAbsent(attribute, k -> new HashMap<String, Object>());
                 }
-                Collection<String> values = (Collection<String>) metamodel.computeIfAbsent(path[path.length - 1], k -> new HashSet<String>());
+                String valuesKey = path[path.length - 1];
+                Collection<String> values = (Collection<String>) metamodel.computeIfAbsent(valuesKey, k -> new HashSet<String>());
                 Terms terms = fields.terms(fieldName);
                 TermsEnum iterator = terms.iterator();
                 BytesRef next = iterator.next();
                 while (next != null) {
                     String value = next.utf8ToString();
-                    if (!value.contains(HTTP) & !value.contains(HTTPS)) {
+                    if (!value.contains(HTTP) & !value.contains(HTTPS) && !value.contains(CHECK)) {
                         values.add(value);
                     }
                     next = iterator.next();
+                }
+                if (CollectionUtils.isEmpty(values)) {
+                    metamodel.remove(valuesKey);
                 }
             }
         } catch (IOException e) {
@@ -140,7 +146,7 @@ public class TrackFindService {
                 BytesRef next = iterator.next();
                 while (next != null) {
                     String value = next.utf8ToString();
-                    if (!value.contains(HTTP) && !value.contains(HTTPS)) {
+                    if (!value.contains(HTTP) && !value.contains(HTTPS) && !value.contains(CHECK)) {
                         metamodel.put(fieldName, value);
                     }
                     next = iterator.next();
