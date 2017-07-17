@@ -12,6 +12,7 @@ import com.vaadin.server.FileDownloader;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
 import com.vaadin.server.VaadinRequest;
+import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.shared.ui.ValueChangeMode;
 import com.vaadin.shared.ui.dnd.DropEffect;
 import com.vaadin.shared.ui.dnd.EffectAllowed;
@@ -30,7 +31,9 @@ import no.uio.ifi.trackfind.frontend.listeners.TextAreaDropListener;
 import no.uio.ifi.trackfind.frontend.listeners.TreeItemClickListener;
 import no.uio.ifi.trackfind.frontend.listeners.TreeSelectionListener;
 import no.uio.ifi.trackfind.frontend.providers.TrackDataProvider;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.Charset;
@@ -46,6 +49,8 @@ public class TrackFindUI extends UI {
     private final DataProvidersRepository dataProvidersRepository;
     private final TrackFindService trackFindService;
     private final Gson gson;
+
+    private Collection<Map> lastResults;
 
     private TextArea queryTextArea;
     private TextArea resultsTextArea;
@@ -92,9 +97,19 @@ public class TrackFindUI extends UI {
         resultsTextArea.setSizeFull();
         resultsTextArea.setReadOnly(true);
         resultsTextArea.addStyleName("scrollable-text-area");
+        resultsTextArea.addValueChangeListener((HasValue.ValueChangeListener<String>) event -> {
+            if (StringUtils.isEmpty(event.getValue())) {
+                exportButton.setEnabled(false);
+                exportButton.setCaption("Export as GSuite file");
+            } else {
+                exportButton.setEnabled(true);
+                exportButton.setCaption("Export (" + lastResults.size() + ") entries as GSuite file");
+            }
+        });
         Panel resultsPanel = new Panel("Data", resultsTextArea);
         resultsPanel.setSizeFull();
-        exportButton = new Button("Export");
+        exportButton = new Button("Export as GSuite file");
+        exportButton.setEnabled(false);
         VerticalLayout resultsLayout = new VerticalLayout(resultsPanel, exportButton);
         resultsLayout.setSizeFull();
         resultsLayout.setExpandRatio(resultsPanel, 1f);
@@ -121,19 +136,48 @@ public class TrackFindUI extends UI {
         dropTarget.addDropListener(new TextAreaDropListener(queryTextArea));
         Panel queryPanel = new Panel("Search query", queryTextArea);
         queryPanel.setSizeFull();
-        TextField sampleQueryTextField = new TextField("Sample query", "sample_id: SRS306625_*_471 OR other_attributes>lab: U??D AND ihec_data_portal>assay: (WGB-Seq OR something)");
-        sampleQueryTextField.setEnabled(false);
-        sampleQueryTextField.setWidth(100, Unit.PERCENTAGE);
-        PopupView popup = new PopupView("Help", sampleQueryTextField);
+
+        VerticalLayout helpLayout = buildHelpLayout();
+
+        PopupView popup = new PopupView("Help", helpLayout);
         VerticalLayout queryLayout = new VerticalLayout(queryPanel, popup);
         queryLayout.setSizeFull();
         queryLayout.setExpandRatio(queryPanel, 1f);
         return queryLayout;
     }
 
+    private VerticalLayout buildHelpLayout() {
+        Collection<Component> instructions = new ArrayList<>();
+        instructions.add(new Label("<b>How to perform a search:<b> ", ContentMode.HTML));
+        instructions.add(new Label("1. Navigate through metamodel tree using browser on the left."));
+        instructions.add(new Label("2. Filter values using text-field in the bottom if needed."));
+        instructions.add(new Label("3. Drag and drop attribute name or value to the query area."));
+        instructions.add(new Label("4. Correct query manually if necessary."));
+        instructions.add(new Label("5. Press <i>Ctrl+Shift</i> or <i>Command+Shift</i> to execute the query.", ContentMode.HTML));
+        instructions.add(new Label("<b>Hotkeys:<b> ", ContentMode.HTML));
+        instructions.add(new Label("Use <i>Ctrl</i> or <i>Command</i> to select multiple values in tree.", ContentMode.HTML));
+        instructions.add(new Label("Use <i>Shift</i> to select range of values in tree.", ContentMode.HTML));
+        instructions.add(new Label("Hold <i>Alt</i> or <i>Option</i> key while dragging to use OR operator instead of AND.", ContentMode.HTML));
+        instructions.add(new Label("Hold <i>Shift</i> key while dragging to add NOT operator.", ContentMode.HTML));
+
+        VerticalLayout helpLayout = new VerticalLayout();
+        instructions.forEach(helpLayout::addComponent);
+
+        TextField sampleQueryTextField = new TextField("Sample query", "sample_id: SRS306625_*_471 OR other_attributes>lab: U??D AND ihec_data_portal>assay: (WGB-Seq OR something)");
+        sampleQueryTextField.setEnabled(false);
+        sampleQueryTextField.setWidth(100, Unit.PERCENTAGE);
+        helpLayout.addComponent(sampleQueryTextField);
+        return helpLayout;
+    }
+
     private void executeQuery(String query) {
-        Collection<Map> lastResults = trackFindService.search(query);
-        resultsTextArea.setValue(gson.toJson(lastResults));
+        lastResults = trackFindService.search(query);
+        String jsonResult = gson.toJson(lastResults);
+        if (CollectionUtils.isEmpty(lastResults)) {
+            resultsTextArea.setValue("");
+        } else {
+            resultsTextArea.setValue(jsonResult);
+        }
 
         String result = "##location: remote\n" +
                 "##file format: unknown\n" +
