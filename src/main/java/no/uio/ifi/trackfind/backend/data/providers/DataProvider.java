@@ -7,4 +7,6 @@ public interface DataProvider {
 
     Collection<Map> fetchData();
 
+    String getUrlFromDataset(Map dataset);
+
 }

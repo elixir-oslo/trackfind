@@ -24,6 +24,7 @@ public class TrackFindController {
     @GetMapping(path = "/reinit", produces = "application/json")
     public void reinit() throws Exception {
         trackFindService.updateIndex();
+        trackFindService.resetCaches();
     }
 
     @GetMapping(path = "/metamodel-tree", produces = "application/json")

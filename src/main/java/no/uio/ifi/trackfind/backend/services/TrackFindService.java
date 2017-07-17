@@ -20,7 +20,9 @@ import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.util.BytesRef;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.SerializationUtils;
@@ -35,10 +37,8 @@ import java.util.stream.Collectors;
 public class TrackFindService {
 
     private static final String DATASET = "dataset";
-    private static final String HTTP = "http://";
-    private static final String HTTPS = "https://";
-    private static final String CHECK = "CHECK";
     private static final String PATH_SEPARATOR = ">";
+    private static final List<String> SKIP_TERMS = Arrays.asList("http://", "https://", "CHECK", "DataProvider");
 
     private Analyzer analyzer;
     private IndexReader indexReader;
@@ -98,6 +98,15 @@ public class TrackFindService {
         searcher = new IndexSearcher(indexReader);
     }
 
+
+    @Caching(evict = {
+            @CacheEvict(value = "metamodel-tree", allEntries = true),
+            @CacheEvict(value = "metamodel-flat", allEntries = true)
+    })
+    public void resetCaches() {
+        // Intentionally blank
+    }
+
     @SuppressWarnings("unchecked")
     @Cacheable("metamodel-tree")
     public Map<String, Object> getMetamodelTree() {
@@ -119,7 +128,7 @@ public class TrackFindService {
                 BytesRef next = iterator.next();
                 while (next != null) {
                     String value = next.utf8ToString();
-                    if (!value.contains(HTTP) & !value.contains(HTTPS) && !value.contains(CHECK)) {
+                    if (SKIP_TERMS.stream().noneMatch(value::contains)) {
                         values.add(value);
                     }
                     next = iterator.next();
@@ -146,7 +155,7 @@ public class TrackFindService {
                 BytesRef next = iterator.next();
                 while (next != null) {
                     String value = next.utf8ToString();
-                    if (!value.contains(HTTP) && !value.contains(HTTPS) && !value.contains(CHECK)) {
+                    if (SKIP_TERMS.stream().noneMatch(value::contains)) {
                         metamodel.put(fieldName, value);
                     }
                     next = iterator.next();

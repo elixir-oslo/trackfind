@@ -7,6 +7,7 @@ import com.google.gson.reflect.TypeToken;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
+import no.uio.ifi.trackfind.backend.data.providers.DataProvidersRepository;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -50,16 +51,26 @@ public class IHECDataProvider implements DataProvider {
             Map samplesMap = (Map) grid.get(SAMPLES);
             Object hubDescription = grid.get(HUB_DESCRIPTION);
             for (Map<String, Object> dataset : datasets) {
-                String sampleId = dataset.get("sample_id").toString();
+                String sampleId = String.valueOf(dataset.get("sample_id"));
                 Object sample = samplesMap.get(sampleId);
                 dataset.put("sample_data", sample);
                 dataset.put("hub_description", hubDescription);
+                dataset.put(DataProvidersRepository.JSON_KEY, this.getClass().getSimpleName());
             }
             return datasets;
         } catch (IOException e) {
             log.error(e.getMessage(), e);
             return Collections.emptyList();
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public String getUrlFromDataset(Map dataset) {
+        Map browser = (Map) dataset.get("browser");
+        Collection<Map> signals = (Collection<Map>) browser.get("signal");
+        Map signal = signals.iterator().next();
+        return String.valueOf(signal.get("big_data_url"));
     }
 
     @Data

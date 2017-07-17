@@ -77,12 +77,12 @@ public class TreeNode implements Comparable<TreeNode> {
 
     @Override
     public int hashCode() {
-        return toString().hashCode();
+        return this.toString().hashCode();
     }
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof TreeNode && toString().equals(obj.toString());
+        return obj instanceof TreeNode && this.toString().equals(obj.toString());
     }
 
 }

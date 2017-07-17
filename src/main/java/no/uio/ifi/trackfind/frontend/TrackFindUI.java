@@ -20,6 +20,8 @@ import com.vaadin.ui.*;
 import com.vaadin.ui.components.grid.TreeGridDragSource;
 import com.vaadin.ui.dnd.DropTargetExtension;
 import lombok.extern.slf4j.Slf4j;
+import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
+import no.uio.ifi.trackfind.backend.data.providers.DataProvidersRepository;
 import no.uio.ifi.trackfind.backend.services.TrackFindService;
 import no.uio.ifi.trackfind.frontend.components.KeyboardInterceptorExtension;
 import no.uio.ifi.trackfind.frontend.components.TrackFindTree;
@@ -32,9 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.Charset;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
+import java.util.*;
 
 @SpringUI
 @Widgetset("TrackFindWidgetSet")
@@ -43,6 +43,7 @@ import java.util.Map;
 @Slf4j
 public class TrackFindUI extends UI {
 
+    private final DataProvidersRepository dataProvidersRepository;
     private final TrackFindService trackFindService;
     private final Gson gson;
 
@@ -52,10 +53,9 @@ public class TrackFindUI extends UI {
     private FileDownloader fileDownloader;
     private Button exportButton;
 
-    private Collection<Map> lastResults = Collections.emptyList();
-
     @Autowired
-    public TrackFindUI(TrackFindService trackFindService) {
+    public TrackFindUI(DataProvidersRepository dataProvidersRepository, TrackFindService trackFindService) {
+        this.dataProvidersRepository = dataProvidersRepository;
         this.trackFindService = trackFindService;
         this.gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
     }
@@ -132,13 +132,30 @@ public class TrackFindUI extends UI {
     }
 
     private void executeQuery(String query) {
-        lastResults = trackFindService.search(query);
+        Collection<Map> lastResults = trackFindService.search(query);
         resultsTextArea.setValue(gson.toJson(lastResults));
+
+        String result = "##location: remote\n" +
+                "##file format: unknown\n" +
+                "##track type: unknown\n" +
+                "##genome: hg19\n" +
+                "###uri";
+        for (Map lastResult : lastResults) {
+            String dataProviderName = String.valueOf(lastResult.get(DataProvidersRepository.JSON_KEY));
+            Optional<DataProvider> dataProviderOptional = dataProvidersRepository.getDataProvider(dataProviderName);
+            if (dataProviderOptional.isPresent()) {
+                result += "\n" + dataProviderOptional.get().getUrlFromDataset(lastResult);
+            } else {
+                result += "\n error: can't find DataProvider for " + dataProviderName;
+            }
+        }
 
         if (fileDownloader != null) {
             exportButton.removeExtension(fileDownloader);
         }
-        Resource resource = new StreamResource((StreamResource.StreamSource) () -> new ByteArrayInputStream(resultsTextArea.getValue().getBytes(Charset.defaultCharset())), "result.json");
+        String finalResult = result;
+        Resource resource = new StreamResource((StreamResource.StreamSource) () -> new ByteArrayInputStream(finalResult.getBytes(Charset.defaultCharset())),
+                Calendar.getInstance().getTime().toString() + ".gsuite");
         fileDownloader = new FileDownloader(resource);
         fileDownloader.extend(exportButton);
     }
