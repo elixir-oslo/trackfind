@@ -175,6 +175,7 @@ public class TrackFindUI extends UI {
         String jsonResult = gson.toJson(lastResults);
         if (CollectionUtils.isEmpty(lastResults)) {
             resultsTextArea.setValue("");
+            Notification.show("Nothing found for such request");
         } else {
             resultsTextArea.setValue(jsonResult);
         }

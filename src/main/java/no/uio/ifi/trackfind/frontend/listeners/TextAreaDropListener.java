@@ -66,7 +66,7 @@ public class TextAreaDropListener implements DropListener<TextArea> {
         for (TreeNode item : items) {
             value += item.toString() + " OR ";
         }
-        value = value.subSequence(0, value.length() - 4) + ")";
+        value = value.subSequence(0, value.length() - 4) + ")\n\n";
         queryTextArea.setValue(value);
     }
 
@@ -79,7 +79,7 @@ public class TextAreaDropListener implements DropListener<TextArea> {
         if (inversion) {
             value += INVERSION;
         }
-        value += item.getPath();
+        value += item.getPath() + "\n\n";
         queryTextArea.setValue(value);
     }
 
