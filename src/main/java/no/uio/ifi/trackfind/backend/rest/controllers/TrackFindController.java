@@ -4,6 +4,7 @@ import no.uio.ifi.trackfind.backend.services.TrackFindService;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -21,36 +22,43 @@ public class TrackFindController {
         this.trackFindService = trackFindService;
     }
 
-    @GetMapping(path = "/reinit", produces = "application/json")
-    public void reinit() throws Exception {
-        trackFindService.updateIndex();
-        trackFindService.resetCaches();
+    @GetMapping(path = "providers", produces = "application/json")
+    public Object getProviders() throws Exception {
+        return trackFindService.getDataProviders().stream().map(dp -> dp.getClass().getSimpleName()).collect(Collectors.toSet());
     }
 
-    @GetMapping(path = "/metamodel-tree", produces = "application/json")
-    public Object getMetamodelTree() throws IOException, ParseException {
-        return trackFindService.getMetamodelTree();
+    @GetMapping(path = "/{provider}/reinit", produces = "application/json")
+    public void reinit(@PathVariable String provider) throws Exception {
+        trackFindService.getDataProvider(provider).updateIndex();
     }
 
-    @GetMapping(path = "/metamodel-flat", produces = "application/json")
-    public Object getMetamodelFlat() throws IOException, ParseException {
-        return trackFindService.getMetamodelFlat().asMap();
+    @GetMapping(path = "/{provider}/metamodel-tree", produces = "application/json")
+    public Object getMetamodelTree(@PathVariable String provider) throws IOException, ParseException {
+        return trackFindService.getDataProvider(provider).getMetamodelTree();
     }
 
-    @GetMapping(path = "/attributes", produces = "application/json")
-    public Object getAttributes(@RequestParam(required = false, defaultValue = "") String expression) throws IOException, ParseException {
-        Set<String> attributes = trackFindService.getMetamodelFlat().asMap().keySet();
+    @GetMapping(path = "/{provider}/metamodel-flat", produces = "application/json")
+    public Object getMetamodelFlat(@PathVariable String provider) throws IOException, ParseException {
+        return trackFindService.getDataProvider(provider).getMetamodelFlat().asMap();
+    }
+
+    @GetMapping(path = "/{provider}/attributes", produces = "application/json")
+    public Object getAttributes(@PathVariable String provider,
+                                @RequestParam(required = false, defaultValue = "") String expression) throws IOException, ParseException {
+        Set<String> attributes = trackFindService.getDataProvider(provider).getMetamodelFlat().asMap().keySet();
         return attributes.stream().filter(a -> a.contains(expression)).collect(Collectors.toSet());
     }
 
-    @GetMapping(path = "/values", produces = "application/json")
-    public Object getValues(@RequestParam String attribute) throws IOException, ParseException {
-        return trackFindService.getMetamodelFlat().get(attribute);
+    @GetMapping(path = "/{provider}/values", produces = "application/json")
+    public Object getValues(@PathVariable String provider,
+                            @RequestParam String attribute) throws IOException, ParseException {
+        return trackFindService.getDataProvider(provider).getMetamodelFlat().get(attribute);
     }
 
-    @GetMapping(path = "/search", produces = "application/json")
-    public Object search(@RequestParam String query) throws IOException, ParseException {
-        return trackFindService.search(query);
+    @GetMapping(path = "/{provider}/search", produces = "application/json")
+    public Object search(@PathVariable String provider,
+                         @RequestParam String query) throws IOException, ParseException {
+        return trackFindService.getDataProvider(provider).search(query);
     }
 
 }

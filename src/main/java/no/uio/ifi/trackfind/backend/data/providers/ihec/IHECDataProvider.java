@@ -6,8 +6,7 @@ import com.google.gson.annotations.SerializedName;
 import com.google.gson.reflect.TypeToken;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
-import no.uio.ifi.trackfind.backend.data.providers.DataProvidersRepository;
+import no.uio.ifi.trackfind.backend.data.providers.AbstractDataProvider;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -20,7 +19,7 @@ import java.util.Map;
 
 @Slf4j
 @Component
-public class IHECDataProvider implements DataProvider {
+public class IHECDataProvider extends AbstractDataProvider {
 
     private static final String RELEASES_URL = "http://epigenomesportal.ca//cgi-bin/api/getReleases.py";
     private static final String FETCH_URL = "http://epigenomesportal.ca/cgi-bin/api/getDataHub.py?data_release_id=";
@@ -32,7 +31,6 @@ public class IHECDataProvider implements DataProvider {
     @SuppressWarnings("unchecked")
     @Override
     public Collection<Map> fetchData() {
-        log.info("Fetching data using " + getClass().getSimpleName());
         Gson gson = new GsonBuilder().setDateFormat(DATE_FORMAT).create();
         Release lastRelease;
         try (InputStreamReader reader = new InputStreamReader(new URL(RELEASES_URL).openStream())) {
@@ -55,7 +53,7 @@ public class IHECDataProvider implements DataProvider {
                 Object sample = samplesMap.get(sampleId);
                 dataset.put("sample_data", sample);
                 dataset.put("hub_description", hubDescription);
-                dataset.put(DataProvidersRepository.JSON_KEY, this.getClass().getSimpleName());
+                dataset.put(JSON_KEY, this.getClass().getSimpleName());
             }
             return datasets;
         } catch (IOException e) {

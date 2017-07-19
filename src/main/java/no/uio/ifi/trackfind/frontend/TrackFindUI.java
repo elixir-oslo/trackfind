@@ -21,8 +21,8 @@ import com.vaadin.ui.*;
 import com.vaadin.ui.components.grid.TreeGridDragSource;
 import com.vaadin.ui.dnd.DropTargetExtension;
 import lombok.extern.slf4j.Slf4j;
+import no.uio.ifi.trackfind.backend.data.providers.AbstractDataProvider;
 import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
-import no.uio.ifi.trackfind.backend.data.providers.DataProvidersRepository;
 import no.uio.ifi.trackfind.backend.services.TrackFindService;
 import no.uio.ifi.trackfind.frontend.components.KeyboardInterceptorExtension;
 import no.uio.ifi.trackfind.frontend.components.TrackFindTree;
@@ -37,7 +37,10 @@ import org.springframework.util.CollectionUtils;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Map;
 
 @SpringUI
 @Widgetset("TrackFindWidgetSet")
@@ -46,12 +49,12 @@ import java.util.*;
 @Slf4j
 public class TrackFindUI extends UI {
 
-    private final DataProvidersRepository dataProvidersRepository;
     private final TrackFindService trackFindService;
     private final Gson gson;
 
     private Collection<Map> lastResults;
 
+    private TabSheet tabSheet;
     private TextArea queryTextArea;
     private TextArea resultsTextArea;
 
@@ -59,8 +62,7 @@ public class TrackFindUI extends UI {
     private Button exportButton;
 
     @Autowired
-    public TrackFindUI(DataProvidersRepository dataProvidersRepository, TrackFindService trackFindService) {
-        this.dataProvidersRepository = dataProvidersRepository;
+    public TrackFindUI(TrackFindService trackFindService) {
         this.trackFindService = trackFindService;
         this.gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
     }
@@ -170,8 +172,10 @@ public class TrackFindUI extends UI {
         return helpLayout;
     }
 
+    @SuppressWarnings("unchecked")
     private void executeQuery(String query) {
-        lastResults = trackFindService.search(query);
+        TrackFindTree<TreeNode> tree = (TrackFindTree<TreeNode>) tabSheet.getSelectedTab();
+        lastResults = tree.getTrackDataProvider().search(query);
         String jsonResult = gson.toJson(lastResults);
         if (CollectionUtils.isEmpty(lastResults)) {
             resultsTextArea.setValue("");
@@ -186,13 +190,9 @@ public class TrackFindUI extends UI {
                 "##genome: hg19\n" +
                 "###uri";
         for (Map lastResult : lastResults) {
-            String dataProviderName = String.valueOf(lastResult.get(DataProvidersRepository.JSON_KEY));
-            Optional<DataProvider> dataProviderOptional = dataProvidersRepository.getDataProvider(dataProviderName);
-            if (dataProviderOptional.isPresent()) {
-                result += "\n" + dataProviderOptional.get().getUrlFromDataset(lastResult);
-            } else {
-                result += "\n error: can't find DataProvider for " + dataProviderName;
-            }
+            String dataProviderName = String.valueOf(lastResult.get(AbstractDataProvider.JSON_KEY));
+            DataProvider dataProvider = trackFindService.getDataProvider(dataProviderName);
+            result += "\n" + dataProvider.getUrlFromDataset(lastResult);
         }
 
         if (fileDownloader != null) {
@@ -207,28 +207,45 @@ public class TrackFindUI extends UI {
 
     @SuppressWarnings("unchecked")
     private VerticalLayout buildTreeLayout() {
-        TrackFindTree<TreeNode> tree = new TrackFindTree<>();
+        tabSheet = new TabSheet();
+        tabSheet.setSizeFull();
+
+        for (DataProvider dataProvider : trackFindService.getDataProviders()) {
+            TrackFindTree<TreeNode> tree = buildTree(dataProvider);
+            tabSheet.addTab(tree, dataProvider.getClass().getSimpleName().replace("DataProvider", ""));
+        }
+
+        Panel treePanel = new Panel("Model browser", tabSheet);
+        treePanel.setSizeFull();
+
+        TextField valuesFilterTextField = new TextField("Filter values", (HasValue.ValueChangeListener<String>) event -> {
+            TrackFindTree<TreeNode> tree = (TrackFindTree<TreeNode>) tabSheet.getSelectedTab();
+            TrackDataProvider dataProvider = (TrackDataProvider) tree.getDataProvider();
+            dataProvider.setValuesFilter(event.getValue());
+            dataProvider.refreshAll();
+        });
+        valuesFilterTextField.setValueChangeMode(ValueChangeMode.EAGER);
+        valuesFilterTextField.setWidth(100, Unit.PERCENTAGE);
+
+        VerticalLayout treeLayout = new VerticalLayout(treePanel, valuesFilterTextField);
+        treeLayout.setSizeFull();
+        treeLayout.setExpandRatio(treePanel, 1f);
+        return treeLayout;
+    }
+
+    @SuppressWarnings("unchecked")
+    private TrackFindTree<TreeNode> buildTree(DataProvider dataProvider) {
+        TrackFindTree<TreeNode> tree = new TrackFindTree<>(dataProvider);
         tree.setSelectionMode(Grid.SelectionMode.MULTI);
         tree.addItemClickListener(new TreeItemClickListener(tree));
         tree.addSelectionListener(new TreeSelectionListener(tree, new KeyboardInterceptorExtension(tree)));
         TreeGridDragSource<TreeNode> dragSource = new TreeGridDragSource<>((TreeGrid<TreeNode>) tree.getCompositionRoot());
         dragSource.setEffectAllowed(EffectAllowed.COPY);
-        TrackDataProvider trackDataProvider = new TrackDataProvider(new TreeNode(trackFindService.getMetamodelTree()));
+        TrackDataProvider trackDataProvider = new TrackDataProvider(new TreeNode(dataProvider.getMetamodelTree()));
         tree.setDataProvider(trackDataProvider);
-        TextField valuesFilterTextField = new TextField("Filter values", (HasValue.ValueChangeListener<String>) event -> {
-            trackDataProvider.setValuesFilter(event.getValue());
-            trackDataProvider.refreshAll();
-        });
-        valuesFilterTextField.setValueChangeMode(ValueChangeMode.EAGER);
-        valuesFilterTextField.setWidth(100, Unit.PERCENTAGE);
         tree.setSizeFull();
         tree.setStyleGenerator((StyleGenerator<TreeNode>) item -> item.isFinalAttribute() || item.isLeaf() ? null : "disabled-tree-node");
-        Panel treePanel = new Panel("Model browser", tree);
-        treePanel.setSizeFull();
-        VerticalLayout treeLayout = new VerticalLayout(treePanel, valuesFilterTextField);
-        treeLayout.setSizeFull();
-        treeLayout.setExpandRatio(treePanel, 1f);
-        return treeLayout;
+        return tree;
     }
 
     private HorizontalLayout buildFooterLayout() {

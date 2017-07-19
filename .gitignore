@@ -19,5 +19,5 @@
 *.tar.gz
 *.rar
 
-indices
+*DataProvider
 target
