@@ -20,7 +20,6 @@ import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.util.BytesRef;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.SerializationUtils;
 
@@ -30,7 +29,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
-@Component
 public abstract class AbstractDataProvider implements DataProvider, Comparable<DataProvider> {
 
     public static final String JSON_KEY = "java_data_provider";
