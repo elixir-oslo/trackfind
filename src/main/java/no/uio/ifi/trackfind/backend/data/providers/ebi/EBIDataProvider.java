@@ -37,7 +37,6 @@ public class EBIDataProvider extends AbstractDataProvider {
                     String[] keyValue = keyValuePair.split("=");
                     dataset.put(keyValue[0], keyValue[1]);
                 }
-                dataset.put(JSON_KEY, this.getClass().getSimpleName());
                 dataset.put("bigDataUrl", bigDataUrl);
                 datasets.add(dataset);
             }

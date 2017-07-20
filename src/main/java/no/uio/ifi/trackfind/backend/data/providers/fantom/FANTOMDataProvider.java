@@ -53,7 +53,6 @@ public class FANTOMDataProvider extends AbstractDataProvider {
                     }
                 }
                 dataset.put("bigDataUrl", METADATA_URL + dir + URLEncoder.encode(next.get(attributes.length - 1), Charsets.UTF_8.name()));
-                dataset.put(JSON_KEY, this.getClass().getSimpleName());
                 datasets.add(dataset);
             }
         }

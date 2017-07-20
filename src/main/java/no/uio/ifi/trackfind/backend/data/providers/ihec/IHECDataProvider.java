@@ -49,7 +49,6 @@ public class IHECDataProvider extends AbstractDataProvider {
                 Object sample = samplesMap.get(sampleId);
                 dataset.put("sample_data", sample);
                 dataset.put("hub_description", hubDescription);
-                dataset.put(JSON_KEY, this.getClass().getSimpleName());
             }
             return datasets;
         }

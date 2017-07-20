@@ -32,6 +32,7 @@ import no.uio.ifi.trackfind.frontend.listeners.TreeItemClickListener;
 import no.uio.ifi.trackfind.frontend.listeners.TreeSelectionListener;
 import no.uio.ifi.trackfind.frontend.providers.TrackDataProvider;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 
@@ -212,7 +213,7 @@ public class TrackFindUI extends UI {
 
         for (DataProvider dataProvider : trackFindService.getDataProviders()) {
             TrackFindTree<TreeNode> tree = buildTree(dataProvider);
-            tabSheet.addTab(tree, dataProvider.getClass().getSimpleName().replace("DataProvider", ""));
+            tabSheet.addTab(tree, AopUtils.getTargetClass(dataProvider).getSimpleName().replace("DataProvider", ""));
         }
 
         Panel treePanel = new Panel("Model browser", tabSheet);
