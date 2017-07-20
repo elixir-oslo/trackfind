@@ -16,7 +16,7 @@ public class EBIDataProvider extends AbstractDataProvider {
 
     @SuppressWarnings("unchecked")
     @Override
-    public Collection<Map> fetchData() {
+    public Collection<Map> fetchData() throws IOException {
         Collection<Map> datasets = new HashSet<>();
         try (Scanner scanner = new Scanner(new URL(METADATA_URL).openStream()).useDelimiter("\n\n")) {
             while (scanner.hasNext()) {
@@ -41,9 +41,6 @@ public class EBIDataProvider extends AbstractDataProvider {
                 dataset.put("bigDataUrl", bigDataUrl);
                 datasets.add(dataset);
             }
-        } catch (IOException e) {
-            log.error(e.getMessage(), e);
-            return Collections.emptySet();
         }
         return datasets;
     }

@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 
@@ -30,16 +29,13 @@ public class IHECDataProvider extends AbstractDataProvider {
 
     @SuppressWarnings("unchecked")
     @Override
-    public Collection<Map> fetchData() {
+    public Collection<Map> fetchData() throws IOException {
         Gson gson = new GsonBuilder().setDateFormat(DATE_FORMAT).create();
         Release lastRelease;
         try (InputStreamReader reader = new InputStreamReader(new URL(RELEASES_URL).openStream())) {
             Collection<Release> releases = gson.fromJson(reader, new TypeToken<Collection<Release>>() {
             }.getType());
             lastRelease = releases.stream().sorted().findFirst().orElseThrow(RuntimeException::new);
-        } catch (IOException e) {
-            log.error(e.getMessage(), e);
-            return Collections.emptyList();
         }
         Integer lastReleaseId = lastRelease.getId();
         try (InputStreamReader reader = new InputStreamReader(new URL(FETCH_URL + lastReleaseId).openStream())) {
@@ -56,9 +52,6 @@ public class IHECDataProvider extends AbstractDataProvider {
                 dataset.put(JSON_KEY, this.getClass().getSimpleName());
             }
             return datasets;
-        } catch (IOException e) {
-            log.error(e.getMessage(), e);
-            return Collections.emptyList();
         }
     }
 

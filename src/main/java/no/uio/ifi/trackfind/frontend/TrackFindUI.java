@@ -154,7 +154,7 @@ public class TrackFindUI extends UI {
         instructions.add(new Label("1. Navigate through metamodel tree using browser on the left."));
         instructions.add(new Label("2. Filter values using text-field in the bottom if needed."));
         instructions.add(new Label("3. Drag and drop attribute name or value to the query area."));
-        instructions.add(new Label("4. Correct query manually if necessary."));
+        instructions.add(new Label("4. Correct query manually if necessary (some special characters should be escaped using backslash)."));
         instructions.add(new Label("5. Press <i>Ctrl+Shift</i> or <i>Command+Shift</i> to execute the query.", ContentMode.HTML));
         instructions.add(new Label("<b>Hotkeys:<b> ", ContentMode.HTML));
         instructions.add(new Label("Use <i>Ctrl</i> or <i>Command</i> to select multiple values in tree.", ContentMode.HTML));
