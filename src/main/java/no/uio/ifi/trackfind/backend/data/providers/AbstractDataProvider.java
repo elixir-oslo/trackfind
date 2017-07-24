@@ -61,13 +61,21 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
         IndexWriterConfig config = new IndexWriterConfig(analyzer);
         config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
         try (IndexWriter indexWriter = new IndexWriter(directory, config)) {
-            indexWriter.addDocuments(fetchData().stream().map(this::processDataset).collect(Collectors.toSet()));
+            Collection<Map> data = fetchData();
+            addDataProviderJsonKey(data);
+            indexWriter.addDocuments(data.stream().map(this::processDataset).collect(Collectors.toSet()));
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return;
         }
         reinitIndexSearcher();
         log.info("Success");
+    }
+
+    private void addDataProviderJsonKey(Collection<Map> data) {
+        for (Map map : data) {
+            map.put(JSON_KEY, getClass().getSimpleName());
+        }
     }
 
     private void reinitIndexSearcher() {
