@@ -35,7 +35,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
 
     private static final String DATASET = "dataset";
     private static final String PATH_SEPARATOR = ">";
-    private static final List<String> SKIP_TERMS = Arrays.asList("http://", "https://", "CHECK", "DataProvider");
+    private static final List<String> SKIP_TERMS = Arrays.asList("://", "CHECK", "DataProvider");
 
     private Analyzer analyzer = new KeywordAnalyzer();
 
@@ -72,6 +72,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
         log.info("Success");
     }
 
+    @SuppressWarnings("unchecked")
     private void addDataProviderJsonKey(Collection<Map> data) {
         for (Map map : data) {
             map.put(JSON_KEY, getClass().getSimpleName());
