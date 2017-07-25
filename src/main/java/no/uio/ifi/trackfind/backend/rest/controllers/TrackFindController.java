@@ -1,5 +1,6 @@
 package no.uio.ifi.trackfind.backend.rest.controllers;
 
+import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
 import no.uio.ifi.trackfind.backend.services.TrackFindService;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +31,11 @@ public class TrackFindController {
     @GetMapping(path = "/{provider}/reinit", produces = "application/json")
     public void reinit(@PathVariable String provider) throws Exception {
         trackFindService.getDataProvider(provider).updateIndex();
+    }
+
+    @GetMapping(path = "/reinit", produces = "application/json")
+    public void reinit() throws Exception {
+        trackFindService.getDataProviders().forEach(DataProvider::updateIndex);
     }
 
     @GetMapping(path = "/{provider}/metamodel-tree", produces = "application/json")
