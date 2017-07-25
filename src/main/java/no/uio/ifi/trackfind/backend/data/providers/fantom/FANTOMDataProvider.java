@@ -51,7 +51,7 @@ public class FANTOMDataProvider extends AbstractDataProvider {
                         dataset.put(attributes[i], next.get(i));
                     }
                 }
-                dataset.put("bigDataUrl", METADATA_URL + dir + URLEncoder.encode(next.get(attributes.length - 1), Charsets.UTF_8.name()));
+                dataset.put("big_data_url", METADATA_URL + dir + URLEncoder.encode(next.get(attributes.length - 1), Charsets.UTF_8.name()));
                 datasets.add(dataset);
             }
         }
@@ -73,7 +73,7 @@ public class FANTOMDataProvider extends AbstractDataProvider {
     @SuppressWarnings("unchecked")
     @Override
     public String getUrlFromDataset(Map dataset) {
-        return String.valueOf(dataset.get("bigDataUrl"));
+        return String.valueOf(dataset.get("big_data_url"));
     }
 
 }

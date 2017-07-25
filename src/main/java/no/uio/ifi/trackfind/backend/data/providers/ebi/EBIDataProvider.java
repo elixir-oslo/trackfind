@@ -36,7 +36,7 @@ public class EBIDataProvider extends AbstractDataProvider {
                     String[] keyValue = keyValuePair.split("=");
                     dataset.put(keyValue[0], keyValue[1]);
                 }
-                dataset.put("bigDataUrl", bigDataUrl);
+                dataset.put("big_data_url", bigDataUrl);
                 datasets.add(dataset);
             }
         }
@@ -46,7 +46,7 @@ public class EBIDataProvider extends AbstractDataProvider {
     @SuppressWarnings("unchecked")
     @Override
     public String getUrlFromDataset(Map dataset) {
-        return String.valueOf(dataset.get("bigDataUrl"));
+        return String.valueOf(dataset.get("big_data_url"));
     }
 
 }

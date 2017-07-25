@@ -39,7 +39,7 @@ public class GWASDataProvider extends AbstractDataProvider {
                 dataset.put(attribute, value);
                 if ("SNPS".equals(attribute)) {
                     int seq = index.computeIfAbsent(value, k -> new AtomicInteger(0)).getAndIncrement();
-                    dataset.put("bigDataUrl", "gwas://" + value + "-" + seq + ".gtrack");
+                    dataset.put("big_data_url", "gwas://" + value + "-" + seq + ".gtrack");
                 }
             }
             datasets.add(dataset);
@@ -50,7 +50,7 @@ public class GWASDataProvider extends AbstractDataProvider {
     @SuppressWarnings("unchecked")
     @Override
     public String getUrlFromDataset(Map dataset) {
-        return String.valueOf(dataset.get("bigDataUrl"));
+        return String.valueOf(dataset.get("big_data_url"));
     }
 
 }
