@@ -14,7 +14,6 @@ public class EBIDataProvider extends AbstractDataProvider {
 
     private static final String METADATA_URL = "ftp://ftp.ebi.ac.uk/pub/databases/blueprint/releases/20150128/homo_sapiens/hub/hg19/tracksDb.txt";
 
-    @SuppressWarnings("unchecked")
     @Override
     public Collection<Map> fetchData() throws IOException {
         Collection<Map> datasets = new HashSet<>();

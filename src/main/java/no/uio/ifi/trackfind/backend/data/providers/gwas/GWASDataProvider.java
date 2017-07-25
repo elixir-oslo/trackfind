@@ -20,7 +20,6 @@ public class GWASDataProvider extends AbstractDataProvider {
 
     private static final String METADATA_URL = "https://www.ebi.ac.uk/gwas/api/search/downloads/full";
 
-    @SuppressWarnings("unchecked")
     @Override
     public Collection<Map> fetchData() throws IOException {
         Collection<Map> datasets = new HashSet<>();

@@ -21,7 +21,6 @@ import com.vaadin.ui.*;
 import com.vaadin.ui.components.grid.TreeGridDragSource;
 import com.vaadin.ui.dnd.DropTargetExtension;
 import lombok.extern.slf4j.Slf4j;
-import no.uio.ifi.trackfind.backend.data.providers.AbstractDataProvider;
 import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
 import no.uio.ifi.trackfind.backend.services.TrackFindService;
 import no.uio.ifi.trackfind.frontend.components.KeyboardInterceptorExtension;
@@ -32,7 +31,6 @@ import no.uio.ifi.trackfind.frontend.listeners.TreeItemClickListener;
 import no.uio.ifi.trackfind.frontend.listeners.TreeSelectionListener;
 import no.uio.ifi.trackfind.frontend.providers.TrackDataProvider;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 
@@ -173,10 +171,10 @@ public class TrackFindUI extends UI {
         return helpLayout;
     }
 
-    @SuppressWarnings("unchecked")
     private void executeQuery(String query) {
-        TrackFindTree<TreeNode> tree = (TrackFindTree<TreeNode>) tabSheet.getSelectedTab();
-        lastResults = tree.getTrackDataProvider().search(query);
+        DataProvider currentDataProvider = getCurrentDataProvider();
+
+        lastResults = currentDataProvider.search(query);
         String jsonResult = gson.toJson(lastResults);
         if (CollectionUtils.isEmpty(lastResults)) {
             resultsTextArea.setValue("");
@@ -185,25 +183,26 @@ public class TrackFindUI extends UI {
             resultsTextArea.setValue(jsonResult);
         }
 
-        String result = "##location: remote\n" +
-                "##file format: unknown\n" +
-                "##track type: unknown\n" +
-                "##genome: hg19\n" +
-                "###uri";
+        StringBuilder result = new StringBuilder("##repository: " + currentDataProvider.getName() + "\n" +
+                "###uri");
         for (Map lastResult : lastResults) {
-            String dataProviderName = String.valueOf(lastResult.get(AbstractDataProvider.JSON_KEY));
-            DataProvider dataProvider = trackFindService.getDataProvider(dataProviderName);
-            result += "\n" + dataProvider.getUrlFromDataset(lastResult);
+            result.append("\n").append(currentDataProvider.getUrlFromDataset(lastResult));
         }
 
         if (fileDownloader != null) {
             exportButton.removeExtension(fileDownloader);
         }
-        String finalResult = result;
+        String finalResult = result.toString();
         Resource resource = new StreamResource((StreamResource.StreamSource) () -> new ByteArrayInputStream(finalResult.getBytes(Charset.defaultCharset())),
                 Calendar.getInstance().getTime().toString() + ".gsuite");
         fileDownloader = new FileDownloader(resource);
         fileDownloader.extend(exportButton);
+    }
+
+    @SuppressWarnings("unchecked")
+    private DataProvider getCurrentDataProvider() {
+        TrackFindTree<TreeNode> tree = (TrackFindTree<TreeNode>) tabSheet.getSelectedTab();
+        return tree.getTrackDataProvider();
     }
 
     @SuppressWarnings("unchecked")
@@ -213,7 +212,7 @@ public class TrackFindUI extends UI {
 
         for (DataProvider dataProvider : trackFindService.getDataProviders()) {
             TrackFindTree<TreeNode> tree = buildTree(dataProvider);
-            tabSheet.addTab(tree, AopUtils.getTargetClass(dataProvider).getSimpleName().replace("DataProvider", ""));
+            tabSheet.addTab(tree, dataProvider.getName());
         }
 
         Panel treePanel = new Panel("Model browser", tabSheet);

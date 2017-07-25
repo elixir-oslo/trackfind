@@ -31,11 +31,9 @@ import java.util.stream.Collectors;
 @Slf4j
 public abstract class AbstractDataProvider implements DataProvider, Comparable<DataProvider> {
 
-    public static final String JSON_KEY = "java_data_provider";
-
     private static final String DATASET = "dataset";
     private static final String PATH_SEPARATOR = ">";
-    private static final List<String> SKIP_TERMS = Arrays.asList("://", "CHECK", "DataProvider");
+    private static final List<String> SKIP_TERMS = Arrays.asList("://", "CHECK");
 
     private Analyzer analyzer = new KeywordAnalyzer();
 
@@ -56,13 +54,17 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     }
 
     @Override
+    public String getName() {
+        return getClass().getSimpleName().replace("DataProvider", "");
+    }
+
+    @Override
     public synchronized void updateIndex() {
         log.info("Fetching data using " + getClass().getSimpleName());
         IndexWriterConfig config = new IndexWriterConfig(analyzer);
         config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
         try (IndexWriter indexWriter = new IndexWriter(directory, config)) {
             Collection<Map> data = fetchData();
-            addDataProviderJsonKey(data);
             indexWriter.addDocuments(data.stream().map(this::processDataset).collect(Collectors.toSet()));
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -70,13 +72,6 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
         }
         reinitIndexSearcher();
         log.info("Success");
-    }
-
-    @SuppressWarnings("unchecked")
-    private void addDataProviderJsonKey(Collection<Map> data) {
-        for (Map map : data) {
-            map.put(JSON_KEY, getClass().getSimpleName());
-        }
     }
 
     private void reinitIndexSearcher() {

@@ -53,21 +53,21 @@ public class TextAreaDropListener implements DropListener<TextArea> {
 
     private void processDragAndDropMultiple(boolean logicalOperation, boolean inversion, Set<TreeNode> items) {
         String operator = OPERATORS.get(logicalOperation);
-        String value = queryTextArea.getValue();
-        if (StringUtils.isNoneEmpty(value)) {
-            value += operator;
+        StringBuilder value = new StringBuilder(queryTextArea.getValue());
+        if (StringUtils.isNoneEmpty(value.toString())) {
+            value.append(operator);
         }
         if (inversion) {
-            value += INVERSION;
+            value.append(INVERSION);
         }
         TreeNode firstItem = items.iterator().next();
         String attribute = firstItem.getPath().split(":")[0].replace("/", "\\/").replace(" ", "\\ ").replace(":\\", ":");
-        value += attribute + ": (";
+        value.append(attribute).append(": (");
         for (TreeNode item : items) {
-            value += item.toString().replace(" ", "\\ ") + " OR ";
+            value.append(item.toString().replace(" ", "\\ ")).append(" OR ");
         }
-        value = value.subSequence(0, value.length() - 4) + ")\n\n";
-        queryTextArea.setValue(value);
+        value = new StringBuilder(value.subSequence(0, value.length() - 4) + ")\n\n");
+        queryTextArea.setValue(value.toString());
     }
 
     private void processDragAndDropSingle(boolean logicalOperation, boolean inversion, TreeNode item) {

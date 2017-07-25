@@ -2,7 +2,6 @@ package no.uio.ifi.trackfind.backend.services;
 
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
-import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -25,7 +24,7 @@ public class TrackFindService {
     }
 
     public DataProvider getDataProvider(String dataProviderName) {
-        return dataProviders.stream().filter(dp -> AopUtils.getTargetClass(dp).getSimpleName().equals(dataProviderName)).findAny().orElseThrow(RuntimeException::new);
+        return dataProviders.stream().filter(dp -> dp.getClass().getSimpleName().equals(dataProviderName)).findAny().orElseThrow(RuntimeException::new);
     }
 
 }

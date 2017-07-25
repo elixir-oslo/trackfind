@@ -9,6 +9,8 @@ import java.util.Map;
 
 public interface DataProvider {
 
+    String getName();
+
     Collection<Map> fetchData() throws IOException;
 
     String getUrlFromDataset(Map dataset);
