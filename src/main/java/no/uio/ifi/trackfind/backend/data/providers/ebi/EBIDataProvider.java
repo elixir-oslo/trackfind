@@ -21,11 +21,8 @@ public class EBIDataProvider extends AbstractDataProvider {
             while (scanner.hasNext()) {
                 String entry = scanner.next();
                 Optional<String> metadataOptional = Arrays.stream(entry.split("\n")).filter(s -> s.startsWith("    metadata")).findAny();
-                if (!metadataOptional.isPresent()) {
-                    continue;
-                }
                 Optional<String> bigDataUrlOptional = Arrays.stream(entry.split("\n")).filter(s -> s.startsWith("    bigDataUrl")).findAny();
-                if (!bigDataUrlOptional.isPresent()) {
+                if (!metadataOptional.isPresent() || !bigDataUrlOptional.isPresent()) {
                     continue;
                 }
                 String bigDataUrl = bigDataUrlOptional.get().substring(15);
