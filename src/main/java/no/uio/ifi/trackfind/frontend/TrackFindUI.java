@@ -41,6 +41,12 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Map;
 
+/**
+ * Main Vaadin UI of the application.
+ * Capable of displaying metadata for repositories, constructing and executing search queries along with exporting the results.
+ * Uses custom theme (VAADIN/themes/trackfind/trackfind.scss).
+ * Uses custom WidgetSet (TrackFindWidgetSet.gwt.xml).
+ */
 @SpringUI
 @Widgetset("TrackFindWidgetSet")
 @Title("TrackFind")
