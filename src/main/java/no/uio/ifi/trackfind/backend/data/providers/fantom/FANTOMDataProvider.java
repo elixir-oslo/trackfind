@@ -13,18 +13,23 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Fetches data from FANTOM (http://fantom.gsc.riken.jp/).
+ */
 @Slf4j
 @Component
 public class FANTOMDataProvider extends AbstractDataProvider {
 
     private static final String METADATA_URL = "http://fantom.gsc.riken.jp/5/datafiles/latest/basic/";
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Collection<Map> fetchData() throws IOException {
         Collection<Map> datasets = new HashSet<>();
@@ -58,6 +63,12 @@ public class FANTOMDataProvider extends AbstractDataProvider {
         return datasets;
     }
 
+    /**
+     * Parses FANTOM5 attributes, skipping recurrent attributes and renaming some others.
+     *
+     * @param header TSV header
+     * @return Array with attributes.
+     */
     private String[] parseAttributes(CSVRecord header) {
         String[] attributes = new String[header.size()];
         for (int i = 0; i < header.size(); i++) {
@@ -70,6 +81,9 @@ public class FANTOMDataProvider extends AbstractDataProvider {
         return attributes;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @SuppressWarnings("unchecked")
     @Override
     public String getUrlFromDataset(Map dataset) {

@@ -16,6 +16,10 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
 
+/**
+ * Fetches data from IHEC (http://epigenomesportal.ca/ihec/grid.html/).
+ * Includes: CEEHRC, Blueprint, ENCODE, NIH Roadmap, DEEP, AMED-CREST, KNIH, GIS and some other institutions.
+ */
 @Slf4j
 @Component
 public class IHECDataProvider extends AbstractDataProvider {
@@ -27,6 +31,9 @@ public class IHECDataProvider extends AbstractDataProvider {
     private static final String HUB_DESCRIPTION = "hub_description";
     private static final String SAMPLES = "samples";
 
+    /**
+     * {@inheritDoc}
+     */
     @SuppressWarnings("unchecked")
     @Override
     public Collection<Map> fetchData() throws IOException {
@@ -54,6 +61,9 @@ public class IHECDataProvider extends AbstractDataProvider {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @SuppressWarnings("unchecked")
     @Override
     public String getUrlFromDataset(Map dataset) {
@@ -63,6 +73,9 @@ public class IHECDataProvider extends AbstractDataProvider {
         return String.valueOf(signal.get("big_data_url"));
     }
 
+    /**
+     * Inner class for deserializing of Release data from IHEC (using Gson).
+     */
     @Data
     private class Release implements Comparable<Release> {
 

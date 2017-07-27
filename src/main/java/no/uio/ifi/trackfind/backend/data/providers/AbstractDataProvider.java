@@ -28,6 +28,10 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Abstract class for all data providers.
+ * Implements some common logic like Lucene Directory initialization, getting metamodel, searching, etc.
+ */
 @Slf4j
 public abstract class AbstractDataProvider implements DataProvider, Comparable<DataProvider> {
 
@@ -43,8 +47,13 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
 
     private DirectoryFactory directoryFactory;
 
+    /**
+     * Initialize Lucene Directory (Index) and the Searcher over this Directory.
+     *
+     * @throws Exception If initialization fails.
+     */
     @PostConstruct
-    public void postConstruct() throws Exception {
+    private void postConstruct() throws Exception {
         directory = directoryFactory.getDirectory(this.getClass().getSimpleName());
         if (DirectoryReader.indexExists(directory)) {
             reinitIndexSearcher();
@@ -53,11 +62,17 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getName() {
         return getClass().getSimpleName().replace("DataProvider", "");
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public synchronized void updateIndex() {
         log.info("Fetching data using " + getClass().getSimpleName());
@@ -74,6 +89,9 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
         log.info("Success");
     }
 
+    /**
+     * Reinitialize Directory Reader and Searcher (in case of Directory update).
+     */
     private void reinitIndexSearcher() {
         if (indexReader != null) {
             try {
@@ -92,6 +110,9 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
         searcher = new IndexSearcher(indexReader);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @SuppressWarnings("unchecked")
     public Map<String, Object> getMetamodelTree() {
@@ -128,6 +149,9 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
         return result;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Multimap<String, String> getMetamodelFlat() {
         Multimap<String, String> metamodel = HashMultimap.create();
@@ -152,6 +176,9 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
         return metamodel;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     // Sample query: "sample_id: SRS306625_*_471 OR other_attributes>lab: U??D AND ihec_data_portal>assay: (WGB-Seq OR something)"
     @Override
     public Collection<Map> search(String query) {
@@ -170,6 +197,12 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
         }
     }
 
+    /**
+     * Convert dataset from Map to Document.
+     *
+     * @param dataset Dataset as a Map.
+     * @return Dataset as a Document.
+     */
     @SuppressWarnings("ConstantConditions")
     private Document processDataset(Map dataset) {
         Document document = new Document();
@@ -178,6 +211,13 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
         return document;
     }
 
+    /**
+     * Recursive implementation of Map to Document conversion: field by field, taking care of nesting.
+     *
+     * @param document Result Document.
+     * @param object   Either inner Map or value.
+     * @param path     Path to the current entry (sequence of attributes).
+     */
     private void convertDatasetToDocument(Document document, Object object, String path) {
         if (object instanceof Map) {
             Set keySet = ((Map) object).keySet();
@@ -192,6 +232,9 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public int compareTo(DataProvider that) {
         return this.getClass().getSimpleName().compareTo(that.getClass().getSimpleName());

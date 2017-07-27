@@ -10,6 +10,9 @@ import org.springframework.cache.annotation.EnableCaching;
 
 import javax.annotation.PostConstruct;
 
+/**
+ * Spring Boot application's main class with some configuration and some beans defined.
+ */
 @EnableCaching
 @SpringBootApplication
 public class TrackFindApplication {

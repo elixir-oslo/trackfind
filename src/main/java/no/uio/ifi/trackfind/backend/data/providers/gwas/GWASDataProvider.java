@@ -14,12 +14,18 @@ import java.net.URL;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * Fetches data from GWAS Catalog (https://www.ebi.ac.uk/gwas/).
+ */
 @Slf4j
 @Component
 public class GWASDataProvider extends AbstractDataProvider {
 
     private static final String METADATA_URL = "https://www.ebi.ac.uk/gwas/api/search/downloads/full";
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Collection<Map> fetchData() throws IOException {
         Collection<Map> datasets = new HashSet<>();
@@ -47,6 +53,9 @@ public class GWASDataProvider extends AbstractDataProvider {
         return datasets;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @SuppressWarnings("unchecked")
     @Override
     public String getUrlFromDataset(Map dataset) {

@@ -8,12 +8,18 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 
+/**
+ * Fetches data from EMBL-EBI (http://www.ebi.ac.uk/).
+ */
 @Slf4j
 @Component
 public class EBIDataProvider extends AbstractDataProvider {
 
     private static final String METADATA_URL = "ftp://ftp.ebi.ac.uk/pub/databases/blueprint/releases/20150128/homo_sapiens/hub/hg19/tracksDb.txt";
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Collection<Map> fetchData() throws IOException {
         Collection<Map> datasets = new HashSet<>();
@@ -40,6 +46,9 @@ public class EBIDataProvider extends AbstractDataProvider {
         return datasets;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @SuppressWarnings("unchecked")
     @Override
     public String getUrlFromDataset(Map dataset) {
