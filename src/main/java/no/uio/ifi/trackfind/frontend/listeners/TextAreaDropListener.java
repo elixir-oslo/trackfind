@@ -15,6 +15,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * Listener for Drop event bind to Vaadin TextArea.
+ */
 public class TextAreaDropListener implements DropListener<TextArea> {
 
     private static Map<Boolean, String> OPERATORS = new HashMap<Boolean, String>() {{
@@ -26,10 +29,20 @@ public class TextAreaDropListener implements DropListener<TextArea> {
 
     private TextArea queryTextArea;
 
+    /**
+     * Constructor with binding to TextArea.
+     *
+     * @param queryTextArea TextArea to handle drops for.
+     */
     public TextAreaDropListener(TextArea queryTextArea) {
         this.queryTextArea = queryTextArea;
     }
 
+    /**
+     * Processes drop event.
+     *
+     * @param event Drop event.
+     */
     @SuppressWarnings("unchecked")
     @Override
     public void drop(DropEvent<TextArea> event) {
@@ -41,6 +54,12 @@ public class TextAreaDropListener implements DropListener<TextArea> {
         }
     }
 
+    /**
+     * Fetches mouse click details and processes single or multiple drop.
+     *
+     * @param mouseEventDetails Vaadin MouseEventDetails (with states of keyboard keys as well).
+     * @param selectedItems     Set of items selected (being dropped).
+     */
     private void processDragAndDrop(MouseEventDetails mouseEventDetails, Set<TreeNode> selectedItems) {
         boolean logicalOperation = !mouseEventDetails.isAltKey();
         boolean inversion = mouseEventDetails.isShiftKey();
@@ -51,6 +70,13 @@ public class TextAreaDropListener implements DropListener<TextArea> {
         }
     }
 
+    /**
+     * Processes drop of multiple items.
+     *
+     * @param logicalOperation true for AND, false for OR.
+     * @param inversion        true for NOT
+     * @param items            Items to drop (always values).
+     */
     private void processDragAndDropMultiple(boolean logicalOperation, boolean inversion, Set<TreeNode> items) {
         String operator = OPERATORS.get(logicalOperation);
         StringBuilder value = new StringBuilder(queryTextArea.getValue());
@@ -70,6 +96,13 @@ public class TextAreaDropListener implements DropListener<TextArea> {
         queryTextArea.setValue(value.toString());
     }
 
+    /**
+     * Processes drop of single item.
+     *
+     * @param logicalOperation true for AND, false for OR.
+     * @param inversion        true for NOT
+     * @param item             Item to drop (always attribute).
+     */
     private void processDragAndDropSingle(boolean logicalOperation, boolean inversion, TreeNode item) {
         String operator = OPERATORS.get(logicalOperation);
         String value = queryTextArea.getValue();

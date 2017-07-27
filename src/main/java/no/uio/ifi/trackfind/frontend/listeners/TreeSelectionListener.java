@@ -13,16 +13,28 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+/**
+ * Vaadin Tree click listener for implementing multiple selection and some other rules.
+ */
 public class TreeSelectionListener implements SelectionListener<TreeNode> {
 
     private Tree<TreeNode> tree;
     private KeyboardInterceptorExtension keyboardInterceptorExtension;
 
+    /**
+     * Constructor that injects Tree and KeyboardInterceptorExtension to the instance.
+     *
+     * @param tree                         Vaadin Tree.
+     * @param keyboardInterceptorExtension KeyboardInterceptorExtension.
+     */
     public TreeSelectionListener(Tree<TreeNode> tree, KeyboardInterceptorExtension keyboardInterceptorExtension) {
         this.tree = tree;
         this.keyboardInterceptorExtension = keyboardInterceptorExtension;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @SuppressWarnings("unchecked")
     @Override
     public void selectionChange(SelectionEvent<TreeNode> event) {
