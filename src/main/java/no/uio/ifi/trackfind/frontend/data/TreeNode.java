@@ -75,7 +75,7 @@ public class TreeNode implements Comparable<TreeNode> {
     /**
      * Gets path from the root node to current node.
      *
-     * @return Sequence of attributes separated by some delimiter (">" by default).
+     * @return Sequence of attributes separated by some delimiter ("&gt;" by default).
      */
     public String getPath() {
         String path = "";
