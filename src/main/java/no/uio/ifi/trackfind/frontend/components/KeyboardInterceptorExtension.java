@@ -4,6 +4,9 @@ import com.vaadin.server.AbstractClientConnector;
 import com.vaadin.server.AbstractExtension;
 import no.uio.ifi.trackfind.frontend.components.client.KeyboardInterceptorExtensionServerRpc;
 
+/**
+ * Extends for some component to make it able to intercept Shift, Alt, Control and Meta keys pressing.
+ */
 public class KeyboardInterceptorExtension extends AbstractExtension {
 
     private boolean shiftKeyDown;
@@ -11,6 +14,11 @@ public class KeyboardInterceptorExtension extends AbstractExtension {
     private boolean controlKeyDown;
     private boolean metaKeyDown;
 
+    /**
+     * Constructor that extends input component.
+     *
+     * @param connector Component connector to extend.
+     */
     public KeyboardInterceptorExtension(AbstractClientConnector connector) {
         super.extend(connector);
         registerRpc(new KeyboardInterceptorExtensionServerRpc() {
@@ -36,18 +44,38 @@ public class KeyboardInterceptorExtension extends AbstractExtension {
         });
     }
 
+    /**
+     * Checks the Shift key state (up or down).
+     *
+     * @return true for down state, false for up state.
+     */
     public boolean isShiftKeyDown() {
         return shiftKeyDown;
     }
 
+    /**
+     * Checks the Alt key state (up or down).
+     *
+     * @return true for down state, false for up state.
+     */
     public boolean isAltKeyDown() {
         return altKeyDown;
     }
 
+    /**
+     * Checks the Control key state (up or down).
+     *
+     * @return true for down state, false for up state.
+     */
     public boolean isControlKeyDown() {
         return controlKeyDown;
     }
 
+    /**
+     * Checks the Meta key state (up or down).
+     *
+     * @return true for down state, false for up state.
+     */
     public boolean isMetaKeyDown() {
         return metaKeyDown;
     }

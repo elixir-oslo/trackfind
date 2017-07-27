@@ -10,9 +10,18 @@ import com.vaadin.client.extensions.AbstractExtensionConnector;
 import com.vaadin.shared.ui.Connect;
 import no.uio.ifi.trackfind.frontend.components.KeyboardInterceptorExtension;
 
+/**
+ * Vaadin connector for KeyboardInterceptorExtension (see https://vaadin.com/docs/-/part/framework/gwt/gwt-overview.html).
+ * NB: client class compiled to JS later, so can't use some Java features here (like lambdas).
+ */
 @Connect(KeyboardInterceptorExtension.class)
 public class KeyboardInterceptorExtensionConnector extends AbstractExtensionConnector {
 
+    /**
+     * Extends some component to make it able to intercept Shift, Alt, Control and Meta keys pressing.
+     *
+     * @param target Component to enable key events interception for.
+     */
     @Override
     protected void extend(final ServerConnector target) {
         final KeyboardInterceptorExtensionServerRpc rpcProxy = getRpcProxy(KeyboardInterceptorExtensionServerRpc.class);
