@@ -9,6 +9,8 @@ import java.util.stream.Stream;
 
 /**
  * Front-end DataProvider for Vaadin Tree (not to be confused with back-end DataProvider).
+ *
+ * @author Dmytro Titov
  */
 public class TrackDataProvider extends AbstractHierarchicalDataProvider<TreeNode, Predicate<? super TreeNode>> {
 

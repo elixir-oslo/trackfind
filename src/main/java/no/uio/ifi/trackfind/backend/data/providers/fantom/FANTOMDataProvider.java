@@ -20,6 +20,8 @@ import java.util.stream.Collectors;
 
 /**
  * Fetches data from FANTOM (http://fantom.gsc.riken.jp/).
+ *
+ * @author Dmytro Titov
  */
 @Slf4j
 @Component

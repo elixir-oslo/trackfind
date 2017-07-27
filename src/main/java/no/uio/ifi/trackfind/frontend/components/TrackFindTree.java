@@ -8,6 +8,7 @@ import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
  * Vaadin Tree extension to expose it's CompositionRoot (which is protected out-of-the-box) and to inject back-end DataProvider.
  *
  * @param <T> Type of Vaadin Tree entries.
+ * @author Dmytro Titov
  */
 public class TrackFindTree<T> extends Tree<T> {
 

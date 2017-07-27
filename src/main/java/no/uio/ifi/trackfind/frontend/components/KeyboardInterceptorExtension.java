@@ -6,6 +6,8 @@ import no.uio.ifi.trackfind.frontend.components.client.KeyboardInterceptorExtens
 
 /**
  * Extends for some component to make it able to intercept Shift, Alt, Control and Meta keys pressing.
+ *
+ * @author Dmytro Titov
  */
 public class KeyboardInterceptorExtension extends AbstractExtension {
 

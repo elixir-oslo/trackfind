@@ -9,6 +9,8 @@ import java.io.IOException;
 
 /**
  * Factory providing Directories for DataProviders.
+ *
+ * @author Dmytro Titov
  */
 @Component
 public class DirectoryFactory {

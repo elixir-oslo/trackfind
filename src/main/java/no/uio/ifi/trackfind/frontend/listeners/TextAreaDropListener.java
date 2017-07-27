@@ -17,6 +17,8 @@ import java.util.Set;
 
 /**
  * Listener for Drop event bind to Vaadin TextArea.
+ *
+ * @author Dmytro Titov
  */
 public class TextAreaDropListener implements DropListener<TextArea> {
 

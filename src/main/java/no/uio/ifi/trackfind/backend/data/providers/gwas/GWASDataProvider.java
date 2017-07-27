@@ -16,6 +16,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Fetches data from GWAS Catalog (https://www.ebi.ac.uk/gwas/).
+ *
+ * @author Dmytro Titov
  */
 @Slf4j
 @Component

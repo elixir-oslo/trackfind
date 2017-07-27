@@ -5,6 +5,8 @@ import no.uio.ifi.trackfind.frontend.data.TreeNode;
 
 /**
  * Vaadin Tree click listener for implementing collapse/expand on double-click.
+ *
+ * @author Dmytro Titov
  */
 public class TreeItemClickListener implements Tree.ItemClickListener<TreeNode> {
 

@@ -7,6 +7,8 @@ import java.util.stream.Stream;
 
 /**
  * Data type for representing metadata element (attribute or value) on front-end.
+ *
+ * @author Dmytro Titov
  */
 public class TreeNode implements Comparable<TreeNode> {
 

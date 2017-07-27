@@ -14,6 +14,8 @@ import java.util.stream.Collectors;
 
 /**
  * Main REST controller exposing all main features of the system.
+ *
+ * @author Dmytro Titov
  */
 @RestController
 public class TrackFindController {

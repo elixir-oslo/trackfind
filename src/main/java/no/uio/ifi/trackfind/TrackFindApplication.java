@@ -12,6 +12,8 @@ import javax.annotation.PostConstruct;
 
 /**
  * Spring Boot application's main class with some configuration and some beans defined.
+ *
+ * @author Dmytro Titov
  */
 @EnableCaching
 @SpringBootApplication

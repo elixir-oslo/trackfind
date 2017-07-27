@@ -4,6 +4,8 @@ import com.vaadin.shared.communication.ServerRpc;
 
 /**
  * Vaadin ServerRpc for KeyboardInterceptorExtension (see https://vaadin.com/docs/-/part/framework/gwt/gwt-overview.html).
+ *
+ * @author Dmytro Titov
  */
 public interface KeyboardInterceptorExtensionServerRpc extends ServerRpc {
 

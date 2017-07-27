@@ -46,6 +46,8 @@ import java.util.Map;
  * Capable of displaying metadata for repositories, constructing and executing search queries along with exporting the results.
  * Uses custom theme (VAADIN/themes/trackfind/trackfind.scss).
  * Uses custom WidgetSet (TrackFindWidgetSet.gwt.xml).
+ *
+ * @author Dmytro Titov
  */
 @SpringUI
 @Widgetset("TrackFindWidgetSet")

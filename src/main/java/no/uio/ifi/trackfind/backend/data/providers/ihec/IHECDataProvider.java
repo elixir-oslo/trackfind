@@ -19,6 +19,8 @@ import java.util.Map;
 /**
  * Fetches data from IHEC (http://epigenomesportal.ca/ihec/grid.html/).
  * Includes: CEEHRC, Blueprint, ENCODE, NIH Roadmap, DEEP, AMED-CREST, KNIH, GIS and some other institutions.
+ *
+ * @author Dmytro Titov
  */
 @Slf4j
 @Component

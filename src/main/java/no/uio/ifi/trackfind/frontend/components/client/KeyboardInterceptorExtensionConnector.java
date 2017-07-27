@@ -13,6 +13,8 @@ import no.uio.ifi.trackfind.frontend.components.KeyboardInterceptorExtension;
 /**
  * Vaadin connector for KeyboardInterceptorExtension (see https://vaadin.com/docs/-/part/framework/gwt/gwt-overview.html).
  * NB: client class compiled to JS later, so can't use some Java features here (like lambdas).
+ *
+ * @author Dmytro Titov
  */
 @Connect(KeyboardInterceptorExtension.class)
 public class KeyboardInterceptorExtensionConnector extends AbstractExtensionConnector {

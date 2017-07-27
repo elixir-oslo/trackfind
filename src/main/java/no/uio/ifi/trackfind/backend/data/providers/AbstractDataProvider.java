@@ -31,6 +31,8 @@ import java.util.stream.Collectors;
 /**
  * Abstract class for all data providers.
  * Implements some common logic like Lucene Directory initialization, getting metamodel, searching, etc.
+ *
+ * @author Dmytro Titov
  */
 @Slf4j
 public abstract class AbstractDataProvider implements DataProvider, Comparable<DataProvider> {

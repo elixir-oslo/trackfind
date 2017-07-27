@@ -10,6 +10,8 @@ import java.util.TreeSet;
 
 /**
  * Basically the holder for all registered DataProviders.
+ *
+ * @author Dmytro Titov
  */
 @Slf4j
 @Service

@@ -15,6 +15,8 @@ import java.util.stream.Collectors;
 
 /**
  * Vaadin Tree click listener for implementing multiple selection and some other rules.
+ *
+ * @author Dmytro Titov
  */
 public class TreeSelectionListener implements SelectionListener<TreeNode> {
 

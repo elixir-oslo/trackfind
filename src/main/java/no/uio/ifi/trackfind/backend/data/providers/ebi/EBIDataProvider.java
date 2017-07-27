@@ -10,6 +10,8 @@ import java.util.*;
 
 /**
  * Fetches data from EMBL-EBI (http://www.ebi.ac.uk/).
+ *
+ * @author Dmytro Titov
  */
 @Slf4j
 @Component

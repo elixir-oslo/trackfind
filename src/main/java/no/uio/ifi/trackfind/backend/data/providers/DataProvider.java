@@ -8,6 +8,8 @@ import java.util.Map;
 
 /**
  * Interface describing access point for some external data repository.
+ *
+ * @author Dmytro Titov
  */
 public interface DataProvider {
 
