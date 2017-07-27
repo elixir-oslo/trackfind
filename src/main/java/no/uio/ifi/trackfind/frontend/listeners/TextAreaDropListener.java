@@ -27,15 +27,15 @@ public class TextAreaDropListener implements DropListener<TextArea> {
 
     private static String INVERSION = "NOT ";
 
-    private TextArea queryTextArea;
+    private TextArea textArea;
 
     /**
      * Constructor with binding to TextArea.
      *
-     * @param queryTextArea TextArea to handle drops for.
+     * @param textArea TextArea to handle drops for.
      */
-    public TextAreaDropListener(TextArea queryTextArea) {
-        this.queryTextArea = queryTextArea;
+    public TextAreaDropListener(TextArea textArea) {
+        this.textArea = textArea;
     }
 
     /**
@@ -79,7 +79,7 @@ public class TextAreaDropListener implements DropListener<TextArea> {
      */
     private void processDragAndDropMultiple(boolean logicalOperation, boolean inversion, Set<TreeNode> items) {
         String operator = OPERATORS.get(logicalOperation);
-        StringBuilder value = new StringBuilder(queryTextArea.getValue());
+        StringBuilder value = new StringBuilder(textArea.getValue());
         if (StringUtils.isNoneEmpty(value.toString())) {
             value.append(operator);
         }
@@ -93,7 +93,7 @@ public class TextAreaDropListener implements DropListener<TextArea> {
             value.append(item.toString().replace(" ", "\\ ")).append(" OR ");
         }
         value = new StringBuilder(value.subSequence(0, value.length() - 4) + ")\n\n");
-        queryTextArea.setValue(value.toString());
+        textArea.setValue(value.toString());
     }
 
     /**
@@ -105,7 +105,7 @@ public class TextAreaDropListener implements DropListener<TextArea> {
      */
     private void processDragAndDropSingle(boolean logicalOperation, boolean inversion, TreeNode item) {
         String operator = OPERATORS.get(logicalOperation);
-        String value = queryTextArea.getValue();
+        String value = textArea.getValue();
         if (StringUtils.isNoneEmpty(value)) {
             value += operator;
         }
@@ -113,7 +113,7 @@ public class TextAreaDropListener implements DropListener<TextArea> {
             value += INVERSION;
         }
         value += item.getPath().replace("/", "\\/").replace(" ", "\\ ").replace(":\\", ":") + "\n\n";
-        queryTextArea.setValue(value);
+        textArea.setValue(value);
     }
 
 }
