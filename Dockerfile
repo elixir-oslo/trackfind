@@ -4,4 +4,4 @@ ADD "target/trackfind-*.jar" trackfind.jar
 
 EXPOSE 8080
 
-ENTRYPOINT ["/usr/bin/java", "-jar", "/trackfind.jar"]
+ENTRYPOINT ["java", "-jar", "/trackfind.jar"]
