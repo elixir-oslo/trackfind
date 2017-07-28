@@ -1,3 +1,11 @@
+sudo: required
+
 language: java
 
-sudo: required
+deploy:
+  provider: releases
+  api_key: "24ed1be7b0c53c1c08e787a228953914e0bb928a"
+  file: "target/trackfind-*.jar"
+  skip_cleanup: true
+  on:
+    tags: true
