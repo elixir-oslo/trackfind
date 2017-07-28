@@ -1,6 +1,6 @@
 FROM java:8-jre-alpine
 
-ADD "target/trackfind-0.0.1-SNAPSHOT.jar" trackfind.jar
+ADD "target/trackfind-*.jar" trackfind.jar
 
 EXPOSE 8080
 
