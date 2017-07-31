@@ -40,7 +40,7 @@ public class TrackFindService {
      * @return DataProvider.
      */
     public DataProvider getDataProvider(String dataProviderName) {
-        return dataProviders.stream().filter(dp -> dp.getClass().getSimpleName().equals(dataProviderName)).findAny().orElseThrow(RuntimeException::new);
+        return getDataProviders().stream().filter(dp -> dp.getClass().getSimpleName().equals(dataProviderName)).findAny().orElseThrow(RuntimeException::new);
     }
 
 }

@@ -21,14 +21,6 @@ public interface DataProvider {
     String getName();
 
     /**
-     * Fetches data from the repository.
-     *
-     * @return Data as map.
-     * @throws IOException in case of reading problems.
-     */
-    Collection<Map> fetchData() throws IOException;
-
-    /**
      * Gets BigData URL from dataset.
      *
      * @param dataset Particular dataset as ma.

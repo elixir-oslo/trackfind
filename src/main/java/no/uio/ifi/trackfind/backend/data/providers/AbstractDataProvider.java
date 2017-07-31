@@ -73,6 +73,14 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     }
 
     /**
+     * Fetches data from the repository.
+     *
+     * @return Data as map.
+     * @throws IOException in case of reading problems.
+     */
+    protected abstract Collection<Map> fetchData() throws IOException;
+
+    /**
      * {@inheritDoc}
      */
     @Override

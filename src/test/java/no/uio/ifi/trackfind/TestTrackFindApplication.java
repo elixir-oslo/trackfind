@@ -40,7 +40,7 @@ public class TestTrackFindApplication {
 
     @Bean
     public DataProvider ihecDataProvider() {
-        return new IHECDataProvider() {
+        IHECDataProvider testDataProvider = new IHECDataProvider() {
             @Override
             public Collection<Map> fetchData() {
                 HashMap<String, String> track = new HashMap<>();
@@ -48,6 +48,8 @@ public class TestTrackFindApplication {
                 return Collections.singleton(track);
             }
         };
+        testDataProvider.updateIndex();
+        return testDataProvider;
     }
 
 }
