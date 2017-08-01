@@ -37,6 +37,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public abstract class AbstractDataProvider implements DataProvider, Comparable<DataProvider> {
 
+    private static final String INDICES_FOLDER = "indices/";
     private static final String DATASET = "dataset";
     private static final String PATH_SEPARATOR = ">";
     private static final List<String> SKIP_TERMS = Arrays.asList("://", "CHECK");
@@ -56,7 +57,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      */
     @PostConstruct
     private void postConstruct() throws Exception {
-        directory = directoryFactory.getDirectory(this.getClass().getSimpleName());
+        directory = directoryFactory.getDirectory(INDICES_FOLDER + getName());
         if (DirectoryReader.indexExists(directory)) {
             reinitIndexSearcher();
         } else {
@@ -85,7 +86,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      */
     @Override
     public synchronized void updateIndex() {
-        log.info("Fetching data using " + getClass().getSimpleName());
+        log.info("Fetching data using " + getName());
         IndexWriterConfig config = new IndexWriterConfig(analyzer);
         config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
         try (IndexWriter indexWriter = new IndexWriter(directory, config)) {
@@ -247,7 +248,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      */
     @Override
     public int compareTo(DataProvider that) {
-        return this.getClass().getSimpleName().compareTo(that.getClass().getSimpleName());
+        return this.getName().compareTo(that.getName());
     }
 
     @Autowired

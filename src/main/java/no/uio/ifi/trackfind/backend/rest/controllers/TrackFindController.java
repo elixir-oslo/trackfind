@@ -35,7 +35,7 @@ public class TrackFindController {
      */
     @GetMapping(path = "providers", produces = "application/json")
     public Object getProviders() throws Exception {
-        return trackFindService.getDataProviders().stream().map(dp -> dp.getClass().getSimpleName()).collect(Collectors.toSet());
+        return trackFindService.getDataProviders().stream().map(DataProvider::getName).collect(Collectors.toSet());
     }
 
     /**
