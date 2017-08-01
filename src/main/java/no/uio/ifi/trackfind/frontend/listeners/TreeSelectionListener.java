@@ -6,7 +6,7 @@ import com.vaadin.event.selection.SelectionListener;
 import com.vaadin.ui.Tree;
 import no.uio.ifi.trackfind.frontend.components.KeyboardInterceptorExtension;
 import no.uio.ifi.trackfind.frontend.data.TreeNode;
-import org.apache.commons.collections.MapUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.springframework.util.CollectionUtils;
 
 import java.util.*;
@@ -85,7 +85,7 @@ public class TreeSelectionListener implements SelectionListener<TreeNode> {
             }
             int min = optionalMin.get();
             int max = optionalMax.get();
-            Map<Integer, TreeNode> invertedMap = MapUtils.<Integer, TreeNode>invertMap(indexedSiblings);
+            Map<Integer, TreeNode> invertedMap = MapUtils.invertMap(indexedSiblings);
             for (int i = min; i <= max; i++) {
                 tree.select(invertedMap.get(i));
             }

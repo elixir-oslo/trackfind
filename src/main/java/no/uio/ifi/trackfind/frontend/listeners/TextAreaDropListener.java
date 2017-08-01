@@ -7,7 +7,7 @@ import com.vaadin.ui.TreeGrid;
 import com.vaadin.ui.dnd.event.DropEvent;
 import com.vaadin.ui.dnd.event.DropListener;
 import no.uio.ifi.trackfind.frontend.data.TreeNode;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
