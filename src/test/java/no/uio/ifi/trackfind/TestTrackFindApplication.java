@@ -13,8 +13,8 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,6 +23,8 @@ import java.util.Map;
 @ComponentScan(basePackages = "no.uio.ifi.trackfind.backend",
         excludeFilters = @ComponentScan.Filter(type = FilterType.REGEX, pattern = "no.uio.ifi.trackfind.backend.data.providers.*.*"))
 public class TestTrackFindApplication {
+
+    public static final String TEST_DATA_PROVIDER = "Test";
 
     public static void main(String[] args) {
         SpringApplication.run(TestTrackFindApplication.class, args);
@@ -40,16 +42,22 @@ public class TestTrackFindApplication {
 
     @Bean
     public DataProvider ihecDataProvider() {
-        IHECDataProvider testDataProvider = new IHECDataProvider() {
+        return new IHECDataProvider() {
+            @Override
+            public String getName() {
+                return TEST_DATA_PROVIDER;
+            }
+
             @Override
             public Collection<Map> fetchData() {
-                HashMap<String, String> track = new HashMap<>();
-                track.put("key", "value");
-                return Collections.singleton(track);
+                HashMap<String, String> track1 = new HashMap<>();
+                track1.put("key1", "value1");
+                HashMap<String, String> track2 = new HashMap<>();
+                track2.put("key1", "value2");
+                track2.put("key2", "value3");
+                return Arrays.asList(track1, track2);
             }
         };
-        testDataProvider.updateIndex();
-        return testDataProvider;
     }
 
 }

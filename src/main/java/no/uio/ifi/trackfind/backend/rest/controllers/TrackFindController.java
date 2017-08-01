@@ -86,33 +86,33 @@ public class TrackFindController {
     /**
      * Gets the list of attributes available in DataProvider's metamodel.
      *
-     * @param provider   DataProvider name.
-     * @param expression Mask to filter attributes (by 'contains' rule).
+     * @param provider DataProvider name.
+     * @param filter   Mask to filter attributes (by 'contains' rule).
      * @return List of attributes.
      * @throws Exception In case of some error.
      */
     @GetMapping(path = "/{provider}/attributes", produces = "application/json")
     public Object getAttributes(@PathVariable String provider,
-                                @RequestParam(required = false, defaultValue = "") String expression) throws Exception {
+                                @RequestParam(required = false, defaultValue = "") String filter) throws Exception {
         Set<String> attributes = trackFindService.getDataProvider(provider).getMetamodelFlat().asMap().keySet();
-        return attributes.stream().filter(a -> a.contains(expression)).collect(Collectors.toSet());
+        return attributes.stream().filter(a -> a.contains(filter)).collect(Collectors.toSet());
     }
 
     /**
      * Gets the list of values available in for a particular attribute of DataProvider's metamodel.
      *
-     * @param provider   DataProvider name.
-     * @param attribute  Attribute name.
-     * @param expression Mask to filter values (by 'contains' rule).
+     * @param provider  DataProvider name.
+     * @param attribute Attribute name.
+     * @param filter    Mask to filter values (by 'contains' rule).
      * @return List of values.
      * @throws Exception In case of some error.
      */
     @GetMapping(path = "/{provider}/values", produces = "application/json")
     public Object getValues(@PathVariable String provider,
                             @RequestParam String attribute,
-                            @RequestParam(required = false, defaultValue = "") String expression) throws Exception {
+                            @RequestParam(required = false, defaultValue = "") String filter) throws Exception {
         Collection<String> values = trackFindService.getDataProvider(provider).getMetamodelFlat().get(attribute);
-        return values.stream().filter(a -> a.contains(expression)).collect(Collectors.toSet());
+        return values.stream().filter(a -> a.contains(filter)).collect(Collectors.toSet());
     }
 
     /**
