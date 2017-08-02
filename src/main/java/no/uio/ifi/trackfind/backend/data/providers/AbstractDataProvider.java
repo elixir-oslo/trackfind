@@ -55,6 +55,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      *
      * @throws Exception If initialization fails.
      */
+    @SuppressWarnings("unused")
     @PostConstruct
     private void postConstruct() throws Exception {
         directory = directoryFactory.getDirectory(INDICES_FOLDER + getName());

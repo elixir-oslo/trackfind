@@ -20,6 +20,7 @@ import java.util.Set;
  *
  * @author Dmytro Titov
  */
+@SuppressWarnings("PMD.NonStaticInitializer")
 public class TextAreaDropListener implements DropListener<TextArea> {
 
     private static Map<Boolean, String> OPERATORS = new HashMap<Boolean, String>() {{

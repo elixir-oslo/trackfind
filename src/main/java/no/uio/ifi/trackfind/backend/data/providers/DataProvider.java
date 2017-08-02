@@ -2,7 +2,6 @@ package no.uio.ifi.trackfind.backend.data.providers;
 
 import com.google.common.collect.Multimap;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
 

@@ -24,6 +24,7 @@ public class KeyboardInterceptorExtensionConnector extends AbstractExtensionConn
      *
      * @param target Component to enable key events interception for.
      */
+    @SuppressWarnings("PMD.NPathComplexity")
     @Override
     protected void extend(final ServerConnector target) {
         final KeyboardInterceptorExtensionServerRpc rpcProxy = getRpcProxy(KeyboardInterceptorExtensionServerRpc.class);

@@ -37,7 +37,7 @@ public class TreeSelectionListener implements SelectionListener<TreeNode> {
     /**
      * {@inheritDoc}
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "PMD.NPathComplexity"})
     @Override
     public void selectionChange(SelectionEvent<TreeNode> event) {
         Set<TreeNode> selectedItems = event.getAllSelectedItems();
