@@ -1,8 +1,8 @@
 FROM java:8-jre-alpine
 
-MAINTAINER The Docker Community
+MAINTAINER https://github.com/dtitov
 
-ADD "target/trackfind-*.jar" trackfind.jar
+COPY "target/trackfind-*.jar" trackfind.jar
 
 EXPOSE 8080
 
