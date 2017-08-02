@@ -5,6 +5,8 @@ services:
 
 language: java
 
+script: "mvn cobertura:cobertura"
+
 deploy:
   provider: releases
   api_key: "24ed1be7b0c53c1c08e787a228953914e0bb928a"
@@ -19,3 +21,4 @@ after_success:
     docker build -t dtitov/trackfind:$TRAVIS_TAG .;
     docker push dtitov/trackfind:$TRAVIS_TAG;
     fi
+  - bash <(curl -s https://codecov.io/bash)
