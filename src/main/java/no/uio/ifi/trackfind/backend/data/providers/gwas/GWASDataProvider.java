@@ -5,7 +5,6 @@ import no.uio.ifi.trackfind.backend.data.providers.AbstractDataProvider;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -18,9 +17,11 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Fetches data from GWAS Catalog (https://www.ebi.ac.uk/gwas/).
  *
  * @author Dmytro Titov
+ * @deprecated Since it doesn't contain necessary data.
  */
+@Deprecated
 @Slf4j
-@Component
+//@Component
 public class GWASDataProvider extends AbstractDataProvider {
 
     private static final String METADATA_URL = "https://www.ebi.ac.uk/gwas/api/search/downloads/full";

@@ -25,7 +25,7 @@ public interface DataProvider {
      * @param dataset Particular dataset as ma.
      * @return BigData URL.
      */
-    String getUrlFromDataset(Map dataset);
+    String getUrlFromDataset(Map dataset); // TODO: Split into file-types.
 
     /**
      * Re-fetches data, rebuilds index.

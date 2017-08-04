@@ -12,9 +12,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.util.Collection;
-import java.util.Date;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Fetches data from IHEC (http://epigenomesportal.ca/ihec/grid.html/).
@@ -40,27 +38,31 @@ public class IHECDataProvider extends AbstractDataProvider {
     @Override
     public Collection<Map> fetchData() throws IOException {
         Gson gson = new GsonBuilder().setDateFormat(DATE_FORMAT).create();
-        Release lastRelease;
+        Collection<Release> releases = Collections.emptySet();
         try (InputStreamReader reader = new InputStreamReader(new URL(RELEASES_URL).openStream())) {
-            Collection<Release> releases = gson.fromJson(reader, new TypeToken<Collection<Release>>() {
+            releases = gson.fromJson(reader, new TypeToken<Collection<Release>>() {
             }.getType());
-            lastRelease = releases.stream().sorted().findFirst().orElseThrow(RuntimeException::new);
         }
-        Integer lastReleaseId = lastRelease.getId();
-        try (InputStreamReader reader = new InputStreamReader(new URL(FETCH_URL + lastReleaseId).openStream())) {
-            Map grid = gson.fromJson(reader, Map.class);
-            Map datasetsMap = (Map) grid.get(DATASETS);
-            Collection<Map> datasets = datasetsMap.values();
-            Map samplesMap = (Map) grid.get(SAMPLES);
-            Object hubDescription = grid.get(HUB_DESCRIPTION);
-            for (Map<String, Object> dataset : datasets) {
-                String sampleId = String.valueOf(dataset.get("sample_id"));
-                Object sample = samplesMap.get(sampleId);
-                dataset.put("sample_data", sample);
-                dataset.put("hub_description", hubDescription);
+        Collection<Map> result = new HashSet<>();
+        releases.stream().map(Release::getId).forEach(releaseId -> {
+            try (InputStreamReader reader = new InputStreamReader(new URL(FETCH_URL + releaseId).openStream())) {
+                Map grid = gson.fromJson(reader, Map.class);
+                Map datasetsMap = (Map) grid.get(DATASETS);
+                Collection<Map> datasets = datasetsMap.values();
+                Map samplesMap = (Map) grid.get(SAMPLES);
+                Object hubDescription = grid.get(HUB_DESCRIPTION);
+                for (Map<String, Object> dataset : datasets) {
+                    String sampleId = String.valueOf(dataset.get("sample_id"));
+                    Object sample = samplesMap.get(sampleId);
+                    dataset.put("sample_data", sample);
+                    dataset.put("hub_description", hubDescription);
+                }
+                result.addAll(datasets);
+            } catch (IOException e) {
+                log.error(e.getMessage(), e);
             }
-            return datasets;
-        }
+        });
+        return result;
     }
 
     /**
@@ -76,10 +78,10 @@ public class IHECDataProvider extends AbstractDataProvider {
     }
 
     /**
-     * Inner class for deserializing of Release data from IHEC (using Gson).
+     * Inner class for deserialization of Release data from IHEC (using Gson).
      */
     @Data
-    private class Release implements Comparable<Release> {
+    private class Release {
 
         @SerializedName("assembly")
         private String assembly;
@@ -104,11 +106,6 @@ public class IHECDataProvider extends AbstractDataProvider {
 
         @SerializedName("taxon_id")
         private Integer taxonId;
-
-        @Override
-        public int compareTo(Release that) {
-            return this.getIntegrationDate().compareTo(that.getIntegrationDate());
-        }
 
     }
 

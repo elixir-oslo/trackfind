@@ -2,7 +2,6 @@ package no.uio.ifi.trackfind.backend.data.providers.ebi;
 
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.data.providers.AbstractDataProvider;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.net.URL;
@@ -12,9 +11,11 @@ import java.util.*;
  * Fetches data from EMBL-EBI (http://www.ebi.ac.uk/).
  *
  * @author Dmytro Titov
+ * @deprecated Since Blueprint database is included to IHEC.
  */
+@Deprecated
 @Slf4j
-@Component
+//@Component
 public class EBIDataProvider extends AbstractDataProvider {
 
     private static final String METADATA_URL = "ftp://ftp.ebi.ac.uk/pub/databases/blueprint/releases/20150128/homo_sapiens/hub/hg19/tracksDb.txt";
