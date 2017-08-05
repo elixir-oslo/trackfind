@@ -104,7 +104,7 @@ public class TextAreaDropListener implements DropListener<TextArea> {
      *
      * @param logicalOperation true for AND, false for OR.
      * @param inversion        true for NOT
-     * @param item             Item to drop (always attribute).
+     * @param item             Item to drop (either attribute or value).
      */
     private void processDragAndDropSingle(boolean logicalOperation, boolean inversion, TreeNode item) {
         String operator = OPERATORS.get(logicalOperation);

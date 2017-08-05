@@ -20,12 +20,35 @@ public interface DataProvider {
     String getName();
 
     /**
-     * Gets BigData URL from dataset.
+     * Gets attributes to skip during indexing.
      *
-     * @param dataset Particular dataset as ma.
-     * @return BigData URL.
+     * @return Collection of unneeded attributes.
      */
-    String getUrlFromDataset(Map dataset); // TODO: Split into file-types.
+    Collection<String> getAttributesToSkip();
+
+    /**
+     * Gets values to skip during indexing.
+     *
+     * @return Collection of unneeded values.
+     */
+    Collection<String> getValuesToSkip();
+
+    /**
+     * Gets BigData URLs from dataset.
+     *
+     * @param dataset Particular dataset as map.
+     * @return BigData URLs.
+     */
+    Collection<String> getUrlsFromDataset(Map dataset);
+
+    /**
+     * Gets BigData URLs from dataset by type.
+     *
+     * @param dataset  Particular dataset as map.
+     * @param dataType Type of the data.
+     * @return BigData URLs.
+     */
+    Collection<String> getUrlsFromDataset(Map dataset, String dataType);
 
     /**
      * Re-fetches data, rebuilds index.

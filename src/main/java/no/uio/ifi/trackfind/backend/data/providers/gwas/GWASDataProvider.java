@@ -56,13 +56,4 @@ public class GWASDataProvider extends AbstractDataProvider {
         return datasets;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @SuppressWarnings("unchecked")
-    @Override
-    public String getUrlFromDataset(Map dataset) {
-        return String.valueOf(dataset.get("big_data_url"));
-    }
-
 }

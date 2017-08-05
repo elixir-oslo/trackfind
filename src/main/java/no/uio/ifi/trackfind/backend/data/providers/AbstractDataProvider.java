@@ -40,7 +40,6 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     private static final String INDICES_FOLDER = "indices/";
     private static final String DATASET = "dataset";
     private static final String PATH_SEPARATOR = ">";
-    private static final List<String> SKIP_TERMS = Arrays.asList("://", "CHECK");
 
     private Analyzer analyzer = new KeywordAnalyzer();
 
@@ -75,12 +74,50 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Collection<String> getAttributesToSkip() {
+        return Collections.singletonList("browser");
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Collection<String> getValuesToSkip() {
+        return Arrays.asList("://", "CHECK");
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @SuppressWarnings("unchecked")
+    @Override
+    public Collection<String> getUrlsFromDataset(Map dataset) {
+        Map browser = (Map) dataset.get("browser");
+        Collection<Map> bigDataEntries = (Collection<Map>) browser.values().iterator().next();
+        return bigDataEntries.stream().map(m -> (String) m.get("big_data_url")).collect(Collectors.toSet());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @SuppressWarnings("unchecked")
+    @Override
+    public Collection<String> getUrlsFromDataset(Map dataset, String dataType) {
+        Map browser = (Map) dataset.get("browser");
+        Collection<Map> bigDataEntries = (Collection<Map>) browser.getOrDefault(dataType, Collections.emptySet());
+        return bigDataEntries.stream().map(m -> (String) m.get("big_data_url")).collect(Collectors.toSet());
+    }
+
+    /**
      * Fetches data from the repository.
      *
      * @return Data as map.
      * @throws IOException in case of reading problems.
      */
-    protected abstract Collection<Map> fetchData() throws IOException;
+    protected abstract Collection<Map> fetchData() throws IOException; // TODO: Extract common JSON-based method.
 
     /**
      * {@inheritDoc}
@@ -91,14 +128,28 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
         IndexWriterConfig config = new IndexWriterConfig(analyzer);
         config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
         try (IndexWriter indexWriter = new IndexWriter(directory, config)) {
-            Collection<Map> data = fetchData();
-            indexWriter.addDocuments(data.stream().map(this::processDataset).collect(Collectors.toSet()));
+            Collection<Map> datasets = fetchData();
+            postProcess(datasets);
+            indexWriter.addDocuments(datasets.stream().map(this::processDataset).collect(Collectors.toSet()));
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return;
         }
         reinitIndexSearcher();
         log.info("Success");
+    }
+
+    /**
+     * Datasets prost-processing.
+     *
+     * @param datasets Fetched datasets to process.
+     */
+    @SuppressWarnings("unchecked")
+    protected void postProcess(Collection<Map> datasets) {
+        for (Map dataset : datasets) {
+            Map<String, Object> browser = (Map<String, Object>) dataset.get("browser");
+            dataset.put("data_type", new HashSet<>(browser.keySet()));
+        }
     }
 
     /**
@@ -140,15 +191,13 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
                     metamodel = (Map<String, Object>) metamodel.computeIfAbsent(attribute, k -> new HashMap<String, Object>());
                 }
                 String valuesKey = path[path.length - 1];
-                Collection<String> values = (Collection<String>) metamodel.computeIfAbsent(valuesKey, k -> new HashSet<String>());
+                Collection<String> values = (Collection<String>) metamodel.computeIfAbsent(valuesKey, k -> new HashSet<>());
                 Terms terms = fields.terms(fieldName);
                 TermsEnum iterator = terms.iterator();
                 BytesRef next = iterator.next();
                 while (next != null) {
                     String value = next.utf8ToString();
-                    if (SKIP_TERMS.stream().noneMatch(value::contains)) {
-                        values.add(value);
-                    }
+                    values.add(value);
                     next = iterator.next();
                 }
                 if (CollectionUtils.isEmpty(values)) {
@@ -176,9 +225,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
                 BytesRef next = iterator.next();
                 while (next != null) {
                     String value = next.utf8ToString();
-                    if (SKIP_TERMS.stream().noneMatch(value::contains)) {
-                        metamodel.put(fieldName, value);
-                    }
+                    metamodel.put(fieldName, value);
                     next = iterator.next();
                 }
             }
@@ -237,9 +284,20 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
                 Object value = ((Map) object).get(key);
                 convertDatasetToDocument(document, value, path + PATH_SEPARATOR + key);
             }
-        } else if (object instanceof String) {
+        } else if (object instanceof Collection) {
+            Collection values = (Collection) object;
+            for (Object value : values) {
+                convertDatasetToDocument(document, value, path);
+            }
+        } else if (object != null) {
             String attribute = path.substring(1);
-            String value = (String) object;
+            if (getAttributesToSkip().stream().anyMatch(attribute::contains)) {
+                return;
+            }
+            String value = String.valueOf(object);
+            if (getValuesToSkip().stream().anyMatch(value::contains)) {
+                return;
+            }
             document.add(new StringField(attribute, value, Field.Store.YES));
         }
     }

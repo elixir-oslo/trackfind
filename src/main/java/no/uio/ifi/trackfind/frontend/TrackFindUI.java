@@ -125,7 +125,7 @@ public class TrackFindUI extends UI {
         return resultsLayout;
     }
 
-    private VerticalLayout buildQueryLayout() {
+    private VerticalLayout buildQueryLayout() { // TODO: Add 'Limit' field.
         queryTextArea = new TextArea();
         queryTextArea.setSizeFull();
         queryTextArea.addShortcutListener(new ShortcutListener("Execute query", ShortcutAction.KeyCode.ENTER, new int[]{ShortcutAction.ModifierKey.CTRL}) {
@@ -194,7 +194,9 @@ public class TrackFindUI extends UI {
         StringBuilder result = new StringBuilder("##repository: " + currentDataProvider.getName() + "\n" +
                 "###uri");
         for (Map lastResult : lastResults) {
-            result.append("\n").append(currentDataProvider.getUrlFromDataset(lastResult));
+            for (String url : currentDataProvider.getUrlsFromDataset(lastResult)) { // TODO: Get URLs by data type from search query.
+                result.append("\n").append(url);
+            }
         }
 
         if (fileDownloader != null) {

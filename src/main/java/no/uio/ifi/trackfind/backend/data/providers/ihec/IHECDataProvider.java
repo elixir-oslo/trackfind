@@ -8,11 +8,15 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.data.providers.AbstractDataProvider;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.util.*;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Map;
 
 /**
  * Fetches data from IHEC (http://epigenomesportal.ca/ihec/grid.html/).
@@ -37,13 +41,16 @@ public class IHECDataProvider extends AbstractDataProvider {
     @SuppressWarnings("unchecked")
     @Override
     public Collection<Map> fetchData() throws IOException {
+        Collection<Map> result = new HashSet<>();
         Gson gson = new GsonBuilder().setDateFormat(DATE_FORMAT).create();
-        Collection<Release> releases = Collections.emptySet();
+        Collection<Release> releases;
         try (InputStreamReader reader = new InputStreamReader(new URL(RELEASES_URL).openStream())) {
             releases = gson.fromJson(reader, new TypeToken<Collection<Release>>() {
             }.getType());
         }
-        Collection<Map> result = new HashSet<>();
+        if (CollectionUtils.isEmpty(releases)) {
+            return result;
+        }
         releases.stream().map(Release::getId).forEach(releaseId -> {
             try (InputStreamReader reader = new InputStreamReader(new URL(FETCH_URL + releaseId).openStream())) {
                 Map grid = gson.fromJson(reader, Map.class);
@@ -63,18 +70,6 @@ public class IHECDataProvider extends AbstractDataProvider {
             }
         });
         return result;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @SuppressWarnings("unchecked")
-    @Override
-    public String getUrlFromDataset(Map dataset) {
-        Map browser = (Map) dataset.get("browser");
-        Collection<Map> signals = (Collection<Map>) browser.get("signal");
-        Map signal = signals.iterator().next();
-        return String.valueOf(signal.get("big_data_url"));
     }
 
     /**

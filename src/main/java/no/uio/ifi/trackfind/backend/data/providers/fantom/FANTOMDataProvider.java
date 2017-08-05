@@ -5,7 +5,6 @@ import no.uio.ifi.trackfind.backend.data.providers.AbstractDataProvider;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
-import org.apache.commons.io.Charsets;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.stereotype.Component;
@@ -13,8 +12,10 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -36,14 +37,15 @@ public class FANTOMDataProvider extends AbstractDataProvider {
     public Collection<Map> fetchData() throws IOException {
         Collection<Map> datasets = new HashSet<>();
         Document root = Jsoup.parse(new URL(METADATA_URL), 5000);
-        Set<String> dirs = root.getElementsByTag("a").stream().map(e -> e.attr("href")).filter(s -> s.startsWith("human.") && s.endsWith("/")).collect(Collectors.toSet());
+        Set<String> dirs = root.getElementsByTag("a").stream().map(e -> e.attr("href")).filter(s -> s.contains(".") && s.endsWith("/")).collect(Collectors.toSet());
         for (String dir : dirs) {
             Document folder = Jsoup.parse(new URL(METADATA_URL + dir), 5000);
-            Optional<String> any = folder.getElementsByTag("a").stream().map(e -> e.attr("href")).filter(s -> s.endsWith("_sdrf.txt")).findAny();
-            if (!any.isPresent()) {
+            Set<String> allFiles = folder.getElementsByTag("a").stream().map(e -> e.attr("href")).collect(Collectors.toSet());
+            Optional<String> metadataFileOptional = allFiles.stream().filter(s -> s.endsWith("_sdrf.txt")).findAny();
+            if (!metadataFileOptional.isPresent()) {
                 continue;
             }
-            URL url = new URL(METADATA_URL + dir + any.get());
+            URL url = new URL(METADATA_URL + dir + metadataFileOptional.get());
             Reader reader = new InputStreamReader(url.openStream());
             CSVParser parser = new CSVParser(reader, CSVFormat.newFormat('\t').withSkipHeaderRecord());
             List<CSVRecord> records = parser.getRecords();
@@ -51,18 +53,46 @@ public class FANTOMDataProvider extends AbstractDataProvider {
             CSVRecord header = recordIterator.next();
             String[] attributes = parseAttributes(header);
             while (recordIterator.hasNext()) {
-                Map<String, String> dataset = new HashMap<>();
+                Map<String, Object> dataset = new HashMap<>();
                 CSVRecord next = recordIterator.next();
                 for (int i = 0; i < attributes.length; i++) {
                     if (!attributes[i].startsWith("skip")) {
                         dataset.put(attributes[i], next.get(i));
                     }
                 }
-                dataset.put("big_data_url", METADATA_URL + dir + URLEncoder.encode(next.get(attributes.length - 1), Charsets.UTF_8.name()));
+                Map<String, Collection<Map<String, String>>> filesByType = new HashMap<>();
+                Set<String> datasetRelatedFiles = allFiles.stream().filter(s -> s.contains(next.get(0))).collect(Collectors.toSet());
+                for (String datasetRelatedFile : datasetRelatedFiles) {
+                    Map<String, String> bigDataUrl = new HashMap<>();
+                    try {
+                        bigDataUrl.put("big_data_url", METADATA_URL + dir + URLEncoder.encode(datasetRelatedFile, StandardCharsets.UTF_8.name()));
+                    } catch (UnsupportedEncodingException e) {
+                        log.error(e.getMessage(), e);
+                    }
+                    Collection<Map<String, String>> bigDataUrls = filesByType.computeIfAbsent(getDataType(datasetRelatedFile), k -> new HashSet<>());
+                    bigDataUrls.add(bigDataUrl);
+                }
+                dataset.put("browser", filesByType);
                 datasets.add(dataset);
             }
         }
         return datasets;
+    }
+
+    private String getDataType(String fileName) {
+        if (fileName.endsWith(".bam")) {
+            return "bam";
+        }
+        if (fileName.endsWith(".bam.bai")) {
+            return "bam_bai";
+        }
+        if (fileName.endsWith(".ctss.bed.gz")) {
+            return "cage_tss";
+        }
+        if (fileName.endsWith(".rdna.fa.gz")) {
+            return "fasta";
+        }
+        return null;
     }
 
     /**
@@ -81,15 +111,6 @@ public class FANTOMDataProvider extends AbstractDataProvider {
             attributes[i] = header.get(i).replace("Comment [", "").replace("Parameter [", "").replace("]", "");
         }
         return attributes;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @SuppressWarnings("unchecked")
-    @Override
-    public String getUrlFromDataset(Map dataset) {
-        return String.valueOf(dataset.get("big_data_url"));
     }
 
 }
