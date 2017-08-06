@@ -123,7 +123,7 @@ public class TrackFindUI extends UI {
         return resultsLayout;
     }
 
-    private VerticalLayout buildQueryLayout() { // TODO: Add 'Limit' field.
+    private VerticalLayout buildQueryLayout() {
         queryTextArea = new TextArea();
         queryTextArea.setSizeFull();
         queryTextArea.addShortcutListener(new ShortcutListener("Execute query", ShortcutAction.KeyCode.ENTER, new int[]{ShortcutAction.ModifierKey.CTRL}) {
