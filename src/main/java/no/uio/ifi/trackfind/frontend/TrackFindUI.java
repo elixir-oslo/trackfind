@@ -8,10 +8,7 @@ import com.vaadin.annotations.Widgetset;
 import com.vaadin.data.HasValue;
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.event.ShortcutListener;
-import com.vaadin.server.FileDownloader;
-import com.vaadin.server.Resource;
-import com.vaadin.server.StreamResource;
-import com.vaadin.server.VaadinRequest;
+import com.vaadin.server.*;
 import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.shared.ui.ValueChangeMode;
 import com.vaadin.shared.ui.dnd.DropEffect;
@@ -63,6 +60,7 @@ public class TrackFindUI extends UI {
 
     private TabSheet tabSheet;
     private TextArea queryTextArea;
+    private TextField limitTextField;
     private TextArea resultsTextArea;
 
     private FileDownloader fileDownloader;
@@ -146,10 +144,30 @@ public class TrackFindUI extends UI {
         Panel queryPanel = new Panel("Search query", queryTextArea);
         queryPanel.setSizeFull();
 
+        limitTextField = new TextField("Limit");
+        limitTextField.setWidth(100, Unit.PERCENTAGE);
+        limitTextField.setValueChangeMode(ValueChangeMode.EAGER);
+        limitTextField.addValueChangeListener((HasValue.ValueChangeListener<String>) valueChangeEvent -> {
+            String value = valueChangeEvent.getValue();
+            if (StringUtils.isEmpty(value)) {
+                limitTextField.setComponentError(null);
+                queryTextArea.setEnabled(true);
+                return;
+            }
+            try {
+                Integer.parseInt(value);
+                limitTextField.setComponentError(null);
+                queryTextArea.setEnabled(true);
+            } catch (NumberFormatException e) {
+                limitTextField.setComponentError(new UserError("Should be a valid integer number only!"));
+                queryTextArea.setEnabled(false);
+            }
+        });
+
         VerticalLayout helpLayout = buildHelpLayout();
 
         PopupView popup = new PopupView("Help", helpLayout);
-        VerticalLayout queryLayout = new VerticalLayout(queryPanel, popup);
+        VerticalLayout queryLayout = new VerticalLayout(queryPanel, limitTextField, popup);
         queryLayout.setSizeFull();
         queryLayout.setExpandRatio(queryPanel, 1f);
         return queryLayout;
@@ -182,7 +200,7 @@ public class TrackFindUI extends UI {
     private void executeQuery(String query) {
         DataProvider currentDataProvider = getCurrentDataProvider();
 
-        lastResults = currentDataProvider.search(query, 0);
+        lastResults = currentDataProvider.search(query, Integer.parseInt(limitTextField.getValue()));
         String jsonResult = gson.toJson(lastResults);
         if (CollectionUtils.isEmpty(lastResults)) {
             resultsTextArea.setValue("");
