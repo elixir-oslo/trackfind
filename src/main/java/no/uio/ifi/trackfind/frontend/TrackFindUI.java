@@ -149,11 +149,7 @@ public class TrackFindUI extends UI {
         limitTextField.setValueChangeMode(ValueChangeMode.EAGER);
         limitTextField.addValueChangeListener((HasValue.ValueChangeListener<String>) valueChangeEvent -> {
             String value = valueChangeEvent.getValue();
-            if (StringUtils.isEmpty(value)) {
-                limitTextField.setComponentError(null);
-                queryTextArea.setEnabled(true);
-                return;
-            }
+            value = StringUtils.isEmpty(value) ? "0" : value;
             try {
                 Integer.parseInt(value);
                 limitTextField.setComponentError(null);
