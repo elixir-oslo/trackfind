@@ -210,7 +210,7 @@ public class TrackFindUI extends UI {
         StringBuilder result = new StringBuilder("##repository: " + currentDataProvider.getName() + "\n" + // TODO: Include fields from HyperBrowser sample.
                 "###uri");
         for (Map lastResult : lastResults) {
-            for (String url : currentDataProvider.getUrlsFromDataset(lastResult)) { // TODO: Get URLs by data type from search query.
+            for (String url : currentDataProvider.getUrlsFromDataset(query, lastResult)) {
                 result.append("\n").append(url);
             }
         }

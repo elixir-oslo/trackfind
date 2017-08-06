@@ -36,19 +36,11 @@ public interface DataProvider {
     /**
      * Gets BigData URLs from dataset.
      *
+     * @param query   Search query used for finding this dataset.
      * @param dataset Particular dataset as map.
      * @return BigData URLs.
      */
-    Collection<String> getUrlsFromDataset(Map dataset);
-
-    /**
-     * Gets BigData URLs from dataset by type.
-     *
-     * @param dataset  Particular dataset as map.
-     * @param dataType Type of the data.
-     * @return BigData URLs.
-     */
-    Collection<String> getUrlsFromDataset(Map dataset, String dataType);
+    Collection<String> getUrlsFromDataset(String query, Map dataset);
 
     /**
      * Re-fetches data, rebuilds index.

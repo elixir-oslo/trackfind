@@ -64,15 +64,11 @@ public class FANTOMDataProvider extends AbstractDataProvider {
                 Set<String> datasetRelatedFiles = allFiles.stream().filter(s -> s.contains(next.get(0))).collect(Collectors.toSet());
                 for (String datasetRelatedFile : datasetRelatedFiles) {
                     Map<String, String> bigDataUrl = new HashMap<>();
-                    try {
-                        bigDataUrl.put("big_data_url", METADATA_URL + dir + URLEncoder.encode(datasetRelatedFile, StandardCharsets.UTF_8.name()));
-                    } catch (UnsupportedEncodingException e) {
-                        log.error(e.getMessage(), e);
-                    }
+                    bigDataUrl.put(BIG_DATA_URL, METADATA_URL + dir + datasetRelatedFile);
                     Collection<Map<String, String>> bigDataUrls = filesByType.computeIfAbsent(getDataType(datasetRelatedFile), k -> new HashSet<>());
                     bigDataUrls.add(bigDataUrl);
                 }
-                dataset.put("browser", filesByType);
+                dataset.put(BROWSER, filesByType);
                 datasets.add(dataset);
             }
         }

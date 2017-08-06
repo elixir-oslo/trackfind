@@ -13,10 +13,7 @@ import org.apache.lucene.document.StringField;
 import org.apache.lucene.index.*;
 import org.apache.lucene.queryparser.analyzing.AnalyzingQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.ScoreDoc;
-import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.search.*;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.util.BytesRef;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +37,10 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     private static final String INDICES_FOLDER = "indices/";
     private static final String DATASET = "dataset";
     private static final String PATH_SEPARATOR = ">";
+
+    protected static final String BROWSER = "browser";
+    protected static final String DATA_TYPE = "data_type";
+    protected static final String BIG_DATA_URL = "big_data_url";
 
     private Analyzer analyzer = new KeywordAnalyzer();
 
@@ -78,7 +79,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      */
     @Override
     public Collection<String> getAttributesToSkip() {
-        return Collections.singletonList("browser");
+        return Collections.singletonList(BROWSER);
     }
 
     /**
@@ -94,21 +95,24 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      */
     @SuppressWarnings("unchecked")
     @Override
-    public Collection<String> getUrlsFromDataset(Map dataset) {
-        Map browser = (Map) dataset.get("browser");
-        Collection<Map> bigDataEntries = (Collection<Map>) browser.values().iterator().next();
-        return bigDataEntries.stream().map(m -> (String) m.get("big_data_url")).collect(Collectors.toSet());
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @SuppressWarnings("unchecked")
-    @Override
-    public Collection<String> getUrlsFromDataset(Map dataset, String dataType) {
-        Map browser = (Map) dataset.get("browser");
-        Collection<Map> bigDataEntries = (Collection<Map>) browser.getOrDefault(dataType, Collections.emptySet());
-        return bigDataEntries.stream().map(m -> (String) m.get("big_data_url")).collect(Collectors.toSet());
+    public Collection<String> getUrlsFromDataset(String query, Map dataset) {
+        try {
+            Query parsedQuery = new AnalyzingQueryParser("", analyzer).parse(query);
+            Weight weight = parsedQuery.createWeight(searcher, false);
+            Set<Term> terms = new HashSet<>();
+            weight.extractTerms(terms);
+            Set<String> dataTypes = terms.stream().filter(t -> t.field().equals(DATA_TYPE)).map(Term::text).collect(Collectors.toSet());
+            Map browser = (Map) dataset.get(BROWSER);
+            Collection<String> urls = new HashSet<>();
+            for (String dataType : dataTypes) {
+                Collection<Map> bigDataEntries = (Collection<Map>) browser.getOrDefault(dataType, Collections.emptySet());
+                urls.addAll(bigDataEntries.stream().map(m -> (String) m.get(BIG_DATA_URL)).collect(Collectors.toSet()));
+            }
+            return urls;
+        } catch (IOException | ParseException e) {
+            log.error(e.getMessage(), e);
+            return Collections.emptyList();
+        }
     }
 
     /**
@@ -147,11 +151,11 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     @SuppressWarnings("unchecked")
     protected void postProcess(Collection<Map> datasets) {
         for (Map dataset : datasets) {
-            Map<String, Object> browser = (Map<String, Object>) dataset.get("browser");
+            Map<String, Object> browser = (Map<String, Object>) dataset.get(BROWSER);
             if (browser == null) {
                 log.error("'browser' field is 'null' for dataset!");
             } else {
-                dataset.put("data_type", new HashSet<>(browser.keySet()));
+                dataset.put(DATA_TYPE, new HashSet<>(browser.keySet()));
             }
         }
     }
