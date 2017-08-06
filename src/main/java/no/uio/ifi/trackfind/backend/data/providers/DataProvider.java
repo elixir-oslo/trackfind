@@ -70,11 +70,12 @@ public interface DataProvider {
     Multimap<String, String> getMetamodelFlat();
 
     /**
-     * Performs search over the repository.
+     * Performs search over the repository limiting the number of results.
      *
      * @param query Search query.
+     * @param limit Results quantity limit, 0 for unlimited.
      * @return Search result.
      */
-    Collection<Map> search(String query);
+    Collection<Map> search(String query, int limit);
 
 }

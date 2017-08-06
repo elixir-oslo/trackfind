@@ -125,8 +125,9 @@ public class TrackFindController {
      */
     @GetMapping(path = "/{provider}/search", produces = "application/json")
     public Object search(@PathVariable String provider,
-                         @RequestParam String query) throws Exception {
-        return trackFindService.getDataProvider(provider).search(query);
+                         @RequestParam String query,
+                         @RequestParam(required = false, defaultValue = "0") int limit) throws Exception {
+        return trackFindService.getDataProvider(provider).search(query, limit);
     }
 
 }

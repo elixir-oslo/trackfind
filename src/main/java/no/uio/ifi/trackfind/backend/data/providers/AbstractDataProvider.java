@@ -148,7 +148,11 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     protected void postProcess(Collection<Map> datasets) {
         for (Map dataset : datasets) {
             Map<String, Object> browser = (Map<String, Object>) dataset.get("browser");
-            dataset.put("data_type", new HashSet<>(browser.keySet()));
+            if (browser == null) {
+                log.error("'browser' field is 'null' for dataset!");
+            } else {
+                dataset.put("data_type", new HashSet<>(browser.keySet()));
+            }
         }
     }
 
@@ -240,10 +244,10 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      */
     // Sample query: "sample_id: SRS306625_*_471 OR other_attributes>lab: U??D AND ihec_data_portal>assay: (WGB-Seq OR something)"
     @Override
-    public Collection<Map> search(String query) {
+    public Collection<Map> search(String query, int limit) {
         try {
             Query parsedQuery = new AnalyzingQueryParser("", analyzer).parse(query);
-            TopDocs topDocs = searcher.search(parsedQuery, Integer.MAX_VALUE);
+            TopDocs topDocs = searcher.search(parsedQuery, limit == 0 ? Integer.MAX_VALUE : limit);
             ScoreDoc[] scoreDocs = topDocs.scoreDocs;
             Collection<Map> result = new HashSet<>();
             for (ScoreDoc scoreDoc : scoreDocs) {

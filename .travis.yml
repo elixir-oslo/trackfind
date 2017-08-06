@@ -5,8 +5,6 @@ services:
 
 language: java
 
-script: "mvn cobertura:cobertura"
-
 deploy:
   provider: releases
   api_key: "24ed1be7b0c53c1c08e787a228953914e0bb928a"

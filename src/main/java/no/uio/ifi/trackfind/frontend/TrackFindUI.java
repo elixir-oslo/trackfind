@@ -182,7 +182,7 @@ public class TrackFindUI extends UI {
     private void executeQuery(String query) {
         DataProvider currentDataProvider = getCurrentDataProvider();
 
-        lastResults = currentDataProvider.search(query);
+        lastResults = currentDataProvider.search(query, 0);
         String jsonResult = gson.toJson(lastResults);
         if (CollectionUtils.isEmpty(lastResults)) {
             resultsTextArea.setValue("");
@@ -191,7 +191,7 @@ public class TrackFindUI extends UI {
             resultsTextArea.setValue(jsonResult);
         }
 
-        StringBuilder result = new StringBuilder("##repository: " + currentDataProvider.getName() + "\n" +
+        StringBuilder result = new StringBuilder("##repository: " + currentDataProvider.getName() + "\n" + // TODO: Include fields from HyperBrowser sample.
                 "###uri");
         for (Map lastResult : lastResults) {
             for (String url : currentDataProvider.getUrlsFromDataset(lastResult)) { // TODO: Get URLs by data type from search query.
