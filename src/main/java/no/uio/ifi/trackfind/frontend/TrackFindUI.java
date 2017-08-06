@@ -196,7 +196,9 @@ public class TrackFindUI extends UI {
     private void executeQuery(String query) {
         DataProvider currentDataProvider = getCurrentDataProvider();
 
-        lastResults = currentDataProvider.search(query, Integer.parseInt(limitTextField.getValue()));
+        String limit = limitTextField.getValue();
+        limit = StringUtils.isEmpty(limit) ? "0" : limit;
+        lastResults = currentDataProvider.search(query, Integer.parseInt(limit));
         String jsonResult = gson.toJson(lastResults);
         if (CollectionUtils.isEmpty(lastResults)) {
             resultsTextArea.setValue("");
