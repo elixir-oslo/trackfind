@@ -19,4 +19,3 @@ after_success:
     docker build -t dtitov/trackfind:$TRAVIS_TAG .;
     docker push dtitov/trackfind:$TRAVIS_TAG;
     fi
-  - bash <(curl -s https://codecov.io/bash)
