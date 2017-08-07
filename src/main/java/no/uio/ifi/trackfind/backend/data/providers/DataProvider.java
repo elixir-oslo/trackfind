@@ -20,20 +20,6 @@ public interface DataProvider {
     String getName();
 
     /**
-     * Gets attributes to skip during indexing.
-     *
-     * @return Collection of unneeded attributes.
-     */
-    Collection<String> getAttributesToSkip();
-
-    /**
-     * Gets values to skip during indexing.
-     *
-     * @return Collection of unneeded values.
-     */
-    Collection<String> getValuesToSkip();
-
-    /**
      * Gets BigData URLs from dataset.
      *
      * @param query   Search query used for finding this dataset.

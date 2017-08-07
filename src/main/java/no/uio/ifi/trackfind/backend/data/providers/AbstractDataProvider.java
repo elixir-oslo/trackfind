@@ -75,18 +75,20 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     }
 
     /**
-     * {@inheritDoc}
+     * Gets attributes to skip during indexing.
+     *
+     * @return Collection of unneeded attributes.
      */
-    @Override
-    public Collection<String> getAttributesToSkip() {
+    protected Collection<String> getAttributesToSkip() {
         return Collections.singletonList(BROWSER);
     }
 
     /**
-     * {@inheritDoc}
+     * Gets values to skip during indexing.
+     *
+     * @return Collection of unneeded values.
      */
-    @Override
-    public Collection<String> getValuesToSkip() {
+    protected Collection<String> getValuesToSkip() {
         return Arrays.asList("://", "CHECK");
     }
 
@@ -144,7 +146,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     }
 
     /**
-     * Datasets prost-processing.
+     * Datasets post-processing.
      *
      * @param datasets Fetched datasets to process.
      */
