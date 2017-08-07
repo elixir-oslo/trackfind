@@ -66,9 +66,10 @@ public class TextAreaDropListener implements DropListener<TextArea> {
     private void processDragAndDrop(MouseEventDetails mouseEventDetails, Set<TreeNode> selectedItems) {
         boolean logicalOperation = !mouseEventDetails.isAltKey();
         boolean inversion = mouseEventDetails.isShiftKey();
-        if (CollectionUtils.size(selectedItems) == 1) {
+        int size = CollectionUtils.size(selectedItems);
+        if (size == 1) {
             processDragAndDropSingle(logicalOperation, inversion, selectedItems.iterator().next());
-        } else {
+        } else if (size > 1) {
             processDragAndDropMultiple(logicalOperation, inversion, selectedItems);
         }
     }
