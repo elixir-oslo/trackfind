@@ -15,6 +15,7 @@ import java.util.stream.Stream;
 public class TrackDataProvider extends AbstractHierarchicalDataProvider<TreeNode, Predicate<? super TreeNode>> {
 
     private TreeNode root;
+    private String attributesFilter = "";
     private String valuesFilter = "";
 
     /**
@@ -24,6 +25,15 @@ public class TrackDataProvider extends AbstractHierarchicalDataProvider<TreeNode
      */
     public TrackDataProvider(TreeNode root) {
         this.root = root;
+    }
+
+    /**
+     * Sets expression for filtering attributes in tree (last-level).
+     *
+     * @param attributesFilter String expression to filter final attributes in tree.
+     */
+    public void setAttributesFilter(String attributesFilter) {
+        this.attributesFilter = attributesFilter.toLowerCase();
     }
 
     /**
@@ -49,12 +59,24 @@ public class TrackDataProvider extends AbstractHierarchicalDataProvider<TreeNode
     @Override
     public Stream<TreeNode> fetchChildren(HierarchicalQuery<TreeNode, Predicate<? super TreeNode>> query) {
         TreeNode parent = query.getParentOptional().orElse(root);
-        return parent.fetchChildren()
-                .filter(query.getFilter().orElse(tr -> true))
-                .filter(tn -> (getChildCount(getQuery(tn)) != 0) || tn.toString().toLowerCase().contains(valuesFilter))
-                .sorted()
-                .skip(query.getOffset())
-                .limit(query.getLimit());
+        return parent.fetchChildren().
+                filter(query.getFilter().orElse(tr -> true)).
+                filter(tn -> (getChildCount(getQuery(tn)) != 0) || tn.toString().toLowerCase().contains(valuesFilter)).
+                filter(tn -> {
+                    if (tn.isLeaf() && !tn.toString().toLowerCase().contains(valuesFilter)) {
+                        return false;
+                    }
+                    if (tn.isFinalAttribute() && !tn.toString().toLowerCase().contains(attributesFilter)) {
+                        return false;
+                    }
+                    if (!tn.isLeaf() && getChildCount(getQuery(tn)) == 0) {
+                        return false;
+                    }
+                    return true;
+                }).
+                sorted().
+                skip(query.getOffset()).
+                limit(query.getLimit());
     }
 
     /**

@@ -144,6 +144,9 @@ public class TrackFindUI extends UI {
         Panel queryPanel = new Panel("Search query", queryTextArea);
         queryPanel.setSizeFull();
 
+        Button searchButton = new Button("Search", (Button.ClickListener) clickEvent -> executeQuery(queryTextArea.getValue()));
+        searchButton.setWidth(100, Unit.PERCENTAGE);
+
         limitTextField = new TextField("Limit");
         limitTextField.setWidth(100, Unit.PERCENTAGE);
         limitTextField.setValueChangeMode(ValueChangeMode.EAGER);
@@ -154,16 +157,18 @@ public class TrackFindUI extends UI {
                 Integer.parseInt(value);
                 limitTextField.setComponentError(null);
                 queryTextArea.setEnabled(true);
+                searchButton.setEnabled(true);
             } catch (NumberFormatException e) {
                 limitTextField.setComponentError(new UserError("Should be a valid integer number only!"));
                 queryTextArea.setEnabled(false);
+                searchButton.setEnabled(false);
             }
         });
 
         VerticalLayout helpLayout = buildHelpLayout();
 
         PopupView popup = new PopupView("Help", helpLayout);
-        VerticalLayout queryLayout = new VerticalLayout(queryPanel, limitTextField, popup);
+        VerticalLayout queryLayout = new VerticalLayout(queryPanel, limitTextField, searchButton, popup);
         queryLayout.setSizeFull();
         queryLayout.setExpandRatio(queryPanel, 1f);
         return queryLayout;
@@ -173,10 +178,10 @@ public class TrackFindUI extends UI {
         Collection<Component> instructions = new ArrayList<>();
         instructions.add(new Label("<b>How to perform a search:<b> ", ContentMode.HTML));
         instructions.add(new Label("1. Navigate through metamodel tree using browser on the left."));
-        instructions.add(new Label("2. Filter values using text-field in the bottom if needed."));
+        instructions.add(new Label("2. Filter attributes or values using text-fields in the bottom if needed."));
         instructions.add(new Label("3. Drag and drop attribute name or value to the query area."));
         instructions.add(new Label("4. Correct query manually if necessary (some special characters should be escaped using backslash)."));
-        instructions.add(new Label("5. Press <i>Ctrl+Shift</i> or <i>Command+Shift</i> to execute the query.", ContentMode.HTML));
+        instructions.add(new Label("5. Press <i>Ctrl+Shift</i> or <i>Command+Shift</i> or click <i>Search</i> button to execute the query.", ContentMode.HTML));
         instructions.add(new Label("<b>Hotkeys:<b> ", ContentMode.HTML));
         instructions.add(new Label("Use <i>Ctrl</i> or <i>Command</i> to select multiple values in tree.", ContentMode.HTML));
         instructions.add(new Label("Use <i>Shift</i> to select range of values in tree.", ContentMode.HTML));
@@ -207,11 +212,10 @@ public class TrackFindUI extends UI {
             resultsTextArea.setValue(jsonResult);
         }
 
-        StringBuilder result = new StringBuilder("##repository: " + currentDataProvider.getName() + "\n" + // TODO: Include fields from HyperBrowser sample.
-                "###uri");
+        StringBuilder result = new StringBuilder("##uri\trepository");
         for (Map lastResult : lastResults) {
             for (String url : currentDataProvider.getUrlsFromDataset(query, lastResult)) {
-                result.append("\n").append(url);
+                result.append("\n").append(url).append("\t").append(currentDataProvider.getName());
             }
         }
 
@@ -244,6 +248,15 @@ public class TrackFindUI extends UI {
         Panel treePanel = new Panel("Model browser", tabSheet);
         treePanel.setSizeFull();
 
+        TextField attributesFilterTextField = new TextField("Filter attributes", (HasValue.ValueChangeListener<String>) event -> {
+            TrackFindTree<TreeNode> tree = (TrackFindTree<TreeNode>) tabSheet.getSelectedTab();
+            TrackDataProvider dataProvider = (TrackDataProvider) tree.getDataProvider();
+            dataProvider.setAttributesFilter(event.getValue());
+            dataProvider.refreshAll();
+        });
+        attributesFilterTextField.setValueChangeMode(ValueChangeMode.EAGER);
+        attributesFilterTextField.setWidth(100, Unit.PERCENTAGE);
+
         TextField valuesFilterTextField = new TextField("Filter values", (HasValue.ValueChangeListener<String>) event -> {
             TrackFindTree<TreeNode> tree = (TrackFindTree<TreeNode>) tabSheet.getSelectedTab();
             TrackDataProvider dataProvider = (TrackDataProvider) tree.getDataProvider();
@@ -253,7 +266,7 @@ public class TrackFindUI extends UI {
         valuesFilterTextField.setValueChangeMode(ValueChangeMode.EAGER);
         valuesFilterTextField.setWidth(100, Unit.PERCENTAGE);
 
-        VerticalLayout treeLayout = new VerticalLayout(treePanel, valuesFilterTextField);
+        VerticalLayout treeLayout = new VerticalLayout(treePanel, attributesFilterTextField, valuesFilterTextField);
         treeLayout.setSizeFull();
         treeLayout.setExpandRatio(treePanel, 1f);
         return treeLayout;
