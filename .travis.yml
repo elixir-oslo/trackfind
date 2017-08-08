@@ -7,7 +7,7 @@ language: java
 
 deploy:
   provider: releases
-  api_key: "0690c710051d094751f2c9afdc6a72b17f78a705"
+  api_key: "5039ff0a67d795988b0925bae9d33ed5f09cd95b"
   file: target/trackfind-$TRAVIS_TAG.jar
   skip_cleanup: true
   on:
