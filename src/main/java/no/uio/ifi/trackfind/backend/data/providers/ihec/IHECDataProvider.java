@@ -43,6 +43,7 @@ public class IHECDataProvider extends AbstractDataProvider {
     public Collection<Map> fetchData() throws IOException {
         Collection<Map> result = new HashSet<>();
         Gson gson = new GsonBuilder().setDateFormat(DATE_FORMAT).create();
+        log.info("Collecting releases...");
         Collection<Release> releases;
         try (InputStreamReader reader = new InputStreamReader(new URL(RELEASES_URL).openStream())) {
             releases = gson.fromJson(reader, new TypeToken<Collection<Release>>() {
@@ -51,7 +52,9 @@ public class IHECDataProvider extends AbstractDataProvider {
         if (CollectionUtils.isEmpty(releases)) {
             return result;
         }
+        log.info(releases.size() + " releases collected.");
         releases.stream().map(Release::getId).forEach(releaseId -> {
+            log.info("Processing release: " + releaseId);
             try (InputStreamReader reader = new InputStreamReader(new URL(FETCH_URL + releaseId).openStream())) {
                 Map grid = gson.fromJson(reader, Map.class);
                 Map datasetsMap = (Map) grid.get(DATASETS);

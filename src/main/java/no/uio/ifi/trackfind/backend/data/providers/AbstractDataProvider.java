@@ -123,7 +123,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      * @return Data as map.
      * @throws IOException in case of reading problems.
      */
-    protected abstract Collection<Map> fetchData() throws IOException; // TODO: Extract common JSON-based method.
+    protected abstract Collection<Map> fetchData() throws IOException;
 
     /**
      * {@inheritDoc}
