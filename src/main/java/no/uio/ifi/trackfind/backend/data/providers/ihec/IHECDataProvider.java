@@ -28,9 +28,6 @@ public class IHECDataProvider extends AbstractDataProvider {
     private static final String RELEASES_URL = "http://epigenomesportal.ca//cgi-bin/api/getReleases.py";
     private static final String FETCH_URL = "http://epigenomesportal.ca/cgi-bin/api/getDataHub.py?data_release_id=";
     private static final String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
-    private static final String DATASETS = "datasets";
-    private static final String HUB_DESCRIPTION = "hub_description";
-    private static final String SAMPLES = "samples";
 
     /**
      * {@inheritDoc}
@@ -54,10 +51,10 @@ public class IHECDataProvider extends AbstractDataProvider {
             log.info("Processing release: " + releaseId);
             try (InputStreamReader reader = new InputStreamReader(new URL(FETCH_URL + releaseId).openStream())) {
                 Map grid = gson.fromJson(reader, Map.class);
-                Map datasetsMap = (Map) grid.get(DATASETS);
+                Map datasetsMap = (Map) grid.get("datasets");
                 Collection<Map> datasets = datasetsMap.values();
-                Map samplesMap = (Map) grid.get(SAMPLES);
-                Object hubDescription = grid.get(HUB_DESCRIPTION);
+                Map samplesMap = (Map) grid.get("samples");
+                Object hubDescription = grid.get("hub_description");
                 for (Map<String, Object> dataset : datasets) {
                     String sampleId = String.valueOf(dataset.get("sample_id"));
                     Object sample = samplesMap.get(sampleId);
@@ -68,7 +65,7 @@ public class IHECDataProvider extends AbstractDataProvider {
                     for (String dataType : browser.keySet()) {
                         Collection<Map<String, String>> bigDataUrls = browser.get(dataType);
                         for (Map<String, String> bigDataUrl : bigDataUrls) {
-                            browserToStore.computeIfAbsent(dataType, k -> new HashSet<>()).add(bigDataUrl.get(BIG_DATA_URL));
+                            browserToStore.computeIfAbsent(dataType, k -> new HashSet<>()).add(bigDataUrl.get("big_data_url"));
                         }
                     }
                     dataset.put(BROWSER, browserToStore);

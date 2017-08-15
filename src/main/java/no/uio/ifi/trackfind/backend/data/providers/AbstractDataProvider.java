@@ -40,7 +40,6 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
 
     protected static final String BROWSER = "browser";
     protected static final String DATA_TYPE = "data_type";
-    protected static final String BIG_DATA_URL = "big_data_url";
 
     private Analyzer analyzer = new KeywordAnalyzer();
 
@@ -98,23 +97,33 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     @SuppressWarnings("unchecked")
     @Override
     public Collection<String> getUrlsFromDataset(String query, Map dataset) {
+        Set<String> dataTypes = extractDataTypesFromQuery(query);
+        Collection<String> urls = new HashSet<>();
+        Map<String, Collection<String>> browser = (Map<String, Collection<String>>) dataset.get(BROWSER);
+        if (CollectionUtils.isNotEmpty(dataTypes)) {
+            dataTypes.forEach(dt -> urls.addAll(browser.getOrDefault(dt, Collections.emptySet())));
+        } else {
+            urls.addAll(browser.values().stream().flatMap(Collection::stream).collect(Collectors.toSet()));
+        }
+        return urls;
+    }
+
+    /**
+     * Parses Lucene Query to get 'data type' terms from it.
+     *
+     * @param query Query used for fnding this dataset.
+     * @return Data types.
+     */
+    protected Set<String> extractDataTypesFromQuery(String query) {
         try {
             Query parsedQuery = new AnalyzingQueryParser("", analyzer).parse(query);
             Weight weight = parsedQuery.createWeight(searcher, false);
             Set<Term> terms = new HashSet<>();
             weight.extractTerms(terms);
-            Set<String> dataTypes = terms.stream().filter(t -> t.field().equals(DATA_TYPE)).map(Term::text).collect(Collectors.toSet());
-            Collection<String> urls = new HashSet<>();
-            Map<String, Collection<String>> browser = (Map<String, Collection<String>>) dataset.get(BROWSER);
-            if (CollectionUtils.isNotEmpty(dataTypes)) {
-                dataTypes.forEach(dt -> urls.addAll(browser.getOrDefault(dt, Collections.emptySet())));
-            } else {
-                urls.addAll(browser.values().stream().flatMap(Collection::stream).collect(Collectors.toSet()));
-            }
-            return urls;
+            return terms.stream().filter(t -> t.field().equals(DATA_TYPE)).map(Term::text).collect(Collectors.toSet());
         } catch (IOException | ParseException e) {
             log.error(e.getMessage(), e);
-            return Collections.emptyList();
+            return Collections.emptySet();
         }
     }
 
