@@ -212,7 +212,7 @@ public class TrackFindUI extends UI {
             resultsTextArea.setValue(jsonResult);
         }
 
-        StringBuilder result = new StringBuilder("##uri\trepository");
+        StringBuilder result = new StringBuilder("###uri\trepository");
         for (Map lastResult : lastResults) {
             for (String url : currentDataProvider.getUrlsFromDataset(query, lastResult)) {
                 result.append("\n").append(url).append("\t").append(currentDataProvider.getName());

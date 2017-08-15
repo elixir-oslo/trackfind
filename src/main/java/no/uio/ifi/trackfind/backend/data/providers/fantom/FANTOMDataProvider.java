@@ -32,14 +32,14 @@ public class FANTOMDataProvider extends AbstractDataProvider {
      */
     @Override
     public Collection<Map> fetchData() throws IOException {
-        Collection<Map> datasets = new HashSet<>();
+        Collection<Map> result = new HashSet<>();
         log.info("Collecting directories...");
-        Document root = Jsoup.parse(new URL(METADATA_URL), 5000);
+        Document root = Jsoup.parse(new URL(METADATA_URL), 10000);
         Set<String> dirs = root.getElementsByTag("a").stream().map(e -> e.attr("href")).filter(s -> s.contains(".") && s.endsWith("/")).collect(Collectors.toSet());
         log.info(dirs.size() + " directories collected");
         for (String dir : dirs) {
             log.info("Processing directory: " + dir);
-            Document folder = Jsoup.parse(new URL(METADATA_URL + dir), 5000);
+            Document folder = Jsoup.parse(new URL(METADATA_URL + dir), 10000);
             Set<String> allFiles = folder.getElementsByTag("a").stream().map(e -> e.attr("href")).collect(Collectors.toSet());
             Optional<String> metadataFileOptional = allFiles.stream().filter(s -> s.endsWith("_sdrf.txt")).findAny();
             if (!metadataFileOptional.isPresent()) {
@@ -60,22 +60,19 @@ public class FANTOMDataProvider extends AbstractDataProvider {
                             dataset.put(attributes[i], next.get(i));
                         }
                     }
-                    Map<String, Collection<Map<String, String>>> filesByType = new HashMap<>();
+                    Map<String, Collection<String>> browser = new HashMap<>();
                     Set<String> datasetRelatedFiles = allFiles.stream().filter(s -> s.contains(next.get(0))).collect(Collectors.toSet());
                     for (String datasetRelatedFile : datasetRelatedFiles) {
-                        Map<String, String> bigDataUrl = new HashMap<>();
-                        bigDataUrl.put(BIG_DATA_URL, METADATA_URL + dir + datasetRelatedFile);
-                        Collection<Map<String, String>> bigDataUrls = filesByType.computeIfAbsent(getDataType(datasetRelatedFile), k -> new HashSet<>());
-                        bigDataUrls.add(bigDataUrl);
+                        browser.computeIfAbsent(getDataType(datasetRelatedFile), k -> new HashSet<>()).add(METADATA_URL + dir + datasetRelatedFile);
                     }
-                    dataset.put(BROWSER, filesByType);
-                    datasets.add(dataset);
+                    dataset.put(BROWSER, browser);
+                    result.add(dataset);
                 }
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
             }
         }
-        return datasets;
+        return result;
     }
 
     private String getDataType(String fileName) {

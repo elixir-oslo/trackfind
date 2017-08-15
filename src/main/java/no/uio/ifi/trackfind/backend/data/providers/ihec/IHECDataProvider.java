@@ -13,10 +13,7 @@ import org.springframework.util.CollectionUtils;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Fetches data from IHEC (http://epigenomesportal.ca/ihec/grid.html/).
@@ -53,7 +50,7 @@ public class IHECDataProvider extends AbstractDataProvider {
             return result;
         }
         log.info(releases.size() + " releases collected.");
-        releases.stream().map(Release::getId).forEach(releaseId -> {
+        releases.stream().sorted().map(Release::getId).forEach(releaseId -> {
             log.info("Processing release: " + releaseId);
             try (InputStreamReader reader = new InputStreamReader(new URL(FETCH_URL + releaseId).openStream())) {
                 Map grid = gson.fromJson(reader, Map.class);
@@ -66,6 +63,15 @@ public class IHECDataProvider extends AbstractDataProvider {
                     Object sample = samplesMap.get(sampleId);
                     dataset.put("sample_data", sample);
                     dataset.put("hub_description", hubDescription);
+                    Map<String, Collection<Map<String, String>>> browser = (Map<String, Collection<Map<String, String>>>) dataset.get(BROWSER);
+                    Map<String, Collection<String>> browserToStore = new HashMap<>();
+                    for (String dataType : browser.keySet()) {
+                        Collection<Map<String, String>> bigDataUrls = browser.get(dataType);
+                        for (Map<String, String> bigDataUrl : bigDataUrls) {
+                            browserToStore.computeIfAbsent(dataType, k -> new HashSet<>()).add(bigDataUrl.get(BIG_DATA_URL));
+                        }
+                    }
+                    dataset.put(BROWSER, browserToStore);
                 }
                 result.addAll(datasets);
             } catch (IOException e) {
@@ -79,7 +85,7 @@ public class IHECDataProvider extends AbstractDataProvider {
      * Inner class for deserialization of Release data from IHEC (using Gson).
      */
     @Data
-    private class Release {
+    private class Release implements Comparable<Release> {
 
         @SerializedName("assembly")
         private String assembly;
@@ -105,6 +111,10 @@ public class IHECDataProvider extends AbstractDataProvider {
         @SerializedName("taxon_id")
         private Integer taxonId;
 
+        @Override
+        public int compareTo(Release that) {
+            return this.getId().compareTo(that.getId());
+        }
     }
 
 

@@ -4,6 +4,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.lucene.DirectoryFactory;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.KeywordAnalyzer;
 import org.apache.lucene.document.Document;
@@ -17,7 +18,6 @@ import org.apache.lucene.search.*;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.util.BytesRef;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.SerializationUtils;
 
 import javax.annotation.PostConstruct;
@@ -104,11 +104,12 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
             Set<Term> terms = new HashSet<>();
             weight.extractTerms(terms);
             Set<String> dataTypes = terms.stream().filter(t -> t.field().equals(DATA_TYPE)).map(Term::text).collect(Collectors.toSet());
-            Map browser = (Map) dataset.get(BROWSER);
             Collection<String> urls = new HashSet<>();
-            for (String dataType : dataTypes) {
-                Collection<Map> bigDataEntries = (Collection<Map>) browser.getOrDefault(dataType, Collections.emptySet());
-                urls.addAll(bigDataEntries.stream().map(m -> (String) m.get(BIG_DATA_URL)).collect(Collectors.toSet()));
+            Map<String, Collection<String>> browser = (Map<String, Collection<String>>) dataset.get(BROWSER);
+            if (CollectionUtils.isNotEmpty(dataTypes)) {
+                dataTypes.forEach(dt -> urls.addAll(browser.getOrDefault(dt, Collections.emptySet())));
+            } else {
+                urls.addAll(browser.values().stream().flatMap(Collection::stream).collect(Collectors.toSet()));
             }
             return urls;
         } catch (IOException | ParseException e) {
@@ -153,7 +154,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     @SuppressWarnings("unchecked")
     protected void postProcess(Collection<Map> datasets) {
         for (Map dataset : datasets) {
-            Map<String, Object> browser = (Map<String, Object>) dataset.get(BROWSER);
+            Map<String, Collection<String>> browser = (Map<String, Collection<String>>) dataset.get(BROWSER);
             if (browser == null) {
                 log.error("'browser' field is 'null' for dataset!");
             } else {
