@@ -74,7 +74,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     }
 
     /**
-     * Gets attributes to skip during indexing.
+     * Gets attributes to skip during indexing. Basically hides this attributes from the tree.
      *
      * @return Collection of unneeded attributes.
      */
@@ -83,7 +83,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     }
 
     /**
-     * Gets values to skip during indexing.
+     * Gets values to skip during indexing. Basically hides this values from the tree.
      *
      * @return Collection of unneeded values.
      */

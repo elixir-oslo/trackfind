@@ -1,9 +1,7 @@
 package no.uio.ifi.trackfind.backend.data.providers.icgc;
 
-import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
-import no.uio.ifi.trackfind.backend.data.providers.AbstractDataProvider;
-import org.springframework.beans.factory.annotation.Autowired;
+import no.uio.ifi.trackfind.backend.data.providers.PaginationAwareDataProvider;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -19,20 +17,12 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Component
-public class ICGCDataProvider extends AbstractDataProvider { // TODO: fetch more data
+public class ICGCDataProvider extends PaginationAwareDataProvider { // TODO: fetch more data
 
     private static final String DONORS = "https://dcc.icgc.org/api/v1/donors?";
     private static final String SUBMIT = "https://dcc.icgc.org/api/v1/download/submit?filters={%22donor%22:{%22id%22:{%22is%22:[%22__DONOR_ID__%22]}}}&info=[{%22key%22:%22__DATA_TYPE__%22,%22value%22:%22TSV%22}]";
     private static final String DOWNLOAD = "https://dcc.icgc.org/api/v1/download/";
     private static final String AVAILABLE_DATA_TYPES = "availableDataTypes";
-    private static final int DONORS_PER_PAGE = 100;
-
-    private final Gson gson;
-
-    @Autowired
-    public ICGCDataProvider(Gson gson) {
-        this.gson = gson;
-    }
 
     /**
      * {@inheritDoc}
@@ -42,25 +32,13 @@ public class ICGCDataProvider extends AbstractDataProvider { // TODO: fetch more
     public Collection<Map> fetchData() throws IOException {
         Collection<Map> result = new HashSet<>();
         log.info("Fetching donors...");
-        long pages;
-        try (InputStreamReader reader = new InputStreamReader(new URL(DONORS + "size=" + DONORS_PER_PAGE).openStream())) {
-            Donors donors = gson.fromJson(reader, Donors.class);
-            pages = donors.getPagination().getPages();
-        }
-        if (pages == 0) {
+        long pagesTotal = getPagesTotal(DONORS, ICGCPage.class);
+        if (pagesTotal == 0) {
             return result;
         }
-        log.info(pages * DONORS_PER_PAGE + " donors available.");
-        log.info("Pages: " + pages);
-        for (int i = 0; i < pages; i++) {
-            log.info("Processing page: " + i);
-            try (InputStreamReader reader = new InputStreamReader(new URL(DONORS +
-                    "from=" + i * DONORS_PER_PAGE +
-                    "&size=" + DONORS_PER_PAGE).openStream())) {
-                Donors donors = gson.fromJson(reader, Donors.class);
-                result.addAll(donors.getHits());
-            }
-        }
+        log.info(pagesTotal * getEntriesPerPage() + " donors available.");
+        log.info("Pages total: " + pagesTotal);
+        result.addAll(fetchPaginatedEntries(DONORS, ICGCPage.class, pagesTotal));
         for (Map dataset : result) {
             Map<String, Collection<String>> browser = new HashMap<>();
             String donorId = (String) dataset.get("id");
