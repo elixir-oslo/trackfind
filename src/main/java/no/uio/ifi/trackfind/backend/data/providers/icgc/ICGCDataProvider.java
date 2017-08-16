@@ -1,8 +1,6 @@
 package no.uio.ifi.trackfind.backend.data.providers.icgc;
 
 import com.google.gson.Gson;
-import com.google.gson.annotations.SerializedName;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.data.providers.AbstractDataProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -90,63 +88,6 @@ public class ICGCDataProvider extends AbstractDataProvider { // TODO: fetch more
                 return null;
             }
         }).filter(Objects::nonNull).collect(Collectors.toSet());
-    }
-
-    /**
-     * Inner class for deserialization of donors data from ICGC (using Gson).
-     */
-    @Data
-    private class Donors {
-
-        @SerializedName("hits")
-        private Collection<Map<String, Object>> hits;
-
-        @SerializedName("pagination")
-        private Pagination pagination;
-
-    }
-
-    /**
-     * Inner class for deserialization of pagination data from ICGC (using Gson).
-     */
-    @Data
-    private class Pagination {
-
-        @SerializedName("count")
-        private Integer count;
-
-        @SerializedName("total")
-        private Long total;
-
-        @SerializedName("size")
-        private Integer size;
-
-        @SerializedName("from")
-        private Integer from;
-
-        @SerializedName("page")
-        private Integer page;
-
-        @SerializedName("pages")
-        private Integer pages;
-
-        @SerializedName("sort")
-        private String sort;
-
-        @SerializedName("order")
-        private String order;
-
-    }
-
-    /**
-     * Inner class for deserialization of Download ID from ICGC (using Gson).
-     */
-    @Data
-    private class Download {
-
-        @SerializedName("downloadId")
-        private String downloadId;
-
     }
 
 }

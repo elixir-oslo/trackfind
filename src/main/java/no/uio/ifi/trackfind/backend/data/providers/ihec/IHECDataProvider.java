@@ -2,9 +2,7 @@ package no.uio.ifi.trackfind.backend.data.providers.ihec;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.annotations.SerializedName;
 import com.google.gson.reflect.TypeToken;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.data.providers.AbstractDataProvider;
 import org.springframework.stereotype.Component;
@@ -13,7 +11,10 @@ import org.springframework.util.CollectionUtils;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 
 /**
  * Fetches data from IHEC (http://epigenomesportal.ca/ihec/grid.html/).
@@ -77,42 +78,5 @@ public class IHECDataProvider extends AbstractDataProvider {
         });
         return result;
     }
-
-    /**
-     * Inner class for deserialization of Release data from IHEC (using Gson).
-     */
-    @Data
-    private class Release implements Comparable<Release> {
-
-        @SerializedName("assembly")
-        private String assembly;
-
-        @SerializedName("id")
-        private Integer id;
-
-        @SerializedName("integration_date")
-        private Date integrationDate;
-
-        @SerializedName("publishing_group")
-        private String publishingGroup;
-
-        @SerializedName("release_policies_url")
-        private String releasePoliciesUrl;
-
-        @SerializedName("releasing_group")
-        private String releasingGroup;
-
-        @SerializedName("species")
-        private String species;
-
-        @SerializedName("taxon_id")
-        private Integer taxonId;
-
-        @Override
-        public int compareTo(Release that) {
-            return this.getId().compareTo(that.getId());
-        }
-    }
-
 
 }
