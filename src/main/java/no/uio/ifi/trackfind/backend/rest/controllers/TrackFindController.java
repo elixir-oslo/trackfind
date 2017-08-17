@@ -20,12 +20,7 @@ import java.util.stream.Collectors;
 @RestController
 public class TrackFindController {
 
-    private final TrackFindService trackFindService;
-
-    @Autowired
-    public TrackFindController(TrackFindService trackFindService) {
-        this.trackFindService = trackFindService;
-    }
+    private TrackFindService trackFindService;
 
     /**
      * Gets all available DataProviders.
@@ -129,6 +124,11 @@ public class TrackFindController {
                          @RequestParam String query,
                          @RequestParam(required = false, defaultValue = "0") int limit) throws Exception {
         return trackFindService.getDataProvider(provider).search(query, limit);
+    }
+
+    @Autowired
+    public void setTrackFindService(TrackFindService trackFindService) {
+        this.trackFindService = trackFindService;
     }
 
 }

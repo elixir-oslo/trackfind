@@ -17,12 +17,7 @@ import java.util.TreeSet;
 @Service
 public class TrackFindService {
 
-    private final Collection<DataProvider> dataProviders;
-
-    @Autowired
-    public TrackFindService(Collection<DataProvider> dataProviders) {
-        this.dataProviders = dataProviders;
-    }
+    private Collection<DataProvider> dataProviders;
 
     /**
      * Get all registered DataProviders.
@@ -41,6 +36,11 @@ public class TrackFindService {
      */
     public DataProvider getDataProvider(String dataProviderName) {
         return getDataProviders().stream().filter(dp -> dp.getName().equals(dataProviderName)).findAny().orElseThrow(RuntimeException::new);
+    }
+
+    @Autowired
+    public void setDataProviders(Collection<DataProvider> dataProviders) {
+        this.dataProviders = dataProviders;
     }
 
 }

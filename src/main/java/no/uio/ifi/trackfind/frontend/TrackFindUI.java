@@ -53,8 +53,8 @@ import java.util.Map;
 @Slf4j
 public class TrackFindUI extends UI {
 
-    private final TrackFindService trackFindService;
-    private final Gson gson;
+    private TrackFindService trackFindService;
+    private Gson gson;
 
     private Collection<Map> lastResults;
 
@@ -62,15 +62,8 @@ public class TrackFindUI extends UI {
     private TextArea queryTextArea;
     private TextField limitTextField;
     private TextArea resultsTextArea;
-
     private FileDownloader fileDownloader;
     private Button exportButton;
-
-    @Autowired
-    public TrackFindUI(TrackFindService trackFindService) {
-        this.trackFindService = trackFindService;
-        this.gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
-    }
 
     @Override
     protected void init(VaadinRequest vaadinRequest) {
@@ -301,6 +294,16 @@ public class TrackFindUI extends UI {
         headerLayout.setSizeFull();
         headerLayout.setComponentAlignment(headerLabel, Alignment.TOP_CENTER);
         return headerLayout;
+    }
+
+    @Autowired
+    public void setTrackFindService(TrackFindService trackFindService) {
+        this.trackFindService = trackFindService;
+    }
+
+    @Autowired
+    public void setGson(Gson gson) {
+        this.gson = gson;
     }
 
 }
