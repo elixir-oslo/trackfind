@@ -9,6 +9,8 @@ import java.util.Map;
 
 /**
  * POJO for deserialization of paginated entries from ICGC (using Gson).
+ *
+ * @author Dmytro Titov
  */
 @Data
 public class ICGCPage implements Page {

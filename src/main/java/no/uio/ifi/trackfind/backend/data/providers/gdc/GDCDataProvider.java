@@ -9,7 +9,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Fetches data from GDC (https://docs.gdc.cancer.gov/API/Users_Guide/Getting_Started/).
+ * Fetches data from <a href="https://docs.gdc.cancer.gov/">GDC</a>.
  *
  * @author Dmytro Titov
  */

@@ -12,7 +12,9 @@ import java.util.HashSet;
 import java.util.Map;
 
 /**
- * Extension for AbstractDataProvider that provides some common pagination handling methods and POJOs.
+ * Extension for AbstractDataProvider that provides some common pagination handling.
+ *
+ * @author Dmytro Titov
  */
 @Slf4j
 public abstract class PaginationAwareDataProvider extends AbstractDataProvider {
@@ -20,7 +22,7 @@ public abstract class PaginationAwareDataProvider extends AbstractDataProvider {
     protected Gson gson;
 
     /**
-     * Returns how many entries to fetch at once.
+     * Specifies amount of entries to fetch at once.
      *
      * @return Entries per page quantity.
      */
@@ -33,9 +35,9 @@ public abstract class PaginationAwareDataProvider extends AbstractDataProvider {
      *
      * @param urlWithPagination Paginated API endpoint.
      * @param pageClass         Implementation of {@link Page} interface.
-     * @param <T>               <T> Class implementing {@link Page} interface.
+     * @param <T>               Implements {@link Page} interface.
      * @return Total count of pages for specified URL.
-     * @throws IOException
+     * @throws IOException In case if something goes wrong.
      */
     protected <T extends Page> long getPagesTotal(String urlWithPagination, Class<T> pageClass) throws IOException {
         long pagesTotal;
@@ -49,9 +51,9 @@ public abstract class PaginationAwareDataProvider extends AbstractDataProvider {
      * @param urlWithPagination Paginated API endpoint.
      * @param pageClass         Implementation of {@link Page} interface.
      * @param pagesTotal        Total amount of pages for given API endpoint got from {@link #getPagesTotal(String, Class)} method.
-     * @param <T>               Class implementing {@link Page} interface.
+     * @param <T>               Implements {@link Page} interface.
      * @return Pagination-aware fetched data.
-     * @throws IOException
+     * @throws IOException In case if something goes wrong.
      */
     protected <T extends Page> Collection<Map> fetchPaginatedEntries(String urlWithPagination, Class<T> pageClass, long pagesTotal) throws IOException {
         Collection<Map> result = new HashSet<>();

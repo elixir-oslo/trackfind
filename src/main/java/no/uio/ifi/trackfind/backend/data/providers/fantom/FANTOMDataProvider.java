@@ -17,7 +17,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Fetches data from FANTOM (http://fantom.gsc.riken.jp/).
+ * Fetches data from <a href="http://fantom.gsc.riken.jp/">FANTOM</a>.
  *
  * @author Dmytro Titov
  */

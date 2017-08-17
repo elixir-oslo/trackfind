@@ -10,6 +10,8 @@ import java.util.Map;
 
 /**
  * POJO for deserialization of paginated entries from GDC (using Gson).
+ *
+ * @author Dmytro Titov
  */
 @Data
 public class GDCPage implements Page {

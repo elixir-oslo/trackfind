@@ -11,7 +11,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Fetches data from ICGC (http://docs.icgc.org/portal/api/).
+ * Fetches data from <a href="http://docs.icgc.org/">ICGC</a>.
  *
  * @author Dmytro Titov
  */

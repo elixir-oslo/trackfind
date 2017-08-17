@@ -7,6 +7,8 @@ import java.util.Date;
 
 /**
  * POJO for deserialization of Release data from IHEC (using Gson).
+ *
+ * @author Dmytro Titov
  */
 @Data
 class Release implements Comparable<Release> {

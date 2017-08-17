@@ -8,6 +8,8 @@ import java.util.Map;
 
 /**
  * Page interface.
+ *
+ * @author Dmytro Titov
  */
 public interface Page {
 

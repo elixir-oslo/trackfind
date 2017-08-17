@@ -120,6 +120,7 @@ public class TrackFindController {
      *
      * @param provider DataProvider name.
      * @param query    Search query (Lucene syntax, see https://lucene.apache.org/solr/guide/6_6/the-standard-query-parser.html).
+     * @param limit    Max number of entries to return.
      * @return Search results.
      * @throws Exception In case of some error.
      */

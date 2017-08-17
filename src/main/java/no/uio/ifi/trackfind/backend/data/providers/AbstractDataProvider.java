@@ -111,7 +111,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     /**
      * Parses Lucene Query to get 'data type' terms from it.
      *
-     * @param query Query used for fnding this dataset.
+     * @param query Query used for finding this dataset.
      * @return Data types.
      */
     protected Set<String> extractDataTypesFromQuery(String query) {
