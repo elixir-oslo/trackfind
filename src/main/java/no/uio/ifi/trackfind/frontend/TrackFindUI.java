@@ -1,7 +1,6 @@
 package no.uio.ifi.trackfind.frontend;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Title;
 import com.vaadin.annotations.Widgetset;
