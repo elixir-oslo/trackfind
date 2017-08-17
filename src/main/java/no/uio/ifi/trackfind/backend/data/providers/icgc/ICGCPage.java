@@ -25,7 +25,7 @@ public class ICGCPage implements Page {
      * {@inheritDoc}
      */
     @Override
-    public long getPagesTotal() {
+    public int getPagesTotal() {
         return getPagination().getPages();
     }
 

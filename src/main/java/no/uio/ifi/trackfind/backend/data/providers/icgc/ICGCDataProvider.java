@@ -29,10 +29,10 @@ public class ICGCDataProvider extends PaginationAwareDataProvider { // TODO: fet
      */
     @SuppressWarnings("unchecked")
     @Override
-    public Collection<Map> fetchData() throws IOException {
+    public Collection<Map> fetchData() throws Exception {
         Collection<Map> result = new HashSet<>();
         log.info("Fetching donors...");
-        long pagesTotal = getPagesTotal(DONORS, ICGCPage.class);
+        int pagesTotal = getPagesTotal(DONORS, ICGCPage.class);
         if (pagesTotal == 0) {
             return result;
         }

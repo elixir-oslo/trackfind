@@ -11,10 +11,9 @@ import org.springframework.util.CollectionUtils;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.stream.Collectors;
 
 /**
  * Fetches data from <a href="http://epigenomesportal.ca/ihec/grid.html/">IHEC</a>.
@@ -35,7 +34,7 @@ public class IHECDataProvider extends AbstractDataProvider {
      */
     @SuppressWarnings("unchecked")
     @Override
-    public Collection<Map> fetchData() throws IOException {
+    public Collection<Map> fetchData() throws Exception {
         Collection<Map> result = new HashSet<>();
         Gson gson = new GsonBuilder().setDateFormat(DATE_FORMAT).create();
         log.info("Collecting releases...");
@@ -47,35 +46,44 @@ public class IHECDataProvider extends AbstractDataProvider {
         if (CollectionUtils.isEmpty(releases)) {
             return result;
         }
-        log.info(releases.size() + " releases collected.");
-        releases.stream().sorted().map(Release::getId).forEach(releaseId -> {
-            log.info("Processing release: " + releaseId);
-            try (InputStreamReader reader = new InputStreamReader(new URL(FETCH_URL + releaseId).openStream())) {
-                Map grid = gson.fromJson(reader, Map.class);
-                Map datasetsMap = (Map) grid.get("datasets");
-                Collection<Map> datasets = datasetsMap.values();
-                Map samplesMap = (Map) grid.get("samples");
-                Object hubDescription = grid.get("hub_description");
-                for (Map<String, Object> dataset : datasets) {
-                    String sampleId = String.valueOf(dataset.get("sample_id"));
-                    Object sample = samplesMap.get(sampleId);
-                    dataset.put("sample_data", sample);
-                    dataset.put("hub_description", hubDescription);
-                    Map<String, Collection<Map<String, String>>> browser = (Map<String, Collection<Map<String, String>>>) dataset.get(BROWSER);
-                    Map<String, Collection<String>> browserToStore = new HashMap<>();
-                    for (String dataType : browser.keySet()) {
-                        Collection<Map<String, String>> bigDataUrls = browser.get(dataType);
-                        for (Map<String, String> bigDataUrl : bigDataUrls) {
-                            browserToStore.computeIfAbsent(dataType, k -> new HashSet<>()).add(bigDataUrl.get("big_data_url"));
+        int size = releases.size();
+        log.info(size + " releases collected.");
+        Set<Integer> releaseIds = releases.stream().sorted().map(Release::getId).collect(Collectors.toSet());
+        CountDownLatch countDownLatch = new CountDownLatch(size);
+        for (Integer releaseId : releaseIds) {
+            executorService.submit(() -> {
+                try (InputStreamReader reader = new InputStreamReader(new URL(FETCH_URL + releaseId).openStream())) {
+                    Map grid = gson.fromJson(reader, Map.class);
+                    Map datasetsMap = (Map) grid.get("datasets");
+                    Collection<Map> datasets = datasetsMap.values();
+                    Map samplesMap = (Map) grid.get("samples");
+                    Object hubDescription = grid.get("hub_description");
+                    for (Map<String, Object> dataset : datasets) {
+                        String sampleId = String.valueOf(dataset.get("sample_id"));
+                        Object sample = samplesMap.get(sampleId);
+                        dataset.put("sample_data", sample);
+                        dataset.put("hub_description", hubDescription);
+                        Map<String, Collection<Map<String, String>>> browser = (Map<String, Collection<Map<String, String>>>) dataset.get(BROWSER);
+                        Map<String, Collection<String>> browserToStore = new HashMap<>();
+                        for (String dataType : browser.keySet()) {
+                            Collection<Map<String, String>> bigDataUrls = browser.get(dataType);
+                            for (Map<String, String> bigDataUrl : bigDataUrls) {
+                                browserToStore.computeIfAbsent(dataType, k -> new HashSet<>()).add(bigDataUrl.get("big_data_url"));
+                            }
                         }
+                        dataset.put(BROWSER, browserToStore);
                     }
-                    dataset.put(BROWSER, browserToStore);
+                    result.addAll(datasets);
+                    log.info("Release " + releaseId + " processed.");
+
+                } catch (IOException e) {
+                    log.error(e.getMessage(), e);
+                } finally {
+                    countDownLatch.countDown();
                 }
-                result.addAll(datasets);
-            } catch (IOException e) {
-                log.error(e.getMessage(), e);
-            }
-        });
+            });
+        }
+        countDownLatch.await();
         return result;
     }
 

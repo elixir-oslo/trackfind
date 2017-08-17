@@ -7,13 +7,15 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URL;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
 /**
@@ -31,47 +33,56 @@ public class FANTOMDataProvider extends AbstractDataProvider {
      * {@inheritDoc}
      */
     @Override
-    public Collection<Map> fetchData() throws IOException {
+    public Collection<Map> fetchData() throws Exception { // TODO: implement better multithreading here.
         Collection<Map> result = new HashSet<>();
         log.info("Collecting directories...");
         Document root = Jsoup.parse(new URL(METADATA_URL), 10000);
         Set<String> dirs = root.getElementsByTag("a").stream().map(e -> e.attr("href")).filter(s -> s.contains(".") && s.endsWith("/")).collect(Collectors.toSet());
-        log.info(dirs.size() + " directories collected");
+        int size = dirs.size();
+        log.info(size + " directories collected");
+        CountDownLatch countDownLatch = new CountDownLatch(size);
         for (String dir : dirs) {
-            log.info("Processing directory: " + dir);
-            Document folder = Jsoup.parse(new URL(METADATA_URL + dir), 10000);
-            Set<String> allFiles = folder.getElementsByTag("a").stream().map(e -> e.attr("href")).collect(Collectors.toSet());
-            Optional<String> metadataFileOptional = allFiles.stream().filter(s -> s.endsWith("_sdrf.txt")).findAny();
-            if (!metadataFileOptional.isPresent()) {
-                continue;
-            }
-            URL url = new URL(METADATA_URL + dir + metadataFileOptional.get());
-            try (Reader reader = new InputStreamReader(url.openStream());
-                 CSVParser parser = new CSVParser(reader, CSVFormat.newFormat('\t').withSkipHeaderRecord())) {
-                List<CSVRecord> records = parser.getRecords();
-                Iterator<CSVRecord> recordIterator = records.iterator();
-                CSVRecord header = recordIterator.next();
-                String[] attributes = parseAttributes(header);
-                while (recordIterator.hasNext()) {
-                    Map<String, Object> dataset = new HashMap<>();
-                    CSVRecord next = recordIterator.next();
-                    for (int i = 0; i < attributes.length; i++) {
-                        if (!attributes[i].startsWith("skip")) {
-                            dataset.put(attributes[i], next.get(i));
+            executorService.submit(() -> {
+                try {
+                    Document folder = Jsoup.parse(new URL(METADATA_URL + dir), 10000);
+                    Set<String> allFiles = folder.getElementsByTag("a").stream().map(e -> e.attr("href")).collect(Collectors.toSet());
+                    Optional<String> metadataFileOptional = allFiles.stream().filter(s -> s.endsWith("_sdrf.txt")).findAny();
+                    if (!metadataFileOptional.isPresent()) {
+                        return;
+                    }
+                    URL url = new URL(METADATA_URL + dir + metadataFileOptional.get());
+                    try (Reader reader = new InputStreamReader(url.openStream());
+                         CSVParser parser = new CSVParser(reader, CSVFormat.newFormat('\t').withSkipHeaderRecord())) {
+                        List<CSVRecord> records = parser.getRecords();
+                        Iterator<CSVRecord> recordIterator = records.iterator();
+                        CSVRecord header = recordIterator.next();
+                        String[] attributes = parseAttributes(header);
+                        while (recordIterator.hasNext()) {
+                            Map<String, Object> dataset = new HashMap<>();
+                            CSVRecord next = recordIterator.next();
+                            for (int i = 0; i < attributes.length; i++) {
+                                if (!attributes[i].startsWith("skip")) {
+                                    dataset.put(attributes[i], next.get(i));
+                                }
+                            }
+                            Map<String, Collection<String>> browser = new HashMap<>();
+                            Set<String> datasetRelatedFiles = allFiles.stream().filter(s -> s.contains(next.get(0))).collect(Collectors.toSet());
+                            for (String datasetRelatedFile : datasetRelatedFiles) {
+                                browser.computeIfAbsent(getDataType(datasetRelatedFile), k -> new HashSet<>()).add(METADATA_URL + dir + datasetRelatedFile);
+                            }
+                            dataset.put(BROWSER, browser);
+                            result.add(dataset);
                         }
+                        log.info("Directory " + dir + " processed.");
                     }
-                    Map<String, Collection<String>> browser = new HashMap<>();
-                    Set<String> datasetRelatedFiles = allFiles.stream().filter(s -> s.contains(next.get(0))).collect(Collectors.toSet());
-                    for (String datasetRelatedFile : datasetRelatedFiles) {
-                        browser.computeIfAbsent(getDataType(datasetRelatedFile), k -> new HashSet<>()).add(METADATA_URL + dir + datasetRelatedFile);
-                    }
-                    dataset.put(BROWSER, browser);
-                    result.add(dataset);
+                } catch (Exception e) {
+                    log.error(e.getMessage(), e);
+                } finally {
+                    countDownLatch.countDown();
                 }
-            } catch (Exception e) {
-                log.error(e.getMessage(), e);
-            }
+            });
         }
+        countDownLatch.await();
         return result;
     }
 
@@ -107,6 +118,12 @@ public class FANTOMDataProvider extends AbstractDataProvider {
             attributes[i] = header.get(i).replace("Comment [", "").replace("Parameter [", "").replace("]", "");
         }
         return attributes;
+    }
+
+    @Autowired
+    @Override
+    public void setExecutorService(ExecutorService fixedThreadPool) {
+        this.executorService = fixedThreadPool;
     }
 
 }

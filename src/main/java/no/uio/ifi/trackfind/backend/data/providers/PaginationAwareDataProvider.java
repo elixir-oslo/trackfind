@@ -7,9 +7,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * Extension for AbstractDataProvider that provides some common pagination handling.
@@ -39,8 +41,8 @@ public abstract class PaginationAwareDataProvider extends AbstractDataProvider {
      * @return Total count of pages for specified URL.
      * @throws IOException In case if something goes wrong.
      */
-    protected <T extends Page> long getPagesTotal(String urlWithPagination, Class<T> pageClass) throws IOException {
-        long pagesTotal;
+    protected <T extends Page> int getPagesTotal(String urlWithPagination, Class<T> pageClass) throws IOException {
+        int pagesTotal;
         try (InputStreamReader reader = new InputStreamReader(new URL(urlWithPagination + "from=0&size=" + getEntriesPerPage()).openStream())) {
             pagesTotal = gson.fromJson(reader, pageClass).getPagesTotal();
         }
@@ -55,16 +57,23 @@ public abstract class PaginationAwareDataProvider extends AbstractDataProvider {
      * @return Pagination-aware fetched data.
      * @throws IOException In case if something goes wrong.
      */
-    protected <T extends Page> Collection<Map> fetchPaginatedEntries(String urlWithPagination, Class<T> pageClass, long pagesTotal) throws IOException {
+    protected <T extends Page> Collection<Map> fetchPaginatedEntries(String urlWithPagination, Class<T> pageClass, int pagesTotal) throws Exception {
         Collection<Map> result = new HashSet<>();
+        CountDownLatch countDownLatch = new CountDownLatch(pagesTotal);
         for (int i = 0; i < pagesTotal; i++) {
-            log.info("Processing page: " + i);
-            try (InputStreamReader reader = new InputStreamReader(new URL(urlWithPagination +
-                    "from=" + i * getEntriesPerPage() +
-                    "&size=" + getEntriesPerPage()).openStream())) {
+            URL url = new URL(urlWithPagination + "from=" + i * getEntriesPerPage() + "&size=" + getEntriesPerPage());
+            URLConnection connection = url.openConnection();
+            connection.setConnectTimeout(60000);
+            try (InputStreamReader reader = new InputStreamReader(connection.getInputStream())) {
                 result.addAll(gson.fromJson(reader, pageClass).getEntries());
+                log.info("Page " + i + " processed.");
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+            } finally {
+                countDownLatch.countDown();
             }
         }
+        countDownLatch.await();
         return result;
     }
 

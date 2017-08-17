@@ -23,7 +23,7 @@ public class GDCPage implements Page {
      * {@inheritDoc}
      */
     @Override
-    public long getPagesTotal() {
+    public int getPagesTotal() {
         return getSubpage().getPagination().getPages();
     }
 

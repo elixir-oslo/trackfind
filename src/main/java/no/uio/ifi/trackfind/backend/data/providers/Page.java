@@ -18,7 +18,7 @@ public interface Page {
      *
      * @return Total number of pages.
      */
-    long getPagesTotal();
+    int getPagesTotal();
 
     /**
      * Get entries of this page.
@@ -49,7 +49,7 @@ public interface Page {
         private Integer page;
 
         @SerializedName("pages")
-        private Long pages;
+        private Integer pages;
 
         @SerializedName("sort")
         private String sort;

@@ -23,6 +23,7 @@ import org.springframework.util.SerializationUtils;
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
 /**
@@ -48,6 +49,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     private Directory directory;
 
     private DirectoryFactory directoryFactory;
+    protected ExecutorService executorService;
 
     /**
      * Initialize Lucene Directory (Index) and the Searcher over this Directory.
@@ -131,9 +133,9 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      * Fetches data from the repository.
      *
      * @return Data as map.
-     * @throws IOException in case of reading problems.
+     * @throws Exception in case of some problems.
      */
-    protected abstract Collection<Map> fetchData() throws IOException;
+    protected abstract Collection<Map> fetchData() throws Exception;
 
     /**
      * {@inheritDoc}
@@ -333,6 +335,11 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     @Autowired
     public void setDirectoryFactory(DirectoryFactory directoryFactory) {
         this.directoryFactory = directoryFactory;
+    }
+
+    @Autowired
+    public void setExecutorService(ExecutorService cachedThreadPool) {
+        this.executorService = cachedThreadPool;
     }
 
 }
