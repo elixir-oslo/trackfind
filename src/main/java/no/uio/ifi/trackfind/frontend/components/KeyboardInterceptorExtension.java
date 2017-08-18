@@ -49,7 +49,7 @@ public class KeyboardInterceptorExtension extends AbstractExtension {
     /**
      * Checks the Shift key state (up or down).
      *
-     * @return true for down state, false for up state.
+     * @return <code>true</code> for down state, <code>false</code> for up state.
      */
     public boolean isShiftKeyDown() {
         return shiftKeyDown;
@@ -58,7 +58,7 @@ public class KeyboardInterceptorExtension extends AbstractExtension {
     /**
      * Checks the Alt key state (up or down).
      *
-     * @return true for down state, false for up state.
+     * @return <code>true</code> for down state, <code>false</code> for up state.
      */
     public boolean isAltKeyDown() {
         return altKeyDown;
@@ -67,7 +67,7 @@ public class KeyboardInterceptorExtension extends AbstractExtension {
     /**
      * Checks the Control key state (up or down).
      *
-     * @return true for down state, false for up state.
+     * @return <code>true</code> for down state, <code>false</code> for up state.
      */
     public boolean isControlKeyDown() {
         return controlKeyDown;
@@ -76,7 +76,7 @@ public class KeyboardInterceptorExtension extends AbstractExtension {
     /**
      * Checks the Meta key state (up or down).
      *
-     * @return true for down state, false for up state.
+     * @return <code>true</code> for down state, <code>false</code> for up state.
      */
     public boolean isMetaKeyDown() {
         return metaKeyDown;

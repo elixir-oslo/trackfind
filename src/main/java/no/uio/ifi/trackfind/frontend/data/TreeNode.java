@@ -96,7 +96,7 @@ public class TreeNode implements Comparable<TreeNode> {
     /**
      * Checks if it's a leaf-node (value of the metamodel).
      *
-     * @return true if it's a leaf-node, false otherwise.
+     * @return <code>true</code> if it's a leaf-node, <code>false</code> otherwise.
      */
     public boolean isLeaf() {
         return node.getValue() == null;
@@ -105,7 +105,7 @@ public class TreeNode implements Comparable<TreeNode> {
     /**
      * Checks if it's a final attribute (containing no children attributes, but values only).
      *
-     * @return true if it's a final attribute, false otherwise.
+     * @return <code>true</code> if it's a final attribute, <code>false</code> otherwise.
      */
     public boolean isFinalAttribute() {
         return fetchChildren().anyMatch(TreeNode::isLeaf);

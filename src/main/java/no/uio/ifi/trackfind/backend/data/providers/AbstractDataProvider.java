@@ -59,8 +59,8 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     @SuppressWarnings("unused")
     @PostConstruct
     private void postConstruct() throws Exception {
-        directory = directoryFactory.getDirectory(INDICES_FOLDER + getName());
-        if (DirectoryReader.indexExists(directory)) { // TODO: check for compatibility (app version and indices version)
+        directory = directoryFactory.getDirectory(INDICES_FOLDER + getName() + getClass().getPackage().getImplementationVersion());
+        if (DirectoryReader.indexExists(directory)) {
             reinitIndexSearcher();
         } else {
             updateIndex();
