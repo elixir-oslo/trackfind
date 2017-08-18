@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.data.providers.PaginationAwareDataProvider;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
