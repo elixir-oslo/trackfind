@@ -29,9 +29,7 @@ public abstract class PaginationAwareDataProvider extends AbstractDataProvider {
      *
      * @return Entries per page quantity.
      */
-    protected long getEntriesPerPage() {
-        return 10;
-    }
+    protected abstract long getEntriesPerPage();
 
     /**
      * Get total amount of pages for given API endpoint.

@@ -124,8 +124,8 @@ public class FANTOMDataProvider extends AbstractDataProvider {
 
     @Autowired
     @Override
-    public void setExecutorService(ExecutorService fixedThreadPool) {
-        this.executorService = fixedThreadPool;
+    public void setExecutorService(ExecutorService fixedThreadPoolQuad) {
+        this.executorService = fixedThreadPoolQuad;
     }
 
 }

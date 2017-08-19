@@ -15,8 +15,13 @@ public class BeanDefinitions {
     }
 
     @Bean
-    public ExecutorService fixedThreadPool() {
+    public ExecutorService fixedThreadPoolQuadro() {
         return Executors.newFixedThreadPool(4);
+    }
+
+    @Bean
+    public ExecutorService fixedThreadPoolOcto() {
+        return Executors.newFixedThreadPool(8);
     }
 
 }

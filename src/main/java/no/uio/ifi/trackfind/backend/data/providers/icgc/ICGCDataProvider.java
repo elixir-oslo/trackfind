@@ -25,6 +25,11 @@ public class ICGCDataProvider extends PaginationAwareDataProvider { // TODO: fet
     private static final String DOWNLOAD = "https://dcc.icgc.org/api/v1/download/";
     private static final String AVAILABLE_DATA_TYPES = "availableDataTypes";
 
+    @Override
+    protected long getEntriesPerPage() {
+        return 100;
+    }
+
     /**
      * {@inheritDoc}
      */
