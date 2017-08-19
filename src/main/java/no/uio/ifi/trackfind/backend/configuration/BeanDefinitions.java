@@ -15,6 +15,11 @@ public class BeanDefinitions {
     }
 
     @Bean
+    public ExecutorService singleThreadExecutor() {
+        return Executors.newSingleThreadExecutor();
+    }
+
+    @Bean
     public ExecutorService fixedThreadPoolQuadro() {
         return Executors.newFixedThreadPool(4);
     }

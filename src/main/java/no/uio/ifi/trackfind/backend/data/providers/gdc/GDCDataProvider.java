@@ -73,8 +73,8 @@ public class GDCDataProvider extends PaginationAwareDataProvider {
 
     @Autowired
     @Override
-    public void setExecutorService(ExecutorService fixedThreadPoolOcto) {
-        this.executorService = fixedThreadPoolOcto;
+    public void setExecutorService(ExecutorService singleThreadExecutor) {
+        this.executorService = singleThreadExecutor;
     }
 
 }
