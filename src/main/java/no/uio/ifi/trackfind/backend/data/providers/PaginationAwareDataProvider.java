@@ -29,7 +29,7 @@ public abstract class PaginationAwareDataProvider extends AbstractDataProvider {
      * @return Entries per page quantity.
      */
     protected long getEntriesPerPage() {
-        return 100;
+        return 10;
     }
 
     /**
