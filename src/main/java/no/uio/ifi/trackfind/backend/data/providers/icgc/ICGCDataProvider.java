@@ -5,6 +5,7 @@ import no.uio.ifi.trackfind.backend.data.providers.PaginationAwareDataProvider;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.*;
@@ -59,7 +60,8 @@ public class ICGCDataProvider extends PaginationAwareDataProvider { // TODO: fet
     public Collection<String> getUrlsFromDataset(String query, Map dataset) {
         Collection<String> submitURLs = super.getUrlsFromDataset(query, dataset);
         return submitURLs.stream().map(submitURL -> {
-            try (InputStreamReader reader = new InputStreamReader(new URL(submitURL).openStream())) {
+            try (InputStream inputStream = new URL(submitURL).openStream();
+                 InputStreamReader reader = new InputStreamReader(inputStream)) {
                 Download download = gson.fromJson(reader, Download.class);
                 return DOWNLOAD + download.getDownloadId();
             } catch (IOException e) {

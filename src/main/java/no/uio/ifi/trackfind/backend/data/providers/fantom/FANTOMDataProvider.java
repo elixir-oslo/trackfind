@@ -10,6 +10,7 @@ import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URL;
@@ -51,7 +52,8 @@ public class FANTOMDataProvider extends AbstractDataProvider {
                         return;
                     }
                     URL url = new URL(METADATA_URL + dir + metadataFileOptional.get());
-                    try (Reader reader = new InputStreamReader(url.openStream());
+                    try (InputStream inputStream = url.openStream();
+                         Reader reader = new InputStreamReader(inputStream);
                          CSVParser parser = new CSVParser(reader, CSVFormat.newFormat('\t').withSkipHeaderRecord())) {
                         List<CSVRecord> records = parser.getRecords();
                         Iterator<CSVRecord> recordIterator = records.iterator();

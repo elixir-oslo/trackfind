@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.*;
@@ -39,7 +40,8 @@ public class IHECDataProvider extends AbstractDataProvider {
         Gson gson = new GsonBuilder().setDateFormat(DATE_FORMAT).create();
         log.info("Collecting releases...");
         Collection<Release> releases;
-        try (InputStreamReader reader = new InputStreamReader(new URL(RELEASES_URL).openStream())) {
+        try (InputStream inputStream = new URL(RELEASES_URL).openStream();
+             InputStreamReader reader = new InputStreamReader(inputStream)) {
             releases = gson.fromJson(reader, new TypeToken<Collection<Release>>() {
             }.getType());
         }
@@ -50,9 +52,10 @@ public class IHECDataProvider extends AbstractDataProvider {
         log.info(size + " releases collected.");
         Set<Integer> releaseIds = releases.stream().sorted().map(Release::getId).collect(Collectors.toSet());
         CountDownLatch countDownLatch = new CountDownLatch(size);
-        for (Integer releaseId : releaseIds) {
+        for (int releaseId : releaseIds) {
             executorService.submit(() -> {
-                try (InputStreamReader reader = new InputStreamReader(new URL(FETCH_URL + releaseId).openStream())) {
+                try (InputStream inputStream = new URL(FETCH_URL + releaseId).openStream();
+                     InputStreamReader reader = new InputStreamReader(inputStream)) {
                     Map grid = gson.fromJson(reader, Map.class);
                     Map datasetsMap = (Map) grid.get("datasets");
                     Collection<Map> datasets = datasetsMap.values();
@@ -75,7 +78,6 @@ public class IHECDataProvider extends AbstractDataProvider {
                     }
                     result.addAll(datasets);
                     log.info("Release " + releaseId + " processed.");
-
                 } catch (IOException e) {
                     log.error(e.getMessage(), e);
                 } finally {

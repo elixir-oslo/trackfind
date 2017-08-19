@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
@@ -43,7 +44,8 @@ public abstract class PaginationAwareDataProvider extends AbstractDataProvider {
      */
     protected <T extends Page> int getPagesTotal(String urlWithPagination, Class<T> pageClass) throws IOException {
         int pagesTotal;
-        try (InputStreamReader reader = new InputStreamReader(new URL(urlWithPagination + "from=0&size=" + getEntriesPerPage()).openStream())) {
+        try (InputStream inputStream = new URL(urlWithPagination + "from=0&size=" + getEntriesPerPage()).openStream();
+             InputStreamReader reader = new InputStreamReader(inputStream)) {
             pagesTotal = gson.fromJson(reader, pageClass).getPagesTotal();
         }
         return pagesTotal;
@@ -61,17 +63,23 @@ public abstract class PaginationAwareDataProvider extends AbstractDataProvider {
         Collection<Map> result = new HashSet<>();
         CountDownLatch countDownLatch = new CountDownLatch(pagesTotal);
         for (int i = 0; i < pagesTotal; i++) {
-            URL url = new URL(urlWithPagination + "from=" + i * getEntriesPerPage() + "&size=" + getEntriesPerPage());
-            URLConnection connection = url.openConnection();
-            connection.setConnectTimeout(60000);
-            try (InputStreamReader reader = new InputStreamReader(connection.getInputStream())) {
-                result.addAll(gson.fromJson(reader, pageClass).getEntries());
-                log.info("Page " + i + " processed.");
-            } catch (Exception e) {
-                log.error(e.getMessage(), e);
-            } finally {
-                countDownLatch.countDown();
-            }
+            int finalI = i;
+            executorService.submit(() -> {
+                try {
+                    URL url = new URL(urlWithPagination + "from=" + finalI * getEntriesPerPage() + "&size=" + getEntriesPerPage());
+                    URLConnection connection = url.openConnection();
+                    connection.setConnectTimeout(60000);
+                    try (InputStream inputStream = connection.getInputStream();
+                         InputStreamReader reader = new InputStreamReader(inputStream)) {
+                        result.addAll(gson.fromJson(reader, pageClass).getEntries());
+                        log.info("Page " + finalI + " processed.");
+                    }
+                } catch (Exception e) {
+                    log.error(e.getMessage(), e);
+                } finally {
+                    countDownLatch.countDown();
+                }
+            });
         }
         countDownLatch.await();
         return result;
