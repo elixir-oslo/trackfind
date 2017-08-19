@@ -36,7 +36,7 @@ public class GDCDataProvider extends PaginationAwareDataProvider {
         }
         log.info(pagesTotal * getEntriesPerPage() + " cases available.");
         log.info("Pages total: " + pagesTotal);
-        result.addAll(fetchPaginatedEntries(CASES_EXPANDED, GDCPage.class, 1));
+        result.addAll(fetchPaginatedEntries(CASES_EXPANDED, GDCPage.class, pagesTotal));
         for (Map dataset : result) {
             Map<String, Collection<String>> browser = new HashMap<>();
             Collection<Map<String, Object>> files = (Collection<Map<String, Object>>) dataset.get(FILES);
