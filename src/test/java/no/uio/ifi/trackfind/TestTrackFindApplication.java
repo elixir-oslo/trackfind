@@ -3,6 +3,7 @@ package no.uio.ifi.trackfind;
 import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
 import no.uio.ifi.trackfind.backend.data.providers.ihec.IHECDataProvider;
 import no.uio.ifi.trackfind.backend.lucene.DirectoryFactory;
+import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
 import org.springframework.boot.SpringApplication;
@@ -17,6 +18,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @EnableCaching
 @SpringBootApplication
@@ -49,13 +51,14 @@ public class TestTrackFindApplication {
             }
 
             @Override
-            public Collection<Map> fetchData() {
-                HashMap<String, String> track1 = new HashMap<>();
-                track1.put("key1", "value1");
-                HashMap<String, String> track2 = new HashMap<>();
-                track2.put("key1", "value2");
-                track2.put("key2", "value3");
-                return Arrays.asList(track1, track2);
+            protected void fetchData(IndexWriter indexWriter) throws Exception {
+                HashMap<String, String> dataset1 = new HashMap<>();
+                dataset1.put("key1", "value1");
+                indexWriter.addDocument(convertDatasetToDocument(dataset1));
+                HashMap<String, String> dataset2 = new HashMap<>();
+                dataset2.put("key1", "value2");
+                dataset2.put("key2", "value3");
+                indexWriter.addDocument(convertDatasetToDocument(dataset2));
             }
         };
     }

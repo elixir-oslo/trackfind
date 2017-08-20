@@ -5,6 +5,7 @@ import no.uio.ifi.trackfind.backend.data.providers.AbstractDataProvider;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.lucene.index.IndexWriter;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,8 +35,7 @@ public class FANTOMDataProvider extends AbstractDataProvider {
      * {@inheritDoc}
      */
     @Override
-    public Collection<Map> fetchData() throws Exception { // TODO: implement better multithreading here.
-        Collection<Map> result = new HashSet<>();
+    protected void fetchData(IndexWriter indexWriter) throws Exception {
         log.info("Collecting directories...");
         Document root = Jsoup.parse(new URL(METADATA_URL), 10000);
         Set<String> dirs = root.getElementsByTag("a").stream().map(e -> e.attr("href")).filter(s -> s.contains(".") && s.endsWith("/")).collect(Collectors.toSet());
@@ -73,7 +73,8 @@ public class FANTOMDataProvider extends AbstractDataProvider {
                                 browser.computeIfAbsent(getDataType(datasetRelatedFile), k -> new HashSet<>()).add(METADATA_URL + dir + datasetRelatedFile);
                             }
                             dataset.put(BROWSER, browser);
-                            result.add(dataset);
+                            postProcessDataset(dataset);
+                            indexWriter.addDocument(convertDatasetToDocument(dataset));
                         }
                         log.info("Directory " + dir + " processed.");
                     }
@@ -85,7 +86,6 @@ public class FANTOMDataProvider extends AbstractDataProvider {
             });
         }
         countDownLatch.await();
-        return result;
     }
 
     private String getDataType(String fileName) {

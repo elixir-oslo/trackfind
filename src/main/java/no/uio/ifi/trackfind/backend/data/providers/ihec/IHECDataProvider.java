@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.data.providers.AbstractDataProvider;
+import org.apache.lucene.index.IndexWriter;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -35,8 +36,7 @@ public class IHECDataProvider extends AbstractDataProvider {
      */
     @SuppressWarnings("unchecked")
     @Override
-    public Collection<Map> fetchData() throws Exception {
-        Collection<Map> result = new HashSet<>();
+    protected void fetchData(IndexWriter indexWriter) throws Exception {
         Gson gson = new GsonBuilder().setDateFormat(DATE_FORMAT).create();
         log.info("Collecting releases...");
         Collection<Release> releases;
@@ -46,7 +46,7 @@ public class IHECDataProvider extends AbstractDataProvider {
             }.getType());
         }
         if (CollectionUtils.isEmpty(releases)) {
-            return result;
+            return;
         }
         int size = releases.size();
         log.info(size + " releases collected.");
@@ -76,7 +76,8 @@ public class IHECDataProvider extends AbstractDataProvider {
                         }
                         dataset.put(BROWSER, browserToStore);
                     }
-                    result.addAll(datasets);
+                    postProcessDatasets(datasets);
+                    indexWriter.addDocuments(datasets.stream().map(this::convertDatasetToDocument).collect(Collectors.toSet()));
                     log.info("Release " + releaseId + " processed.");
                 } catch (IOException e) {
                     log.error(e.getMessage(), e);
@@ -86,7 +87,6 @@ public class IHECDataProvider extends AbstractDataProvider {
             });
         }
         countDownLatch.await();
-        return result;
     }
 
 }

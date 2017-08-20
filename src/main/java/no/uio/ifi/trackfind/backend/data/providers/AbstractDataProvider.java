@@ -132,10 +132,10 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     /**
      * Fetches data from the repository.
      *
-     * @return Data as map.
+     * @param indexWriter Handler to write to te Lucene Index.
      * @throws Exception in case of some problems.
      */
-    protected abstract Collection<Map> fetchData() throws Exception;
+    protected abstract void fetchData(IndexWriter indexWriter) throws Exception;
 
     /**
      * {@inheritDoc}
@@ -146,9 +146,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
         IndexWriterConfig config = new IndexWriterConfig(analyzer);
         config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
         try (IndexWriter indexWriter = new IndexWriter(directory, config)) {
-            Collection<Map> datasets = fetchData();
-            postProcess(datasets);
-            indexWriter.addDocuments(datasets.stream().map(this::processDataset).collect(Collectors.toSet()));
+            fetchData(indexWriter);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return;
@@ -162,15 +160,22 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      *
      * @param datasets Fetched datasets to process.
      */
+    protected void postProcessDatasets(Collection<Map> datasets) {
+        datasets.forEach(this::postProcessDataset);
+    }
+
+    /**
+     * Dataset post-processing.
+     *
+     * @param dataset Fetched dataset to process.
+     */
     @SuppressWarnings("unchecked")
-    protected void postProcess(Collection<Map> datasets) {
-        for (Map dataset : datasets) {
-            Map<String, Collection<String>> browser = (Map<String, Collection<String>>) dataset.get(BROWSER);
-            if (browser == null) {
-                log.error("'browser' field is 'null' for dataset!");
-            } else {
-                dataset.put(DATA_TYPE, new HashSet<>(browser.keySet()));
-            }
+    protected void postProcessDataset(Map dataset) {
+        Map<String, Collection<String>> browser = (Map<String, Collection<String>>) dataset.get(BROWSER);
+        if (browser == null) {
+            log.error("'browser' field is 'null' for dataset!");
+        } else {
+            dataset.put(DATA_TYPE, new HashSet<>(browser.keySet()));
         }
     }
 
@@ -285,7 +290,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      * @return Dataset as a Document.
      */
     @SuppressWarnings("ConstantConditions")
-    private Document processDataset(Map dataset) {
+    protected Document convertDatasetToDocument(Map dataset) {
         Document document = new Document();
         convertDatasetToDocument(document, dataset, "");
         document.add(new StoredField(DATASET, new BytesRef(SerializationUtils.serialize(dataset))));

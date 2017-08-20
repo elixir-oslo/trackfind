@@ -2,6 +2,7 @@ package no.uio.ifi.trackfind.backend.data.providers.icgc;
 
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.data.providers.PaginationAwareDataProvider;
+import org.apache.lucene.index.IndexWriter;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -25,9 +26,14 @@ public class ICGCDataProvider extends PaginationAwareDataProvider { // TODO: fet
     private static final String DOWNLOAD = "https://dcc.icgc.org/api/v1/download/";
     private static final String AVAILABLE_DATA_TYPES = "availableDataTypes";
 
+    /**
+     * {@inheritDoc}
+     */
+    @SuppressWarnings("unchecked")
     @Override
-    protected long getEntriesPerPage() {
-        return 100;
+    protected void fetchData(IndexWriter indexWriter) throws Exception {
+        log.info("Fetching donors...");
+        fetchPages(indexWriter, DONORS, DONORS, ICGCPage.class);
     }
 
     /**
@@ -35,17 +41,8 @@ public class ICGCDataProvider extends PaginationAwareDataProvider { // TODO: fet
      */
     @SuppressWarnings("unchecked")
     @Override
-    public Collection<Map> fetchData() throws Exception {
-        Collection<Map> result = new HashSet<>();
-        log.info("Fetching donors...");
-        int pagesTotal = getPagesTotal(DONORS, ICGCPage.class);
-        if (pagesTotal == 0) {
-            return result;
-        }
-        log.info(pagesTotal * getEntriesPerPage() + " donors available.");
-        log.info("Pages total: " + pagesTotal);
-        result.addAll(fetchPaginatedEntries(DONORS, ICGCPage.class, pagesTotal));
-        for (Map dataset : result) {
+    protected void postProcessPage(Collection<Map> page) {
+        for (Map dataset : page) {
             Map<String, Collection<String>> browser = new HashMap<>();
             String donorId = (String) dataset.get("id");
             Collection<String> availableDataTypes = (Collection<String>) dataset.get(AVAILABLE_DATA_TYPES);
@@ -55,7 +52,6 @@ public class ICGCDataProvider extends PaginationAwareDataProvider { // TODO: fet
             dataset.put(BROWSER, browser);
             dataset.remove(AVAILABLE_DATA_TYPES);
         }
-        return result;
     }
 
     /**

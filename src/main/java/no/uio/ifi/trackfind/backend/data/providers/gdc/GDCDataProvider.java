@@ -2,6 +2,7 @@ package no.uio.ifi.trackfind.backend.data.providers.gdc;
 
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.data.providers.PaginationAwareDataProvider;
+import org.apache.lucene.index.IndexWriter;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -32,17 +33,18 @@ public class GDCDataProvider extends PaginationAwareDataProvider {
      */
     @SuppressWarnings("unchecked")
     @Override
-    public Collection<Map> fetchData() throws Exception {
-        Collection<Map> result = new HashSet<>();
+    protected void fetchData(IndexWriter indexWriter) throws Exception {
         log.info("Fetching cases...");
-        int pagesTotal = getPagesTotal(CASES, GDCPage.class);
-        if (pagesTotal == 0) {
-            return result;
-        }
-        log.info(pagesTotal * getEntriesPerPage() + " cases available.");
-        log.info("Pages total: " + pagesTotal);
-        result.addAll(fetchPaginatedEntries(CASES_EXPANDED, GDCPage.class, pagesTotal));
-        for (Map dataset : result) {
+        fetchPages(indexWriter, CASES, CASES_EXPANDED, GDCPage.class);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @SuppressWarnings("unchecked")
+    @Override
+    protected void postProcessPage(Collection<Map> page) {
+        for (Map dataset : page) {
             Map<String, Collection<String>> browser = new HashMap<>();
             Collection<Map<String, Object>> files = (Collection<Map<String, Object>>) dataset.get(FILES);
             files = files.stream().filter(f -> "open".equals(f.get("access"))).collect(Collectors.toSet());
@@ -54,7 +56,6 @@ public class GDCDataProvider extends PaginationAwareDataProvider {
             dataset.put(BROWSER, browser);
             dataset.remove(FILES);
         }
-        return result;
     }
 
     /**
