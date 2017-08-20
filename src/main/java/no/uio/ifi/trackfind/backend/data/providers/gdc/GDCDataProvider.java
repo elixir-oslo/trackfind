@@ -2,11 +2,9 @@ package no.uio.ifi.trackfind.backend.data.providers.gdc;
 
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.data.providers.PaginationAwareDataProvider;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
-import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
 /**
@@ -69,12 +67,6 @@ public class GDCDataProvider extends PaginationAwareDataProvider {
                 "slide_ids", "submitter_aliquot_ids", "submitter_analyte_ids", "submitter_portion_ids",
                 "submitter_sample_ids", "submitter_slide_ids"));
         return attributesToSkip;
-    }
-
-    @Autowired
-    @Override
-    public void setExecutorService(ExecutorService singleThreadExecutor) {
-        this.executorService = singleThreadExecutor;
     }
 
 }

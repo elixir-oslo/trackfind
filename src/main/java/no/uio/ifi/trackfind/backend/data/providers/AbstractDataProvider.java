@@ -338,8 +338,8 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     }
 
     @Autowired
-    public void setExecutorService(ExecutorService cachedThreadPool) {
-        this.executorService = cachedThreadPool;
+    public void setExecutorService(ExecutorService workStealingPool) {
+        this.executorService = workStealingPool;
     }
 
 }

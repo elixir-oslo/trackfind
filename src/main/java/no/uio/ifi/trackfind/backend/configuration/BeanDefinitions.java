@@ -10,8 +10,8 @@ import java.util.concurrent.Executors;
 public class BeanDefinitions {
 
     @Bean
-    public ExecutorService cachedThreadPool() {
-        return Executors.newCachedThreadPool();
+    public ExecutorService workStealingPool() {
+        return Executors.newWorkStealingPool(10);
     }
 
     @Bean
@@ -20,13 +20,8 @@ public class BeanDefinitions {
     }
 
     @Bean
-    public ExecutorService fixedThreadPoolQuadro() {
+    public ExecutorService fixedThreadPool() {
         return Executors.newFixedThreadPool(4);
-    }
-
-    @Bean
-    public ExecutorService fixedThreadPoolOcto() {
-        return Executors.newFixedThreadPool(8);
     }
 
 }

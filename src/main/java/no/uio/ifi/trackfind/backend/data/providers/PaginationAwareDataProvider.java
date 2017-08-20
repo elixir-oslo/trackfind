@@ -66,7 +66,7 @@ public abstract class PaginationAwareDataProvider extends AbstractDataProvider {
                 try {
                     URL url = new URL(urlWithPagination + "from=" + finalI * getEntriesPerPage() + "&size=" + getEntriesPerPage());
                     URLConnection connection = url.openConnection();
-                    connection.setConnectTimeout(60000);
+                    connection.setConnectTimeout(30000);
                     try (InputStream inputStream = connection.getInputStream();
                          InputStreamReader reader = new InputStreamReader(inputStream)) {
                         result.addAll(gson.fromJson(reader, pageClass).getEntries());
