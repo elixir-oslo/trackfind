@@ -21,6 +21,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(classes = TestTrackFindApplication.class)
 public class TrackFindControllerTests {
 
+    private static final String API_PREFIX = "/api/v1/";
+
     @Autowired
     private WebApplicationContext webApplicationContext;
 
@@ -33,7 +35,7 @@ public class TrackFindControllerTests {
 
     @Test
     public void getProvidersTest() throws Exception {
-        mockMvc.perform(get("/providers"))
+        mockMvc.perform(get(API_PREFIX + "providers"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andExpect(jsonPath("$", hasSize(1)))
@@ -42,7 +44,7 @@ public class TrackFindControllerTests {
 
     @Test
     public void getMetamodelTreeTest() throws Exception {
-        mockMvc.perform(get("/" + TEST_DATA_PROVIDER + "/metamodel-tree"))
+        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/metamodel-tree"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andExpect(jsonPath("$.key1", hasSize(2)))
@@ -52,7 +54,7 @@ public class TrackFindControllerTests {
 
     @Test
     public void getMetamodelFlatTest() throws Exception {
-        mockMvc.perform(get("/" + TEST_DATA_PROVIDER + "/metamodel-flat"))
+        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/metamodel-flat"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andExpect(jsonPath("$.key1", hasSize(2)))
@@ -62,7 +64,7 @@ public class TrackFindControllerTests {
 
     @Test
     public void getAttributesTest() throws Exception {
-        mockMvc.perform(get("/" + TEST_DATA_PROVIDER + "/attributes"))
+        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/attributes"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andExpect(jsonPath("$", hasSize(2)))
@@ -71,7 +73,7 @@ public class TrackFindControllerTests {
 
     @Test
     public void getAttributesWithFilterTest() throws Exception {
-        mockMvc.perform(get("/" + TEST_DATA_PROVIDER + "/attributes").param("filter", "ey1"))
+        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/attributes").param("filter", "ey1"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andExpect(jsonPath("$", hasSize(1)))
@@ -80,7 +82,7 @@ public class TrackFindControllerTests {
 
     @Test
     public void getValuesSingleTest() throws Exception {
-        mockMvc.perform(get("/" + TEST_DATA_PROVIDER + "/values").param("attribute", "key2"))
+        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/values").param("attribute", "key2"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andExpect(jsonPath("$", hasSize(1)))
@@ -89,7 +91,7 @@ public class TrackFindControllerTests {
 
     @Test
     public void getValuesMultipleTest() throws Exception {
-        mockMvc.perform(get("/" + TEST_DATA_PROVIDER + "/values").param("attribute", "key1"))
+        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/values").param("attribute", "key1"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andExpect(jsonPath("$", hasSize(2)))
@@ -98,7 +100,7 @@ public class TrackFindControllerTests {
 
     @Test
     public void getValuesWithFilterTest() throws Exception {
-        mockMvc.perform(get("/" + TEST_DATA_PROVIDER + "/values").param("attribute", "key1").param("filter", "lue2"))
+        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/values").param("attribute", "key1").param("filter", "lue2"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andExpect(jsonPath("$", hasSize(1)))
@@ -107,7 +109,7 @@ public class TrackFindControllerTests {
 
     @Test
     public void searchTest() throws Exception {
-        mockMvc.perform(get("/" + TEST_DATA_PROVIDER + "/search").param("query", "key1: value1 OR key2: value3"))
+        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/search").param("query", "key1: value1 OR key2: value3"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andExpect(jsonPath("$", hasSize(2)))
