@@ -116,10 +116,10 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      * @param query Query used for finding this dataset.
      * @return Data types.
      */
-    protected Set<String> extractDataTypesFromQuery(String query) {
+    private Set<String> extractDataTypesFromQuery(String query) {
         try {
-            Query parsedQuery = new AnalyzingQueryParser("", analyzer).parse(query);
-            Weight weight = parsedQuery.createWeight(searcher, false); // TODO: fix createWeight for wildcards
+            Query parsedQuery = new AnalyzingQueryParser("", analyzer).parse(query.replace("*", "").replace("?", "")); // remove wildcard characters as they are not supported in createWeight()
+            Weight weight = parsedQuery.createWeight(searcher, false);
             Set<Term> terms = new HashSet<>();
             weight.extractTerms(terms);
             return terms.stream().filter(t -> t.field().equals(DATA_TYPE)).map(Term::text).collect(Collectors.toSet());
