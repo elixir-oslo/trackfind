@@ -3,10 +3,8 @@ package no.uio.ifi.trackfind.backend.rest.controllers;
 import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
 import no.uio.ifi.trackfind.backend.services.TrackFindService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Collection;
 import java.util.Set;
@@ -17,6 +15,7 @@ import java.util.stream.Collectors;
  *
  * @author Dmytro Titov
  */
+@RequestMapping("/api/v1")
 @RestController
 public class TrackFindController {
 
@@ -28,7 +27,7 @@ public class TrackFindController {
      * @return List of DataProviders available.
      * @throws Exception In case of some error.
      */
-    @GetMapping(path = "providers", produces = "application/json")
+    @GetMapping(path = "/providers", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Object getProviders() throws Exception {
         return trackFindService.getDataProviders().stream().map(DataProvider::getName).collect(Collectors.toSet());
     }
@@ -39,7 +38,7 @@ public class TrackFindController {
      * @param provider DataProvider name.
      * @throws Exception In case of some error.
      */
-    @GetMapping(path = "/{provider}/reinit", produces = "application/json")
+    @GetMapping(path = "/{provider}/reinit", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public void reinit(@PathVariable String provider) throws Exception {
         trackFindService.getDataProvider(provider).updateIndex();
     }
@@ -49,7 +48,7 @@ public class TrackFindController {
      *
      * @throws Exception In case of some error.
      */
-    @GetMapping(path = "/reinit", produces = "application/json")
+    @GetMapping(path = "/reinit", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public void reinit() throws Exception {
         trackFindService.getDataProviders().forEach(DataProvider::updateIndex);
     }
@@ -61,7 +60,7 @@ public class TrackFindController {
      * @return Metamodel in tree form.
      * @throws Exception In case of some error.
      */
-    @GetMapping(path = "/{provider}/metamodel-tree", produces = "application/json")
+    @GetMapping(path = "/{provider}/metamodel-tree", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Object getMetamodelTree(@PathVariable String provider) throws Exception {
         return trackFindService.getDataProvider(provider).getMetamodelTree();
     }
@@ -73,7 +72,7 @@ public class TrackFindController {
      * @return Metamodel in flat form.
      * @throws Exception In case of some error.
      */
-    @GetMapping(path = "/{provider}/metamodel-flat", produces = "application/json")
+    @GetMapping(path = "/{provider}/metamodel-flat", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Object getMetamodelFlat(@PathVariable String provider) throws Exception {
         return trackFindService.getDataProvider(provider).getMetamodelFlat().asMap();
     }
@@ -86,7 +85,7 @@ public class TrackFindController {
      * @return List of attributes.
      * @throws Exception In case of some error.
      */
-    @GetMapping(path = "/{provider}/attributes", produces = "application/json")
+    @GetMapping(path = "/{provider}/attributes", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Object getAttributes(@PathVariable String provider,
                                 @RequestParam(required = false, defaultValue = "") String filter) throws Exception {
         Set<String> attributes = trackFindService.getDataProvider(provider).getMetamodelFlat().asMap().keySet();
@@ -102,7 +101,7 @@ public class TrackFindController {
      * @return List of values.
      * @throws Exception In case of some error.
      */
-    @GetMapping(path = "/{provider}/values", produces = "application/json")
+    @GetMapping(path = "/{provider}/values", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Object getValues(@PathVariable String provider,
                             @RequestParam String attribute,
                             @RequestParam(required = false, defaultValue = "") String filter) throws Exception {
@@ -119,7 +118,7 @@ public class TrackFindController {
      * @return Search results.
      * @throws Exception In case of some error.
      */
-    @GetMapping(path = "/{provider}/search", produces = "application/json")
+    @GetMapping(path = "/{provider}/search", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Object search(@PathVariable String provider,
                          @RequestParam String query,
                          @RequestParam(required = false, defaultValue = "0") int limit) throws Exception {
