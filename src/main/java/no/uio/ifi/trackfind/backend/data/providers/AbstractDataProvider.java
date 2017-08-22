@@ -13,7 +13,6 @@ import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.index.*;
 import org.apache.lucene.queryparser.analyzing.AnalyzingQueryParser;
-import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.search.*;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.util.BytesRef;
@@ -123,7 +122,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
             Set<Term> terms = new HashSet<>();
             weight.extractTerms(terms);
             return terms.stream().filter(t -> t.field().equals(DATA_TYPE)).map(Term::text).collect(Collectors.toSet());
-        } catch (IOException | ParseException e) {
+        } catch (Exception e) {
             log.error(e.getMessage(), e);
             return Collections.emptySet();
         }
@@ -193,7 +192,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
         }
         try {
             indexReader = DirectoryReader.open(directory);
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error(e.getMessage(), e);
             return;
         }
@@ -231,7 +230,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
                     metamodel.remove(valuesKey);
                 }
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
         return result;
@@ -256,7 +255,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
                     next = iterator.next();
                 }
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
         return metamodel;
@@ -277,7 +276,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
                 result.add((Map) SerializationUtils.deserialize(searcher.doc(scoreDoc.doc).getBinaryValue(DATASET).bytes));
             }
             return result;
-        } catch (IOException | ParseException e) {
+        } catch (Exception e) {
             log.error(e.getMessage(), e);
             return Collections.emptyList();
         }
