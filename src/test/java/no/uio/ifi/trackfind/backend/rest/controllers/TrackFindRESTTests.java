@@ -19,7 +19,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SuppressWarnings("PMD.JUnitTestsShouldIncludeAssert")
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = TestTrackFindApplication.class)
-public class TrackFindControllerTests {
+public class TrackFindRESTTests {
 
     private static final String API_PREFIX = "/api/v1/";
 
@@ -64,7 +64,7 @@ public class TrackFindControllerTests {
 
     @Test
     public void getAttributesTest() throws Exception {
-        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/attributes"))
+        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/attributes/"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andExpect(jsonPath("$", hasSize(2)))
@@ -82,7 +82,7 @@ public class TrackFindControllerTests {
 
     @Test
     public void getValuesSingleTest() throws Exception {
-        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/values").param("attribute", "key2"))
+        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/key2/values"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andExpect(jsonPath("$", hasSize(1)))
@@ -91,7 +91,7 @@ public class TrackFindControllerTests {
 
     @Test
     public void getValuesMultipleTest() throws Exception {
-        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/values").param("attribute", "key1"))
+        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/key1/values"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andExpect(jsonPath("$", hasSize(2)))
@@ -100,7 +100,7 @@ public class TrackFindControllerTests {
 
     @Test
     public void getValuesWithFilterTest() throws Exception {
-        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/values").param("attribute", "key1").param("filter", "lue2"))
+        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/key1/values").param("filter", "lue2"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andExpect(jsonPath("$", hasSize(1)))
