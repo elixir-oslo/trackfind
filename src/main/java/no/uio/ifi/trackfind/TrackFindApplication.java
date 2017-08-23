@@ -10,11 +10,14 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
+import springfox.documentation.service.ApiInfo;
+import springfox.documentation.service.Contact;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 import javax.annotation.PostConstruct;
+import java.util.Collections;
 
 /**
  * Spring Boot application's main class with some configuration and some beans defined.
@@ -44,7 +47,19 @@ public class TrackFindApplication {
                 select().
                 apis(RequestHandlerSelectors.basePackage("no.uio.ifi.trackfind.backend.rest.controllers")).
                 paths(PathSelectors.any()).
-                build();
+                build().
+                apiInfo(apiInfo());
+    }
+
+    private ApiInfo apiInfo() {
+        return new ApiInfo("TrackFind",
+                "Search engine for finding genomic tracks",
+                String.valueOf(getClass().getPackage().getImplementationVersion()),
+                null,
+                new Contact(null, "https://github.com/elixir-no-nels/trackfind", null),
+                null,
+                null,
+                Collections.emptyList());
     }
 
 
