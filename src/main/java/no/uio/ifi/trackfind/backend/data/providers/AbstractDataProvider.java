@@ -99,7 +99,6 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     @Override
     public Collection<String> getUrlsFromDataset(String query, Map dataset) {
         Set<String> dataTypes = extractDataTypesFromQuery(query);
-        System.out.println("dataTypes = " + dataTypes);
         Collection<String> urls = new HashSet<>();
         Map<String, Collection<String>> browser = (Map<String, Collection<String>>) dataset.get(BROWSER);
         if (CollectionUtils.isNotEmpty(dataTypes)) {

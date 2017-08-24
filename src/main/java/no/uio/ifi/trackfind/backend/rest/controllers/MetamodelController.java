@@ -1,14 +1,14 @@
 package no.uio.ifi.trackfind.backend.rest.controllers;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.SwaggerDefinition;
-import io.swagger.annotations.Tag;
+import io.swagger.annotations.*;
 import no.uio.ifi.trackfind.backend.services.TrackFindService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -32,9 +32,10 @@ public class MetamodelController {
      * @return Metamodel in tree form.
      * @throws Exception In case of some error.
      */
+    @ApiOperation(value = "Gets the metamodel of the specified provider in the hierarchical form.")
     @GetMapping(path = "/{provider}/metamodel-tree", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public Object getMetamodelTree(@PathVariable String provider) throws Exception {
-        return trackFindService.getDataProvider(provider).getMetamodelTree();
+    public ResponseEntity<Map<String, Object>> getMetamodelTree(@PathVariable String provider) throws Exception {
+        return ResponseEntity.ok(trackFindService.getDataProvider(provider).getMetamodelTree());
     }
 
     /**
@@ -44,9 +45,10 @@ public class MetamodelController {
      * @return Metamodel in flat form.
      * @throws Exception In case of some error.
      */
+    @ApiOperation(value = "Gets the metamodel of the specified provider in the flat form.")
     @GetMapping(path = "/{provider}/metamodel-flat", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public Object getMetamodelFlat(@PathVariable String provider) throws Exception {
-        return trackFindService.getDataProvider(provider).getMetamodelFlat().asMap();
+    public ResponseEntity<Map<String, Collection<String>>> getMetamodelFlat(@PathVariable String provider) throws Exception {
+        return ResponseEntity.ok(trackFindService.getDataProvider(provider).getMetamodelFlat().asMap());
     }
 
     /**
