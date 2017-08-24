@@ -54,6 +54,6 @@ public interface DataProvider {
      * @param limit Results quantity limit, 0 for unlimited.
      * @return Search result.
      */
-    Collection<Map> search(String query, int limit);
+    Collection<Map<String, Object>> search(String query, int limit);
 
 }

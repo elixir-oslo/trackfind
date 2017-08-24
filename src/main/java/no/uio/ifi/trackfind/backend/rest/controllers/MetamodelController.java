@@ -1,6 +1,9 @@
 package no.uio.ifi.trackfind.backend.rest.controllers;
 
-import io.swagger.annotations.*;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.SwaggerDefinition;
+import io.swagger.annotations.Tag;
 import no.uio.ifi.trackfind.backend.services.TrackFindService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -59,11 +62,12 @@ public class MetamodelController {
      * @return List of attributes.
      * @throws Exception In case of some error.
      */
+    @ApiOperation(value = "Gets full set of attributes for specified data provider.")
     @GetMapping(path = "/{provider}/attributes", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public Object getAttributes(@PathVariable String provider,
-                                @RequestParam(required = false, defaultValue = "") String filter) throws Exception {
+    public ResponseEntity<Collection<String>> getAttributes(@PathVariable String provider,
+                                                            @RequestParam(required = false, defaultValue = "") String filter) throws Exception {
         Set<String> attributes = trackFindService.getDataProvider(provider).getMetamodelFlat().asMap().keySet();
-        return attributes.stream().filter(a -> a.contains(filter)).collect(Collectors.toSet());
+        return ResponseEntity.ok(attributes.stream().filter(a -> a.contains(filter)).collect(Collectors.toSet()));
     }
 
     /**
@@ -75,12 +79,13 @@ public class MetamodelController {
      * @return List of values.
      * @throws Exception In case of some error.
      */
+    @ApiOperation(value = "Gets full set of values for specified data provider and the attribute.")
     @GetMapping(path = "/{provider}/{attribute}/values", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public Object getValues(@PathVariable String provider,
-                            @PathVariable String attribute,
-                            @RequestParam(required = false, defaultValue = "") String filter) throws Exception {
+    public ResponseEntity<Collection<String>> getValues(@PathVariable String provider,
+                                                        @PathVariable String attribute,
+                                                        @RequestParam(required = false, defaultValue = "") String filter) throws Exception {
         Collection<String> values = trackFindService.getDataProvider(provider).getMetamodelFlat().get(attribute);
-        return values.stream().filter(a -> a.contains(filter)).collect(Collectors.toSet());
+        return ResponseEntity.ok(values.stream().filter(a -> a.contains(filter)).collect(Collectors.toSet()));
     }
 
     @Autowired

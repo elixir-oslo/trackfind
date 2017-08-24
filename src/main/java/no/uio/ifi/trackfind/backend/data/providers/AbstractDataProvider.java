@@ -265,16 +265,16 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     /**
      * {@inheritDoc}
      */
-    // Sample query: "sample_id: SRS306625_*_471 OR other_attributes>lab: U??D AND ihec_data_portal>assay: (WGB-Seq OR something)"
+    @SuppressWarnings("unchecked")
     @Override
-    public Collection<Map> search(String query, int limit) {
+    public Collection<Map<String, Object>> search(String query, int limit) {
         try {
             Query parsedQuery = new AnalyzingQueryParser("", analyzer).parse(query);
             TopDocs topDocs = searcher.search(parsedQuery, limit == 0 ? Integer.MAX_VALUE : limit);
             ScoreDoc[] scoreDocs = topDocs.scoreDocs;
-            Collection<Map> result = new HashSet<>();
+            Collection<Map<String, Object>> result = new HashSet<>();
             for (ScoreDoc scoreDoc : scoreDocs) {
-                result.add((Map) SerializationUtils.deserialize(searcher.doc(scoreDoc.doc).getBinaryValue(DATASET).bytes));
+                result.add((Map<String, Object>) SerializationUtils.deserialize(searcher.doc(scoreDoc.doc).getBinaryValue(DATASET).bytes));
             }
             return result;
         } catch (Exception e) {

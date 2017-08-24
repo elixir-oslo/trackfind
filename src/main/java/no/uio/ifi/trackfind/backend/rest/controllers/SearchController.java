@@ -1,12 +1,17 @@
 package no.uio.ifi.trackfind.backend.rest.controllers;
 
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.SwaggerDefinition;
 import io.swagger.annotations.Tag;
 import no.uio.ifi.trackfind.backend.services.TrackFindService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Collection;
+import java.util.Map;
 
 /**
  * Search REST controller.
@@ -30,11 +35,12 @@ public class SearchController {
      * @return Search results.
      * @throws Exception In case of some error.
      */
+    @ApiOperation(value = "Performs search over the index using Apache Lucene query language.")
     @GetMapping(path = "/{provider}/search", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public Object search(@PathVariable String provider,
-                         @RequestParam String query,
-                         @RequestParam(required = false, defaultValue = "0") int limit) throws Exception {
-        return trackFindService.getDataProvider(provider).search(query, limit);
+    public ResponseEntity<Collection<Map<String, Object>>> search(@PathVariable String provider,
+                                                                  @RequestParam String query,
+                                                                  @RequestParam(required = false, defaultValue = "0") int limit) throws Exception {
+        return ResponseEntity.ok(trackFindService.getDataProvider(provider).search(query, limit));
     }
 
     @Autowired

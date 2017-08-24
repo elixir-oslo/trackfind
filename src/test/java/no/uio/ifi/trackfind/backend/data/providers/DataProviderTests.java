@@ -47,14 +47,14 @@ public class DataProviderTests {
     @SuppressWarnings("unchecked")
     @Test
     public void searchNoneTest() {
-        Collection<Map> search = dataProvider.search("key1: value3", 0);
+        Collection<Map<String, Object>> search = dataProvider.search("key1: value3", 0);
         assertThat(search).isEmpty();
     }
 
     @SuppressWarnings("unchecked")
     @Test
     public void searchOneTest() {
-        Collection<Map> search = dataProvider.search("key1: value1", 0);
+        Collection<Map<String, Object>> search = dataProvider.search("key1: value1", 0);
         assertThat(search).size().isEqualTo(1);
         Map map = search.iterator().next();
         assertThat(map).containsEntry("key1", "value1");
@@ -63,9 +63,9 @@ public class DataProviderTests {
     @SuppressWarnings("unchecked")
     @Test
     public void searchTwoTest() {
-        Collection<Map> search = dataProvider.search("key1: value1 OR key2: value3", 0);
+        Collection<Map<String, Object>> search = dataProvider.search("key1: value1 OR key2: value3", 0);
         assertThat(search).size().isEqualTo(2);
-        Iterator<Map> iterator = search.iterator();
+        Iterator<Map<String, Object>> iterator = search.iterator();
         Map map = iterator.next();
         assertThat(map).containsEntry("key1", "value1");
         map = iterator.next();
@@ -76,9 +76,9 @@ public class DataProviderTests {
     @SuppressWarnings("unchecked")
     @Test
     public void searchTwoWithLimitTest() {
-        Collection<Map> search = dataProvider.search("key1: value1 OR key2: value3", 1);
+        Collection<Map<String, Object>> search = dataProvider.search("key1: value1 OR key2: value3", 1);
         assertThat(search).size().isEqualTo(1);
-        Iterator<Map> iterator = search.iterator();
+        Iterator<Map<String, Object>> iterator = search.iterator();
         Map map = iterator.next();
         assertThat(map).containsEntry("key1", "value1");
     }

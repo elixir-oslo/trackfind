@@ -55,7 +55,7 @@ public class TrackFindUI extends UI {
     private TrackFindService trackFindService;
     private Gson gson;
 
-    private Collection<Map> lastResults;
+    private Collection<Map<String, Object>> lastResults;
 
     private TabSheet tabSheet;
     private TextArea queryTextArea;
