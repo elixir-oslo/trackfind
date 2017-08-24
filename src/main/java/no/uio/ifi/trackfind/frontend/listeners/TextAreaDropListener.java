@@ -122,6 +122,12 @@ public class TextAreaDropListener implements DropListener<TextArea> {
         textArea.setValue(value);
     }
 
+    /**
+     * Sanitizes query for Apache Lucene.
+     *
+     * @param queryTerm Raw query term (attribute or value).
+     * @return Sanitized query term (attribute or value).
+     */
     private String escapeQueryTerm(String queryTerm) {
         return queryTerm.replace("/", "\\/").replace(" ", "\\ ").replace(":", "\\:");
     }
