@@ -12,6 +12,9 @@ import java.util.Map;
  */
 public interface DataProvider {
 
+    String DATA_URL_ATTRIBUTE = "browser";
+    String DATA_TYPE_ATTRIBUTE = "data_type";
+
     /**
      * Gets the name of the repository.
      *

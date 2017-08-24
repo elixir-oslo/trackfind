@@ -47,25 +47,25 @@ public class DataProviderTests {
     @SuppressWarnings("unchecked")
     @Test
     public void searchNoneTest() {
-        Collection<Map<String, Object>> search = dataProvider.search("key1: value3", 0);
-        assertThat(search).isEmpty();
+        Collection<Map<String, Object>> result = dataProvider.search("key1: value3", 0);
+        assertThat(result).isEmpty();
     }
 
     @SuppressWarnings("unchecked")
     @Test
     public void searchOneTest() {
-        Collection<Map<String, Object>> search = dataProvider.search("key1: value1", 0);
-        assertThat(search).size().isEqualTo(1);
-        Map map = search.iterator().next();
+        Collection<Map<String, Object>> result = dataProvider.search("key1: value1", 0);
+        assertThat(result).size().isEqualTo(1);
+        Map map = result.iterator().next();
         assertThat(map).containsEntry("key1", "value1");
     }
 
     @SuppressWarnings("unchecked")
     @Test
     public void searchTwoTest() {
-        Collection<Map<String, Object>> search = dataProvider.search("key1: value1 OR key2: value3", 0);
-        assertThat(search).size().isEqualTo(2);
-        Iterator<Map<String, Object>> iterator = search.iterator();
+        Collection<Map<String, Object>> result = dataProvider.search("key1: value1 OR key2: value3", 0);
+        assertThat(result).size().isEqualTo(2);
+        Iterator<Map<String, Object>> iterator = result.iterator();
         Map map = iterator.next();
         assertThat(map).containsEntry("key1", "value1");
         map = iterator.next();
@@ -76,11 +76,33 @@ public class DataProviderTests {
     @SuppressWarnings("unchecked")
     @Test
     public void searchTwoWithLimitTest() {
-        Collection<Map<String, Object>> search = dataProvider.search("key1: value1 OR key2: value3", 1);
-        assertThat(search).size().isEqualTo(1);
-        Iterator<Map<String, Object>> iterator = search.iterator();
+        Collection<Map<String, Object>> result = dataProvider.search("key1: value1 OR key2: value3", 1);
+        assertThat(result).size().isEqualTo(1);
+        Iterator<Map<String, Object>> iterator = result.iterator();
         Map map = iterator.next();
         assertThat(map).containsEntry("key1", "value1");
+    }
+
+    @Test
+    public void getUrlsFromDatasetFilteredTest() {
+        String query = DataProvider.DATA_TYPE_ATTRIBUTE + ": someDataType OR something: something";
+        Collection<Map<String, Object>> result = dataProvider.search(query, 0);
+        assertThat(result).isNotNull().isNotEmpty();
+        Map<String, Object> dataset = result.iterator().next();
+        Collection<String> urlsFromDataset = dataProvider.getUrlsFromDataset(query, dataset);
+        assertThat(urlsFromDataset).isNotNull().isNotEmpty();
+        assertThat(urlsFromDataset).containsOnly("someURL");
+    }
+
+    @Test
+    public void getUrlsFromDatasetAllTest() {
+        String query = DataProvider.DATA_TYPE_ATTRIBUTE + ": some*Data*Type";
+        Collection<Map<String, Object>> result = dataProvider.search(query, 0);
+        assertThat(result).isNotNull().isNotEmpty();
+        Map<String, Object> dataset = result.iterator().next();
+        Collection<String> urlsFromDataset = dataProvider.getUrlsFromDataset(query, dataset);
+        assertThat(urlsFromDataset).isNotNull().isNotEmpty();
+        assertThat(urlsFromDataset).containsExactlyInAnyOrder("someURL", "anotherURL");
     }
 
 }

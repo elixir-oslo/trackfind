@@ -38,9 +38,6 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     private static final String DATASET = "dataset";
     private static final String PATH_SEPARATOR = ">";
 
-    protected static final String BROWSER = "browser";
-    protected static final String DATA_TYPE = "data_type";
-
     private Analyzer analyzer = new KeywordAnalyzer();
 
     private IndexReader indexReader;
@@ -80,7 +77,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      * @return Collection of unneeded attributes.
      */
     protected Collection<String> getAttributesToSkip() {
-        return Collections.singletonList(BROWSER);
+        return Collections.singletonList(DATA_URL_ATTRIBUTE);
     }
 
     /**
@@ -100,7 +97,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     public Collection<String> getUrlsFromDataset(String query, Map dataset) {
         Set<String> dataTypes = extractDataTypesFromQuery(query);
         Collection<String> urls = new HashSet<>();
-        Map<String, Collection<String>> browser = (Map<String, Collection<String>>) dataset.get(BROWSER);
+        Map<String, Collection<String>> browser = (Map<String, Collection<String>>) dataset.get(DATA_URL_ATTRIBUTE);
         if (CollectionUtils.isNotEmpty(dataTypes)) {
             dataTypes.forEach(dt -> urls.addAll(browser.getOrDefault(dt, Collections.emptySet())));
         } else {
@@ -122,7 +119,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
             Weight weight = parsedQuery.createWeight(searcher, false);
             Set<Term> terms = new HashSet<>();
             weight.extractTerms(terms);
-            return terms.stream().filter(t -> t.field().equals(DATA_TYPE)).map(Term::text).collect(Collectors.toSet());
+            return terms.stream().filter(t -> t.field().equals(DATA_TYPE_ATTRIBUTE)).map(Term::text).collect(Collectors.toSet());
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return Collections.emptySet();
@@ -171,11 +168,11 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      */
     @SuppressWarnings("unchecked")
     protected void postProcessDataset(Map dataset) {
-        Map<String, Collection<String>> browser = (Map<String, Collection<String>>) dataset.get(BROWSER);
+        Map<String, Collection<String>> browser = (Map<String, Collection<String>>) dataset.get(DATA_URL_ATTRIBUTE);
         if (browser == null) {
             log.error("'browser' field is 'null' for dataset!");
         } else {
-            dataset.put(DATA_TYPE, new HashSet<>(browser.keySet()));
+            dataset.put(DATA_TYPE_ATTRIBUTE, new HashSet<>(browser.keySet()));
         }
     }
 

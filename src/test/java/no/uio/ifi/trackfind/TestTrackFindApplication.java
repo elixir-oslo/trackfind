@@ -14,7 +14,10 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map;
 
 @EnableCaching
 @SpringBootApplication
@@ -48,13 +51,20 @@ public class TestTrackFindApplication {
 
             @Override
             protected void fetchData(IndexWriter indexWriter) throws Exception {
-                HashMap<String, String> dataset1 = new HashMap<>();
+                Map<String, Object> dataset1 = new HashMap<>();
                 dataset1.put("key1", "value1");
                 indexWriter.addDocument(convertDatasetToDocument(dataset1));
-                HashMap<String, String> dataset2 = new HashMap<>();
+                Map<String, Object> dataset2 = new HashMap<>();
                 dataset2.put("key1", "value2");
                 dataset2.put("key2", "value3");
                 indexWriter.addDocument(convertDatasetToDocument(dataset2));
+                Map<String, Object> dataset3 = new HashMap<>();
+                Map<String, Collection<String>> dataUrls = new HashMap<>();
+                dataUrls.put("someDataType", Collections.singleton("someURL"));
+                dataUrls.put("anotherDataType", Collections.singleton("anotherURL"));
+                dataset3.put(DataProvider.DATA_URL_ATTRIBUTE, dataUrls);
+                postProcessDataset(dataset3);
+                indexWriter.addDocument(convertDatasetToDocument(dataset3));
             }
         };
     }
