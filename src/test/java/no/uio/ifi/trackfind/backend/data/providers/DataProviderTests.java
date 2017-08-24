@@ -24,7 +24,7 @@ public class DataProviderTests {
     public void metamodelTreeTest() {
         Map<String, Object> metamodel = dataProvider.getMetamodelTree();
         assertThat(metamodel).isNotNull().isNotEmpty();
-        assertThat(metamodel).containsOnlyKeys("key1", "key2");
+        assertThat(metamodel).containsOnlyKeys("key1", "key2", "data_type");
         Object value = metamodel.get("key1");
         assertThat(value).isInstanceOf(Collection.class);
         assertThat((Collection) value).containsOnly("value1", "value2");

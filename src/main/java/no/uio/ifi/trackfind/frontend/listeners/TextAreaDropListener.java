@@ -91,10 +91,10 @@ public class TextAreaDropListener implements DropListener<TextArea> {
             value.append(INVERSION);
         }
         TreeNode firstItem = items.iterator().next();
-        String attribute = firstItem.getPath().split(":")[0].replace("/", "\\/").replace(" ", "\\ ").replace(":\\", ":");
+        String attribute = escapeQueryTerm(firstItem.getPath().split(":")[0]);
         value.append(attribute).append(": (");
         for (TreeNode item : items) {
-            value.append(item.toString().replace(" ", "\\ ")).append(" OR ");
+            value.append(escapeQueryTerm(item.toString())).append(" OR ");
         }
         value = new StringBuilder(value.subSequence(0, value.length() - 4) + ")\n\n");
         textArea.setValue(value.toString());
@@ -116,8 +116,14 @@ public class TextAreaDropListener implements DropListener<TextArea> {
         if (inversion) {
             value += INVERSION;
         }
-        value += item.getPath().replace("/", "\\/").replace(" ", "\\ ").replace(":\\", ":") + "\n\n";
+        String attribute = escapeQueryTerm(item.getPath().split(":")[0]);
+        value += attribute + ": ";
+        value += escapeQueryTerm(item.toString()) + "\n\n";
         textArea.setValue(value);
+    }
+
+    private String escapeQueryTerm(String queryTerm) {
+        return queryTerm.replace("/", "\\/").replace(" ", "\\ ").replace(":", "\\:");
     }
 
 }

@@ -67,8 +67,8 @@ public class TrackFindRESTTests {
         mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/attributes/"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
-                .andExpect(jsonPath("$", hasSize(2)))
-                .andExpect(jsonPath("$", contains("key1", "key2")));
+                .andExpect(jsonPath("$", hasSize(3)))
+                .andExpect(jsonPath("$", contains("key1", "key2", "data_type")));
     }
 
     @Test
