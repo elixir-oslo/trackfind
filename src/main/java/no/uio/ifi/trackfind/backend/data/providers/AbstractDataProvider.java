@@ -99,6 +99,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     @Override
     public Collection<String> getUrlsFromDataset(String query, Map dataset) {
         Set<String> dataTypes = extractDataTypesFromQuery(query);
+        System.out.println("dataTypes = " + dataTypes);
         Collection<String> urls = new HashSet<>();
         Map<String, Collection<String>> browser = (Map<String, Collection<String>>) dataset.get(BROWSER);
         if (CollectionUtils.isNotEmpty(dataTypes)) {
@@ -117,7 +118,8 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      */
     private Set<String> extractDataTypesFromQuery(String query) {
         try {
-            Query parsedQuery = new AnalyzingQueryParser("", analyzer).parse(query.replace("*", "").replace("?", "")); // remove wildcard characters as they are not supported in createWeight()
+            Query parsedQuery = new AnalyzingQueryParser("", analyzer).parse(query);
+            parsedQuery = parsedQuery.rewrite(indexReader);
             Weight weight = parsedQuery.createWeight(searcher, false);
             Set<Term> terms = new HashSet<>();
             weight.extractTerms(terms);
