@@ -80,16 +80,16 @@ public class TreeNode implements Comparable<TreeNode> {
      * @return Sequence of attributes separated by some delimiter ("&gt;" by default).
      */
     public String getPath() {
-        String path = "";
+        StringBuilder path = new StringBuilder();
         TreeNode parent = getParent();
         while (parent != null) {
-            path = ">" + parent.toString() + path;
+            path.insert(0, ">" + parent.toString());
             parent = parent.getParent();
         }
         if (isLeaf()) {
-            return path.replace(">null>", "") + ": " + toString();
+            return path.toString().replace(">null>", "") + ": " + toString();
         } else {
-            return (path.replace(">null", "") + ">" + toString() + ": ").substring(1);
+            return (path.toString().replace(">null", "") + ">" + toString() + ": ").substring(1);
         }
     }
 
