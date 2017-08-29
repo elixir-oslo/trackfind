@@ -54,14 +54,24 @@ public class TrackDataProvider extends AbstractHierarchicalDataProvider<TreeNode
     }
 
     /**
+     * Gets the number of children for specified TreeNode.
+     *
+     * @param treeNode Specified TreeNode.
+     * @return Number of children.
+     */
+    private int getChildCount(TreeNode treeNode) {
+        return getChildCount(treeNode.getQuery());
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
     public Stream<TreeNode> fetchChildren(HierarchicalQuery<TreeNode, Predicate<? super TreeNode>> query) {
         TreeNode parent = query.getParentOptional().orElse(root);
-        return parent.fetchChildren().
+        return parent.fetchChildren().parallelStream().
                 filter(query.getFilter().orElse(tr -> true)).
-                filter(tn -> (getChildCount(getQuery(tn)) != 0) || tn.toString().toLowerCase().contains(valuesFilter)).
+                filter(tn -> (getChildCount(tn) != 0) || tn.toString().toLowerCase().contains(valuesFilter)).
                 filter(tn -> {
                     if (tn.isLeaf() && !tn.toString().toLowerCase().contains(valuesFilter)) {
                         return false;
@@ -69,7 +79,7 @@ public class TrackDataProvider extends AbstractHierarchicalDataProvider<TreeNode
                     if (tn.isFinalAttribute() && !tn.toString().toLowerCase().contains(attributesFilter)) {
                         return false;
                     }
-                    if (!tn.isLeaf() && getChildCount(getQuery(tn)) == 0) {
+                    if (!tn.isLeaf() && getChildCount(tn) == 0) {
                         return false;
                     }
                     return true;
@@ -84,11 +94,7 @@ public class TrackDataProvider extends AbstractHierarchicalDataProvider<TreeNode
      */
     @Override
     public boolean hasChildren(TreeNode item) {
-        return getChildCount(getQuery(item)) != 0;
-    }
-
-    private HierarchicalQuery<TreeNode, Predicate<? super TreeNode>> getQuery(TreeNode item) {
-        return new HierarchicalQuery<>(null, item);
+        return getChildCount(item) != 0;
     }
 
     /**

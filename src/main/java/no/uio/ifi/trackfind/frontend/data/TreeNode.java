@@ -1,9 +1,13 @@
 package no.uio.ifi.trackfind.frontend.data;
 
+import com.vaadin.data.provider.HierarchicalQuery;
+
 import java.util.AbstractMap;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
-import java.util.stream.Stream;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * Data type for representing metadata element (attribute or value) on front-end.
@@ -15,6 +19,8 @@ public class TreeNode implements Comparable<TreeNode> {
     private int level;
     private TreeNode parent;
     private Map.Entry<String, Object> node;
+    private HierarchicalQuery<TreeNode, Predicate<? super TreeNode>> query;
+    private Collection<TreeNode> children;
 
     /**
      * Constructs TreeNode instance of root element, setting level to zero and parent tu null.
@@ -58,19 +64,60 @@ public class TreeNode implements Comparable<TreeNode> {
     }
 
     /**
+     * Gets query for Vaadin DataProvider.
+     *
+     * @return Vaadin's HierarchicalQuery.
+     */
+    public HierarchicalQuery<TreeNode, Predicate<? super TreeNode>> getQuery() {
+        if (query == null) { // double checked synchronization
+            synchronized (this) {
+                if (query == null) {
+                    query = getQueryInternally();
+                }
+            }
+        }
+        return query;
+    }
+
+    /**
+     * Gets query for Vaadin DataProvider.
+     *
+     * @return Vaadin's HierarchicalQuery.
+     */
+    private HierarchicalQuery<TreeNode, Predicate<? super TreeNode>> getQueryInternally() {
+        return new HierarchicalQuery<>(null, this);
+    }
+
+    /**
+     * Fetches children of current node.
+     *
+     * @return Current node's children (attributes or values).
+     */
+    public Collection<TreeNode> fetchChildren() {
+        if (children == null) { // double checked synchronization
+            synchronized (this) {
+                if (children == null) {
+                    children = Collections.unmodifiableCollection(fetchChildrenInternally());
+                }
+            }
+        }
+        return children;
+    }
+
+    /**
      * Fetches children of current node.
      *
      * @return Current node's children (attributes or values).
      */
     @SuppressWarnings("unchecked")
-    public Stream<TreeNode> fetchChildren() {
+    private Collection<TreeNode> fetchChildrenInternally() {
         Object value = node.getValue();
         if (value instanceof Map) {
-            return ((Map<String, Object>) value).entrySet().stream().map(e -> new TreeNode(this, e));
+            return ((Map<String, Object>) value).entrySet().parallelStream().map(e -> new TreeNode(this, e)).collect(Collectors.toSet());
         } else if (value instanceof Collection) {
-            return ((Collection<String>) value).stream().map(s -> new AbstractMap.SimpleEntry<>(s, null)).map(e -> new TreeNode(this, e));
+            return ((Collection<String>) value).parallelStream().map(s -> new AbstractMap.SimpleEntry<>(s, null)).map(e -> new TreeNode(this, e)).collect(Collectors.toSet());
         } else {
-            return Stream.empty();
+            return Collections.emptySet();
         }
     }
 
@@ -108,7 +155,7 @@ public class TreeNode implements Comparable<TreeNode> {
      * @return <code>true</code> if it's a final attribute, <code>false</code> otherwise.
      */
     public boolean isFinalAttribute() {
-        return fetchChildren().anyMatch(TreeNode::isLeaf);
+        return fetchChildren().parallelStream().anyMatch(TreeNode::isLeaf);
     }
 
     /**

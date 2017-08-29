@@ -73,7 +73,7 @@ public class TreeSelectionListener implements SelectionListener<TreeNode> {
             TreeNode last = oldSelection.get(oldSelection.size() - 1);
             final int[] index = {0};
             Map<TreeNode, Integer> indexedSiblings =
-                    current.getParent().fetchChildren().sorted().collect(Collectors.toMap(Function.identity(), tn -> index[0]++));
+                    current.getParent().fetchChildren().stream().sorted().collect(Collectors.toMap(Function.identity(), tn -> index[0]++));
             int firstIndex = indexedSiblings.get(first);
             int lastIndex = indexedSiblings.get(last);
             int currentIndex = indexedSiblings.get(current);
