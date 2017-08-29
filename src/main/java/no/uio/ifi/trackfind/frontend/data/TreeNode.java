@@ -19,6 +19,7 @@ public class TreeNode implements Comparable<TreeNode> {
     private int level;
     private TreeNode parent;
     private Map.Entry<String, Object> node;
+    private String path;
     private HierarchicalQuery<TreeNode, Predicate<? super TreeNode>> query;
     private Collection<TreeNode> children;
 
@@ -127,6 +128,22 @@ public class TreeNode implements Comparable<TreeNode> {
      * @return Sequence of attributes separated by some delimiter ("&gt;" by default).
      */
     public String getPath() {
+        if (path == null) { // double checked synchronization
+            synchronized (this) {
+                if (path == null) {
+                    path = getPathInternally();
+                }
+            }
+        }
+        return path;
+    }
+
+    /**
+     * Gets path from the root node to current node.
+     *
+     * @return Sequence of attributes separated by some delimiter ("&gt;" by default).
+     */
+    private String getPathInternally() {
         StringBuilder path = new StringBuilder();
         TreeNode parent = getParent();
         while (parent != null) {
@@ -163,7 +180,7 @@ public class TreeNode implements Comparable<TreeNode> {
      */
     @Override
     public int compareTo(TreeNode that) {
-        return String.valueOf(this).compareTo(String.valueOf(that));
+        return this.getPath().compareTo(that.getPath());
     }
 
     /**
@@ -179,7 +196,7 @@ public class TreeNode implements Comparable<TreeNode> {
      */
     @Override
     public int hashCode() {
-        return this.toString().hashCode();
+        return this.getPath().hashCode();
     }
 
     /**
@@ -187,7 +204,7 @@ public class TreeNode implements Comparable<TreeNode> {
      */
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof TreeNode && this.toString().equals(obj.toString());
+        return obj instanceof TreeNode && this.getPath().equals(((TreeNode) obj).getPath());
     }
 
 }
