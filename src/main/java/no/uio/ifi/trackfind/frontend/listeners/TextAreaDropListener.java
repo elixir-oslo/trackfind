@@ -129,7 +129,11 @@ public class TextAreaDropListener implements DropListener<TextArea> {
      * @return Sanitized query term (attribute or value).
      */
     private String escapeQueryTerm(String queryTerm) {
-        return queryTerm.replace("/", "\\/").replace(" ", "\\ ").replace(":", "\\:");
+        String escaped = queryTerm.replace("/", "\\/").replace(" ", "\\ ").replace(":", "\\:");
+        if (escaped.startsWith("-")) {
+            escaped = "\\" + escaped;
+        }
+        return escaped;
     }
 
 }
