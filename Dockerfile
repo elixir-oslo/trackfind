@@ -4,6 +4,6 @@ MAINTAINER https://github.com/dtitov
 
 COPY "target/trackfind-*.jar" trackfind.jar
 
-EXPOSE 8080
+EXPOSE 8888
 
 ENTRYPOINT ["java", "-jar", "/trackfind.jar"]
