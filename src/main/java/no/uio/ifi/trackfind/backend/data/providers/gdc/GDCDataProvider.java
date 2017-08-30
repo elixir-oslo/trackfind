@@ -56,7 +56,7 @@ public class GDCDataProvider extends PaginationAwareDataProvider {
                 browser.computeIfAbsent(dataType, k -> new HashSet<>()).add(DOWNLOAD + fileId);
             }
             dataset.put(DATA_URL_ATTRIBUTE, browser);
-//            dataset.remove(FILES);
+            dataset.put(FILES, files);
         }
     }
 
