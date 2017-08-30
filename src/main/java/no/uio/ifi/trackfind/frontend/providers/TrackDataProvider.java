@@ -3,7 +3,10 @@ package no.uio.ifi.trackfind.frontend.providers;
 import com.vaadin.data.provider.AbstractHierarchicalDataProvider;
 import com.vaadin.data.provider.HierarchicalQuery;
 import no.uio.ifi.trackfind.frontend.data.TreeNode;
+import org.apache.commons.lang3.StringUtils;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -17,6 +20,7 @@ public class TrackDataProvider extends AbstractHierarchicalDataProvider<TreeNode
     private TreeNode root;
     private String attributesFilter = "";
     private String valuesFilter = "";
+    private Map<String, Integer> childCountMap = new HashMap<>();
 
     /**
      * Constructor that accepts tree root.
@@ -60,6 +64,9 @@ public class TrackDataProvider extends AbstractHierarchicalDataProvider<TreeNode
      * @return Number of children.
      */
     private int getChildCount(TreeNode treeNode) {
+        if (StringUtils.isEmpty(attributesFilter) && StringUtils.isEmpty(valuesFilter)) {
+            return childCountMap.computeIfAbsent(treeNode.getPath(), k -> getChildCount(treeNode.getQuery()));
+        }
         return getChildCount(treeNode.getQuery());
     }
 

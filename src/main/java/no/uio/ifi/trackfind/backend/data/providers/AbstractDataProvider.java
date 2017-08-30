@@ -18,6 +18,7 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.util.BytesRef;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.SerializationUtils;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -319,7 +320,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
                 return;
             }
             String value = String.valueOf(object);
-            if (getValuesToSkip().stream().anyMatch(value::contains)) {
+            if (StringUtils.isEmpty(value) || getValuesToSkip().stream().anyMatch(value::contains)) {
                 return;
             }
             document.add(new StringField(attribute, value, Field.Store.YES));
