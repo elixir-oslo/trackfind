@@ -5,8 +5,7 @@ import com.vaadin.data.provider.HierarchicalQuery;
 import no.uio.ifi.trackfind.frontend.data.TreeNode;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -76,21 +75,26 @@ public class TrackDataProvider extends AbstractHierarchicalDataProvider<TreeNode
     @Override
     public Stream<TreeNode> fetchChildren(HierarchicalQuery<TreeNode, Predicate<? super TreeNode>> query) {
         TreeNode parent = query.getParentOptional().orElse(root);
-        return parent.fetchChildren().parallelStream().
+        Collection<TreeNode> children = new HashSet<>(parent.fetchChildren());
+        Iterator<TreeNode> iterator = children.iterator();
+        while (iterator.hasNext()) {
+            TreeNode child = iterator.next();
+            int childCount = getChildCount(child);
+            boolean leaf = child.isLeaf();
+            String attributeOrValue = child.toString().toLowerCase();
+            if (childCount == 0 && !attributeOrValue.contains(valuesFilter)) {
+                iterator.remove();
+            } else if (leaf && !attributeOrValue.contains(valuesFilter)) {
+                iterator.remove();
+            } else if (child.isFinalAttribute() && !attributeOrValue.contains(attributesFilter)) {
+                iterator.remove();
+            } else if (!leaf && childCount == 0) {
+                iterator.remove();
+            }
+        }
+        return children.parallelStream().
                 filter(query.getFilter().orElse(tr -> true)).
                 filter(tn -> (getChildCount(tn) != 0) || tn.toString().toLowerCase().contains(valuesFilter)).
-                filter(tn -> {
-                    if (tn.isLeaf() && !tn.toString().toLowerCase().contains(valuesFilter)) {
-                        return false;
-                    }
-                    if (tn.isFinalAttribute() && !tn.toString().toLowerCase().contains(attributesFilter)) {
-                        return false;
-                    }
-                    if (!tn.isLeaf() && getChildCount(tn) == 0) {
-                        return false;
-                    }
-                    return true;
-                }).
                 sorted().
                 skip(query.getOffset()).
                 limit(query.getLimit());
