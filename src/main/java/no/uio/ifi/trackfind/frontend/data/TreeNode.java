@@ -191,20 +191,4 @@ public class TreeNode implements Comparable<TreeNode> {
         return node.getKey();
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public int hashCode() {
-        return this.getPath().hashCode();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean equals(Object obj) {
-        return obj instanceof TreeNode && this.getPath().equals(((TreeNode) obj).getPath());
-    }
-
 }
