@@ -4,7 +4,7 @@
 [![Build Status](https://travis-ci.org/elixir-no-nels/trackfind.svg?branch=master)](https://travis-ci.org/elixir-no-nels/trackfind)
 [![Docker Pulls](https://img.shields.io/docker/pulls/dtitov/trackfind.svg)](https://hub.docker.com/r/dtitov/trackfind/)
 
-##Running via Docker
+## Running via Docker
 ```
 docker run -d \
   -it \
