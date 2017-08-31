@@ -42,7 +42,7 @@ import java.util.stream.Stream;
  * @author Vaadin Ltd
  * @since 8.1
  */
-public class HierarchyMapper<T, F> implements DataGenerator<T> { // perfomance boot: 9s -> less than 1s
+public class HierarchyMapper<T, F> implements DataGenerator<T> { // perfomance boot: 10s -> less than 1s
 
     // childMap is only used for finding parents of items and clean up on
     // removing children of expanded nodes.
@@ -53,8 +53,6 @@ public class HierarchyMapper<T, F> implements DataGenerator<T> { // perfomance b
     private List<QuerySortOrder> backEndSorting;
     private Comparator<T> inMemorySorting;
     private ItemCollapseAllowedProvider<T> itemCollapseAllowedProvider = t -> true;
-
-    private Set<Object> expandedItemIds = new HashSet<>();
 
     /**
      * Constructs a new HierarchyMapper.
@@ -97,7 +95,7 @@ public class HierarchyMapper<T, F> implements DataGenerator<T> { // perfomance b
             // Root nodes are always visible.
             return true;
         }
-        return expandedItemIds.contains(getDataProvider().getId(item));
+        return ((TreeNode) item).isExpanded();
     }
 
     /**
@@ -110,11 +108,9 @@ public class HierarchyMapper<T, F> implements DataGenerator<T> { // perfomance b
     public Range doExpand(T item, Optional<Integer> position) {
         Range rows = Range.withLength(0, 0);
         if (!isExpanded(item) && hasChildren(item)) {
-            Object id = getDataProvider().getId(item);
-            expandedItemIds.add(id);
+            ((TreeNode) item).setExpanded(true);
             if (position.isPresent()) {
-                rows = Range.withLength(position.get() + 1,
-                        (int) getHierarchy(item, false).count());
+                rows = Range.withLength(position.get() + 1, (int) getHierarchy(item, false).count());
             }
         }
         return rows;
@@ -130,13 +126,11 @@ public class HierarchyMapper<T, F> implements DataGenerator<T> { // perfomance b
     public Range doCollapse(T item, Optional<Integer> position) {
         Range removedRows = Range.withLength(0, 0);
         if (isExpanded(item)) {
-            Object id = getDataProvider().getId(item);
             if (position.isPresent()) {
                 long childCount = getHierarchy(item, false).count();
-                removedRows = Range.withLength(position.get() + 1,
-                        (int) childCount);
+                removedRows = Range.withLength(position.get() + 1, (int) childCount);
             }
-            expandedItemIds.remove(id);
+            ((TreeNode) item).setExpanded(false);
         }
         return removedRows;
     }
@@ -344,9 +338,7 @@ public class HierarchyMapper<T, F> implements DataGenerator<T> { // perfomance b
                 iterator.remove();
             }
         }
-        expandedItemIds.remove(id);
-        invalidatedChildren.stream().map(getDataProvider()::getId)
-                .forEach(this::removeChildren);
+        invalidatedChildren.stream().map(getDataProvider()::getId).forEach(this::removeChildren);
     }
 
     /**
@@ -397,8 +389,7 @@ public class HierarchyMapper<T, F> implements DataGenerator<T> { // perfomance b
      * @return the stream of direct children
      */
     private Stream<T> getDirectChildren(T parent) {
-        return doFetchDirectChildren(parent, Range.between(0, getDataProvider()
-                .getChildCount(new HierarchicalQuery<>(filter, parent))));
+        return getDataProvider().fetchChildren(new HierarchicalQuery<>(null, parent));
     }
 
     /**

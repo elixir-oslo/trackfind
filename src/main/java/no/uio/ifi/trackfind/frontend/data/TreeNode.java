@@ -16,12 +16,15 @@ import java.util.stream.Collectors;
  */
 public class TreeNode implements Comparable<TreeNode> {
 
-    private int level;
+    private boolean expanded = false;
+    private int level = 0;
     private TreeNode parent;
     private Map.Entry<String, Object> node;
+
     private String path;
     private HierarchicalQuery<TreeNode, Predicate<? super TreeNode>> query;
     private Collection<TreeNode> children;
+    private Boolean finalAttribute;
 
     /**
      * Constructs TreeNode instance of root element, setting level to zero and parent tu null.
@@ -29,8 +32,6 @@ public class TreeNode implements Comparable<TreeNode> {
      * @param root Root element of the metadata hierarchy.
      */
     public TreeNode(Map<String, Object> root) {
-        this.level = 0;
-        this.parent = null;
         this.node = new AbstractMap.SimpleEntry<>(null, root);
     }
 
@@ -41,9 +42,9 @@ public class TreeNode implements Comparable<TreeNode> {
      * @param node   Child element.
      */
     private TreeNode(TreeNode parent, Map.Entry<String, Object> node) {
+        this.level = parent.getLevel() + 1;
         this.parent = parent;
         this.node = node;
-        this.level = parent.getLevel() + 1;
     }
 
     /**
@@ -172,7 +173,41 @@ public class TreeNode implements Comparable<TreeNode> {
      * @return <code>true</code> if it's a final attribute, <code>false</code> otherwise.
      */
     public boolean isFinalAttribute() {
+        if (finalAttribute == null) { // double checked synchronization
+            synchronized (this) {
+                if (finalAttribute == null) {
+                    finalAttribute = isFinalAttributeInternally();
+                }
+            }
+        }
+        return finalAttribute;
+    }
+
+    /**
+     * Checks if it's a final attribute (containing no children attributes, but values only).
+     *
+     * @return <code>true</code> if it's a final attribute, <code>false</code> otherwise.
+     */
+    private boolean isFinalAttributeInternally() {
         return fetchChildren().parallelStream().anyMatch(TreeNode::isLeaf);
+    }
+
+    /**
+     * Checks whether node is expanded on UI.
+     *
+     * @return <code>true</code> for expanded, <code>false</code> otherwise
+     */
+    public boolean isExpanded() {
+        return expanded;
+    }
+
+    /**
+     * Sets node state
+     *
+     * @param expanded <code>true</code> for expanded, <code>false</code> otherwise
+     */
+    public void setExpanded(boolean expanded) {
+        this.expanded = expanded;
     }
 
     /**
