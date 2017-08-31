@@ -94,7 +94,6 @@ public class TrackDataProvider extends AbstractHierarchicalDataProvider<TreeNode
         }
         return children.parallelStream().
                 filter(query.getFilter().orElse(tr -> true)).
-                filter(tn -> (getChildCount(tn) != 0) || tn.toString().toLowerCase().contains(valuesFilter)).
                 sorted().
                 skip(query.getOffset()).
                 limit(query.getLimit());
