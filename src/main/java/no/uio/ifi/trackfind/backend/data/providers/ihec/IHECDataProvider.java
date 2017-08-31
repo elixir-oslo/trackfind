@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 @Component
 public class IHECDataProvider extends AbstractDataProvider {
 
-    private static final String RELEASES_URL = "http://epigenomesportal.ca//cgi-bin/api/getReleases.py";
+    private static final String RELEASES_URL = "http://epigenomesportal.ca/cgi-bin/api/getReleases.py";
     private static final String FETCH_URL = "http://epigenomesportal.ca/cgi-bin/api/getDataHub.py?data_release_id=";
     private static final String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
