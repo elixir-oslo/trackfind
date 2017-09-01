@@ -4,8 +4,9 @@
 [![Build Status](https://travis-ci.org/elixir-no-nels/trackfind.svg?branch=master)](https://travis-ci.org/elixir-no-nels/trackfind)
 [![Docker Pulls](https://img.shields.io/docker/pulls/dtitov/trackfind.svg)](https://hub.docker.com/r/dtitov/trackfind/)
 
-## Running via Docker
-```
+## Deployment
+### Docker
+```bash
 docker run -d \
   -it \
   -v /path/to/indices/directory:/indices \
@@ -13,3 +14,31 @@ docker run -d \
   --name trackfind \
   dtitov/trackfind:1.0.0
 ```
+*Note: specifying volume to mount is optional.*
+
+Logs are available at `docker logs -f trackfind`
+
+### Java
+```bash
+wget https://github.com/elixir-no-nels/trackfind/releases/download/1.0.0/trackfind-1.0.0.jar
+
+nohup java -jar trackfind-1.0.0.jar &
+```
+Logs are available at `tailf console.log`
+
+### Sources
+#### Checkout via Git
+```bash
+git clone https://github.com/elixir-no-nels/trackfind.git & \
+cd trackfind
+```
+#### Download as tar.gz
+```bash
+wget https://github.com/elixir-no-nels/trackfind/archive/1.0.0.tar.gz && \
+tar -zxvf 1.0.0.tar.gz & \
+cd trackfind-1.0.0
+```
+#### Build an run using Maven
+`mvn clean spring-boot:run`
+
+Logs are available at `tailf console.log`
