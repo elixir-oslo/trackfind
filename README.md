@@ -18,12 +18,22 @@ docker run -d \
 
 Logs are available at `docker logs -f trackfind`
 
+Next you can stop container using command `docker stop trackfind`, start container using command `docker start trackfind` and update container using next sequence:
+```bash
+docker stop trackfind && \
+docker rm trackfind && \
+docker rmi dtitov/trackfind:1.0.0 && \
+```
+...and the first step.
+
 ### Java
 ```bash
 wget https://github.com/elixir-no-nels/trackfind/releases/download/1.0.0/trackfind-1.0.0.jar && \
 nohup java -jar trackfind-1.0.0.jar &
 ```
 Logs are available at `tail -f console.log`
+
+App can be stopped by executing `kill -9 $!` as `$!` is the PID of the last launched process (alternatively you can find it using `ps auxw | grep trackfind`.
 
 ### Sources
 #### Checkout via Git
@@ -39,3 +49,5 @@ tar -zxvf 1.0.0.tar.gz && \
 cd trackfind-1.0.0 && \
 nohup mvn spring-boot:run &
 ```
+
+App can be stopped by executing `kill -9 $!` as `$!` is the PID of the last launched process (alternatively you can find it using `ps auxw | grep trackfind`.
