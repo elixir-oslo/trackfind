@@ -38,7 +38,7 @@ wget https://github.com/elixir-no-nels/trackfind/archive/1.0.0.tar.gz && \
 tar -zxvf 1.0.0.tar.gz & \
 cd trackfind-1.0.0
 ```
-#### Build an run using Maven
+#### Build and run using Maven
 `mvn clean spring-boot:run`
 
 Logs are available at `tailf console.log`
