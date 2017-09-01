@@ -29,15 +29,13 @@ Logs are available at `tailf console.log`
 #### Checkout via Git
 ```bash
 git clone https://github.com/elixir-no-nels/trackfind.git && \
-cd trackfind
+cd trackfind && \
+nohup mvn clean spring-boot:run &
 ```
 #### Download as tar.gz
 ```bash
 wget https://github.com/elixir-no-nels/trackfind/archive/1.0.0.tar.gz && \
 tar -zxvf 1.0.0.tar.gz && \
-cd trackfind-1.0.0
+cd trackfind-1.0.0 && \
+nohup mvn clean spring-boot:run &
 ```
-#### Build and run using Maven
-`mvn clean spring-boot:run`
-
-Logs are available at `tailf console.log`
