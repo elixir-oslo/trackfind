@@ -26,6 +26,16 @@ docker rmi dtitov/trackfind:1.0.0 && \
 ```
 ...and the first step.
 
+### Singularity
+```bash
+singularity create trackfind.img && \
+singularity import trackfind.img docker://dtitov/trackfind:1.0.0 && \
+nohup singularity run trackfind.img &
+```
+Logs are available at `tail -f console.log`
+
+App can be stopped by executing `kill -9 $!` as `$!` is the PID of the last launched process (alternatively you can find it using `ps auxw | grep trackfind`.
+
 ### Java
 ```bash
 wget https://github.com/elixir-no-nels/trackfind/releases/download/1.0.0/trackfind-1.0.0.jar && \
