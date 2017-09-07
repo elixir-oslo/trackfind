@@ -61,3 +61,7 @@ nohup mvn spring-boot:run &
 ```
 
 App can be stopped by executing `kill -9 $!` as `$!` is the PID of the last launched process (alternatively you can find it using `ps auxw | grep trackfind`.
+
+# Acknowledgments
+
+[![jProfiler](https://www.ej-technologies.com/images/product_banners/jprofiler_large.png)](https://www.ej-technologies.com/products/jprofiler/overview.html)
