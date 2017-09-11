@@ -39,16 +39,18 @@ public interface DataProvider {
     /**
      * Gets metamodel of the repository in "tree-from" (with nesting).
      *
+     * @param advanced <code>true</code> for advanced metamodel, <code>false</code> for basic one.
      * @return Tree metamodel.
      */
-    Map<String, Object> getMetamodelTree();
+    Map<String, Object> getMetamodelTree(boolean advanced);
 
     /**
      * Gets metamodel of the repository in "flat-from" (non-nested).
      *
+     * @param advanced <code>true</code> for advanced metamodel, <code>false</code> for basic one.
      * @return Flat metamodel.
      */
-    Multimap<String, String> getMetamodelFlat();
+    Multimap<String, String> getMetamodelFlat(boolean advanced);
 
     /**
      * Performs search over the repository limiting the number of results.

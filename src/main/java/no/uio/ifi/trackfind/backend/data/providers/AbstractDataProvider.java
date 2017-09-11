@@ -203,7 +203,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      */
     @Override
     @SuppressWarnings("unchecked")
-    public Map<String, Object> getMetamodelTree() {
+    public Map<String, Object> getMetamodelTree(boolean advanced) {
         Map<String, Object> result = new HashMap<>();
         try {
             Collection<String> fieldNames = MultiFields.getIndexedFields(indexReader);
@@ -239,7 +239,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      * {@inheritDoc}
      */
     @Override
-    public Multimap<String, String> getMetamodelFlat() {
+    public Multimap<String, String> getMetamodelFlat(boolean advanced) {
         Multimap<String, String> metamodel = HashMultimap.create();
         try {
             Collection<String> fieldNames = MultiFields.getIndexedFields(indexReader);
