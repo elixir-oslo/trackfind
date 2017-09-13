@@ -4,6 +4,7 @@ import com.vaadin.data.provider.AbstractHierarchicalDataProvider;
 import com.vaadin.data.provider.HierarchicalQuery;
 import no.uio.ifi.trackfind.frontend.data.TreeNode;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.util.CollectionUtils;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -19,7 +20,9 @@ public class TrackDataProvider extends AbstractHierarchicalDataProvider<TreeNode
     private TreeNode root;
     private String attributesFilter = "";
     private String valuesFilter = "";
-    private Map<String, Integer> childCountMap = new HashMap<>();
+    private Collection<String> attributesToShow = new HashSet<>();
+    private Map<String, Integer> childCountBasicMap = new HashMap<>();
+    private Map<String, Integer> childCountAdvancedMap = new HashMap<>();
 
     /**
      * Constructor that accepts tree root.
@@ -49,6 +52,15 @@ public class TrackDataProvider extends AbstractHierarchicalDataProvider<TreeNode
     }
 
     /**
+     * Sets attributes to display.
+     *
+     * @param attributesToShow Collection of attributes to show.
+     */
+    public void setAttributesToShow(Collection<String> attributesToShow) {
+        this.attributesToShow = attributesToShow;
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
@@ -64,6 +76,7 @@ public class TrackDataProvider extends AbstractHierarchicalDataProvider<TreeNode
      */
     private int getChildCount(TreeNode treeNode) {
         if (StringUtils.isEmpty(attributesFilter) && StringUtils.isEmpty(valuesFilter)) {
+            Map<String, Integer> childCountMap = CollectionUtils.isEmpty(attributesToShow) ? childCountAdvancedMap : childCountBasicMap;
             return childCountMap.computeIfAbsent(treeNode.getPath(), k -> getChildCount(treeNode.getQuery()));
         }
         return getChildCount(treeNode.getQuery());
@@ -80,7 +93,7 @@ public class TrackDataProvider extends AbstractHierarchicalDataProvider<TreeNode
         while (iterator.hasNext()) {
             TreeNode child = iterator.next();
             int childCount = getChildCount(child);
-            boolean leaf = child.isLeaf();
+            boolean leaf = child.isValue();
             String attributeOrValue = child.toString().toLowerCase();
             if (childCount == 0 && !attributeOrValue.contains(valuesFilter)) {
                 iterator.remove();
@@ -89,6 +102,8 @@ public class TrackDataProvider extends AbstractHierarchicalDataProvider<TreeNode
             } else if (child.isFinalAttribute() && !attributeOrValue.contains(attributesFilter)) {
                 iterator.remove();
             } else if (!leaf && childCount == 0) {
+                iterator.remove();
+            } else if (!leaf && !CollectionUtils.isEmpty(attributesToShow) && !attributesToShow.contains(child.getPath())) {
                 iterator.remove();
             }
         }

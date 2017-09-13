@@ -3,6 +3,7 @@ package no.uio.ifi.trackfind.backend.data.providers;
 import com.google.common.collect.Multimap;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -35,6 +36,15 @@ public interface DataProvider {
      * Re-fetches data, rebuilds index.
      */
     void updateIndex();
+
+    /**
+     * Only attributes available in basic mode.
+     *
+     * @return Collection of attributes available in basic mode.
+     */
+    default Collection<String> getBasicAttributes() {
+        return Collections.singleton("data_type"); // TODO: temp
+    }
 
     /**
      * Gets metamodel of the repository in "tree-from" (with nesting).

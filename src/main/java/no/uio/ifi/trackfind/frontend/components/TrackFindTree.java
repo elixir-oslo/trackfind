@@ -28,7 +28,7 @@ public class TrackFindTree<T> extends Tree<T> { // TODO: Fix issues with large t
      *
      * @return Back-end DataProvider.
      */
-    public DataProvider getTrackDataProvider() {
+    public DataProvider getBackEndDataProvider() {
         return trackDataProvider;
     }
 

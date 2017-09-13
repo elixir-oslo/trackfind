@@ -83,21 +83,23 @@ public class TextAreaDropListener implements DropListener<TextArea> {
      */
     private void processDragAndDropMultiple(boolean logicalOperation, boolean inversion, Set<TreeNode> items) {
         String operator = OPERATORS.get(logicalOperation);
-        StringBuilder value = new StringBuilder(textArea.getValue());
-        if (StringUtils.isNoneEmpty(value.toString())) {
-            value.append(operator);
+        StringBuilder query = new StringBuilder(textArea.getValue());
+        if (StringUtils.isNoneEmpty(query.toString())) {
+            query.append(operator);
         }
         if (inversion) {
-            value.append(INVERSION);
+            query.append(INVERSION);
         }
         TreeNode firstItem = items.iterator().next();
-        String attribute = escapeQueryTerm(firstItem.getPath().split(":")[0]);
-        value.append(attribute).append(": (");
+        String path = firstItem.getPath();
+        String queryTerm = path.substring(0, path.lastIndexOf(">"));
+        String attribute = escapeQueryTerm(queryTerm.split(":")[0]);
+        query.append(attribute).append(": (");
         for (TreeNode item : items) {
-            value.append(escapeQueryTerm(item.toString())).append(" OR ");
+            query.append(escapeQueryTerm(item.toString())).append(" OR ");
         }
-        value = new StringBuilder(value.subSequence(0, value.length() - 4) + ")\n\n");
-        textArea.setValue(value.toString());
+        query = new StringBuilder(query.subSequence(0, query.length() - 4) + ")\n\n");
+        textArea.setValue(query.toString());
     }
 
     /**
@@ -109,17 +111,21 @@ public class TextAreaDropListener implements DropListener<TextArea> {
      */
     private void processDragAndDropSingle(boolean logicalOperation, boolean inversion, TreeNode item) {
         String operator = OPERATORS.get(logicalOperation);
-        String value = textArea.getValue();
-        if (StringUtils.isNoneEmpty(value)) {
-            value += operator;
+        String query = textArea.getValue();
+        if (StringUtils.isNoneEmpty(query)) {
+            query += operator;
         }
         if (inversion) {
-            value += INVERSION;
+            query += INVERSION;
         }
-        String attribute = escapeQueryTerm(item.getPath().split(":")[0]);
-        value += attribute + ": ";
-        value += escapeQueryTerm(item.toString()) + "\n\n";
-        textArea.setValue(value);
+        String path = item.getPath();
+        if (item.isValue()) {
+            query += escapeQueryTerm(path).replaceAll("\\(?:.(?!\\))+$", ":");
+        } else {
+            query += escapeQueryTerm(path) + ": ";
+        }
+        query += "\n\n";
+        textArea.setValue(query);
     }
 
     /**

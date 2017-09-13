@@ -145,17 +145,13 @@ public class TreeNode implements Comparable<TreeNode> {
      * @return Sequence of attributes separated by some delimiter ("&gt;" by default).
      */
     private String getPathInternally() {
-        StringBuilder path = new StringBuilder();
+        StringBuilder path = new StringBuilder(toString());
         TreeNode parent = getParent();
-        while (parent != null) {
-            path.insert(0, ">" + parent.toString());
+        while (parent.toString() != null) {
+            path.insert(0, parent.toString() + ">");
             parent = parent.getParent();
         }
-        if (isLeaf()) {
-            return path.toString().replace(">null>", "") + ": " + toString();
-        } else {
-            return (path.toString().replace(">null", "") + ">" + toString() + ": ").substring(1);
-        }
+        return path.toString();
     }
 
     /**
@@ -163,7 +159,7 @@ public class TreeNode implements Comparable<TreeNode> {
      *
      * @return <code>true</code> if it's a leaf-node, <code>false</code> otherwise.
      */
-    public boolean isLeaf() {
+    public boolean isValue() {
         return node.getValue() == null;
     }
 
@@ -189,7 +185,7 @@ public class TreeNode implements Comparable<TreeNode> {
      * @return <code>true</code> if it's a final attribute, <code>false</code> otherwise.
      */
     private boolean isFinalAttributeInternally() {
-        return fetchChildren().parallelStream().anyMatch(TreeNode::isLeaf);
+        return fetchChildren().parallelStream().anyMatch(TreeNode::isValue);
     }
 
     /**

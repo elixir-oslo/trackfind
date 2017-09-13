@@ -50,7 +50,7 @@ public class TreeSelectionListener implements SelectionListener<TreeNode> {
             return;
         }
         TreeNode current = addedSelection.iterator().next();
-        if (!current.isFinalAttribute() && !current.isLeaf()) {
+        if (!current.isFinalAttribute() && !current.isValue()) {
             tree.deselect(current);
             return;
         }
