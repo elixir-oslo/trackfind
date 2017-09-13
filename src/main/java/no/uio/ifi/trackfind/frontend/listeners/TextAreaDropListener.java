@@ -120,7 +120,7 @@ public class TextAreaDropListener implements DropListener<TextArea> {
         }
         String path = item.getPath();
         if (item.isValue()) {
-            query += escapeQueryTerm(path).replaceAll("\\(?:.(?!\\))+$", ":");
+            query += escapeQueryTerm(path.substring(0, path.lastIndexOf(">"))) + ": " + escapeQueryTerm(item.toString());
         } else {
             query += escapeQueryTerm(path) + ": ";
         }
