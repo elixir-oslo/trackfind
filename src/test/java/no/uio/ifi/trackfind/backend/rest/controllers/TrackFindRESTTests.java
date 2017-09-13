@@ -44,7 +44,7 @@ public class TrackFindRESTTests {
 
     @Test
     public void getMetamodelTreeTest() throws Exception {
-        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/metamodel-tree"))
+        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/metamodel-tree").param("advanced", "true"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andExpect(jsonPath("$.key1", hasSize(2)))
@@ -54,7 +54,7 @@ public class TrackFindRESTTests {
 
     @Test
     public void getMetamodelFlatTest() throws Exception {
-        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/metamodel-flat"))
+        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/metamodel-flat").param("advanced", "true"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andExpect(jsonPath("$.key1", hasSize(2)))
@@ -64,7 +64,7 @@ public class TrackFindRESTTests {
 
     @Test
     public void getAttributesTest() throws Exception {
-        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/attributes/"))
+        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/attributes/").param("advanced", "true"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andExpect(jsonPath("$", hasSize(3)))
@@ -73,7 +73,7 @@ public class TrackFindRESTTests {
 
     @Test
     public void getAttributesWithFilterTest() throws Exception {
-        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/attributes").param("filter", "ey1"))
+        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/attributes").param("filter", "ey1").param("advanced", "true"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andExpect(jsonPath("$", hasSize(1)))
