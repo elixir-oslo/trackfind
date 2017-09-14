@@ -2,8 +2,8 @@ package no.uio.ifi.trackfind.backend.data.providers;
 
 import com.google.common.collect.Multimap;
 
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -16,7 +16,12 @@ public interface DataProvider {
     String DATA_URL_ATTRIBUTE = "browser";
     String DATA_TYPE_ATTRIBUTE = "data_type";
 
-    Collection<String> BASIC_ATTRIBUTES = Collections.singleton("data_type");
+    Collection<String> BASIC_ATTRIBUTES = Arrays.asList(
+            "Data Type",
+            "Cell/Tissue Type",
+            "Genome Build",
+            "URL"
+    );
 
     /**
      * Gets the name of the repository.

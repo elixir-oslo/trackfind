@@ -161,6 +161,7 @@ public class TrackFindUI extends AbstractUI {
         resultsPanel.setSizeFull();
         exportButton = new Button("Export as GSuite file");
         exportButton.setEnabled(false);
+        exportButton.setWidth(100, Unit.PERCENTAGE);
         VerticalLayout resultsLayout = new VerticalLayout(resultsPanel, exportButton);
         resultsLayout.setSizeFull();
         resultsLayout.setExpandRatio(resultsPanel, 1f);
