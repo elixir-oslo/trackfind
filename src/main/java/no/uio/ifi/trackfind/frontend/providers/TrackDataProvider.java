@@ -1,37 +1,19 @@
 package no.uio.ifi.trackfind.frontend.providers;
 
 import com.vaadin.data.provider.AbstractHierarchicalDataProvider;
-import com.vaadin.data.provider.HierarchicalQuery;
 import no.uio.ifi.trackfind.frontend.data.TreeNode;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.util.CollectionUtils;
 
-import java.util.*;
 import java.util.function.Predicate;
-import java.util.stream.Stream;
 
 /**
- * Front-end DataProvider for Vaadin Tree (not to be confused with back-end DataProvider).
+ * Abstract front-end DataProvider for Vaadin Tree (not to be confused with back-end DataProvider).
  *
  * @author Dmytro Titov
  */
-public class TrackDataProvider extends AbstractHierarchicalDataProvider<TreeNode, Predicate<? super TreeNode>> {
+public abstract class TrackDataProvider extends AbstractHierarchicalDataProvider<TreeNode, Predicate<? super TreeNode>> {
 
-    private TreeNode root;
-    private String attributesFilter = "";
-    private String valuesFilter = "";
-    private Collection<String> attributesToShow = new HashSet<>();
-    private Map<String, Integer> childCountBasicMap = new HashMap<>();
-    private Map<String, Integer> childCountAdvancedMap = new HashMap<>();
-
-    /**
-     * Constructor that accepts tree root.
-     *
-     * @param root root node of TreeNodes hierarchy.
-     */
-    public TrackDataProvider(TreeNode root) {
-        this.root = root;
-    }
+    protected String attributesFilter = "";
+    protected String valuesFilter = "";
 
     /**
      * Sets expression for filtering attributes in tree (last-level).
@@ -49,85 +31,6 @@ public class TrackDataProvider extends AbstractHierarchicalDataProvider<TreeNode
      */
     public void setValuesFilter(String valuesFilter) {
         this.valuesFilter = valuesFilter.toLowerCase();
-    }
-
-    /**
-     * Sets attributes to display.
-     *
-     * @param attributesToShow Collection of attributes to show.
-     */
-    public void setAttributesToShow(Collection<String> attributesToShow) {
-        this.attributesToShow = attributesToShow;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public int getChildCount(HierarchicalQuery<TreeNode, Predicate<? super TreeNode>> query) {
-        return (int) fetchChildren(query).count();
-    }
-
-    /**
-     * Gets the number of children for specified TreeNode.
-     *
-     * @param treeNode Specified TreeNode.
-     * @return Number of children.
-     */
-    private int getChildCount(TreeNode treeNode) {
-        if (StringUtils.isEmpty(attributesFilter) && StringUtils.isEmpty(valuesFilter)) {
-            Map<String, Integer> childCountMap = CollectionUtils.isEmpty(attributesToShow) ? childCountAdvancedMap : childCountBasicMap;
-            return childCountMap.computeIfAbsent(treeNode.getPath(), k -> getChildCount(treeNode.getQuery()));
-        }
-        return getChildCount(treeNode.getQuery());
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Stream<TreeNode> fetchChildren(HierarchicalQuery<TreeNode, Predicate<? super TreeNode>> query) {
-        TreeNode parent = query.getParentOptional().orElse(root);
-        Collection<TreeNode> children = new HashSet<>(parent.fetchChildren());
-        Iterator<TreeNode> iterator = children.iterator();
-        while (iterator.hasNext()) {
-            TreeNode child = iterator.next();
-            int childCount = getChildCount(child);
-            boolean leaf = child.isValue();
-            String attributeOrValue = child.toString().toLowerCase();
-            if (childCount == 0 && !attributeOrValue.contains(valuesFilter)) {
-                iterator.remove();
-            } else if (leaf && !attributeOrValue.contains(valuesFilter)) {
-                iterator.remove();
-            } else if (child.isFinalAttribute() && !attributeOrValue.contains(attributesFilter)) {
-                iterator.remove();
-            } else if (!leaf && childCount == 0) {
-                iterator.remove();
-            } else if (!leaf && !CollectionUtils.isEmpty(attributesToShow) && !attributesToShow.contains(child.getPath())) {
-                iterator.remove();
-            }
-        }
-        return children.parallelStream().
-                filter(query.getFilter().orElse(tr -> true)).
-                sorted().
-                skip(query.getOffset()).
-                limit(query.getLimit());
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean hasChildren(TreeNode item) {
-        return getChildCount(item) != 0;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean isInMemory() {
-        return true;
     }
 
 }

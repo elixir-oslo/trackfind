@@ -25,6 +25,7 @@ import no.uio.ifi.trackfind.frontend.listeners.TextAreaDropListener;
 import no.uio.ifi.trackfind.frontend.listeners.TreeItemClickListener;
 import no.uio.ifi.trackfind.frontend.listeners.TreeSelectionListener;
 import no.uio.ifi.trackfind.frontend.providers.TrackDataProvider;
+import no.uio.ifi.trackfind.frontend.providers.impl.MainTrackDataProvider;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
@@ -50,7 +51,7 @@ public class TrackFindUI extends AbstractUI {
 
     private Gson gson;
 
-    private Map<DataProvider, TrackDataProvider> providersMapping = new HashMap<>();
+    private Collection<MainTrackDataProvider> providers = new HashSet<>();
 
     private Collection<Map<String, Object>> lastResults;
 
@@ -79,7 +80,7 @@ public class TrackFindUI extends AbstractUI {
 
         for (DataProvider dataProvider : trackFindService.getDataProviders()) {
             TrackFindTree<TreeNode> tree = buildTree(dataProvider);
-            providersMapping.put(tree.getBackEndDataProvider(), (TrackDataProvider) tree.getDataProvider());
+            providers.add((MainTrackDataProvider) tree.getDataProvider());
             tabSheet.addTab(tree, dataProvider.getName());
         }
 
@@ -104,12 +105,11 @@ public class TrackFindUI extends AbstractUI {
 
         advancedCheckBox = new CheckBox("Advanced mode");
         advancedCheckBox.addValueChangeListener((HasValue.ValueChangeListener<Boolean>) event -> {
-            for (Map.Entry<DataProvider, TrackDataProvider> entry : providersMapping.entrySet()) {
-                TrackDataProvider trackDataProvider = entry.getValue();
+            for (MainTrackDataProvider trackDataProvider : providers) {
                 if (advancedCheckBox.getValue()) {
                     trackDataProvider.setAttributesToShow(Collections.emptySet());
                 } else {
-                    trackDataProvider.setAttributesToShow(entry.getKey().getBasicAttributes());
+                    trackDataProvider.setAttributesToShow(DataProvider.BASIC_ATTRIBUTES);
                 }
             }
             getCurrentTrackDataProvider().refreshAll();
@@ -129,8 +129,8 @@ public class TrackFindUI extends AbstractUI {
         tree.addSelectionListener(new TreeSelectionListener(tree, new KeyboardInterceptorExtension(tree)));
         TreeGridDragSource<TreeNode> dragSource = new TreeGridDragSource<>((TreeGrid<TreeNode>) tree.getCompositionRoot());
         dragSource.setEffectAllowed(EffectAllowed.COPY);
-        TrackDataProvider trackDataProvider = new TrackDataProvider(new TreeNode(dataProvider.getMetamodelTree(true)));
-        trackDataProvider.setAttributesToShow(dataProvider.getBasicAttributes());
+        MainTrackDataProvider trackDataProvider = new MainTrackDataProvider(new TreeNode(dataProvider.getMetamodelTree(true)));
+        trackDataProvider.setAttributesToShow(DataProvider.BASIC_ATTRIBUTES);
         tree.setDataProvider(trackDataProvider);
         tree.setSizeFull();
         tree.setStyleGenerator((StyleGenerator<TreeNode>) item -> item.isFinalAttribute() || item.isValue() ? null : "disabled-tree-node");

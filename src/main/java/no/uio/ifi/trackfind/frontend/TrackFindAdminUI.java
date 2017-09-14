@@ -19,6 +19,7 @@ import no.uio.ifi.trackfind.frontend.data.TreeNode;
 import no.uio.ifi.trackfind.frontend.listeners.TreeItemClickListener;
 import no.uio.ifi.trackfind.frontend.listeners.TreeSelectionListener;
 import no.uio.ifi.trackfind.frontend.providers.TrackDataProvider;
+import no.uio.ifi.trackfind.frontend.providers.impl.AdminTrackDataProvider;
 
 /**
  * Admin Vaadin UI of the application.
@@ -66,15 +67,7 @@ public class TrackFindAdminUI extends AbstractUI {
         attributesFilterTextField.setValueChangeMode(ValueChangeMode.EAGER);
         attributesFilterTextField.setWidth(100, Sizeable.Unit.PERCENTAGE);
 
-        TextField valuesFilterTextField = new TextField("Filter values", (HasValue.ValueChangeListener<String>) event -> {
-            TrackDataProvider dataProvider = getCurrentTrackDataProvider();
-            dataProvider.setValuesFilter(event.getValue());
-            dataProvider.refreshAll();
-        });
-        valuesFilterTextField.setValueChangeMode(ValueChangeMode.EAGER);
-        valuesFilterTextField.setWidth(100, Sizeable.Unit.PERCENTAGE);
-
-        VerticalLayout treeLayout = new VerticalLayout(treePanel, attributesFilterTextField, valuesFilterTextField);
+        VerticalLayout treeLayout = new VerticalLayout(treePanel, attributesFilterTextField);
         treeLayout.setSizeFull();
         treeLayout.setExpandRatio(treePanel, 1f);
         return treeLayout;
@@ -88,7 +81,7 @@ public class TrackFindAdminUI extends AbstractUI {
         tree.addSelectionListener(new TreeSelectionListener(tree, new KeyboardInterceptorExtension(tree)));
         TreeGridDragSource<TreeNode> dragSource = new TreeGridDragSource<>((TreeGrid<TreeNode>) tree.getCompositionRoot());
         dragSource.setEffectAllowed(EffectAllowed.COPY);
-        TrackDataProvider trackDataProvider = new TrackDataProvider(new TreeNode(dataProvider.getMetamodelTree(false)));
+        AdminTrackDataProvider trackDataProvider = new AdminTrackDataProvider(new TreeNode(dataProvider.getMetamodelTree(true)));
         tree.setDataProvider(trackDataProvider);
         tree.setSizeFull();
         tree.setStyleGenerator((StyleGenerator<TreeNode>) item -> item.isFinalAttribute() || item.isValue() ? null : "disabled-tree-node");

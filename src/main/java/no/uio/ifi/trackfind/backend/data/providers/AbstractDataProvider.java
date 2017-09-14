@@ -206,11 +206,10 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     public Map<String, Object> getMetamodelTree(boolean advanced) {
         Map<String, Object> result = new HashMap<>();
         try {
-            Collection<String> basicAttributes = getBasicAttributes();
             Collection<String> fieldNames = MultiFields.getIndexedFields(indexReader);
             Fields fields = MultiFields.getFields(indexReader);
             for (String fieldName : fieldNames) {
-                if (!advanced && !basicAttributes.contains(fieldName)) {
+                if (!advanced && !BASIC_ATTRIBUTES.contains(fieldName)) {
                     continue;
                 }
                 Map<String, Object> metamodel = result;
@@ -246,11 +245,10 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     public Multimap<String, String> getMetamodelFlat(boolean advanced) {
         Multimap<String, String> metamodel = HashMultimap.create();
         try {
-            Collection<String> basicAttributes = getBasicAttributes();
             Collection<String> fieldNames = MultiFields.getIndexedFields(indexReader);
             Fields fields = MultiFields.getFields(indexReader);
             for (String fieldName : fieldNames) {
-                if (!advanced && !basicAttributes.contains(fieldName)) {
+                if (!advanced && !BASIC_ATTRIBUTES.contains(fieldName)) {
                     continue;
                 }
                 Terms terms = fields.terms(fieldName);

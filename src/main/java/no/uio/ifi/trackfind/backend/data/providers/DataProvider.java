@@ -16,6 +16,8 @@ public interface DataProvider {
     String DATA_URL_ATTRIBUTE = "browser";
     String DATA_TYPE_ATTRIBUTE = "data_type";
 
+    Collection<String> BASIC_ATTRIBUTES = Collections.singleton("data_type");
+
     /**
      * Gets the name of the repository.
      *
@@ -36,15 +38,6 @@ public interface DataProvider {
      * Re-fetches data, rebuilds index.
      */
     void updateIndex();
-
-    /**
-     * Only attributes available in basic mode.
-     *
-     * @return Collection of attributes available in basic mode.
-     */
-    default Collection<String> getBasicAttributes() {
-        return Collections.singleton("data_type"); // TODO: temp
-    }
 
     /**
      * Gets metamodel of the repository in "tree-from" (with nesting).
