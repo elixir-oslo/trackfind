@@ -1,10 +1,9 @@
 package no.uio.ifi.trackfind.backend.data.providers;
 
 import com.google.common.collect.Multimap;
+import lombok.Data;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Interface describing access point for some external data repository.
@@ -29,6 +28,13 @@ public interface DataProvider {
      * @return Repository name.
      */
     String getName();
+
+    /**
+     * Gets the path of the repository.
+     *
+     * @return Repository name.
+     */
+    String getPath();
 
     /**
      * Gets BigData URLs from dataset.
@@ -68,5 +74,16 @@ public interface DataProvider {
      * @return Search result.
      */
     Collection<Map<String, Object>> search(String query, int limit);
+
+    Configuration loadConfiguration();
+
+    void saveConfiguration(Configuration configuration);
+
+    @Data
+    class Configuration {
+        private Map<String, String> attributesMapping = new HashMap<>();
+        private Collection<String> attributesToExport = new HashSet<>();
+        private boolean published = false;
+    }
 
 }

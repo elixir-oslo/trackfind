@@ -2,9 +2,11 @@ package no.uio.ifi.trackfind.backend.data.providers;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.lucene.DirectoryFactory;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.KeywordAnalyzer;
 import org.apache.lucene.document.Document;
@@ -21,7 +23,9 @@ import org.springframework.util.SerializationUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
+import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
@@ -56,7 +60,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     @SuppressWarnings("unused")
     @PostConstruct
     private void postConstruct() throws Exception {
-        directory = directoryFactory.getDirectory(INDICES_FOLDER + getName() + getClass().getPackage().getImplementationVersion());
+        directory = directoryFactory.getDirectory(getPath());
         if (DirectoryReader.indexExists(directory)) {
             reinitIndexSearcher();
         } else {
@@ -70,6 +74,14 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     @Override
     public String getName() {
         return getClass().getSimpleName().replace("DataProvider", "");
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getPath() {
+        return INDICES_FOLDER + getName() + getClass().getPackage().getImplementationVersion() + "/";
     }
 
     /**
@@ -180,7 +192,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     /**
      * Reinitialize Directory Reader and Searcher (in case of Directory update).
      */
-    private void reinitIndexSearcher() {
+    private synchronized void reinitIndexSearcher() {
         if (indexReader != null) {
             try {
                 indexReader.close();
@@ -284,6 +296,33 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return Collections.emptyList();
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Configuration loadConfiguration() {
+        try {
+            String json = FileUtils.readFileToString(new File(getPath() + getName()), Charset.defaultCharset());
+            return new Gson().fromJson(json, Configuration.class);
+        } catch (IOException e) {
+            log.error(e.getMessage(), e);
+            return new Configuration();
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @SuppressWarnings("unchecked")
+    @Override
+    public void saveConfiguration(Configuration configuration) {
+        try {
+            FileUtils.write(new File(getPath() + getName()), new Gson().toJson(configuration), Charset.defaultCharset());
+        } catch (IOException e) {
+            log.error(e.getMessage(), e);
         }
     }
 
