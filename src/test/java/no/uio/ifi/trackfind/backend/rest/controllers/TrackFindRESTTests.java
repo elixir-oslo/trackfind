@@ -35,7 +35,7 @@ public class TrackFindRESTTests {
 
     @Test
     public void getProvidersTest() throws Exception {
-        mockMvc.perform(get(API_PREFIX + "providers"))
+        mockMvc.perform(get(API_PREFIX + "providers").param("published", "false"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andExpect(jsonPath("$", hasSize(1)))

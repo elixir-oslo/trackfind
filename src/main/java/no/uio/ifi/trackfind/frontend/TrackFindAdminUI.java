@@ -5,6 +5,8 @@ import com.vaadin.annotations.Title;
 import com.vaadin.annotations.Widgetset;
 import com.vaadin.data.HasValue;
 import com.vaadin.data.provider.Query;
+import com.vaadin.event.FieldEvents;
+import com.vaadin.event.ShortcutAction;
 import com.vaadin.server.Sizeable;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.shared.ui.ValueChangeMode;
@@ -20,6 +22,7 @@ import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
 import no.uio.ifi.trackfind.frontend.components.KeyboardInterceptorExtension;
 import no.uio.ifi.trackfind.frontend.components.TrackFindTree;
 import no.uio.ifi.trackfind.frontend.data.TreeNode;
+import no.uio.ifi.trackfind.frontend.listeners.RemoveSelectedItemsShortcutListener;
 import no.uio.ifi.trackfind.frontend.listeners.TextFieldDropListener;
 import no.uio.ifi.trackfind.frontend.listeners.TreeItemClickListener;
 import no.uio.ifi.trackfind.frontend.listeners.TreeSelectionListener;
@@ -116,6 +119,8 @@ public class TrackFindAdminUI extends AbstractUI {
     private VerticalLayout buildExportLayout() {
         exportList = new ListSelect<>("Attributes to export");
         exportList.setSizeFull();
+        exportList.addShortcutListener(new RemoveSelectedItemsShortcutListener<>(exportList, ShortcutAction.KeyCode.DELETE));
+        exportList.addShortcutListener(new RemoveSelectedItemsShortcutListener<>(exportList, ShortcutAction.KeyCode.BACKSPACE));
         Button saveButton = new Button("Save");
         publishedCheckBox = new CheckBox("Published");
         saveButton.setWidth(100, Unit.PERCENTAGE);
