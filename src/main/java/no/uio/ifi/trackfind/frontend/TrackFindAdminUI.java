@@ -4,6 +4,7 @@ import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Title;
 import com.vaadin.annotations.Widgetset;
 import com.vaadin.data.HasValue;
+import com.vaadin.data.provider.Query;
 import com.vaadin.server.Sizeable;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.shared.ui.ValueChangeMode;
@@ -13,6 +14,7 @@ import com.vaadin.spring.annotation.SpringUI;
 import com.vaadin.ui.*;
 import com.vaadin.ui.components.grid.TreeGridDragSource;
 import com.vaadin.ui.dnd.DropTargetExtension;
+import com.vaadin.ui.dnd.event.DropListener;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
 import no.uio.ifi.trackfind.frontend.components.KeyboardInterceptorExtension;
@@ -23,9 +25,13 @@ import no.uio.ifi.trackfind.frontend.listeners.TreeItemClickListener;
 import no.uio.ifi.trackfind.frontend.listeners.TreeSelectionListener;
 import no.uio.ifi.trackfind.frontend.providers.TrackDataProvider;
 import no.uio.ifi.trackfind.frontend.providers.impl.AdminTrackDataProvider;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
-import java.util.Collection;
-import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Admin Vaadin UI of the application.
@@ -41,6 +47,10 @@ import java.util.HashSet;
 @Slf4j
 public class TrackFindAdminUI extends AbstractUI {
 
+    private Map<String, TextField> basicAttributes;
+    private ListSelect<String> exportList;
+    private CheckBox publishedCheckBox;
+
     @Override
     protected void init(VaadinRequest vaadinRequest) {
         HorizontalLayout headerLayout = buildHeaderLayout();
@@ -51,16 +61,19 @@ public class TrackFindAdminUI extends AbstractUI {
         HorizontalLayout footerLayout = buildFooterLayout();
         VerticalLayout outerLayout = buildOuterLayout(headerLayout, mainLayout, footerLayout);
         setContent(outerLayout);
+        loadConfiguration();
     }
 
     protected VerticalLayout buildTreeLayout() {
         tabSheet = new TabSheet();
         tabSheet.setSizeFull();
 
-        for (DataProvider dataProvider : trackFindService.getDataProviders()) {
+        for (DataProvider dataProvider : trackFindService.getDataProviders(false)) {
             TrackFindTree<TreeNode> tree = buildTree(dataProvider);
             tabSheet.addTab(tree, dataProvider.getName());
         }
+
+        tabSheet.addSelectedTabChangeListener((TabSheet.SelectedTabChangeListener) event -> loadConfiguration());
 
         Panel treePanel = new Panel("Model browser", tabSheet);
         treePanel.setSizeFull();
@@ -101,12 +114,12 @@ public class TrackFindAdminUI extends AbstractUI {
     }
 
     private VerticalLayout buildExportLayout() {
-        ListSelect<String> exportList = new ListSelect<>("Attributes to export");
-        exportList.setItems("Mercury", "Venus", "Earth");
+        exportList = new ListSelect<>("Attributes to export");
         exportList.setSizeFull();
         Button saveButton = new Button("Save");
-        CheckBox publishedCheckBox = new CheckBox("Published");
+        publishedCheckBox = new CheckBox("Published");
         saveButton.setWidth(100, Unit.PERCENTAGE);
+        saveButton.addClickListener((Button.ClickListener) event -> saveConfiguration());
         VerticalLayout searchExportLayout = new VerticalLayout(exportList, publishedCheckBox, saveButton);
         searchExportLayout.setSizeFull();
         searchExportLayout.setExpandRatio(exportList, 1f);
@@ -115,27 +128,61 @@ public class TrackFindAdminUI extends AbstractUI {
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     private VerticalLayout buildFieldsLayout() {
-        Collection<Component> basicAttributes = new HashSet<>();
+        basicAttributes = new HashMap<>();
+        VerticalLayout queryLayout = new VerticalLayout();
         for (String basicAttribute : DataProvider.BASIC_ATTRIBUTES) {
-            TextField basicAttributeTextField = new TextField(basicAttribute + " Attribute");
+            TextField basicAttributeTextField = new TextField(basicAttribute);
             basicAttributeTextField.setWidth(100, Unit.PERCENTAGE);
             basicAttributeTextField.setReadOnly(true);
             DropTargetExtension<TextField> dropTarget = new DropTargetExtension<>(basicAttributeTextField);
             dropTarget.setDropEffect(DropEffect.COPY);
             dropTarget.addDropListener(new TextFieldDropListener(basicAttributeTextField));
+            dropTarget.addDropListener((DropListener<TextField>) event -> publishedCheckBox.setEnabled(isEverythingFilled()));
             Button clearButton = new Button("Clear");
             clearButton.addClickListener((Button.ClickListener) event -> basicAttributeTextField.clear());
+            clearButton.addClickListener((Button.ClickListener) event -> publishedCheckBox.setEnabled(isEverythingFilled()));
             HorizontalLayout attributeLayout = new HorizontalLayout(basicAttributeTextField, clearButton);
             attributeLayout.setComponentAlignment(basicAttributeTextField, Alignment.BOTTOM_LEFT);
             attributeLayout.setComponentAlignment(clearButton, Alignment.BOTTOM_LEFT);
             attributeLayout.setExpandRatio(basicAttributeTextField, 0.8f);
             attributeLayout.setExpandRatio(clearButton, 0.2f);
             attributeLayout.setWidth(100, Unit.PERCENTAGE);
-            basicAttributes.add(attributeLayout);
+            basicAttributes.put(basicAttribute, basicAttributeTextField);
+            queryLayout.addComponent(attributeLayout);
         }
-        VerticalLayout queryLayout = new VerticalLayout(basicAttributes.toArray(new Component[]{}));
         queryLayout.setSizeFull();
         return queryLayout;
+    }
+
+    boolean isEverythingFilled() {
+        return !CollectionUtils.isEmpty(getAttributesToExport()) &&
+                basicAttributes.values().stream().noneMatch(tf -> StringUtils.isEmpty(tf.getValue()));
+    }
+
+    private void loadConfiguration() {
+        DataProvider.Configuration configuration = getCurrentDataProvider().loadConfiguration();
+        publishedCheckBox.setValue(configuration.isPublished());
+        publishedCheckBox.setEnabled(isEverythingFilled());
+        exportList.setItems(configuration.getAttributesToExport());
+        for (Map.Entry<String, TextField> mapping : basicAttributes.entrySet()) {
+            String value = configuration.getAttributesMapping().getOrDefault(mapping.getKey(), "");
+            mapping.getValue().setValue(value);
+        }
+    }
+
+    private void saveConfiguration() {
+        DataProvider currentDataProvider = getCurrentDataProvider();
+        DataProvider.Configuration configuration = currentDataProvider.loadConfiguration();
+        configuration.setPublished(publishedCheckBox.getValue());
+        configuration.setAttributesToExport(getAttributesToExport());
+        for (Map.Entry<String, TextField> mapping : basicAttributes.entrySet()) {
+            configuration.getAttributesMapping().put(mapping.getKey(), mapping.getValue().getValue());
+        }
+        currentDataProvider.saveConfiguration(configuration);
+    }
+
+    private Set<String> getAttributesToExport() {
+        return exportList.getDataProvider().fetch(new Query<>()).collect(Collectors.toSet());
     }
 
 }

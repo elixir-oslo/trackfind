@@ -75,10 +75,23 @@ public interface DataProvider {
      */
     Collection<Map<String, Object>> search(String query, int limit);
 
+    /**
+     * Loads DataProvider configuration from config-file.
+     *
+     * @return Configuration for this DataProvider.
+     */
     Configuration loadConfiguration();
 
+    /**
+     * Saves DataProvider configuration to config-file.
+     *
+     * @param configuration Configuration to save.
+     */
     void saveConfiguration(Configuration configuration);
 
+    /**
+     * Inner class for representing configuration of DataProvider.
+     */
     @Data
     class Configuration {
         private Map<String, String> attributesMapping = new HashMap<>();

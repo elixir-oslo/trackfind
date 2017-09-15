@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 /**
  * Basically the holder for all registered DataProviders.
@@ -24,8 +25,12 @@ public class TrackFindService {
      *
      * @return Collection of DataProviders.
      */
-    public Collection<DataProvider> getDataProviders() {
-        return new TreeSet<>(dataProviders);
+    public Collection<DataProvider> getDataProviders(boolean published) {
+        return published
+                ?
+                dataProviders.stream().filter(dp -> dp.loadConfiguration().isPublished()).collect(Collectors.toSet())
+                :
+                new TreeSet<>(dataProviders);
     }
 
     /**
@@ -35,7 +40,7 @@ public class TrackFindService {
      * @return DataProvider.
      */
     public DataProvider getDataProvider(String dataProviderName) {
-        return getDataProviders().stream().filter(dp -> dp.getName().equals(dataProviderName)).findAny().orElseThrow(RuntimeException::new);
+        return getDataProviders(false).stream().filter(dp -> dp.getName().equals(dataProviderName)).findAny().orElseThrow(RuntimeException::new);
     }
 
     @Autowired

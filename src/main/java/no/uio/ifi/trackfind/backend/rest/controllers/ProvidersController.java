@@ -9,10 +9,7 @@ import no.uio.ifi.trackfind.backend.services.TrackFindService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Collection;
 import java.util.stream.Collectors;
@@ -31,15 +28,16 @@ public class ProvidersController {
     private TrackFindService trackFindService;
 
     /**
-     * Gets all available DataProviders.
+     * Gets all available DataProviders (only published ones by default).
      *
+     * @param published <code>true</code> for returning published only providers, <code>false</code> for returning all providers.
      * @return Collection of DataProviders available.
      * @throws Exception In case of some error.
      */
     @ApiOperation(value = "Gets full set of data providers registered in the system.")
     @GetMapping(path = "/providers", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<Collection<String>> getProviders() throws Exception {
-        return ResponseEntity.ok(trackFindService.getDataProviders().stream().map(DataProvider::getName).collect(Collectors.toSet()));
+    public ResponseEntity<Collection<String>> getProviders(@RequestParam(required = false, defaultValue = "true") boolean published) throws Exception {
+        return ResponseEntity.ok(trackFindService.getDataProviders(published).stream().map(DataProvider::getName).collect(Collectors.toSet()));
     }
 
     /**
@@ -55,14 +53,15 @@ public class ProvidersController {
     }
 
     /**
-     * Performs reinitialization of all providers.
+     * Performs reinitialization of all or published only providers.
      *
+     * @param published <code>true</code> for reiniting published only providers, <code>false</code> for reiniting all providers.
      * @throws Exception In case of some error.
      */
-    @ApiOperation(value = "Re-initializes all data providers.")
+    @ApiOperation(value = "Re-initializes all or published only data providers.")
     @GetMapping(path = "/reinit", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public void reinit() throws Exception {
-        trackFindService.getDataProviders().forEach(DataProvider::updateIndex);
+    public void reinit(@RequestParam boolean published) throws Exception {
+        trackFindService.getDataProviders(published).forEach(DataProvider::updateIndex);
     }
 
     @Autowired
