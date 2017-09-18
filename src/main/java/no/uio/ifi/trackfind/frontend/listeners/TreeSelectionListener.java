@@ -3,6 +3,7 @@ package no.uio.ifi.trackfind.frontend.listeners;
 import com.vaadin.event.selection.MultiSelectionEvent;
 import com.vaadin.event.selection.SelectionEvent;
 import com.vaadin.event.selection.SelectionListener;
+import com.vaadin.event.selection.SingleSelectionEvent;
 import com.vaadin.ui.Tree;
 import no.uio.ifi.trackfind.frontend.components.KeyboardInterceptorExtension;
 import no.uio.ifi.trackfind.frontend.data.TreeNode;
@@ -41,6 +42,9 @@ public class TreeSelectionListener implements SelectionListener<TreeNode> {
     @Override
     public void selectionChange(SelectionEvent<TreeNode> event) {
         Set<TreeNode> selectedItems = event.getAllSelectedItems();
+        if (event instanceof SingleSelectionEvent) {
+            return;
+        }
         MultiSelectionEvent<TreeNode> multiSelectionEvent = (MultiSelectionEvent<TreeNode>) event;
         if (!multiSelectionEvent.isUserOriginated()) {
             return;
