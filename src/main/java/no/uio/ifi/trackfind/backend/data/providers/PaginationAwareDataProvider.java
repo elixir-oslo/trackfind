@@ -1,9 +1,7 @@
 package no.uio.ifi.trackfind.backend.data.providers;
 
-import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.lucene.index.IndexWriter;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,8 +21,6 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public abstract class PaginationAwareDataProvider extends AbstractDataProvider {
-
-    protected Gson gson;
 
     /**
      * Specifies amount of entries to fetch at once.
@@ -122,10 +118,5 @@ public abstract class PaginationAwareDataProvider extends AbstractDataProvider {
      * @param page Fetched page to process.
      */
     protected abstract void postProcessPage(Collection<Map> page);
-
-    @Autowired
-    public void setGson(Gson gson) {
-        this.gson = gson;
-    }
 
 }

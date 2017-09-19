@@ -18,9 +18,7 @@ import java.util.stream.Stream;
 public class MainTrackDataProvider extends TrackDataProvider {
 
     private TreeNode root;
-    private Collection<String> attributesToShow = new HashSet<>();
-    private Map<String, Integer> childCountBasicMap = new HashMap<>();
-    private Map<String, Integer> childCountAdvancedMap = new HashMap<>();
+    private Map<String, Integer> childCountMap = new HashMap<>();
 
     /**
      * Constructor that accepts tree root.
@@ -29,15 +27,6 @@ public class MainTrackDataProvider extends TrackDataProvider {
      */
     public MainTrackDataProvider(TreeNode root) {
         this.root = root;
-    }
-
-    /**
-     * Sets attributes to display.
-     *
-     * @param attributesToShow Collection of attributes to show.
-     */
-    public void setAttributesToShow(Collection<String> attributesToShow) {
-        this.attributesToShow = attributesToShow;
     }
 
     /**
@@ -55,8 +44,7 @@ public class MainTrackDataProvider extends TrackDataProvider {
      * @return Number of children.
      */
     private int getChildCount(TreeNode treeNode) {
-        if (StringUtils.isEmpty(attributesFilter) && StringUtils.isEmpty(valuesFilter)) {
-            Map<String, Integer> childCountMap = CollectionUtils.isEmpty(attributesToShow) ? childCountAdvancedMap : childCountBasicMap;
+        if (StringUtils.isEmpty(attributesFilter)) {
             return childCountMap.computeIfAbsent(treeNode.getPath(), k -> getChildCount(treeNode.getQuery()));
         }
         return getChildCount(treeNode.getQuery());
@@ -82,8 +70,6 @@ public class MainTrackDataProvider extends TrackDataProvider {
             } else if (child.isFinalAttribute() && !attributeOrValue.contains(attributesFilter)) {
                 iterator.remove();
             } else if (!value && childCount == 0) {
-                iterator.remove();
-            } else if (!value && !CollectionUtils.isEmpty(attributesToShow) && !attributesToShow.contains(child.getPath())) {
                 iterator.remove();
             }
         }

@@ -1,7 +1,5 @@
 package no.uio.ifi.trackfind.backend.data.providers.ihec;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.data.providers.AbstractDataProvider;
@@ -29,7 +27,6 @@ public class IHECDataProvider extends AbstractDataProvider {
 
     private static final String RELEASES_URL = "http://epigenomesportal.ca/cgi-bin/api/getReleases.py";
     private static final String FETCH_URL = "http://epigenomesportal.ca/cgi-bin/api/getDataHub.py?data_release_id=";
-    private static final String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
     /**
      * {@inheritDoc}
@@ -37,7 +34,6 @@ public class IHECDataProvider extends AbstractDataProvider {
     @SuppressWarnings("unchecked")
     @Override
     protected void fetchData(IndexWriter indexWriter) throws Exception {
-        Gson gson = new GsonBuilder().setDateFormat(DATE_FORMAT).create();
         log.info("Collecting releases...");
         Collection<Release> releases;
         try (InputStream inputStream = new URL(RELEASES_URL).openStream();

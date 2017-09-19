@@ -31,9 +31,12 @@ public abstract class AbstractUI extends UI {
     }
 
     @SuppressWarnings("unchecked")
+    protected TrackFindTree<TreeNode> getCurrentTree() {
+        return (TrackFindTree<TreeNode>) tabSheet.getSelectedTab();
+    }
+
     protected TrackDataProvider getCurrentTrackDataProvider() {
-        TrackFindTree<TreeNode> tree = (TrackFindTree<TreeNode>) tabSheet.getSelectedTab();
-        return (TrackDataProvider) tree.getDataProvider();
+        return (TrackDataProvider) getCurrentTree().getDataProvider();
     }
 
     protected VerticalLayout buildOuterLayout(HorizontalLayout headerLayout, HorizontalLayout mainLayout, HorizontalLayout footerLayout) {

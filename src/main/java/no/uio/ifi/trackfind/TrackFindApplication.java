@@ -3,6 +3,8 @@ package no.uio.ifi.trackfind;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -29,6 +31,8 @@ import java.util.Collections;
 @SpringBootApplication
 public class TrackFindApplication {
 
+    private static final String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
+
     private ObjectMapper objectMapper;
 
     public static void main(String[] args) {
@@ -39,6 +43,11 @@ public class TrackFindApplication {
     public void setup() {
         objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
+    }
+
+    @Bean
+    public Gson gson() {
+        return new GsonBuilder().setPrettyPrinting().setDateFormat(DATE_FORMAT).create();
     }
 
     @Bean
@@ -62,7 +71,6 @@ public class TrackFindApplication {
                 null,
                 Collections.emptyList());
     }
-
 
     @Autowired
     public void setObjectMapper(ObjectMapper objectMapper) {

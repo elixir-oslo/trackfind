@@ -22,7 +22,7 @@ public class DataProviderTests {
     @SuppressWarnings("unchecked")
     @Test
     public void metamodelTreeTest() {
-        Map<String, Object> metamodel = dataProvider.getMetamodelTree(true);
+        Map<String, Object> metamodel = dataProvider.getMetamodelTree();
         assertThat(metamodel).isNotNull().isNotEmpty();
         assertThat(metamodel).containsOnlyKeys("key1", "key2", "data_type");
         Object value = metamodel.get("key1");
@@ -35,7 +35,7 @@ public class DataProviderTests {
 
     @Test
     public void metamodelFlatTest() {
-        Multimap<String, String> metamodel = dataProvider.getMetamodelFlat(true);
+        Multimap<String, String> metamodel = dataProvider.getMetamodelFlat();
         assertThat(metamodel).isNotNull();
         Set<String> keyset = metamodel.keySet();
         assertThat(keyset).isNotNull().isNotEmpty();

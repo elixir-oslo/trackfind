@@ -4,9 +4,7 @@ import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Title;
 import com.vaadin.annotations.Widgetset;
 import com.vaadin.data.HasValue;
-import com.vaadin.data.provider.Query;
-import com.vaadin.event.FieldEvents;
-import com.vaadin.event.ShortcutAction;
+import com.vaadin.event.selection.SelectionListener;
 import com.vaadin.server.Sizeable;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.shared.ui.ValueChangeMode;
@@ -16,25 +14,21 @@ import com.vaadin.spring.annotation.SpringUI;
 import com.vaadin.ui.*;
 import com.vaadin.ui.components.grid.TreeGridDragSource;
 import com.vaadin.ui.dnd.DropTargetExtension;
-import com.vaadin.ui.dnd.event.DropListener;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
-import no.uio.ifi.trackfind.frontend.components.KeyboardInterceptorExtension;
 import no.uio.ifi.trackfind.frontend.components.TrackFindTree;
 import no.uio.ifi.trackfind.frontend.data.TreeNode;
-import no.uio.ifi.trackfind.frontend.listeners.RemoveSelectedItemsShortcutListener;
 import no.uio.ifi.trackfind.frontend.listeners.TextFieldDropListener;
-import no.uio.ifi.trackfind.frontend.listeners.TreeItemClickListener;
-import no.uio.ifi.trackfind.frontend.listeners.TreeSelectionListener;
 import no.uio.ifi.trackfind.frontend.providers.TrackDataProvider;
 import no.uio.ifi.trackfind.frontend.providers.impl.AdminTrackDataProvider;
+import org.apache.commons.io.FileUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.*;
 
 /**
  * Admin Vaadin UI of the application.
@@ -50,17 +44,18 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TrackFindAdminUI extends AbstractUI {
 
-    private Map<String, TextField> basicAttributes;
-    private ListSelect<String> exportList;
+    private Button addMappingButton;
+    private VerticalLayout attributesMappingLayout;
+
+    private Map<TextField, ComboBox<String>> attributesMapping = new HashMap<>();
     private CheckBox publishedCheckBox;
 
     @Override
     protected void init(VaadinRequest vaadinRequest) {
         HorizontalLayout headerLayout = buildHeaderLayout();
         VerticalLayout treeLayout = buildTreeLayout();
-        VerticalLayout fieldsLayout = buildFieldsLayout();
-        VerticalLayout exportLayout = buildExportLayout();
-        HorizontalLayout mainLayout = buildMainLayout(treeLayout, fieldsLayout, exportLayout);
+        VerticalLayout attributesMappingOuterLayout = buildAttributesMappingLayout();
+        HorizontalLayout mainLayout = buildMainLayout(treeLayout, attributesMappingOuterLayout);
         HorizontalLayout footerLayout = buildFooterLayout();
         VerticalLayout outerLayout = buildOuterLayout(headerLayout, mainLayout, footerLayout);
         setContent(outerLayout);
@@ -89,7 +84,17 @@ public class TrackFindAdminUI extends AbstractUI {
         attributesFilterTextField.setValueChangeMode(ValueChangeMode.EAGER);
         attributesFilterTextField.setWidth(100, Sizeable.Unit.PERCENTAGE);
 
-        VerticalLayout treeLayout = new VerticalLayout(treePanel, attributesFilterTextField);
+        addMappingButton = new Button("Add mapping");
+        addMappingButton.setWidth(100, Unit.PERCENTAGE);
+        addMappingButton.setEnabled(!CollectionUtils.isEmpty(getCurrentTree().getSelectedItems()));
+        addMappingButton.addClickListener((Button.ClickListener) event -> {
+            Set<TreeNode> selectedItems = getCurrentTree().getSelectedItems();
+            String sourceAttribute = CollectionUtils.isEmpty(selectedItems) ? "" : selectedItems.iterator().next().getPath();
+            addMappingPair(sourceAttribute, "");
+            publishedCheckBox.setEnabled(isEverythingFilled());
+        });
+
+        VerticalLayout treeLayout = new VerticalLayout(treePanel, attributesFilterTextField, addMappingButton);
         treeLayout.setSizeFull();
         treeLayout.setExpandRatio(treePanel, 1f);
         return treeLayout;
@@ -98,96 +103,109 @@ public class TrackFindAdminUI extends AbstractUI {
     @SuppressWarnings("unchecked")
     protected TrackFindTree<TreeNode> buildTree(DataProvider dataProvider) {
         TrackFindTree<TreeNode> tree = new TrackFindTree<>(dataProvider);
-        tree.setSelectionMode(Grid.SelectionMode.MULTI);
-        tree.addItemClickListener(new TreeItemClickListener(tree));
-        tree.addSelectionListener(new TreeSelectionListener(tree, new KeyboardInterceptorExtension(tree)));
+        tree.setSelectionMode(Grid.SelectionMode.SINGLE);
+        tree.addSelectionListener((SelectionListener<TreeNode>) event -> addMappingButton.setEnabled(!CollectionUtils.isEmpty(event.getAllSelectedItems())));
         TreeGridDragSource<TreeNode> dragSource = new TreeGridDragSource<>((TreeGrid<TreeNode>) tree.getCompositionRoot());
         dragSource.setEffectAllowed(EffectAllowed.COPY);
-        AdminTrackDataProvider trackDataProvider = new AdminTrackDataProvider(new TreeNode(dataProvider.getMetamodelTree(true)));
+        AdminTrackDataProvider trackDataProvider = new AdminTrackDataProvider(new TreeNode(dataProvider.getMetamodelTree()));
         tree.setDataProvider(trackDataProvider);
         tree.setSizeFull();
         tree.setStyleGenerator((StyleGenerator<TreeNode>) item -> item.isFinalAttribute() || item.isValue() ? null : "disabled-tree-node");
         return tree;
     }
 
-    private HorizontalLayout buildMainLayout(VerticalLayout treeLayout, VerticalLayout queryLayout, VerticalLayout resultsLayout) {
-        HorizontalLayout mainLayout = new HorizontalLayout(treeLayout, queryLayout, resultsLayout);
+    private HorizontalLayout buildMainLayout(Component... layouts) {
+        HorizontalLayout mainLayout = new HorizontalLayout(layouts);
         mainLayout.setSizeFull();
         return mainLayout;
     }
 
-    private VerticalLayout buildExportLayout() {
-        exportList = new ListSelect<>("Attributes to export");
-        exportList.setSizeFull();
-        exportList.addShortcutListener(new RemoveSelectedItemsShortcutListener<>(exportList, ShortcutAction.KeyCode.DELETE));
-        exportList.addShortcutListener(new RemoveSelectedItemsShortcutListener<>(exportList, ShortcutAction.KeyCode.BACKSPACE));
-        Button saveButton = new Button("Save");
+    private VerticalLayout buildAttributesMappingLayout() {
+        attributesMappingLayout = new VerticalLayout();
+        attributesMappingLayout.setSizeUndefined();
+        Panel attributesMappingPanel = new Panel("Mappings", attributesMappingLayout);
+        attributesMappingPanel.setSizeFull();
         publishedCheckBox = new CheckBox("Published");
+        Button saveButton = new Button("Save");
         saveButton.setWidth(100, Unit.PERCENTAGE);
         saveButton.addClickListener((Button.ClickListener) event -> saveConfiguration());
-        VerticalLayout searchExportLayout = new VerticalLayout(exportList, publishedCheckBox, saveButton);
-        searchExportLayout.setSizeFull();
-        searchExportLayout.setExpandRatio(exportList, 1f);
-        return searchExportLayout;
+        VerticalLayout attributesMappingOuterLayout = new VerticalLayout(attributesMappingPanel, publishedCheckBox, saveButton);
+        attributesMappingOuterLayout.setSizeFull();
+        attributesMappingOuterLayout.setExpandRatio(attributesMappingPanel, 1f);
+        return attributesMappingOuterLayout;
     }
 
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    private VerticalLayout buildFieldsLayout() {
-        basicAttributes = new HashMap<>();
-        VerticalLayout queryLayout = new VerticalLayout();
-        for (String basicAttribute : DataProvider.BASIC_ATTRIBUTES) {
-            TextField basicAttributeTextField = new TextField(basicAttribute);
-            basicAttributeTextField.setWidth(100, Unit.PERCENTAGE);
-            basicAttributeTextField.setReadOnly(true);
-            DropTargetExtension<TextField> dropTarget = new DropTargetExtension<>(basicAttributeTextField);
-            dropTarget.setDropEffect(DropEffect.COPY);
-            dropTarget.addDropListener(new TextFieldDropListener(basicAttributeTextField));
-            dropTarget.addDropListener((DropListener<TextField>) event -> publishedCheckBox.setEnabled(isEverythingFilled()));
-            Button clearButton = new Button("Clear");
-            clearButton.addClickListener((Button.ClickListener) event -> basicAttributeTextField.clear());
-            clearButton.addClickListener((Button.ClickListener) event -> publishedCheckBox.setEnabled(isEverythingFilled()));
-            HorizontalLayout attributeLayout = new HorizontalLayout(basicAttributeTextField, clearButton);
-            attributeLayout.setComponentAlignment(basicAttributeTextField, Alignment.BOTTOM_LEFT);
-            attributeLayout.setComponentAlignment(clearButton, Alignment.BOTTOM_LEFT);
-            attributeLayout.setExpandRatio(basicAttributeTextField, 0.8f);
-            attributeLayout.setExpandRatio(clearButton, 0.2f);
-            attributeLayout.setWidth(100, Unit.PERCENTAGE);
-            basicAttributes.put(basicAttribute, basicAttributeTextField);
-            queryLayout.addComponent(attributeLayout);
+    private HorizontalLayout buildAttributesPairLayout(String sourceAttribute, String targetAttribute) {
+        HorizontalLayout attributesPairLayout = new HorizontalLayout();
+
+        TextField sourceAttributeTextField = new TextField("Source attribute name", sourceAttribute);
+        sourceAttributeTextField.setReadOnly(true);
+        DropTargetExtension<TextField> dropTarget = new DropTargetExtension<>(sourceAttributeTextField);
+        dropTarget.setDropEffect(DropEffect.COPY);
+        dropTarget.addDropListener(new TextFieldDropListener(sourceAttributeTextField));
+
+        ComboBox<String> targetAttributeComboBox = buildGlobalAttributesComboBox(targetAttribute);
+        targetAttributeComboBox.addValueChangeListener((HasValue.ValueChangeListener<String>) event -> publishedCheckBox.setEnabled(isEverythingFilled()));
+
+        attributesMapping.put(sourceAttributeTextField, targetAttributeComboBox);
+
+        Button deleteMappingButton = new Button("Delete mapping");
+        deleteMappingButton.addClickListener((Button.ClickListener) event -> {
+            ((AbstractLayout) attributesPairLayout.getParent()).removeComponent(attributesPairLayout);
+            attributesMapping.remove(sourceAttributeTextField);
+            publishedCheckBox.setEnabled(isEverythingFilled());
+        });
+
+        attributesPairLayout.addComponent(sourceAttributeTextField);
+        attributesPairLayout.addComponent(targetAttributeComboBox);
+        attributesPairLayout.addComponent(deleteMappingButton);
+        attributesPairLayout.setComponentAlignment(deleteMappingButton, Alignment.BOTTOM_LEFT);
+        attributesPairLayout.setSizeUndefined();
+        return attributesPairLayout;
+    }
+
+    private ComboBox<String> buildGlobalAttributesComboBox(String targetAttribute) {
+        List<String> globalAttributes = new ArrayList<>();
+        try {
+            globalAttributes = FileUtils.readLines(new File("indices/.gattrs"), Charset.defaultCharset());
+        } catch (IOException e) {
+            log.error(e.getMessage(), e);
         }
-        queryLayout.setSizeFull();
-        return queryLayout;
+        ComboBox<String> targetAttributeName = new ComboBox<>("Target attribute name", globalAttributes);
+        targetAttributeName.setSelectedItem(targetAttribute);
+        return targetAttributeName;
     }
 
-    boolean isEverythingFilled() {
-        return !CollectionUtils.isEmpty(getAttributesToExport()) &&
-                basicAttributes.values().stream().noneMatch(tf -> StringUtils.isEmpty(tf.getValue()));
+    private boolean isEverythingFilled() {
+        return attributesMapping.keySet().stream().noneMatch(tf -> StringUtils.isEmpty(tf.getValue())) &&
+                attributesMapping.values().stream().noneMatch(tf -> StringUtils.isEmpty(tf.getValue()));
     }
 
     private void loadConfiguration() {
         DataProvider.Configuration configuration = getCurrentDataProvider().loadConfiguration();
+        attributesMapping.clear();
+        attributesMappingLayout.removeAllComponents();
+        for (Map.Entry<String, String> mapping : configuration.getAttributesMapping().entrySet()) {
+            addMappingPair(mapping.getKey(), mapping.getValue());
+        }
         publishedCheckBox.setValue(configuration.isPublished());
         publishedCheckBox.setEnabled(isEverythingFilled());
-        exportList.setItems(configuration.getAttributesToExport());
-        for (Map.Entry<String, TextField> mapping : basicAttributes.entrySet()) {
-            String value = configuration.getAttributesMapping().getOrDefault(mapping.getKey(), "");
-            mapping.getValue().setValue(value);
-        }
+    }
+
+    private void addMappingPair(String sourceAttribute, String targetAttribute) {
+        HorizontalLayout attributesPairLayout = buildAttributesPairLayout(sourceAttribute, targetAttribute);
+        attributesMappingLayout.addComponent(attributesPairLayout);
     }
 
     private void saveConfiguration() {
         DataProvider currentDataProvider = getCurrentDataProvider();
         DataProvider.Configuration configuration = currentDataProvider.loadConfiguration();
         configuration.setPublished(publishedCheckBox.getValue());
-        configuration.setAttributesToExport(getAttributesToExport());
-        for (Map.Entry<String, TextField> mapping : basicAttributes.entrySet()) {
-            configuration.getAttributesMapping().put(mapping.getKey(), mapping.getValue().getValue());
+        configuration.getAttributesMapping().clear();
+        for (Map.Entry<TextField, ComboBox<String>> mapping : attributesMapping.entrySet()) {
+            configuration.getAttributesMapping().put(mapping.getKey().getValue(), mapping.getValue().getValue());
         }
         currentDataProvider.saveConfiguration(configuration);
-    }
-
-    private Set<String> getAttributesToExport() {
-        return exportList.getDataProvider().fetch(new Query<>()).collect(Collectors.toSet());
     }
 
 }

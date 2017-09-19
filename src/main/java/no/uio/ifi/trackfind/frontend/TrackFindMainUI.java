@@ -47,7 +47,7 @@ import java.util.*;
 @Title("TrackFind")
 @Theme("trackfind")
 @Slf4j
-public class TrackFindUI extends AbstractUI {
+public class TrackFindMainUI extends AbstractUI {
 
     private Gson gson;
 
@@ -55,12 +55,13 @@ public class TrackFindUI extends AbstractUI {
 
     private Collection<Map<String, Object>> lastResults;
 
-    private CheckBox advancedCheckBox;
     private TextArea queryTextArea;
     private TextField limitTextField;
     private TextArea resultsTextArea;
-    private FileDownloader fileDownloader;
-    private Button exportButton;
+    private FileDownloader gSuiteFileDownloader;
+    private FileDownloader jsonFileDownloader;
+    private Button exportGSuiteButton;
+    private Button exportJSONButton;
 
     @Override
     protected void init(VaadinRequest vaadinRequest) {
@@ -103,19 +104,7 @@ public class TrackFindUI extends AbstractUI {
         valuesFilterTextField.setValueChangeMode(ValueChangeMode.EAGER);
         valuesFilterTextField.setWidth(100, Sizeable.Unit.PERCENTAGE);
 
-        advancedCheckBox = new CheckBox("Advanced mode");
-        advancedCheckBox.addValueChangeListener((HasValue.ValueChangeListener<Boolean>) event -> {
-            for (MainTrackDataProvider trackDataProvider : providers) {
-                if (advancedCheckBox.getValue()) {
-                    trackDataProvider.setAttributesToShow(Collections.emptySet());
-                } else {
-                    trackDataProvider.setAttributesToShow(DataProvider.BASIC_ATTRIBUTES);
-                }
-            }
-            getCurrentTrackDataProvider().refreshAll();
-        });
-
-        VerticalLayout treeLayout = new VerticalLayout(treePanel, advancedCheckBox, attributesFilterTextField, valuesFilterTextField);
+        VerticalLayout treeLayout = new VerticalLayout(treePanel, attributesFilterTextField, valuesFilterTextField);
         treeLayout.setSizeFull();
         treeLayout.setExpandRatio(treePanel, 1f);
         return treeLayout;
@@ -129,8 +118,7 @@ public class TrackFindUI extends AbstractUI {
         tree.addSelectionListener(new TreeSelectionListener(tree, new KeyboardInterceptorExtension(tree)));
         TreeGridDragSource<TreeNode> dragSource = new TreeGridDragSource<>((TreeGrid<TreeNode>) tree.getCompositionRoot());
         dragSource.setEffectAllowed(EffectAllowed.COPY);
-        MainTrackDataProvider trackDataProvider = new MainTrackDataProvider(new TreeNode(dataProvider.getMetamodelTree(true)));
-        trackDataProvider.setAttributesToShow(DataProvider.BASIC_ATTRIBUTES);
+        MainTrackDataProvider trackDataProvider = new MainTrackDataProvider(new TreeNode(dataProvider.getMetamodelTree()));
         tree.setDataProvider(trackDataProvider);
         tree.setSizeFull();
         tree.setStyleGenerator((StyleGenerator<TreeNode>) item -> item.isFinalAttribute() || item.isValue() ? null : "disabled-tree-node");
@@ -150,19 +138,26 @@ public class TrackFindUI extends AbstractUI {
         resultsTextArea.addStyleName("scrollable-text-area");
         resultsTextArea.addValueChangeListener((HasValue.ValueChangeListener<String>) event -> {
             if (StringUtils.isEmpty(event.getValue())) {
-                exportButton.setEnabled(false);
-                exportButton.setCaption("Export as GSuite file");
+                exportGSuiteButton.setEnabled(false);
+                exportGSuiteButton.setCaption("Export as GSuite file");
+                exportJSONButton.setEnabled(false);
+                exportJSONButton.setCaption("Export as JSON file");
             } else {
-                exportButton.setEnabled(true);
-                exportButton.setCaption("Export (" + lastResults.size() + ") entries as GSuite file");
+                exportGSuiteButton.setEnabled(true);
+                exportGSuiteButton.setCaption("Export (" + lastResults.size() + ") entries as GSuite file");
+                exportJSONButton.setEnabled(true);
+                exportJSONButton.setCaption("Export (" + lastResults.size() + ") entries as JSON file");
             }
         });
         Panel resultsPanel = new Panel("Data", resultsTextArea);
         resultsPanel.setSizeFull();
-        exportButton = new Button("Export as GSuite file");
-        exportButton.setEnabled(false);
-        exportButton.setWidth(100, Unit.PERCENTAGE);
-        VerticalLayout resultsLayout = new VerticalLayout(resultsPanel, exportButton);
+        exportGSuiteButton = new Button("Export as GSuite file");
+        exportGSuiteButton.setEnabled(false);
+        exportGSuiteButton.setWidth(100, Unit.PERCENTAGE);
+        exportJSONButton = new Button("Export as JSON file");
+        exportJSONButton.setEnabled(false);
+        exportJSONButton.setWidth(100, Unit.PERCENTAGE);
+        VerticalLayout resultsLayout = new VerticalLayout(resultsPanel, exportGSuiteButton, exportJSONButton);
         resultsLayout.setSizeFull();
         resultsLayout.setExpandRatio(resultsPanel, 1f);
         return resultsLayout;
@@ -265,14 +260,22 @@ public class TrackFindUI extends AbstractUI {
             }
         }
 
-        if (fileDownloader != null) {
-            exportButton.removeExtension(fileDownloader);
+        if (gSuiteFileDownloader != null) {
+            exportGSuiteButton.removeExtension(gSuiteFileDownloader);
+        }
+        if (jsonFileDownloader != null) {
+            exportJSONButton.removeExtension(jsonFileDownloader);
         }
         String finalResult = result.toString();
-        Resource resource = new StreamResource((StreamResource.StreamSource) () -> new ByteArrayInputStream(finalResult.getBytes(Charset.defaultCharset())),
+        Resource gSuiteResource = new StreamResource((StreamResource.StreamSource) () -> new ByteArrayInputStream(finalResult.getBytes(Charset.defaultCharset())),
                 Calendar.getInstance().getTime().toString() + ".gsuite");
-        fileDownloader = new FileDownloader(resource);
-        fileDownloader.extend(exportButton);
+        gSuiteFileDownloader = new FileDownloader(gSuiteResource);
+        gSuiteFileDownloader.extend(exportGSuiteButton);
+
+        Resource jsonResource = new StreamResource((StreamResource.StreamSource) () -> new ByteArrayInputStream(jsonResult.getBytes(Charset.defaultCharset())),
+                Calendar.getInstance().getTime().toString() + ".json");
+        jsonFileDownloader = new FileDownloader(jsonResource);
+        jsonFileDownloader.extend(exportJSONButton);
     }
 
     @Autowired

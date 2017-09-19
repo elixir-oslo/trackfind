@@ -51,6 +51,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
 
     private DirectoryFactory directoryFactory;
     protected ExecutorService executorService;
+    protected Gson gson;
 
     /**
      * Initialize Lucene Directory (Index) and the Searcher over this Directory.
@@ -215,15 +216,12 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      */
     @Override
     @SuppressWarnings("unchecked")
-    public Map<String, Object> getMetamodelTree(boolean advanced) {
+    public Map<String, Object> getMetamodelTree() {
         Map<String, Object> result = new HashMap<>();
         try {
             Collection<String> fieldNames = MultiFields.getIndexedFields(indexReader);
             Fields fields = MultiFields.getFields(indexReader);
             for (String fieldName : fieldNames) {
-                if (!advanced && !BASIC_ATTRIBUTES.contains(fieldName)) {
-                    continue;
-                }
                 Map<String, Object> metamodel = result;
                 String[] path = fieldName.split(PATH_SEPARATOR);
                 for (int i = 0; i < path.length - 1; i++) {
@@ -254,15 +252,12 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      * {@inheritDoc}
      */
     @Override
-    public Multimap<String, String> getMetamodelFlat(boolean advanced) {
+    public Multimap<String, String> getMetamodelFlat() {
         Multimap<String, String> metamodel = HashMultimap.create();
         try {
             Collection<String> fieldNames = MultiFields.getIndexedFields(indexReader);
             Fields fields = MultiFields.getFields(indexReader);
             for (String fieldName : fieldNames) {
-                if (!advanced && !BASIC_ATTRIBUTES.contains(fieldName)) {
-                    continue;
-                }
                 Terms terms = fields.terms(fieldName);
                 TermsEnum iterator = terms.iterator();
                 BytesRef next = iterator.next();
@@ -305,8 +300,8 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     @Override
     public Configuration loadConfiguration() {
         try {
-            String json = FileUtils.readFileToString(new File(getPath() + getName()), Charset.defaultCharset());
-            return new Gson().fromJson(json, Configuration.class);
+            String json = FileUtils.readFileToString(new File(getPath() + "." + getName()), Charset.defaultCharset());
+            return gson.fromJson(json, Configuration.class);
         } catch (IOException e) {
             log.error(e.getMessage(), e);
             return new Configuration();
@@ -320,7 +315,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     @Override
     public void saveConfiguration(Configuration configuration) {
         try {
-            FileUtils.write(new File(getPath() + getName()), new Gson().toJson(configuration), Charset.defaultCharset());
+            FileUtils.write(new File(getPath() + "." + getName()), gson.toJson(configuration), Charset.defaultCharset());
         } catch (IOException e) {
             log.error(e.getMessage(), e);
         }
@@ -335,7 +330,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     @SuppressWarnings("ConstantConditions")
     protected Document convertDatasetToDocument(Map dataset) {
         Document document = new Document();
-        convertDatasetToDocument(document, dataset, "");
+        convertDatasetToDocument(document, dataset, ">Advanced");
         document.add(new StoredField(DATASET, new BytesRef(SerializationUtils.serialize(dataset))));
         return document;
     }
@@ -388,6 +383,11 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     @Autowired
     public void setExecutorService(ExecutorService workStealingPool) {
         this.executorService = workStealingPool;
+    }
+
+    @Autowired
+    public void setGson(Gson gson) {
+        this.gson = gson;
     }
 
 }

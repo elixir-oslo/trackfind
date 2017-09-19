@@ -3,7 +3,9 @@ package no.uio.ifi.trackfind.backend.data.providers;
 import com.google.common.collect.Multimap;
 import lombok.Data;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Interface describing access point for some external data repository.
@@ -14,13 +16,6 @@ public interface DataProvider {
 
     String DATA_URL_ATTRIBUTE = "browser";
     String DATA_TYPE_ATTRIBUTE = "data_type";
-
-    Collection<String> BASIC_ATTRIBUTES = Arrays.asList(
-            "Data Type",
-            "Cell/Tissue Type",
-            "Genome Build",
-            "URL"
-    );
 
     /**
      * Gets the name of the repository.
@@ -53,18 +48,16 @@ public interface DataProvider {
     /**
      * Gets metamodel of the repository in "tree-from" (with nesting).
      *
-     * @param advanced <code>true</code> for advanced metamodel, <code>false</code> for basic one.
      * @return Tree metamodel.
      */
-    Map<String, Object> getMetamodelTree(boolean advanced);
+    Map<String, Object> getMetamodelTree();
 
     /**
      * Gets metamodel of the repository in "flat-from" (non-nested).
      *
-     * @param advanced <code>true</code> for advanced metamodel, <code>false</code> for basic one.
      * @return Flat metamodel.
      */
-    Multimap<String, String> getMetamodelFlat(boolean advanced);
+    Multimap<String, String> getMetamodelFlat();
 
     /**
      * Performs search over the repository limiting the number of results.
@@ -95,7 +88,6 @@ public interface DataProvider {
     @Data
     class Configuration {
         private Map<String, String> attributesMapping = new HashMap<>();
-        private Collection<String> attributesToExport = new HashSet<>();
         private boolean published = false;
     }
 
