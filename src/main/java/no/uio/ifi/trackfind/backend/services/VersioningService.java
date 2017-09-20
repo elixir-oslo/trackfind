@@ -9,6 +9,11 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/**
+ * Service for maintaining versioning of indices. Currently backed by Git.
+ *
+ * @author Dmytro Titov
+ */
 @Service
 public class VersioningService {
 
