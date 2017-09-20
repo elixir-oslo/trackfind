@@ -3,6 +3,7 @@ package no.uio.ifi.trackfind.backend.data.providers;
 import com.google.common.collect.Multimap;
 import lombok.Data;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -13,6 +14,15 @@ import java.util.Map;
  * @author Dmytro Titov
  */
 public interface DataProvider {
+
+    Collection<String> BASIC_ATTRIBUTES = Arrays.asList("GenomeBuild",
+            "Filename",
+            "Description",
+            "CellType",
+            "Tissue",
+            "Antibody",
+            "Treatment",
+            "DataSource");
 
     String DATA_URL_ATTRIBUTE = "browser";
     String DATA_TYPE_ATTRIBUTE = "data_type";

@@ -1,6 +1,5 @@
 package no.uio.ifi.trackfind.frontend;
 
-import com.google.common.io.Files;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Title;
 import com.vaadin.annotations.Widgetset;
@@ -25,10 +24,9 @@ import no.uio.ifi.trackfind.frontend.providers.impl.AdminTrackDataProvider;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Admin Vaadin UI of the application.
@@ -165,13 +163,7 @@ public class TrackFindAdminUI extends AbstractUI {
     }
 
     private ComboBox<String> buildGlobalAttributesComboBox(String targetAttribute) {
-        List<String> globalAttributes = new ArrayList<>();
-        try {
-            globalAttributes = Files.readLines(new File("indices/.gattrs"), Charset.defaultCharset());
-        } catch (IOException e) {
-            log.error(e.getMessage(), e);
-        }
-        ComboBox<String> targetAttributeName = new ComboBox<>("Target attribute name", globalAttributes);
+        ComboBox<String> targetAttributeName = new ComboBox<>("Target attribute name", DataProvider.BASIC_ATTRIBUTES);
         targetAttributeName.setSelectedItem(targetAttribute);
         return targetAttributeName;
     }
