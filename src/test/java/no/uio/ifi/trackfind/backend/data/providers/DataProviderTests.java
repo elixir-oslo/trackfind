@@ -24,6 +24,8 @@ public class DataProviderTests {
     public void metamodelTreeTest() {
         Map<String, Object> metamodel = dataProvider.getMetamodelTree();
         assertThat(metamodel).isNotNull().isNotEmpty();
+        assertThat(metamodel).containsOnlyKeys("Advanced");
+        metamodel = (Map<String, Object>) metamodel.get("Advanced");
         assertThat(metamodel).containsOnlyKeys("key1", "key2", "data_type");
         Object value = metamodel.get("key1");
         assertThat(value).isInstanceOf(Collection.class);
@@ -39,9 +41,9 @@ public class DataProviderTests {
         assertThat(metamodel).isNotNull();
         Set<String> keyset = metamodel.keySet();
         assertThat(keyset).isNotNull().isNotEmpty();
-        assertThat(keyset).containsAll(Arrays.asList("key1", "key2"));
-        assertThat(metamodel.get("key1")).containsOnly("value1", "value2");
-        assertThat(metamodel.get("key2")).containsOnly("value3");
+        assertThat(keyset).containsAll(Arrays.asList("Advanced>key1", "Advanced>key2"));
+        assertThat(metamodel.get("Advanced>key1")).containsOnly("value1", "value2");
+        assertThat(metamodel.get("Advanced>key2")).containsOnly("value3");
     }
 
     @SuppressWarnings("unchecked")
@@ -54,7 +56,7 @@ public class DataProviderTests {
     @SuppressWarnings("unchecked")
     @Test
     public void searchOneTest() {
-        Collection<Map<String, Object>> result = dataProvider.search("key1: value1", 0);
+        Collection<Map<String, Object>> result = dataProvider.search("Advanced>key1: value1", 0);
         assertThat(result).size().isEqualTo(1);
         Map map = result.iterator().next();
         assertThat(map).containsEntry("key1", "value1");
@@ -63,7 +65,7 @@ public class DataProviderTests {
     @SuppressWarnings("unchecked")
     @Test
     public void searchTwoTest() {
-        Collection<Map<String, Object>> result = dataProvider.search("key1: value1 OR key2: value3", 0);
+        Collection<Map<String, Object>> result = dataProvider.search("Advanced>key1: value1 OR Advanced>key2: value3", 0);
         assertThat(result).size().isEqualTo(2);
         Iterator<Map<String, Object>> iterator = result.iterator();
         Map map = iterator.next();
@@ -76,7 +78,7 @@ public class DataProviderTests {
     @SuppressWarnings("unchecked")
     @Test
     public void searchTwoWithLimitTest() {
-        Collection<Map<String, Object>> result = dataProvider.search("key1: value1 OR key2: value3", 1);
+        Collection<Map<String, Object>> result = dataProvider.search("Advanced>key1: value1 OR Advanced>key2: value3", 1);
         assertThat(result).size().isEqualTo(1);
         Iterator<Map<String, Object>> iterator = result.iterator();
         Map map = iterator.next();
@@ -85,7 +87,7 @@ public class DataProviderTests {
 
     @Test
     public void getUrlsFromDatasetFilteredTest() {
-        String query = DataProvider.DATA_TYPE_ATTRIBUTE + ": someDataType OR something: something";
+        String query = "Advanced>" + DataProvider.DATA_TYPE_ATTRIBUTE + ": someDataType OR something: something";
         Collection<Map<String, Object>> result = dataProvider.search(query, 0);
         assertThat(result).isNotNull().isNotEmpty();
         Map<String, Object> dataset = result.iterator().next();
@@ -96,7 +98,7 @@ public class DataProviderTests {
 
     @Test
     public void getUrlsFromDatasetAllTest() {
-        String query = DataProvider.DATA_TYPE_ATTRIBUTE + ": some*Data*Type";
+        String query = "Advanced>" + DataProvider.DATA_TYPE_ATTRIBUTE + ": some*Data*Type";
         Collection<Map<String, Object>> result = dataProvider.search(query, 0);
         assertThat(result).isNotNull().isNotEmpty();
         Map<String, Object> dataset = result.iterator().next();

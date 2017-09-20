@@ -133,7 +133,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
             Weight weight = parsedQuery.createWeight(searcher, false);
             Set<Term> terms = new HashSet<>();
             weight.extractTerms(terms);
-            return terms.stream().filter(t -> t.field().equals(DATA_TYPE_ATTRIBUTE)).map(Term::text).collect(Collectors.toSet());
+            return terms.stream().filter(t -> t.field().endsWith(DATA_TYPE_ATTRIBUTE)).map(Term::text).collect(Collectors.toSet());
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return Collections.emptySet();

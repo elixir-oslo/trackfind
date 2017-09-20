@@ -44,45 +44,45 @@ public class TrackFindRESTTests {
 
     @Test
     public void getMetamodelTreeTest() throws Exception {
-        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/metamodel-tree").param("advanced", "true"))
+        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/metamodel-tree"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
-                .andExpect(jsonPath("$.key1", hasSize(2)))
-                .andExpect(jsonPath("$.key1", containsInAnyOrder("value1", "value2")))
-                .andExpect(jsonPath("$.key2", contains("value3")));
+                .andExpect(jsonPath("$.Advanced.key1", hasSize(2)))
+                .andExpect(jsonPath("$.Advanced.key1", containsInAnyOrder("value1", "value2")))
+                .andExpect(jsonPath("$.Advanced.key2", contains("value3")));
     }
 
     @Test
     public void getMetamodelFlatTest() throws Exception {
-        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/metamodel-flat").param("advanced", "true"))
+        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/metamodel-flat"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
-                .andExpect(jsonPath("$.key1", hasSize(2)))
-                .andExpect(jsonPath("$.key1", containsInAnyOrder("value1", "value2")))
-                .andExpect(jsonPath("$.key2", contains("value3")));
+                .andExpect(jsonPath("$.Advanced>key1", hasSize(2)))
+                .andExpect(jsonPath("$.Advanced>key1", containsInAnyOrder("value1", "value2")))
+                .andExpect(jsonPath("$.Advanced>key2", contains("value3")));
     }
 
     @Test
     public void getAttributesTest() throws Exception {
-        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/attributes/").param("advanced", "true"))
+        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/attributes/"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andExpect(jsonPath("$", hasSize(3)))
-                .andExpect(jsonPath("$", contains("key1", "key2", "data_type")));
+                .andExpect(jsonPath("$", containsInAnyOrder("Advanced>key1", "Advanced>key2", "Advanced>data_type")));
     }
 
     @Test
     public void getAttributesWithFilterTest() throws Exception {
-        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/attributes").param("filter", "ey1").param("advanced", "true"))
+        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/attributes").param("filter", "ey1"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$.[0]", is("key1")));
+                .andExpect(jsonPath("$.[0]", is("Advanced>key1")));
     }
 
     @Test
     public void getValuesSingleTest() throws Exception {
-        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/key2/values"))
+        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/Advanced>key2/values"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andExpect(jsonPath("$", hasSize(1)))
@@ -91,7 +91,7 @@ public class TrackFindRESTTests {
 
     @Test
     public void getValuesMultipleTest() throws Exception {
-        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/key1/values"))
+        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/Advanced>key1/values"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andExpect(jsonPath("$", hasSize(2)))
@@ -100,7 +100,7 @@ public class TrackFindRESTTests {
 
     @Test
     public void getValuesWithFilterTest() throws Exception {
-        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/key1/values").param("filter", "lue2"))
+        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/Advanced>key1/values").param("filter", "lue2"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andExpect(jsonPath("$", hasSize(1)))
@@ -109,7 +109,7 @@ public class TrackFindRESTTests {
 
     @Test
     public void searchTest() throws Exception {
-        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/search").param("query", "key1: value1 OR key2: value3"))
+        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/search").param("query", "Advanced>key1: value1 OR Advanced>key2: value3"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andExpect(jsonPath("$", hasSize(2)))
