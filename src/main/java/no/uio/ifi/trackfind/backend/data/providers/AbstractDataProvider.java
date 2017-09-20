@@ -43,9 +43,9 @@ import static no.uio.ifi.trackfind.TrackFindApplication.INDICES_FOLDER;
 @Slf4j
 public abstract class AbstractDataProvider implements DataProvider, Comparable<DataProvider> {
 
-    private static final String ID = "id";
-    private static final String DATASET = "dataset";
     private static final String SEPARATOR = ">";
+    private static final String ID = ADVANCED + SEPARATOR + "id";
+    private static final String DATASET = "dataset";
 
     private Analyzer analyzer = new KeywordAnalyzer();
 
@@ -96,7 +96,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      * @return Collection of unneeded attributes.
      */
     protected Collection<String> getAttributesToSkip() {
-        return Collections.singletonList(DATA_URL_ATTRIBUTE);
+        return Collections.emptySet();
     }
 
     /**
@@ -105,7 +105,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      * @return Collection of hidden attributes.
      */
     protected Collection<String> getAttributesToHide() {
-        return Collections.singletonList(ID);
+        return Collections.emptySet();
     }
 
     /**
@@ -114,7 +114,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      * @return Collection of unneeded values.
      */
     protected Collection<String> getValuesToSkip() {
-        return Arrays.asList("://", "CHECK");
+        return Collections.emptySet();
     }
 
     /**

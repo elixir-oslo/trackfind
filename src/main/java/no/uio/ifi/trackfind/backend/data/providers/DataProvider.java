@@ -18,7 +18,8 @@ public interface DataProvider {
     String ADVANCED = "Advanced";
     String BASIC = "Basic";
 
-    Collection<String> BASIC_ATTRIBUTES = Arrays.asList("GenomeBuild",
+    Collection<String> BASIC_ATTRIBUTES = Arrays.asList("ID",
+            "GenomeBuild",
             "DataType",
             "Filename",
             "Description",

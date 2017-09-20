@@ -57,6 +57,7 @@ public class MainTrackDataProvider extends TrackDataProvider {
         TreeNode parent = query.getParentOptional().orElse(root);
         Collection<TreeNode> children = new HashSet<>(parent.fetchChildren());
         Iterator<TreeNode> iterator = children.iterator();
+        // TODO: Hide attributes without values.
         while (iterator.hasNext()) {
             TreeNode child = iterator.next();
             int childCount = getChildCount(child);
