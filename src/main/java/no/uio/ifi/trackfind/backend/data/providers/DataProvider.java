@@ -15,8 +15,8 @@ import java.util.Map;
  */
 public interface DataProvider {
 
-    String ADVANCED = "ADVANCED";
-    String BASIC = "BASIC";
+    String ADVANCED = "Advanced";
+    String BASIC = "Basic";
 
     Collection<String> BASIC_ATTRIBUTES = Arrays.asList("GenomeBuild",
             "DataType",
