@@ -22,6 +22,7 @@ import java.util.Map;
 @SwaggerDefinition(tags = @Tag(name = "Search"))
 @RequestMapping("/api/v1")
 @RestController
+// TODO: Add endpoint to fetch additional data by document ID and revision (maybe to separate controller).
 public class SearchController {
 
     private TrackFindService trackFindService;

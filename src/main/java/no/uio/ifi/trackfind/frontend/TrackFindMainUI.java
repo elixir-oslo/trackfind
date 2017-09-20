@@ -253,6 +253,7 @@ public class TrackFindMainUI extends AbstractUI {
             resultsTextArea.setValue(jsonResult);
         }
 
+        // TODO: Export all available Basic Attributes here + ID + revision.
         StringBuilder result = new StringBuilder("###uri\trepository");
         for (Map lastResult : lastResults) {
             for (String url : currentDataProvider.getUrlsFromDataset(query, lastResult)) {
