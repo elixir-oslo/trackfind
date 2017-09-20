@@ -98,7 +98,6 @@ public interface DataProvider {
     @Data
     class Configuration {
         private Map<String, String> attributesMapping = new HashMap<>();
-        private boolean published = false;
     }
 
 }

@@ -46,7 +46,6 @@ public class TrackFindAdminUI extends AbstractUI {
     private VerticalLayout attributesMappingLayout;
 
     private Map<TextField, ComboBox<String>> attributesMapping = new HashMap<>();
-    private CheckBox publishedCheckBox;
 
     @Override
     protected void init(VaadinRequest vaadinRequest) {
@@ -64,7 +63,7 @@ public class TrackFindAdminUI extends AbstractUI {
         tabSheet = new TabSheet();
         tabSheet.setSizeFull();
 
-        for (DataProvider dataProvider : trackFindService.getDataProviders(false)) {
+        for (DataProvider dataProvider : trackFindService.getDataProviders()) {
             TrackFindTree<TreeNode> tree = buildTree(dataProvider);
             tabSheet.addTab(tree, dataProvider.getName());
         }
@@ -89,7 +88,6 @@ public class TrackFindAdminUI extends AbstractUI {
             Set<TreeNode> selectedItems = getCurrentTree().getSelectedItems();
             String sourceAttribute = CollectionUtils.isEmpty(selectedItems) ? "" : selectedItems.iterator().next().getPath();
             addMappingPair(sourceAttribute, "");
-            publishedCheckBox.setEnabled(isEverythingFilled());
         });
 
         VerticalLayout treeLayout = new VerticalLayout(treePanel, attributesFilterTextField, addMappingButton);
@@ -123,11 +121,10 @@ public class TrackFindAdminUI extends AbstractUI {
         attributesMappingLayout.setSizeUndefined();
         Panel attributesMappingPanel = new Panel("Mappings", attributesMappingLayout);
         attributesMappingPanel.setSizeFull();
-        publishedCheckBox = new CheckBox("Published");
         Button saveButton = new Button("Save");
         saveButton.setWidth(100, Unit.PERCENTAGE);
         saveButton.addClickListener((Button.ClickListener) event -> saveConfiguration());
-        VerticalLayout attributesMappingOuterLayout = new VerticalLayout(attributesMappingPanel, publishedCheckBox, saveButton);
+        VerticalLayout attributesMappingOuterLayout = new VerticalLayout(attributesMappingPanel, saveButton);
         attributesMappingOuterLayout.setSizeFull();
         attributesMappingOuterLayout.setExpandRatio(attributesMappingPanel, 1f);
         return attributesMappingOuterLayout;
@@ -143,7 +140,6 @@ public class TrackFindAdminUI extends AbstractUI {
         dropTarget.addDropListener(new TextFieldDropListener(sourceAttributeTextField));
 
         ComboBox<String> targetAttributeComboBox = buildGlobalAttributesComboBox(targetAttribute);
-        targetAttributeComboBox.addValueChangeListener((HasValue.ValueChangeListener<String>) event -> publishedCheckBox.setEnabled(isEverythingFilled()));
 
         attributesMapping.put(sourceAttributeTextField, targetAttributeComboBox);
 
@@ -151,7 +147,6 @@ public class TrackFindAdminUI extends AbstractUI {
         deleteMappingButton.addClickListener((Button.ClickListener) event -> {
             ((AbstractLayout) attributesPairLayout.getParent()).removeComponent(attributesPairLayout);
             attributesMapping.remove(sourceAttributeTextField);
-            publishedCheckBox.setEnabled(isEverythingFilled());
         });
 
         attributesPairLayout.addComponent(sourceAttributeTextField);
@@ -180,8 +175,6 @@ public class TrackFindAdminUI extends AbstractUI {
         for (Map.Entry<String, String> mapping : configuration.getAttributesMapping().entrySet()) {
             addMappingPair(mapping.getKey(), mapping.getValue());
         }
-        publishedCheckBox.setValue(configuration.isPublished());
-        publishedCheckBox.setEnabled(isEverythingFilled());
     }
 
     private void addMappingPair(String sourceAttribute, String targetAttribute) {
@@ -192,7 +185,6 @@ public class TrackFindAdminUI extends AbstractUI {
     private void saveConfiguration() {
         DataProvider currentDataProvider = getCurrentDataProvider();
         DataProvider.Configuration configuration = currentDataProvider.loadConfiguration();
-        configuration.setPublished(publishedCheckBox.getValue());
         configuration.getAttributesMapping().clear();
         for (Map.Entry<TextField, ComboBox<String>> mapping : attributesMapping.entrySet()) {
             configuration.getAttributesMapping().put(mapping.getKey().getValue(), mapping.getValue().getValue());

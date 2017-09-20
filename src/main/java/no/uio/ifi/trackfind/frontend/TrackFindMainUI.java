@@ -79,7 +79,7 @@ public class TrackFindMainUI extends AbstractUI {
         tabSheet = new TabSheet();
         tabSheet.setSizeFull();
 
-        for (DataProvider dataProvider : trackFindService.getDataProviders(true)) {
+        for (DataProvider dataProvider : trackFindService.getDataProviders()) {
             TrackFindTree<TreeNode> tree = buildTree(dataProvider);
             providers.add((MainTrackDataProvider) tree.getDataProvider());
             tabSheet.addTab(tree, dataProvider.getName());

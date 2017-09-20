@@ -22,7 +22,7 @@ public class TrackFindServiceTests {
 
     @Test
     public void getDataProvidersTest() {
-        Collection<DataProvider> dataProviders = trackFindService.getDataProviders(false);
+        Collection<DataProvider> dataProviders = trackFindService.getDataProviders();
         assertThat(dataProviders).isNotEmpty().hasSize(1);
         DataProvider dataProvider = dataProviders.iterator().next();
         assertThat(dataProvider.getName()).isEqualTo(TEST_DATA_PROVIDER);
