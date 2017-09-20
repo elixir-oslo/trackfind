@@ -6,9 +6,6 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.api.errors.NoHeadException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -22,8 +19,6 @@ import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 import javax.annotation.PostConstruct;
-import java.io.File;
-import java.io.IOException;
 import java.util.Collections;
 
 /**
@@ -54,18 +49,6 @@ public class TrackFindApplication {
     private void configureObjectMapper() {
         objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
-    }
-
-    @Bean
-    public Git git() throws IOException, GitAPIException {
-        Git git = Git.init().setDirectory(new File(INDICES_FOLDER)).call();
-        try {
-            git.log().call();
-        } catch (NoHeadException e) {
-            git.add().addFilepattern(".").call();
-            git.commit().setMessage("Initial commit.").call();
-        }
-        return git;
     }
 
     @Bean
