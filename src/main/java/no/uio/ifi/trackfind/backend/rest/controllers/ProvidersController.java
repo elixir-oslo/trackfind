@@ -39,28 +39,28 @@ public class ProvidersController {
         return ResponseEntity.ok(trackFindService.getDataProviders().stream().map(DataProvider::getName).collect(Collectors.toSet()));
     }
 
-    /**
-     * Performs reinitialization of particular DataProvider.
-     *
-     * @param provider DataProvider name.
-     * @throws Exception In case of some error.
-     */
-    @ApiOperation(value = "Re-initializes specified data provider.")
-    @GetMapping(path = "/{provider}/reinit", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public void reinit(@PathVariable String provider) throws Exception {
-        trackFindService.getDataProvider(provider).crawlRemoteRepository();
-    }
-
-    /**
-     * Performs reinitialization of all or published only providers.
-     *
-     * @throws Exception In case of some error.
-     */
-    @ApiOperation(value = "Re-initializes all or published only data providers.")
-    @GetMapping(path = "/reinit", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public void reinit() throws Exception {
-        trackFindService.getDataProviders().forEach(DataProvider::crawlRemoteRepository);
-    }
+//    /**
+//     * Performs reinitialization of particular DataProvider.
+//     *
+//     * @param provider DataProvider name.
+//     * @throws Exception In case of some error.
+//     */
+//    @ApiOperation(value = "Re-initializes specified data provider.")
+//    @GetMapping(path = "/{provider}/reinit", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+//    public void reinit(@PathVariable String provider) throws Exception {
+//        trackFindService.getDataProvider(provider).crawlRemoteRepository();
+//    }
+//
+//    /**
+//     * Performs reinitialization of all or published only providers.
+//     *
+//     * @throws Exception In case of some error.
+//     */
+//    @ApiOperation(value = "Re-initializes all or published only data providers.")
+//    @GetMapping(path = "/reinit", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+//    public void reinit() throws Exception {
+//        trackFindService.getDataProviders().forEach(DataProvider::crawlRemoteRepository);
+//    }
 
     @Autowired
     public void setTrackFindService(TrackFindService trackFindService) {

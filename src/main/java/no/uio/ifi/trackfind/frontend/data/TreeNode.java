@@ -124,6 +124,19 @@ public class TreeNode implements Comparable<TreeNode> {
     }
 
     /**
+     * Removes child.
+     *
+     * @param key Key for child to remove.
+     */
+    public void removeChild(String key) {
+        Object value = node.getValue();
+        if (value instanceof Map) {
+            ((Map) value).remove(key);
+        }
+        fetchChildrenInternally();
+    }
+
+    /**
      * Gets path from the root node to current node.
      *
      * @return Sequence of attributes separated by some delimiter ("&gt;" by default).

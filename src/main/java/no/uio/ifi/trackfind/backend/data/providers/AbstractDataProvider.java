@@ -5,6 +5,7 @@ import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.lucene.DirectoryFactory;
+import no.uio.ifi.trackfind.backend.services.VersioningService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.lucene.analysis.Analyzer;
@@ -17,10 +18,8 @@ import org.apache.lucene.index.*;
 import org.apache.lucene.queryparser.analyzing.AnalyzingQueryParser;
 import org.apache.lucene.search.*;
 import org.apache.lucene.store.Directory;
+import org.apache.lucene.util.Bits;
 import org.apache.lucene.util.BytesRef;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.Ref;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.SerializationUtils;
 import org.springframework.util.StringUtils;
@@ -44,8 +43,9 @@ import static no.uio.ifi.trackfind.TrackFindApplication.INDICES_FOLDER;
 @Slf4j
 public abstract class AbstractDataProvider implements DataProvider, Comparable<DataProvider> {
 
+    private static final String ID = "id";
     private static final String DATASET = "dataset";
-    private static final String PATH_SEPARATOR = ">";
+    private static final String SEPARATOR = ">";
 
     private Analyzer analyzer = new KeywordAnalyzer();
 
@@ -54,9 +54,9 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     private Directory directory;
 
     private DirectoryFactory directoryFactory;
+    private VersioningService versioningService;
     protected ExecutorService executorService;
     protected Gson gson;
-    protected Git git;
 
     /**
      * Initialize Lucene Directory (Index) and the Searcher over this Directory.
@@ -91,7 +91,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     }
 
     /**
-     * Gets attributes to skip during indexing. Basically hides this attributes from the tree.
+     * Gets attributes to skip during indexing.
      *
      * @return Collection of unneeded attributes.
      */
@@ -100,7 +100,16 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     }
 
     /**
-     * Gets values to skip during indexing. Basically hides this values from the tree.
+     * Gets attributes to hide in the tree.
+     *
+     * @return Collection of hidden attributes.
+     */
+    protected Collection<String> getAttributesToHide() {
+        return Collections.singletonList(ID);
+    }
+
+    /**
+     * Gets values to skip during indexing.
      *
      * @return Collection of unneeded values.
      */
@@ -165,36 +174,54 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
             fetchData(indexWriter);
             indexWriter.flush();
             indexWriter.commit();
-            commitAllChanges(getName());
-            tag(getName());
+            versioningService.commitAllChanges(VersioningService.Operation.CRAWLING, getName());
+            versioningService.tag(getName());
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return;
         }
         reinitIndexSearcher();
-        log.info("Success");
+        log.info("Success!");
     }
 
     /**
-     * Commit everything.
-     *
-     * @param repositoryName Name of changed repo to use in commit message.
-     * @throws GitAPIException In case of Git error.
+     * {@inheritDoc}
      */
-    private void commitAllChanges(String repositoryName) throws GitAPIException {
-        git.add().addFilepattern(".").call();
-        git.commit().setAll(true).setMessage("Crawl " + repositoryName).call();
-    }
-
-    /**
-     * Tag current revision (HEAD, hopefully).
-     *
-     * @param repositoryName Name of changed repo to use in tag name.
-     * @throws GitAPIException In case of Git error.
-     */
-    private void tag(String repositoryName) throws GitAPIException {
-        List<Ref> tags = git.tagList().call();
-        git.tag().setName(CollectionUtils.size(tags) + "." + repositoryName).call();
+    @Override
+    public synchronized void applyMappings() {
+        log.info("Applying mappings for " + getName());
+        Collection<String> basicAttributes = MultiFields.getIndexedFields(indexReader).stream().filter(f -> f.startsWith(BASIC + SEPARATOR)).collect(Collectors.toSet());
+        Bits liveDocs = MultiFields.getLiveDocs(indexReader);
+        Map<String, String> attributesMapping = loadConfiguration().getAttributesMapping();
+        IndexWriterConfig config = new IndexWriterConfig(analyzer);
+        config.setOpenMode(IndexWriterConfig.OpenMode.APPEND);
+        try (IndexWriter indexWriter = new IndexWriter(directory, config)) {
+            for (int i = 0; i < indexReader.maxDoc(); i++) {
+                if (liveDocs != null && !liveDocs.get(i)) {
+                    continue;
+                }
+                Document document = indexReader.document(i);
+                basicAttributes.forEach(document::removeField);
+                for (Map.Entry<String, String> mapping : attributesMapping.entrySet()) {
+                    Set<String> values = new HashSet<>();
+                    values.addAll(Arrays.asList(document.getValues(mapping.getKey())));
+                    values.add(document.get(mapping.getKey()));
+                    values.remove(null);
+                    for (String value : values) {
+                        document.add(new StringField(BASIC + SEPARATOR + mapping.getValue(), value, Field.Store.YES));
+                    }
+                }
+                indexWriter.updateDocument(new Term(ID, document.get(ID)), document);
+            }
+            indexWriter.flush();
+            indexWriter.commit();
+            versioningService.commitAllChanges(VersioningService.Operation.REMAPPING, getName());
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return;
+        }
+        reinitIndexSearcher();
+        log.info("Success!");
     }
 
     /**
@@ -252,9 +279,13 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
         try {
             Collection<String> fieldNames = MultiFields.getIndexedFields(indexReader);
             Fields fields = MultiFields.getFields(indexReader);
+            Collection<String> attributesToHide = getAttributesToHide();
             for (String fieldName : fieldNames) {
+                if (attributesToHide.contains(fieldName)) {
+                    continue;
+                }
                 Map<String, Object> metamodel = result;
-                String[] path = fieldName.split(PATH_SEPARATOR);
+                String[] path = fieldName.split(SEPARATOR);
                 for (int i = 0; i < path.length - 1; i++) {
                     String attribute = path[i];
                     metamodel = (Map<String, Object>) metamodel.computeIfAbsent(attribute, k -> new HashMap<String, Object>());
@@ -288,7 +319,11 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
         try {
             Collection<String> fieldNames = MultiFields.getIndexedFields(indexReader);
             Fields fields = MultiFields.getFields(indexReader);
+            Collection<String> attributesToHide = getAttributesToHide();
             for (String fieldName : fieldNames) {
+                if (attributesToHide.contains(fieldName)) {
+                    continue;
+                }
                 Terms terms = fields.terms(fieldName);
                 TermsEnum iterator = terms.iterator();
                 BytesRef next = iterator.next();
@@ -361,7 +396,8 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     @SuppressWarnings("ConstantConditions")
     protected Document convertDatasetToDocument(Map dataset) {
         Document document = new Document();
-        convertDatasetToDocument(document, dataset, ">Advanced");
+        convertDatasetToDocument(document, dataset, SEPARATOR + ADVANCED);
+        document.add(new StringField(ID, UUID.randomUUID().toString(), Field.Store.YES));
         document.add(new StoredField(DATASET, new BytesRef(SerializationUtils.serialize(dataset))));
         return document;
     }
@@ -378,7 +414,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
             Set keySet = ((Map) object).keySet();
             for (Object key : keySet) {
                 Object value = ((Map) object).get(key);
-                convertDatasetToDocument(document, value, path + PATH_SEPARATOR + key);
+                convertDatasetToDocument(document, value, path + SEPARATOR + key);
             }
         } else if (object instanceof Collection) {
             Collection values = (Collection) object;
@@ -407,6 +443,11 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     }
 
     @Autowired
+    public void setVersioningService(VersioningService versioningService) {
+        this.versioningService = versioningService;
+    }
+
+    @Autowired
     public void setDirectoryFactory(DirectoryFactory directoryFactory) {
         this.directoryFactory = directoryFactory;
     }
@@ -419,11 +460,6 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     @Autowired
     public void setGson(Gson gson) {
         this.gson = gson;
-    }
-
-    @Autowired
-    public void setGit(Git git) {
-        this.git = git;
     }
 
 }

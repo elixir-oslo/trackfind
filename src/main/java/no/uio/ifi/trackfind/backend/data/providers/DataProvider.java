@@ -15,7 +15,11 @@ import java.util.Map;
  */
 public interface DataProvider {
 
+    String ADVANCED = "ADVANCED";
+    String BASIC = "BASIC";
+
     Collection<String> BASIC_ATTRIBUTES = Arrays.asList("GenomeBuild",
+            "DataType",
             "Filename",
             "Description",
             "CellType",
@@ -54,6 +58,11 @@ public interface DataProvider {
      * Re-fetches data, rebuilds index.
      */
     void crawlRemoteRepository();
+
+    /**
+     * Applies attributes mappings, rebuilds index.
+     */
+    void applyMappings();
 
     /**
      * Gets metamodel of the repository in "tree-from" (with nesting).

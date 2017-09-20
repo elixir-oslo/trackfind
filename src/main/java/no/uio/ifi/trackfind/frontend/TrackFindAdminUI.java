@@ -103,10 +103,13 @@ public class TrackFindAdminUI extends AbstractUI {
         tree.addSelectionListener((SelectionListener<TreeNode>) event -> addMappingButton.setEnabled(!CollectionUtils.isEmpty(event.getAllSelectedItems())));
         TreeGridDragSource<TreeNode> dragSource = new TreeGridDragSource<>((TreeGrid<TreeNode>) tree.getCompositionRoot());
         dragSource.setEffectAllowed(EffectAllowed.COPY);
-        AdminTrackDataProvider trackDataProvider = new AdminTrackDataProvider(new TreeNode(dataProvider.getMetamodelTree()));
+        TreeNode root = new TreeNode(dataProvider.getMetamodelTree());
+        root.removeChild(DataProvider.BASIC);
+        AdminTrackDataProvider trackDataProvider = new AdminTrackDataProvider(root);
         tree.setDataProvider(trackDataProvider);
         tree.setSizeFull();
         tree.setStyleGenerator((StyleGenerator<TreeNode>) item -> item.isFinalAttribute() || item.isValue() ? null : "disabled-tree-node");
+        tree.expand(root.fetchChildren().iterator().next());
         return tree;
     }
 
@@ -122,9 +125,17 @@ public class TrackFindAdminUI extends AbstractUI {
         Panel attributesMappingPanel = new Panel("Mappings", attributesMappingLayout);
         attributesMappingPanel.setSizeFull();
         Button saveButton = new Button("Save");
-        saveButton.setWidth(100, Unit.PERCENTAGE);
+        saveButton.setSizeFull();
         saveButton.addClickListener((Button.ClickListener) event -> saveConfiguration());
-        VerticalLayout attributesMappingOuterLayout = new VerticalLayout(attributesMappingPanel, saveButton);
+        Button crawlButton = new Button("Crawl");
+        crawlButton.setSizeFull();
+        crawlButton.addClickListener((Button.ClickListener) event -> getCurrentDataProvider().crawlRemoteRepository());
+        Button applyMappingsButton = new Button("Apply mappings");
+        applyMappingsButton.setSizeFull();
+        applyMappingsButton.addClickListener((Button.ClickListener) event -> getCurrentDataProvider().applyMappings());
+        HorizontalLayout buttonsLayout = new HorizontalLayout(saveButton, crawlButton, applyMappingsButton);
+        buttonsLayout.setWidth(100, Unit.PERCENTAGE);
+        VerticalLayout attributesMappingOuterLayout = new VerticalLayout(attributesMappingPanel, buttonsLayout);
         attributesMappingOuterLayout.setSizeFull();
         attributesMappingOuterLayout.setExpandRatio(attributesMappingPanel, 1f);
         return attributesMappingOuterLayout;

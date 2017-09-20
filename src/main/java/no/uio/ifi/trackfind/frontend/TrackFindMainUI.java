@@ -51,8 +51,6 @@ public class TrackFindMainUI extends AbstractUI {
 
     private Gson gson;
 
-    private Collection<MainTrackDataProvider> providers = new HashSet<>();
-
     private Collection<Map<String, Object>> lastResults;
 
     private TextArea queryTextArea;
@@ -81,7 +79,6 @@ public class TrackFindMainUI extends AbstractUI {
 
         for (DataProvider dataProvider : trackFindService.getDataProviders()) {
             TrackFindTree<TreeNode> tree = buildTree(dataProvider);
-            providers.add((MainTrackDataProvider) tree.getDataProvider());
             tabSheet.addTab(tree, dataProvider.getName());
         }
 
@@ -118,10 +115,13 @@ public class TrackFindMainUI extends AbstractUI {
         tree.addSelectionListener(new TreeSelectionListener(tree, new KeyboardInterceptorExtension(tree)));
         TreeGridDragSource<TreeNode> dragSource = new TreeGridDragSource<>((TreeGrid<TreeNode>) tree.getCompositionRoot());
         dragSource.setEffectAllowed(EffectAllowed.COPY);
-        MainTrackDataProvider trackDataProvider = new MainTrackDataProvider(new TreeNode(dataProvider.getMetamodelTree()));
+        TreeNode root = new TreeNode(dataProvider.getMetamodelTree());
+        MainTrackDataProvider trackDataProvider = new MainTrackDataProvider(root);
         tree.setDataProvider(trackDataProvider);
         tree.setSizeFull();
         tree.setStyleGenerator((StyleGenerator<TreeNode>) item -> item.isFinalAttribute() || item.isValue() ? null : "disabled-tree-node");
+        Optional<TreeNode> basicNode = root.fetchChildren().stream().filter(tn -> DataProvider.BASIC.equals(tn.getPath())).findAny();
+        basicNode.ifPresent(tree::expand);
         return tree;
     }
 
