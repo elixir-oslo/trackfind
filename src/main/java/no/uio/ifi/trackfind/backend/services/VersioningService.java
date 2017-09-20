@@ -42,6 +42,9 @@ public class VersioningService {
         git.tag().setName(CollectionUtils.size(tags) + "." + repositoryName).call();
     }
 
+    /**
+     * Operation definition.
+     */
     public enum Operation {
         CRAWLING, REMAPPING
     }
