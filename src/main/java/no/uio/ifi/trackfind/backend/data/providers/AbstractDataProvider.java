@@ -19,7 +19,6 @@ import org.apache.lucene.search.*;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.util.BytesRef;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -176,11 +175,23 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
         log.info("Success");
     }
 
+    /**
+     * Commit everything.
+     *
+     * @param repositoryName Name of changed repo to use in commit message.
+     * @throws GitAPIException In case of Git error.
+     */
     private void commitAllChanges(String repositoryName) throws GitAPIException {
         git.add().addFilepattern(".").call();
         git.commit().setAll(true).setMessage("Crawl " + repositoryName).call();
     }
 
+    /**
+     * Tag current revision (HEAD, hopefully).
+     *
+     * @param repositoryName Name of changed repo to use in tag name.
+     * @throws GitAPIException In case of Git error.
+     */
     private void tag(String repositoryName) throws GitAPIException {
         List<Ref> tags = git.tagList().call();
         git.tag().setName(CollectionUtils.size(tags) + "." + repositoryName).call();
