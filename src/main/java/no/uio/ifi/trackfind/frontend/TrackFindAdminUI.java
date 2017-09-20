@@ -129,9 +129,13 @@ public class TrackFindAdminUI extends AbstractUI {
         saveButton.addClickListener((Button.ClickListener) event -> saveConfiguration());
         Button crawlButton = new Button("Crawl");
         crawlButton.setSizeFull();
+        // TODO: Use confirmation dialog here.
+        // TODO: Think about running in background.
         crawlButton.addClickListener((Button.ClickListener) event -> getCurrentDataProvider().crawlRemoteRepository());
         Button applyMappingsButton = new Button("Apply mappings");
         applyMappingsButton.setSizeFull();
+        // TODO: Use confirmation dialog here.
+        // TODO: Think about running in background.
         applyMappingsButton.addClickListener((Button.ClickListener) event -> getCurrentDataProvider().applyMappings());
         HorizontalLayout buttonsLayout = new HorizontalLayout(saveButton, crawlButton, applyMappingsButton);
         buttonsLayout.setWidth(100, Unit.PERCENTAGE);

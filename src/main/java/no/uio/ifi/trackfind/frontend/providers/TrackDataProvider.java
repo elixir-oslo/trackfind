@@ -10,7 +10,7 @@ import java.util.function.Predicate;
  *
  * @author Dmytro Titov
  */
-// TODO: migrate to TreeDataProvider.
+// TODO: Migrate to TreeDataProvider.
 public abstract class TrackDataProvider extends AbstractHierarchicalDataProvider<TreeNode, Predicate<? super TreeNode>> {
 
     protected String attributesFilter = "";
