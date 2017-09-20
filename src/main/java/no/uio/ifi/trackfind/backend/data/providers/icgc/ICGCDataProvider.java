@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Component
-public class ICGCDataProvider extends PaginationAwareDataProvider { // TODO: Fetch more data
+public class ICGCDataProvider extends PaginationAwareDataProvider { // TODO: Fetch more data.
 
     private static final String DONORS = "https://dcc.icgc.org/api/v1/donors?";
     private static final String SUBMIT = "https://dcc.icgc.org/api/v1/download/submit?filters={%22donor%22:{%22id%22:{%22is%22:[%22__DONOR_ID__%22]}}}&info=[{%22key%22:%22__DATA_TYPE__%22,%22value%22:%22TSV%22}]";

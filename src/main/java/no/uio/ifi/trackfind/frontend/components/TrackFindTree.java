@@ -10,7 +10,7 @@ import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
  * @param <T> Type of Vaadin Tree entries.
  * @author Dmytro Titov
  */
-public class TrackFindTree<T> extends Tree<T> { // TODO: Fix issues with large tree.
+public class TrackFindTree<T> extends Tree<T> {
 
     private DataProvider trackDataProvider;
 
