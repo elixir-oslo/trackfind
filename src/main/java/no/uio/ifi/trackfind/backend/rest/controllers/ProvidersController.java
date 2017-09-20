@@ -49,7 +49,7 @@ public class ProvidersController {
     @ApiOperation(value = "Re-initializes specified data provider.")
     @GetMapping(path = "/{provider}/reinit", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public void reinit(@PathVariable String provider) throws Exception {
-        trackFindService.getDataProvider(provider).updateIndex();
+        trackFindService.getDataProvider(provider).crawlRemoteRepository();
     }
 
     /**
@@ -61,7 +61,7 @@ public class ProvidersController {
     @ApiOperation(value = "Re-initializes all or published only data providers.")
     @GetMapping(path = "/reinit", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public void reinit(@RequestParam boolean published) throws Exception {
-        trackFindService.getDataProviders(published).forEach(DataProvider::updateIndex);
+        trackFindService.getDataProviders(published).forEach(DataProvider::crawlRemoteRepository);
     }
 
     @Autowired

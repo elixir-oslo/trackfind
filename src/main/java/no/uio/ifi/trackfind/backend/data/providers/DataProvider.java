@@ -43,7 +43,7 @@ public interface DataProvider {
     /**
      * Re-fetches data, rebuilds index.
      */
-    void updateIndex();
+    void crawlRemoteRepository();
 
     /**
      * Gets metamodel of the repository in "tree-from" (with nesting).

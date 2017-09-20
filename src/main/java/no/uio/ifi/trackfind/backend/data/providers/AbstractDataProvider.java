@@ -30,6 +30,8 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
+import static no.uio.ifi.trackfind.TrackFindApplication.INDICES_FOLDER;
+
 /**
  * Abstract class for all data providers.
  * Implements some common logic like Lucene Directory initialization, getting metamodel, searching, etc.
@@ -39,7 +41,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public abstract class AbstractDataProvider implements DataProvider, Comparable<DataProvider> {
 
-    private static final String INDICES_FOLDER = "indices/";
     private static final String DATASET = "dataset";
     private static final String PATH_SEPARATOR = ">";
 
@@ -65,7 +66,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
         if (DirectoryReader.indexExists(directory)) {
             reinitIndexSearcher();
         } else {
-            updateIndex();
+            crawlRemoteRepository();
         }
     }
 
@@ -82,7 +83,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      */
     @Override
     public String getPath() {
-        return INDICES_FOLDER + getName() + getClass().getPackage().getImplementationVersion() + "/";
+        return INDICES_FOLDER + getName() + "/";
     }
 
     /**
@@ -152,7 +153,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      * {@inheritDoc}
      */
     @Override
-    public synchronized void updateIndex() {
+    public synchronized void crawlRemoteRepository() {
         log.info("Fetching data using " + getName());
         IndexWriterConfig config = new IndexWriterConfig(analyzer);
         config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
@@ -303,7 +304,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
             String json = FileUtils.readFileToString(new File(getPath() + "." + getName()), Charset.defaultCharset());
             return gson.fromJson(json, Configuration.class);
         } catch (IOException e) {
-            log.error(e.getMessage(), e);
+            log.info(e.getMessage());
             return new Configuration();
         }
     }

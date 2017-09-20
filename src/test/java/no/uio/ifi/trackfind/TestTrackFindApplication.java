@@ -1,5 +1,6 @@
 package no.uio.ifi.trackfind;
 
+import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
 import no.uio.ifi.trackfind.backend.data.providers.ihec.IHECDataProvider;
 import no.uio.ifi.trackfind.backend.lucene.DirectoryFactory;
@@ -8,7 +9,6 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
@@ -19,7 +19,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-@EnableCaching
+@Slf4j
 @SpringBootApplication
 @ComponentScan(basePackages = "no.uio.ifi.trackfind.backend",
         excludeFilters = @ComponentScan.Filter(type = FilterType.REGEX, pattern = "no.uio.ifi.trackfind.backend.data.providers.*.*"))

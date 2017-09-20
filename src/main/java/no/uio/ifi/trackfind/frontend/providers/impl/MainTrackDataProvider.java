@@ -4,7 +4,6 @@ import com.vaadin.data.provider.HierarchicalQuery;
 import no.uio.ifi.trackfind.frontend.data.TreeNode;
 import no.uio.ifi.trackfind.frontend.providers.TrackDataProvider;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.util.CollectionUtils;
 
 import java.util.*;
 import java.util.function.Predicate;

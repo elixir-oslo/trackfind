@@ -1,5 +1,6 @@
 package no.uio.ifi.trackfind.frontend;
 
+import com.google.common.io.Files;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Title;
 import com.vaadin.annotations.Widgetset;
@@ -21,7 +22,6 @@ import no.uio.ifi.trackfind.frontend.data.TreeNode;
 import no.uio.ifi.trackfind.frontend.listeners.TextFieldDropListener;
 import no.uio.ifi.trackfind.frontend.providers.TrackDataProvider;
 import no.uio.ifi.trackfind.frontend.providers.impl.AdminTrackDataProvider;
-import org.apache.commons.io.FileUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
@@ -167,7 +167,7 @@ public class TrackFindAdminUI extends AbstractUI {
     private ComboBox<String> buildGlobalAttributesComboBox(String targetAttribute) {
         List<String> globalAttributes = new ArrayList<>();
         try {
-            globalAttributes = FileUtils.readLines(new File("indices/.gattrs"), Charset.defaultCharset());
+            globalAttributes = Files.readLines(new File("indices/.gattrs"), Charset.defaultCharset());
         } catch (IOException e) {
             log.error(e.getMessage(), e);
         }
