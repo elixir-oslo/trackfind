@@ -18,6 +18,10 @@ import org.apache.lucene.queryparser.analyzing.AnalyzingQueryParser;
 import org.apache.lucene.search.*;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.util.BytesRef;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.Status;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.Ref;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.SerializationUtils;
 import org.springframework.util.StringUtils;
@@ -53,6 +57,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     private DirectoryFactory directoryFactory;
     protected ExecutorService executorService;
     protected Gson gson;
+    protected Git git;
 
     /**
      * Initialize Lucene Directory (Index) and the Searcher over this Directory.
@@ -159,12 +164,26 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
         config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
         try (IndexWriter indexWriter = new IndexWriter(directory, config)) {
             fetchData(indexWriter);
+            indexWriter.flush();
+            indexWriter.commit();
+            commitAllChanges(getName());
+            tag(getName());
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return;
         }
         reinitIndexSearcher();
         log.info("Success");
+    }
+
+    private void commitAllChanges(String repositoryName) throws GitAPIException {
+        git.add().addFilepattern(".").call();
+        git.commit().setAll(true).setMessage("Crawl " + repositoryName).call();
+    }
+
+    private void tag(String repositoryName) throws GitAPIException {
+        List<Ref> tags = git.tagList().call();
+        git.tag().setName(CollectionUtils.size(tags) + "." + repositoryName).call();
     }
 
     /**
@@ -389,6 +408,11 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     @Autowired
     public void setGson(Gson gson) {
         this.gson = gson;
+    }
+
+    @Autowired
+    public void setGit(Git git) {
+        this.git = git;
     }
 
 }
