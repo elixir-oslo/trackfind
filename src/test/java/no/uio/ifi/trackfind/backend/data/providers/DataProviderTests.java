@@ -2,6 +2,7 @@ package no.uio.ifi.trackfind.backend.data.providers;
 
 import com.google.common.collect.Multimap;
 import no.uio.ifi.trackfind.TestTrackFindApplication;
+import no.uio.ifi.trackfind.backend.converters.DocumentToMapConverter;
 import org.apache.lucene.document.Document;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -9,10 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -22,6 +20,47 @@ public class DataProviderTests {
 
     @Autowired
     private DataProvider dataProvider;
+
+    @Autowired
+    private DocumentToMapConverter documentToMapConverter;
+
+    @Test
+    public void getNameTest() {
+        assertThat(dataProvider.getName()).isEqualTo("Test");
+    }
+
+    @Test
+    public void getPathTest() {
+        assertThat(dataProvider.getPath()).isEqualTo("indices/Test/");
+    }
+
+    @Test
+    public void saveLoadConfigurationTest() {
+        DataProvider.Configuration oldConfiguration = new DataProvider.Configuration();
+        oldConfiguration.setAttributesMapping(new HashMap<String, String>() {{
+            put("1", "2");
+        }});
+        dataProvider.saveConfiguration(oldConfiguration);
+        DataProvider.Configuration newConfiguration = dataProvider.loadConfiguration();
+        assertThat(newConfiguration).isNotNull();
+        Map<String, String> attributesMapping = newConfiguration.getAttributesMapping();
+        assertThat(attributesMapping).isNotNull().isNotEmpty();
+        assertThat(attributesMapping).containsOnlyKeys("1");
+        assertThat(attributesMapping).containsEntry("1", "2");
+    }
+
+    @Test
+    public void applyMappingsTest() {
+        DataProvider.Configuration oldConfiguration = new DataProvider.Configuration();
+        oldConfiguration.setAttributesMapping(new HashMap<String, String>() {{
+            put("Advanced>key1", "BasicKey");
+        }});
+        dataProvider.saveConfiguration(oldConfiguration);
+        dataProvider.applyMappings();
+        Map<String, Collection<String>> metamodel = dataProvider.getMetamodelFlat().asMap();
+        assertThat(metamodel).containsKeys("Basic>BasicKey");
+        assertThat(metamodel.get("Basic>BasicKey")).hasSize(2);
+    }
 
     @SuppressWarnings("unchecked")
     @Test
@@ -62,6 +101,17 @@ public class DataProviderTests {
         assertThat(result).size().isEqualTo(1);
         Document document = result.iterator().next();
         assertThat(document.get("Advanced>key2")).isEqualToIgnoringCase("value3");
+    }
+
+    @Test
+    public void fetch() {
+        Collection<Document> result = dataProvider.search("Advanced>key2: value3", 1);
+        Document document = result.iterator().next();
+        Map map = (Map) documentToMapConverter.apply(document).get("Advanced");
+        map.remove("id");
+        String id = document.get("Advanced>id");
+        Map<String, Object> rawData = dataProvider.fetch(id);
+        assertThat(rawData).isEqualTo(map);
     }
 
 }

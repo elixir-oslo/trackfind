@@ -5,6 +5,7 @@ import org.apache.lucene.document.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -13,7 +14,6 @@ import java.util.function.Function;
  *
  * @author Dmytro Titov
  */
-// TODO: Add unit-test.
 @Component
 public class DocumentToTSVConverter implements Function<Document, String> {
 
@@ -31,7 +31,7 @@ public class DocumentToTSVConverter implements Function<Document, String> {
     public String apply(Document document) {
         StringBuilder result = new StringBuilder();
         Map map = documentToMapConverter.apply(document);
-        Map<String, Object> basicMap = (Map) map.get(properties.getMetamodel().getBasicSectionName());
+        Map<String, Object> basicMap = (Map) map.getOrDefault(properties.getMetamodel().getBasicSectionName(), new HashMap<>());
         for (String basicAttribute : properties.getMetamodel().getBasicAttributes()) {
             result.append(String.valueOf(basicMap.get(basicAttribute))).append("\t");
         }

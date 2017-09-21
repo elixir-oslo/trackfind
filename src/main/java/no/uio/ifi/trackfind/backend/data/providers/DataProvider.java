@@ -13,7 +13,6 @@ import java.util.Map;
  *
  * @author Dmytro Titov
  */
-// TODO: Add unit-tests for new methods.
 public interface DataProvider {
 
     /**

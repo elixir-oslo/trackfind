@@ -12,7 +12,6 @@ import java.util.function.Function;
  *
  * @author Dmytro Titov
  */
-// TODO: Add unit-test.
 @Component
 public class DocumentToJSONConverter implements Function<Document, String> {
 
