@@ -43,7 +43,7 @@ public class MainTrackDataProvider extends TrackDataProvider {
      * @return Number of children.
      */
     private int getChildCount(TreeNode treeNode) {
-        if (StringUtils.isEmpty(attributesFilter)) {
+        if (StringUtils.isEmpty(attributesFilter) && StringUtils.isEmpty(valuesFilter)) {
             return childCountMap.computeIfAbsent(treeNode.getPath(), k -> getChildCount(treeNode.getQuery()));
         }
         return getChildCount(treeNode.getQuery());
@@ -57,15 +57,12 @@ public class MainTrackDataProvider extends TrackDataProvider {
         TreeNode parent = query.getParentOptional().orElse(root);
         Collection<TreeNode> children = new HashSet<>(parent.fetchChildren());
         Iterator<TreeNode> iterator = children.iterator();
-        // TODO: Hide attributes without values.
         while (iterator.hasNext()) {
             TreeNode child = iterator.next();
             int childCount = getChildCount(child);
             boolean value = child.isValue();
             String attributeOrValue = child.toString().toLowerCase();
-            if (childCount == 0 && !attributeOrValue.contains(valuesFilter)) {
-                iterator.remove();
-            } else if (value && !attributeOrValue.contains(valuesFilter)) {
+            if (value && !attributeOrValue.contains(valuesFilter)) {
                 iterator.remove();
             } else if (child.isFinalAttribute() && !attributeOrValue.contains(attributesFilter)) {
                 iterator.remove();
