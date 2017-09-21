@@ -4,6 +4,8 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
+import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
+import no.uio.ifi.trackfind.backend.converters.MapToDocumentConverter;
 import no.uio.ifi.trackfind.backend.lucene.DirectoryFactory;
 import no.uio.ifi.trackfind.backend.services.VersioningService;
 import org.apache.commons.collections4.CollectionUtils;
@@ -12,17 +14,18 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.KeywordAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
-import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.index.*;
 import org.apache.lucene.queryparser.analyzing.AnalyzingQueryParser;
-import org.apache.lucene.search.*;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.search.Weight;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.util.Bits;
 import org.apache.lucene.util.BytesRef;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.SerializationUtils;
-import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
@@ -43,10 +46,6 @@ import static no.uio.ifi.trackfind.TrackFindApplication.INDICES_FOLDER;
 @Slf4j
 public abstract class AbstractDataProvider implements DataProvider, Comparable<DataProvider> {
 
-    private static final String SEPARATOR = ">";
-    private static final String ID = ADVANCED + SEPARATOR + "id";
-    private static final String DATASET = "dataset";
-
     private Analyzer analyzer = new KeywordAnalyzer();
 
     private IndexReader indexReader;
@@ -55,6 +54,9 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
 
     private DirectoryFactory directoryFactory;
     private VersioningService versioningService;
+
+    protected TrackFindProperties properties;
+    protected MapToDocumentConverter mapToDocumentConverter;
     protected ExecutorService executorService;
     protected Gson gson;
 
@@ -91,29 +93,11 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     }
 
     /**
-     * Gets attributes to skip during indexing.
-     *
-     * @return Collection of unneeded attributes.
-     */
-    protected Collection<String> getAttributesToSkip() {
-        return Collections.emptySet();
-    }
-
-    /**
      * Gets attributes to hide in the tree.
      *
      * @return Collection of hidden attributes.
      */
     protected Collection<String> getAttributesToHide() {
-        return Collections.emptySet();
-    }
-
-    /**
-     * Gets values to skip during indexing.
-     *
-     * @return Collection of unneeded values.
-     */
-    protected Collection<String> getValuesToSkip() {
         return Collections.emptySet();
     }
 
@@ -125,7 +109,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     public Collection<String> getUrlsFromDataset(String query, Map dataset) {
         Set<String> dataTypes = extractDataTypesFromQuery(query);
         Collection<String> urls = new HashSet<>();
-        Map<String, Collection<String>> browser = (Map<String, Collection<String>>) dataset.get(DATA_URL_ATTRIBUTE);
+        Map<String, Collection<String>> browser = (Map<String, Collection<String>>) dataset.get(properties.getMetamodel().getDataURLAttribute());
         if (CollectionUtils.isNotEmpty(dataTypes)) {
             dataTypes.forEach(dt -> urls.addAll(browser.getOrDefault(dt, Collections.emptySet())));
         } else {
@@ -147,7 +131,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
             Weight weight = parsedQuery.createWeight(searcher, false);
             Set<Term> terms = new HashSet<>();
             weight.extractTerms(terms);
-            return terms.stream().filter(t -> t.field().endsWith(DATA_TYPE_ATTRIBUTE)).map(Term::text).collect(Collectors.toSet());
+            return terms.stream().filter(t -> t.field().endsWith(properties.getMetamodel().getDataTypeAttribute())).map(Term::text).collect(Collectors.toSet());
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return Collections.emptySet();
@@ -190,7 +174,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     @Override
     public synchronized void applyMappings() {
         log.info("Applying mappings for " + getName());
-        Collection<String> basicAttributes = MultiFields.getIndexedFields(indexReader).stream().filter(f -> f.startsWith(BASIC + SEPARATOR)).collect(Collectors.toSet());
+        Collection<String> basicAttributes = MultiFields.getIndexedFields(indexReader).stream().filter(f -> f.startsWith(properties.getMetamodel().getBasicSectionName() + properties.getMetamodel().getLevelsSeparator())).collect(Collectors.toSet());
         Bits liveDocs = MultiFields.getLiveDocs(indexReader);
         Map<String, String> attributesMapping = loadConfiguration().getAttributesMapping();
         IndexWriterConfig config = new IndexWriterConfig(analyzer);
@@ -208,10 +192,10 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
                     values.add(document.get(mapping.getKey()));
                     values.remove(null);
                     for (String value : values) {
-                        document.add(new StringField(BASIC + SEPARATOR + mapping.getValue(), value, Field.Store.YES));
+                        document.add(new StringField(properties.getMetamodel().getBasicSectionName() + properties.getMetamodel().getLevelsSeparator() + mapping.getValue(), value, Field.Store.YES));
                     }
                 }
-                indexWriter.updateDocument(new Term(ID, document.get(ID)), document);
+                indexWriter.updateDocument(new Term(properties.getMetamodel().getIdAttribute(), document.get(properties.getMetamodel().getIdAttribute())), document);
             }
             indexWriter.flush();
             indexWriter.commit();
@@ -240,11 +224,11 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      */
     @SuppressWarnings("unchecked")
     protected void postProcessDataset(Map dataset) {
-        Map<String, Collection<String>> browser = (Map<String, Collection<String>>) dataset.get(DATA_URL_ATTRIBUTE);
+        Map<String, Collection<String>> browser = (Map<String, Collection<String>>) dataset.get(properties.getMetamodel().getDataURLAttribute());
         if (browser == null) {
             log.error("'browser' field is 'null' for dataset!");
         } else {
-            dataset.put(DATA_TYPE_ATTRIBUTE, new HashSet<>(browser.keySet()));
+            dataset.put(properties.getMetamodel().getDataTypeAttribute(), new HashSet<>(browser.keySet()));
         }
     }
 
@@ -285,7 +269,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
                     continue;
                 }
                 Map<String, Object> metamodel = result;
-                String[] path = fieldName.split(SEPARATOR);
+                String[] path = fieldName.split(properties.getMetamodel().getLevelsSeparator());
                 for (int i = 0; i < path.length - 1; i++) {
                     String attribute = path[i];
                     metamodel = (Map<String, Object>) metamodel.computeIfAbsent(attribute, k -> new HashMap<String, Object>());
@@ -342,22 +326,33 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     /**
      * {@inheritDoc}
      */
-    @SuppressWarnings("unchecked")
     @Override
-    public Collection<Map<String, Object>> search(String query, int limit) {
+    public Collection<Document> search(String query, int limit) {
         try {
             Query parsedQuery = new AnalyzingQueryParser("", analyzer).parse(query);
             TopDocs topDocs = searcher.search(parsedQuery, limit == 0 ? Integer.MAX_VALUE : limit);
-            ScoreDoc[] scoreDocs = topDocs.scoreDocs;
-            Collection<Map<String, Object>> result = new HashSet<>();
-            for (ScoreDoc scoreDoc : scoreDocs) {
-                result.add((Map<String, Object>) SerializationUtils.deserialize(searcher.doc(scoreDoc.doc).getBinaryValue(DATASET).bytes));
-            }
-            return result;
+            return Arrays.stream(topDocs.scoreDocs).map(scoreDoc -> {
+                try {
+                    return searcher.doc(scoreDoc.doc);
+                } catch (IOException e) {
+                    return null;
+                }
+            }).filter(Objects::nonNull).collect(Collectors.toSet());
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return Collections.emptyList();
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @SuppressWarnings("unchecked")
+    @Override
+    public Map<String, Object> fetch(String documentId) {
+        Collection<Document> documents = search(properties.getMetamodel().getIdAttribute() + ": " + documentId, 1);
+        return CollectionUtils.isEmpty(documents) ? null :
+                (Map<String, Object>) SerializationUtils.deserialize(documents.iterator().next().getBinaryValue(properties.getMetamodel().getRawDataAttribute()).bytes);
     }
 
     /**
@@ -388,53 +383,6 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     }
 
     /**
-     * Convert dataset from Map to Document.
-     *
-     * @param dataset Dataset as a Map.
-     * @return Dataset as a Document.
-     */
-    @SuppressWarnings("ConstantConditions")
-    protected Document convertDatasetToDocument(Map dataset) {
-        Document document = new Document();
-        convertDatasetToDocument(document, dataset, SEPARATOR + ADVANCED);
-        document.add(new StringField(ID, UUID.randomUUID().toString(), Field.Store.YES));
-        document.add(new StoredField(DATASET, new BytesRef(SerializationUtils.serialize(dataset))));
-        return document;
-    }
-
-    /**
-     * Recursive implementation of Map to Document conversion: field by field, taking care of nesting.
-     *
-     * @param document Result Document.
-     * @param object   Either inner Map or value.
-     * @param path     Path to the current entry (sequence of attributes).
-     */
-    private void convertDatasetToDocument(Document document, Object object, String path) {
-        if (object instanceof Map) {
-            Set keySet = ((Map) object).keySet();
-            for (Object key : keySet) {
-                Object value = ((Map) object).get(key);
-                convertDatasetToDocument(document, value, path + SEPARATOR + key);
-            }
-        } else if (object instanceof Collection) {
-            Collection values = (Collection) object;
-            for (Object value : values) {
-                convertDatasetToDocument(document, value, path);
-            }
-        } else if (object != null) {
-            String attribute = path.substring(1);
-            if (getAttributesToSkip().stream().anyMatch(attribute::contains)) {
-                return;
-            }
-            String value = String.valueOf(object);
-            if (StringUtils.isEmpty(value) || getValuesToSkip().stream().anyMatch(value::contains)) {
-                return;
-            }
-            document.add(new StringField(attribute, value, Field.Store.YES));
-        }
-    }
-
-    /**
      * {@inheritDoc}
      */
     @Override
@@ -450,6 +398,16 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     @Autowired
     public void setDirectoryFactory(DirectoryFactory directoryFactory) {
         this.directoryFactory = directoryFactory;
+    }
+
+    @Autowired
+    public void setProperties(TrackFindProperties properties) {
+        this.properties = properties;
+    }
+
+    @Autowired
+    public void setMapToDocumentConverter(MapToDocumentConverter mapToDocumentConverter) {
+        this.mapToDocumentConverter = mapToDocumentConverter;
     }
 
     @Autowired

@@ -62,7 +62,7 @@ public class IHECDataProvider extends AbstractDataProvider {
                         Object sample = samplesMap.get(sampleId);
                         dataset.put("sample_data", sample);
                         dataset.put("hub_description", hubDescription);
-                        Map<String, Collection<Map<String, String>>> browser = (Map<String, Collection<Map<String, String>>>) dataset.get(DATA_URL_ATTRIBUTE);
+                        Map<String, Collection<Map<String, String>>> browser = (Map<String, Collection<Map<String, String>>>) dataset.get(properties.getMetamodel().getDataURLAttribute());
                         Map<String, Collection<String>> browserToStore = new HashMap<>();
                         for (String dataType : browser.keySet()) {
                             Collection<Map<String, String>> bigDataUrls = browser.get(dataType);
@@ -70,10 +70,10 @@ public class IHECDataProvider extends AbstractDataProvider {
                                 browserToStore.computeIfAbsent(dataType, k -> new HashSet<>()).add(bigDataUrl.get("big_data_url"));
                             }
                         }
-                        dataset.put(DATA_URL_ATTRIBUTE, browserToStore);
+                        dataset.put(properties.getMetamodel().getDataURLAttribute(), browserToStore);
                     }
                     postProcessDatasets(datasets);
-                    indexWriter.addDocuments(datasets.stream().map(this::convertDatasetToDocument).collect(Collectors.toSet()));
+                    indexWriter.addDocuments(datasets.stream().map(mapToDocumentConverter).collect(Collectors.toSet()));
                     log.info("Release " + releaseId + " processed.");
                 } catch (IOException e) {
                     log.error(e.getMessage(), e);

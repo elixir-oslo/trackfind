@@ -2,6 +2,7 @@ package no.uio.ifi.trackfind.frontend;
 
 import com.vaadin.ui.*;
 import lombok.extern.slf4j.Slf4j;
+import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
 import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
 import no.uio.ifi.trackfind.backend.services.TrackFindService;
 import no.uio.ifi.trackfind.frontend.components.TrackFindTree;
@@ -20,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 @Slf4j
 public abstract class AbstractUI extends UI {
 
+    protected TrackFindProperties properties;
     protected TrackFindService trackFindService;
 
     protected TabSheet tabSheet;
@@ -62,6 +64,11 @@ public abstract class AbstractUI extends UI {
         headerLayout.setSizeFull();
         headerLayout.setComponentAlignment(headerLabel, Alignment.TOP_CENTER);
         return headerLayout;
+    }
+
+    @Autowired
+    public void setProperties(TrackFindProperties properties) {
+        this.properties = properties;
     }
 
     @Autowired

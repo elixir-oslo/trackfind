@@ -6,7 +6,10 @@ import org.apache.lucene.index.IndexWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
@@ -55,7 +58,7 @@ public class GDCDataProvider extends PaginationAwareDataProvider {
                 String fileId = String.valueOf(file.get("file_id"));
                 browser.computeIfAbsent(dataType, k -> new HashSet<>()).add(DOWNLOAD + fileId);
             }
-            dataset.put(DATA_URL_ATTRIBUTE, browser);
+            dataset.put(properties.getMetamodel().getDataURLAttribute(), browser);
             dataset.put(FILES, files);
         }
     }

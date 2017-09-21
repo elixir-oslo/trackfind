@@ -2,8 +2,8 @@ package no.uio.ifi.trackfind.backend.data.providers;
 
 import com.google.common.collect.Multimap;
 import lombok.Data;
+import org.apache.lucene.document.Document;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,23 +14,6 @@ import java.util.Map;
  * @author Dmytro Titov
  */
 public interface DataProvider {
-
-    String ADVANCED = "Advanced";
-    String BASIC = "Basic";
-
-    Collection<String> BASIC_ATTRIBUTES = Arrays.asList("ID",
-            "GenomeBuild",
-            "DataType",
-            "Filename",
-            "Description",
-            "CellType",
-            "Tissue",
-            "Antibody",
-            "Treatment",
-            "DataSource");
-
-    String DATA_URL_ATTRIBUTE = "browser";
-    String DATA_TYPE_ATTRIBUTE = "data_type";
 
     /**
      * Gets the name of the repository.
@@ -86,7 +69,15 @@ public interface DataProvider {
      * @param limit Results quantity limit, 0 for unlimited.
      * @return Search result.
      */
-    Collection<Map<String, Object>> search(String query, int limit);
+    Collection<Document> search(String query, int limit);
+
+    /**
+     * Fetches raw data by ID.
+     *
+     * @param documentId Lucene Document ID.
+     * @return Raw (JSON) data.
+     */
+    Map<String, Object> fetch(String documentId);
 
     /**
      * Loads DataProvider configuration from config-file.

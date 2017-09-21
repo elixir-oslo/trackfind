@@ -73,7 +73,7 @@ public abstract class PaginationAwareDataProvider extends AbstractDataProvider {
                 try {
                     Collection<Map> page = fetchPage(urlWithPage, pageClass, finalI);
                     postProcessDatasets(page);
-                    indexWriter.addDocuments(page.stream().map(this::convertDatasetToDocument).collect(Collectors.toSet()));
+                    indexWriter.addDocuments(page.stream().map(mapToDocumentConverter).collect(Collectors.toSet()));
                     log.info("Page " + finalI + " processed.");
                 } catch (Exception e) {
                     log.error(e.getMessage(), e);

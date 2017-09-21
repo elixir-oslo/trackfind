@@ -53,18 +53,18 @@ public class TestTrackFindApplication {
             protected void fetchData(IndexWriter indexWriter) throws Exception {
                 Map<String, Object> dataset1 = new HashMap<>();
                 dataset1.put("key1", "value1");
-                indexWriter.addDocument(convertDatasetToDocument(dataset1));
+                indexWriter.addDocument(mapToDocumentConverter.apply(dataset1));
                 Map<String, Object> dataset2 = new HashMap<>();
                 dataset2.put("key1", "value2");
                 dataset2.put("key2", "value3");
-                indexWriter.addDocument(convertDatasetToDocument(dataset2));
+                indexWriter.addDocument(mapToDocumentConverter.apply(dataset2));
                 Map<String, Object> dataset3 = new HashMap<>();
                 Map<String, Collection<String>> dataUrls = new HashMap<>();
                 dataUrls.put("someDataType", Collections.singleton("someURL"));
                 dataUrls.put("anotherDataType", Collections.singleton("anotherURL"));
-                dataset3.put(DataProvider.DATA_URL_ATTRIBUTE, dataUrls);
+                dataset3.put(properties.getMetamodel().getDataURLAttribute(), dataUrls);
                 postProcessDataset(dataset3);
-                indexWriter.addDocument(convertDatasetToDocument(dataset3));
+                indexWriter.addDocument(mapToDocumentConverter.apply(dataset3));
             }
         };
     }

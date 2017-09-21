@@ -22,7 +22,6 @@ import no.uio.ifi.trackfind.frontend.listeners.TextFieldDropListener;
 import no.uio.ifi.trackfind.frontend.providers.TrackDataProvider;
 import no.uio.ifi.trackfind.frontend.providers.impl.AdminTrackDataProvider;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -104,7 +103,7 @@ public class TrackFindAdminUI extends AbstractUI {
         TreeGridDragSource<TreeNode> dragSource = new TreeGridDragSource<>((TreeGrid<TreeNode>) tree.getCompositionRoot());
         dragSource.setEffectAllowed(EffectAllowed.COPY);
         TreeNode root = new TreeNode(dataProvider.getMetamodelTree());
-        root.removeChild(DataProvider.BASIC);
+        root.removeChild(properties.getMetamodel().getBasicSectionName());
         AdminTrackDataProvider trackDataProvider = new AdminTrackDataProvider(root);
         tree.setDataProvider(trackDataProvider);
         tree.setSizeFull();
@@ -173,14 +172,9 @@ public class TrackFindAdminUI extends AbstractUI {
     }
 
     private ComboBox<String> buildGlobalAttributesComboBox(String targetAttribute) {
-        ComboBox<String> targetAttributeName = new ComboBox<>("Target attribute name", DataProvider.BASIC_ATTRIBUTES);
+        ComboBox<String> targetAttributeName = new ComboBox<>("Target attribute name", properties.getMetamodel().getBasicAttributes());
         targetAttributeName.setSelectedItem(targetAttribute);
         return targetAttributeName;
-    }
-
-    private boolean isEverythingFilled() {
-        return attributesMapping.keySet().stream().noneMatch(tf -> StringUtils.isEmpty(tf.getValue())) &&
-                attributesMapping.values().stream().noneMatch(tf -> StringUtils.isEmpty(tf.getValue()));
     }
 
     private void loadConfiguration() {

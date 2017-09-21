@@ -72,9 +72,9 @@ public class FANTOMDataProvider extends AbstractDataProvider {
                             for (String datasetRelatedFile : datasetRelatedFiles) {
                                 browser.computeIfAbsent(getDataType(datasetRelatedFile), k -> new HashSet<>()).add(METADATA_URL + dir + datasetRelatedFile);
                             }
-                            dataset.put(DATA_URL_ATTRIBUTE, browser);
+                            dataset.put(properties.getMetamodel().getDataURLAttribute(), browser);
                             postProcessDataset(dataset);
-                            indexWriter.addDocument(convertDatasetToDocument(dataset));
+                            indexWriter.addDocument(mapToDocumentConverter.apply(dataset));
                         }
                         log.info("Directory " + dir + " processed.");
                     }
