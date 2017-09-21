@@ -9,7 +9,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -27,7 +30,7 @@ public class DataProviderTests {
         assertThat(metamodel).isNotNull().isNotEmpty();
         assertThat(metamodel).containsOnlyKeys("Advanced");
         metamodel = (Map<String, Object>) metamodel.get("Advanced");
-        assertThat(metamodel).containsOnlyKeys("key1", "key2", "data_type");
+        assertThat(metamodel).containsKeys("key1", "key2", "data_type");
         Object value = metamodel.get("key1");
         assertThat(value).isInstanceOf(Collection.class);
         assertThat((Collection) value).containsOnly("value1", "value2");
@@ -47,65 +50,18 @@ public class DataProviderTests {
         assertThat(metamodel.get("Advanced>key2")).containsOnly("value3");
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void searchNoneTest() {
         Collection<Document> result = dataProvider.search("key1: value3", 0);
         assertThat(result).isEmpty();
     }
 
-//    @SuppressWarnings("unchecked")
-//    @Test
-//    public void searchOneTest() {
-//        Collection<Map<String, Object>> result = dataProvider.search("Advanced>key1: value1", 0);
-//        assertThat(result).size().isEqualTo(1);
-//        Map map = result.iterator().next();
-//        assertThat(map).containsEntry("key1", "value1");
-//    }
-//
-//    @SuppressWarnings("unchecked")
-//    @Test
-//    public void searchTwoTest() {
-//        Collection<Map<String, Object>> result = dataProvider.search("Advanced>key1: value1 OR Advanced>key2: value3", 0);
-//        assertThat(result).size().isEqualTo(2);
-//        Iterator<Map<String, Object>> iterator = result.iterator();
-//        Map map = iterator.next();
-//        assertThat(map).containsEntry("key1", "value1");
-//        map = iterator.next();
-//        assertThat(map).containsEntry("key1", "value2");
-//        assertThat(map).containsEntry("key2", "value3");
-//    }
-//
-//    @SuppressWarnings("unchecked")
-//    @Test
-//    public void searchTwoWithLimitTest() {
-//        Collection<Map<String, Object>> result = dataProvider.search("Advanced>key1: value1 OR Advanced>key2: value3", 1);
-//        assertThat(result).size().isEqualTo(1);
-//        Iterator<Map<String, Object>> iterator = result.iterator();
-//        Map map = iterator.next();
-//        assertThat(map).containsEntry("key1", "value1");
-//    }
-//
-//    @Test
-//    public void getUrlsFromDatasetFilteredTest() {
-//        String query = "Advanced>" + DataProvider.DATA_TYPE_ATTRIBUTE + ": someDataType OR something: something";
-//        Collection<Map<String, Object>> result = dataProvider.search(query, 0);
-//        assertThat(result).isNotNull().isNotEmpty();
-//        Map<String, Object> dataset = result.iterator().next();
-//        Collection<String> urlsFromDataset = dataProvider.getUrlsFromDataset(query, dataset);
-//        assertThat(urlsFromDataset).isNotNull().isNotEmpty();
-//        assertThat(urlsFromDataset).containsOnly("someURL");
-//    }
-//
-//    @Test
-//    public void getUrlsFromDatasetAllTest() {
-//        String query = "Advanced>" + DataProvider.DATA_TYPE_ATTRIBUTE + ": some*Data*Type";
-//        Collection<Map<String, Object>> result = dataProvider.search(query, 0);
-//        assertThat(result).isNotNull().isNotEmpty();
-//        Map<String, Object> dataset = result.iterator().next();
-//        Collection<String> urlsFromDataset = dataProvider.getUrlsFromDataset(query, dataset);
-//        assertThat(urlsFromDataset).isNotNull().isNotEmpty();
-//        assertThat(urlsFromDataset).containsExactlyInAnyOrder("someURL", "anotherURL");
-//    }
+    @Test
+    public void searchOneTest() {
+        Collection<Document> result = dataProvider.search("Advanced>key2: value3", 0);
+        assertThat(result).size().isEqualTo(1);
+        Document document = result.iterator().next();
+        assertThat(document.get("Advanced>key2")).isEqualToIgnoringCase("value3");
+    }
 
 }

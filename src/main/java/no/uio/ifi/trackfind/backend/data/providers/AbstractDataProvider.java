@@ -24,6 +24,7 @@ import org.apache.lucene.search.Weight;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.util.Bits;
 import org.apache.lucene.util.BytesRef;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.SerializationUtils;
 
@@ -101,22 +102,22 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
         return Collections.emptySet();
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @SuppressWarnings("unchecked")
-    @Override
-    public Collection<String> getUrlsFromDataset(String query, Map dataset) {
-        Set<String> dataTypes = extractDataTypesFromQuery(query);
-        Collection<String> urls = new HashSet<>();
-        Map<String, Collection<String>> browser = (Map<String, Collection<String>>) dataset.get(properties.getMetamodel().getDataURLAttribute());
-        if (CollectionUtils.isNotEmpty(dataTypes)) {
-            dataTypes.forEach(dt -> urls.addAll(browser.getOrDefault(dt, Collections.emptySet())));
-        } else {
-            urls.addAll(browser.values().stream().flatMap(Collection::stream).collect(Collectors.toSet()));
-        }
-        return urls;
-    }
+//    /**
+//     * {@inheritDoc}
+//     */
+//    @SuppressWarnings("unchecked")
+//    @Override
+//    public Collection<String> getUrlsFromDataset(String query, Map dataset) {
+//        Set<String> dataTypes = extractDataTypesFromQuery(query);
+//        Collection<String> urls = new HashSet<>();
+//        Map<String, Collection<String>> browser = (Map<String, Collection<String>>) dataset.get(properties.getMetamodel().getDataURLAttribute());
+//        if (CollectionUtils.isNotEmpty(dataTypes)) {
+//            dataTypes.forEach(dt -> urls.addAll(browser.getOrDefault(dt, Collections.emptySet())));
+//        } else {
+//            urls.addAll(browser.values().stream().flatMap(Collection::stream).collect(Collectors.toSet()));
+//        }
+//        return urls;
+//    }
 
     /**
      * Parses Lucene Query to get 'data type' terms from it.
@@ -158,8 +159,8 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
             fetchData(indexWriter);
             indexWriter.flush();
             indexWriter.commit();
-            versioningService.commitAllChanges(VersioningService.Operation.CRAWLING, getName());
-            versioningService.tag(getName());
+            commit(VersioningService.Operation.CRAWLING);
+            tag();
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return;
@@ -199,13 +200,33 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
             }
             indexWriter.flush();
             indexWriter.commit();
-            versioningService.commitAllChanges(VersioningService.Operation.REMAPPING, getName());
+            commit(VersioningService.Operation.REMAPPING);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return;
         }
         reinitIndexSearcher();
         log.info("Success!");
+    }
+
+    /**
+     * Commit changes.
+     *
+     * @param operation Operation to commit.
+     * @throws GitAPIException In case of Git error.
+     */
+    protected void commit(VersioningService.Operation operation) throws GitAPIException {
+        versioningService.commitAllChanges(operation, getName());
+    }
+
+
+    /**
+     * Tag current revision (HEAD, hopefully).
+     *
+     * @throws GitAPIException In case of Git error.
+     */
+    protected void tag() throws GitAPIException {
+        versioningService.tag(getName());
     }
 
     /**

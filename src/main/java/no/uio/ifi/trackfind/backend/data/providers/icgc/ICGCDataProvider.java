@@ -5,12 +5,10 @@ import no.uio.ifi.trackfind.backend.data.providers.PaginationAwareDataProvider;
 import org.apache.lucene.index.IndexWriter;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 
 /**
  * Fetches data from <a href="http://docs.icgc.org/">ICGC</a>.
@@ -54,21 +52,22 @@ public class ICGCDataProvider extends PaginationAwareDataProvider { // TODO: Fet
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Collection<String> getUrlsFromDataset(String query, Map dataset) {
-        Collection<String> submitURLs = super.getUrlsFromDataset(query, dataset);
-        return submitURLs.stream().map(submitURL -> {
-            try (InputStream inputStream = new URL(submitURL).openStream();
-                 InputStreamReader reader = new InputStreamReader(inputStream)) {
-                Download download = gson.fromJson(reader, Download.class);
-                return DOWNLOAD + download.getDownloadId();
-            } catch (IOException e) {
-                return null;
-            }
-        }).filter(Objects::nonNull).collect(Collectors.toSet());
-    }
+    // TODO: Take care of two-steps downloading.
+//    /**
+//     * {@inheritDoc}
+//     */
+//    @Override
+//    public Collection<String> getUrlsFromDataset(String query, Map dataset) {
+//        Collection<String> submitURLs = super.getUrlsFromDataset(query, dataset);
+//        return submitURLs.stream().map(submitURL -> {
+//            try (InputStream inputStream = new URL(submitURL).openStream();
+//                 InputStreamReader reader = new InputStreamReader(inputStream)) {
+//                Download download = gson.fromJson(reader, Download.class);
+//                return DOWNLOAD + download.getDownloadId();
+//            } catch (IOException e) {
+//                return null;
+//            }
+//        }).filter(Objects::nonNull).collect(Collectors.toSet());
+//    }
 
 }

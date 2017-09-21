@@ -13,6 +13,7 @@ import java.util.Map;
  *
  * @author Dmytro Titov
  */
+// TODO: Add unit-tests for new methods.
 public interface DataProvider {
 
     /**
@@ -28,15 +29,6 @@ public interface DataProvider {
      * @return Repository name.
      */
     String getPath();
-
-    /**
-     * Gets BigData URLs from dataset.
-     *
-     * @param query   Search query used for finding this dataset.
-     * @param dataset Particular dataset as map.
-     * @return BigData URLs.
-     */
-    Collection<String> getUrlsFromDataset(String query, Map dataset);
 
     /**
      * Re-fetches data, rebuilds index.

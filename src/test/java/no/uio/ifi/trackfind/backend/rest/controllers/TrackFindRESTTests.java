@@ -14,6 +14,7 @@ import org.springframework.web.context.WebApplicationContext;
 import static no.uio.ifi.trackfind.TestTrackFindApplication.TEST_DATA_PROVIDER;
 import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SuppressWarnings("PMD.JUnitTestsShouldIncludeAssert")
@@ -63,15 +64,6 @@ public class TrackFindRESTTests {
     }
 
     @Test
-    public void getAttributesTest() throws Exception {
-        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/attributes/"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType("application/json;charset=UTF-8"))
-                .andExpect(jsonPath("$", hasSize(3)))
-                .andExpect(jsonPath("$", containsInAnyOrder("Advanced>key1", "Advanced>key2", "Advanced>data_type")));
-    }
-
-    @Test
     public void getAttributesWithFilterTest() throws Exception {
         mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/attributes").param("filter", "ey1"))
                 .andExpect(status().isOk())
@@ -109,13 +101,11 @@ public class TrackFindRESTTests {
 
     @Test
     public void searchTest() throws Exception {
-        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/search").param("query", "Advanced>key1: value1 OR Advanced>key2: value3"))
+        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/search").param("query", "Advanced>key2: value3"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
-                .andExpect(jsonPath("$", hasSize(2)))
-                .andExpect(jsonPath("$.[0].key1", is("value1")))
-                .andExpect(jsonPath("$.[1].key1", is("value2")))
-                .andExpect(jsonPath("$.[1].key2", is("value3")));
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$.[0].Advanced.key2", is("value3")));
     }
 
 }

@@ -4,9 +4,11 @@ import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
 import no.uio.ifi.trackfind.backend.data.providers.ihec.IHECDataProvider;
 import no.uio.ifi.trackfind.backend.lucene.DirectoryFactory;
+import no.uio.ifi.trackfind.backend.services.VersioningService;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
@@ -66,6 +68,17 @@ public class TestTrackFindApplication {
                 postProcessDataset(dataset3);
                 indexWriter.addDocument(mapToDocumentConverter.apply(dataset3));
             }
+
+            @Override
+            protected void commit(VersioningService.Operation operation) throws GitAPIException {
+                // do nothing
+            }
+
+            @Override
+            protected void tag() throws GitAPIException {
+                // do nothing
+            }
+
         };
     }
 

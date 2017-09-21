@@ -6,7 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 
-import java.util.Collection;
+import java.util.TreeSet;
 
 @Configuration
 @PropertySource("classpath:trackfind.properties")
@@ -26,7 +26,7 @@ public class TrackFindProperties {
         private @NotBlank String rawDataAttribute;
         private @NotBlank String dataURLAttribute;
         private @NotBlank String dataTypeAttribute;
-        private Collection<String> basicAttributes;
+        private TreeSet<String> basicAttributes;
 
     }
 

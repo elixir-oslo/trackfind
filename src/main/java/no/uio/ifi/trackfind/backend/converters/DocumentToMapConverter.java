@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
  *
  * @author Dmytro Titov
  */
+// TODO: Add unit-test.
 @Component
 public class DocumentToMapConverter implements Function<Document, Map> {
 

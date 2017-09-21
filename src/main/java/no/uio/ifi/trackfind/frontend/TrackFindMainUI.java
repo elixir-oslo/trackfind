@@ -7,10 +7,7 @@ import com.vaadin.annotations.Widgetset;
 import com.vaadin.data.HasValue;
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.event.ShortcutListener;
-import com.vaadin.server.FileDownloader;
-import com.vaadin.server.Sizeable;
-import com.vaadin.server.UserError;
-import com.vaadin.server.VaadinRequest;
+import com.vaadin.server.*;
 import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.shared.ui.ValueChangeMode;
 import com.vaadin.shared.ui.dnd.DropEffect;
@@ -20,7 +17,8 @@ import com.vaadin.ui.*;
 import com.vaadin.ui.components.grid.TreeGridDragSource;
 import com.vaadin.ui.dnd.DropTargetExtension;
 import lombok.extern.slf4j.Slf4j;
-import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
+import no.uio.ifi.trackfind.backend.converters.DocumentToMapConverter;
+import no.uio.ifi.trackfind.backend.converters.DocumentToTSVConverter;
 import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
 import no.uio.ifi.trackfind.frontend.components.KeyboardInterceptorExtension;
 import no.uio.ifi.trackfind.frontend.components.TrackFindTree;
@@ -33,10 +31,15 @@ import no.uio.ifi.trackfind.frontend.providers.impl.MainTrackDataProvider;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.document.Document;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 
+import java.io.ByteArrayInputStream;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Main Vaadin UI of the application.
@@ -53,6 +56,8 @@ import java.util.Optional;
 @Slf4j
 public class TrackFindMainUI extends AbstractUI {
 
+    private DocumentToMapConverter documentToMapConverter;
+    private DocumentToTSVConverter documentToTSVConverter;
     private Gson gson;
 
     private Collection<Document> lastResults;
@@ -244,43 +249,51 @@ public class TrackFindMainUI extends AbstractUI {
     }
 
     private void executeQuery(String query) {
-//        DataProvider currentDataProvider = getCurrentDataProvider();
-//
-//        String limit = limitTextField.getValue();
-//        limit = StringUtils.isEmpty(limit) ? "0" : limit;
-//        lastResults = currentDataProvider.search(query, Integer.parseInt(limit));
-//        String jsonResult = gson.toJson(lastResults);
-//        if (CollectionUtils.isEmpty(lastResults)) {
-//            resultsTextArea.setValue("");
-//            Notification.show("Nothing found for such request");
-//        } else {
-//            resultsTextArea.setValue(jsonResult);
-//        }
-//
-//        // TODO: Export all available Basic Attributes here + ID + revision.
-//        StringBuilder result = new StringBuilder("###uri\trepository");
-//        for (Map lastResult : lastResults) {
-//            for (String url : currentDataProvider.getUrlsFromDataset(query, lastResult)) {
-//                result.append("\n").append(url).append("\t").append(currentDataProvider.getName());
-//            }
-//        }
-//
-//        if (gSuiteFileDownloader != null) {
-//            exportGSuiteButton.removeExtension(gSuiteFileDownloader);
-//        }
-//        if (jsonFileDownloader != null) {
-//            exportJSONButton.removeExtension(jsonFileDownloader);
-//        }
-//        String finalResult = result.toString();
-//        Resource gSuiteResource = new StreamResource((StreamResource.StreamSource) () -> new ByteArrayInputStream(finalResult.getBytes(Charset.defaultCharset())),
-//                Calendar.getInstance().getTime().toString() + ".gsuite");
-//        gSuiteFileDownloader = new FileDownloader(gSuiteResource);
-//        gSuiteFileDownloader.extend(exportGSuiteButton);
-//
-//        Resource jsonResource = new StreamResource((StreamResource.StreamSource) () -> new ByteArrayInputStream(jsonResult.getBytes(Charset.defaultCharset())),
-//                Calendar.getInstance().getTime().toString() + ".json");
-//        jsonFileDownloader = new FileDownloader(jsonResource);
-//        jsonFileDownloader.extend(exportJSONButton);
+        DataProvider currentDataProvider = getCurrentDataProvider();
+
+        String limit = limitTextField.getValue();
+        limit = StringUtils.isEmpty(limit) ? "0" : limit;
+        lastResults = currentDataProvider.search(query, Integer.parseInt(limit));
+        String jsonResult = gson.toJson(lastResults.stream().map(documentToMapConverter).collect(Collectors.toSet()));
+        if (CollectionUtils.isEmpty(lastResults)) {
+            resultsTextArea.setValue("");
+            Notification.show("Nothing found for such request");
+        } else {
+            resultsTextArea.setValue(jsonResult);
+        }
+
+        // TODO: Export all available Basic Attributes here + ID + revision.
+        StringBuilder result = new StringBuilder("###");
+        properties.getMetamodel().getBasicAttributes().forEach(ba -> result.append(ba).append("\t"));
+        result.append("\n");
+        lastResults.stream().map(documentToTSVConverter).forEach(result::append);
+
+        if (gSuiteFileDownloader != null) {
+            exportGSuiteButton.removeExtension(gSuiteFileDownloader);
+        }
+        if (jsonFileDownloader != null) {
+            exportJSONButton.removeExtension(jsonFileDownloader);
+        }
+        String finalResult = result.toString();
+        Resource gSuiteResource = new StreamResource((StreamResource.StreamSource) () -> new ByteArrayInputStream(finalResult.getBytes(Charset.defaultCharset())),
+                Calendar.getInstance().getTime().toString() + ".gsuite");
+        gSuiteFileDownloader = new FileDownloader(gSuiteResource);
+        gSuiteFileDownloader.extend(exportGSuiteButton);
+
+        Resource jsonResource = new StreamResource((StreamResource.StreamSource) () -> new ByteArrayInputStream(jsonResult.getBytes(Charset.defaultCharset())),
+                Calendar.getInstance().getTime().toString() + ".json");
+        jsonFileDownloader = new FileDownloader(jsonResource);
+        jsonFileDownloader.extend(exportJSONButton);
+    }
+
+    @Autowired
+    public void setDocumentToMapConverter(DocumentToMapConverter documentToMapConverter) {
+        this.documentToMapConverter = documentToMapConverter;
+    }
+
+    @Autowired
+    public void setDocumentToTSVConverter(DocumentToTSVConverter documentToTSVConverter) {
+        this.documentToTSVConverter = documentToTSVConverter;
     }
 
     @Autowired
