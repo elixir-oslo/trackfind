@@ -19,7 +19,6 @@ import java.util.stream.Collectors;
  *
  * @author Dmytro Titov
  */
-// TODO: Doesn't work, fix it.
 public class TreeSelectionListener implements SelectionListener<TreeNode> {
 
     private Tree<TreeNode> tree;
