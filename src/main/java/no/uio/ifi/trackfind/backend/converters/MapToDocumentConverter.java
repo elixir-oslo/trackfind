@@ -3,12 +3,9 @@ package no.uio.ifi.trackfind.backend.converters;
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
-import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.StringField;
-import org.apache.lucene.util.BytesRef;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.util.SerializationUtils;
 import org.springframework.util.StringUtils;
 
 import java.util.Collection;
@@ -38,8 +35,7 @@ public class MapToDocumentConverter implements Function<Map, Document> {
     public Document apply(Map map) {
         Document document = new Document();
         convertMapToDocument(document, map, properties.getMetamodel().getLevelsSeparator() + properties.getMetamodel().getAdvancedSectionName());
-        document.add(new StringField(properties.getMetamodel().getIdAttribute(), UUID.randomUUID().toString(), Field.Store.YES));
-        document.add(new StoredField(properties.getMetamodel().getRawDataAttribute(), new BytesRef(SerializationUtils.serialize(map))));
+        document.add(new StringField(properties.getMetamodel().getAdvancedIdAttribute(), UUID.randomUUID().toString(), Field.Store.YES));
         return document;
     }
 

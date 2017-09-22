@@ -5,6 +5,7 @@ import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
+import no.uio.ifi.trackfind.backend.converters.DocumentToMapConverter;
 import no.uio.ifi.trackfind.backend.converters.MapToDocumentConverter;
 import no.uio.ifi.trackfind.backend.lucene.DirectoryFactory;
 import no.uio.ifi.trackfind.backend.services.VersioningService;
@@ -26,7 +27,6 @@ import org.apache.lucene.util.Bits;
 import org.apache.lucene.util.BytesRef;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.SerializationUtils;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
@@ -58,6 +58,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
 
     protected TrackFindProperties properties;
     protected MapToDocumentConverter mapToDocumentConverter;
+    protected DocumentToMapConverter documentToMapConverter;
     protected ExecutorService executorService;
     protected Gson gson;
 
@@ -169,7 +170,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
                         document.add(new StringField(properties.getMetamodel().getBasicSectionName() + properties.getMetamodel().getLevelsSeparator() + mapping.getValue(), value, Field.Store.YES));
                     }
                 }
-                indexWriter.updateDocument(new Term(properties.getMetamodel().getIdAttribute(), document.get(properties.getMetamodel().getIdAttribute())), document);
+                indexWriter.updateDocument(new Term(properties.getMetamodel().getAdvancedIdAttribute(), document.get(properties.getMetamodel().getAdvancedIdAttribute())), document);
             }
             indexWriter.flush();
             indexWriter.commit();
@@ -339,9 +340,13 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     @SuppressWarnings("unchecked")
     @Override
     public Map<String, Object> fetch(String documentId) {
-        Collection<Document> documents = search(properties.getMetamodel().getIdAttribute() + ": " + documentId, 1);
-        return CollectionUtils.isEmpty(documents) ? null :
-                (Map<String, Object>) SerializationUtils.deserialize(documents.iterator().next().getBinaryValue(properties.getMetamodel().getRawDataAttribute()).bytes);
+        Collection<Document> documents = search(properties.getMetamodel().getAdvancedIdAttribute() + ": " + documentId, 1);
+        if (CollectionUtils.isEmpty(documents)) {
+            return null;
+        }
+        Map map = documentToMapConverter.apply(documents.iterator().next());
+        ((Map) map.get(properties.getMetamodel().getAdvancedSectionName())).remove(properties.getMetamodel().getIdAttribute());
+        return (Map) map.get(properties.getMetamodel().getAdvancedSectionName());
     }
 
     /**
@@ -397,6 +402,11 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     @Autowired
     public void setMapToDocumentConverter(MapToDocumentConverter mapToDocumentConverter) {
         this.mapToDocumentConverter = mapToDocumentConverter;
+    }
+
+    @Autowired
+    public void setDocumentToMapConverter(DocumentToMapConverter documentToMapConverter) {
+        this.documentToMapConverter = documentToMapConverter;
     }
 
     @Autowired
