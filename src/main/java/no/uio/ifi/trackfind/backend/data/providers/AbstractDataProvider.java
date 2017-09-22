@@ -112,6 +112,30 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     protected abstract void fetchData(IndexWriter indexWriter) throws Exception;
 
     /**
+     * Split one dataset into multiple by DataType/URL pair.
+     *
+     * @param dataset Dataset to split.
+     * @return Multiple datasets extracted from single input.
+     */
+    @SuppressWarnings("unchecked")
+    protected Collection<Map> splitDatasetByDataTypes(Map dataset) {
+        Map<String, Collection<String>> browser = (Map<String, Collection<String>>) dataset.remove(properties.getMetamodel().getBrowserAttribute());
+        String json = gson.toJson(dataset);
+        HashMultimap<String, String> browserMultiMap = HashMultimap.create();
+        browser.entrySet().parallelStream().forEach(e -> browserMultiMap.putAll(e.getKey(), e.getValue()));
+        Collection<Map> result = new HashSet<>();
+        for (Map.Entry<String, String> entry : browserMultiMap.entries()) {
+            Map map = gson.fromJson(json, Map.class);
+            map.put(properties.getMetamodel().getDataTypeAttribute(), entry.getKey());
+            map.put(properties.getMetamodel().getDataURLAttribute(), entry.getValue());
+            map.put(properties.getMetamodel().getIdAttribute(), UUID.randomUUID().toString());
+            map.put(properties.getMetamodel().getDataSourceAttribute(), getName());
+            result.add(map);
+        }
+        return result;
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
@@ -159,7 +183,8 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
                     values.add(document.get(sourceAttribute));
                     values.remove(null);
                     if (CollectionUtils.isEmpty(values)) { // no values found - let's use nested attributes as values
-                        values = indexedFields.parallelStream().
+                        values = document.getFields().parallelStream().
+                                map(IndexableField::name).
                                 filter(f -> f.startsWith(sourceAttribute)).
                                 map(f -> f.replace(sourceAttribute, "")).
                                 filter(StringUtils::isNotEmpty).
@@ -201,25 +226,6 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      */
     protected void tag() throws GitAPIException {
         versioningService.tag(getName());
-    }
-
-    /**
-     * Datasets post-processing.
-     *
-     * @param datasets Fetched datasets to process.
-     */
-    protected void postProcessDatasets(Collection<Map> datasets) {
-        datasets.forEach(this::postProcessDataset);
-    }
-
-    /**
-     * Dataset post-processing.
-     *
-     * @param dataset Fetched dataset to process.
-     */
-    @SuppressWarnings("unchecked")
-    protected void postProcessDataset(Map dataset) {
-        // do some post-processing
     }
 
     /**

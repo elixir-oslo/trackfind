@@ -47,7 +47,7 @@ public class ICGCDataProvider extends PaginationAwareDataProvider { // TODO: Fet
             for (String dataType : availableDataTypes) {
                 browser.computeIfAbsent(dataType, k -> new HashSet<>()).add(SUBMIT.replace("__DONOR_ID__", donorId).replace("__DATA_TYPE__", dataType));
             }
-            dataset.put(properties.getMetamodel().getDataURLAttribute(), browser);
+            dataset.put(properties.getMetamodel().getBrowserAttribute(), browser);
             dataset.remove(AVAILABLE_DATA_TYPES);
         }
     }

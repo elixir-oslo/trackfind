@@ -261,7 +261,7 @@ public class TrackFindMainUI extends AbstractUI {
         String limit = limitTextField.getValue();
         limit = StringUtils.isEmpty(limit) ? "0" : limit;
         lastResults = currentDataProvider.search(query, Integer.parseInt(limit));
-        String jsonResult = gson.toJson(lastResults.parallelStream().map(documentToMapConverter).collect(Collectors.toSet()));
+        String jsonResult = gson.toJson(lastResults.stream().map(documentToMapConverter).collect(Collectors.toSet()));
         if (CollectionUtils.isEmpty(lastResults)) {
             resultsTextArea.setValue("");
             Notification.show("Nothing found for such request");
@@ -273,7 +273,7 @@ public class TrackFindMainUI extends AbstractUI {
         StringBuilder result = new StringBuilder("###");
         properties.getMetamodel().getBasicAttributes().forEach(ba -> result.append(ba).append("\t"));
         result.append("\n");
-        lastResults.parallelStream().map(documentToTSVConverter).forEach(result::append);
+        lastResults.stream().map(documentToTSVConverter).forEach(result::append);
 
         if (gSuiteFileDownloader != null) {
             exportGSuiteButton.removeExtension(gSuiteFileDownloader);

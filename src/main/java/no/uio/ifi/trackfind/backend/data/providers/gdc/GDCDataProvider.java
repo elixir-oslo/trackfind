@@ -58,7 +58,7 @@ public class GDCDataProvider extends PaginationAwareDataProvider {
                 String fileId = String.valueOf(file.get("file_id"));
                 browser.computeIfAbsent(dataType, k -> new HashSet<>()).add(DOWNLOAD + fileId);
             }
-            dataset.put(properties.getMetamodel().getDataURLAttribute(), browser);
+            dataset.put(properties.getMetamodel().getBrowserAttribute(), browser);
             dataset.put(FILES, files);
         }
     }
@@ -77,8 +77,8 @@ public class GDCDataProvider extends PaginationAwareDataProvider {
 
     @Autowired
     @Override
-    public void setExecutorService(ExecutorService fixedThreadPool) {
-        this.executorService = fixedThreadPool;
+    public void setExecutorService(ExecutorService singleThreadExecutor) {
+        this.executorService = singleThreadExecutor;
     }
 
 }

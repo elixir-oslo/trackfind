@@ -35,7 +35,6 @@ public class MapToDocumentConverter implements Function<Map, Document> {
     public Document apply(Map map) {
         Document document = new Document();
         convertMapToDocument(document, map, properties.getMetamodel().getLevelsSeparator() + properties.getMetamodel().getAdvancedSectionName());
-        document.add(new StringField(properties.getMetamodel().getAdvancedIdAttribute(), UUID.randomUUID().toString(), Field.Store.YES));
         return document;
     }
 
