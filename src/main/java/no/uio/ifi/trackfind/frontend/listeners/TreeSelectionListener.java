@@ -59,31 +59,31 @@ public class TreeSelectionListener implements SelectionListener<TreeNode> {
             return;
         }
         if (current.isFinalAttribute()) {
-            selectedItems.stream().filter(tn -> !tn.equals(current)).forEach(tree::deselect);
+            selectedItems.parallelStream().filter(tn -> !tn.equals(current)).forEach(tree::deselect);
             return;
         }
-        selectedItems.stream().filter(TreeNode::isFinalAttribute).forEach(tree::deselect);
-        selectedItems.stream().filter(tn -> tn.getLevel() != current.getLevel() || tn.getParent() != current.getParent()).forEach(tree::deselect);
+        selectedItems.parallelStream().filter(TreeNode::isFinalAttribute).forEach(tree::deselect);
+        selectedItems.parallelStream().filter(tn -> tn.getLevel() != current.getLevel() || tn.getParent() != current.getParent()).forEach(tree::deselect);
         if (!keyboardInterceptorExtension.isControlKeyDown() &&
                 !keyboardInterceptorExtension.isMetaKeyDown() &&
                 !keyboardInterceptorExtension.isShiftKeyDown()) {
-            selectedItems.stream().filter(tn -> !tn.equals(current)).forEach(tree::deselect);
+            selectedItems.parallelStream().filter(tn -> !tn.equals(current)).forEach(tree::deselect);
         } else if (keyboardInterceptorExtension.isShiftKeyDown()) {
-            List<TreeNode> oldSelection = multiSelectionEvent.getOldSelection().stream().sorted().collect(Collectors.toList());
-            if (oldSelection.stream().anyMatch(tn -> tn.getParent() != current.getParent())) {
+            List<TreeNode> oldSelection = multiSelectionEvent.getOldSelection().parallelStream().sorted().collect(Collectors.toList());
+            if (oldSelection.parallelStream().anyMatch(tn -> tn.getParent() != current.getParent())) {
                 return;
             }
             TreeNode first = oldSelection.get(0);
             TreeNode last = oldSelection.get(oldSelection.size() - 1);
             final int[] index = {0};
             Map<TreeNode, Integer> indexedSiblings =
-                    current.getParent().getChildren().stream().sorted().collect(Collectors.toMap(Function.identity(), tn -> index[0]++));
+                    current.getParent().getChildren().parallelStream().sorted().collect(Collectors.toMap(Function.identity(), tn -> index[0]++));
             int firstIndex = indexedSiblings.get(first);
             int lastIndex = indexedSiblings.get(last);
             int currentIndex = indexedSiblings.get(current);
             List<Integer> indices = Arrays.asList(firstIndex, lastIndex, currentIndex);
-            Optional<Integer> optionalMin = indices.stream().min(Integer::compareTo);
-            Optional<Integer> optionalMax = indices.stream().max(Integer::compareTo);
+            Optional<Integer> optionalMin = indices.parallelStream().min(Integer::compareTo);
+            Optional<Integer> optionalMax = indices.parallelStream().max(Integer::compareTo);
             if (!optionalMin.isPresent() || !optionalMax.isPresent()) {
                 return;
             }

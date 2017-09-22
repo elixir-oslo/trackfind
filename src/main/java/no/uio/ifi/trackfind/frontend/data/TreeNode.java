@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
  */
 public class TreeNode implements Comparable<TreeNode> {
 
+    private boolean expanded = false;
     private int level = 0;
     private TreeNode parent;
     private Map.Entry<String, Object> node;
@@ -185,6 +186,24 @@ public class TreeNode implements Comparable<TreeNode> {
      */
     private boolean isFinalAttributeInternally() {
         return getChildren().parallelStream().anyMatch(TreeNode::isValue);
+    }
+
+    /**
+     * Checks whether node is expanded on UI.
+     *
+     * @return <code>true</code> for expanded, <code>false</code> otherwise
+     */
+    public boolean isExpanded() {
+        return expanded;
+    }
+
+    /**
+     * Sets node state
+     *
+     * @param expanded <code>true</code> for expanded, <code>false</code> otherwise
+     */
+    public void setExpanded(boolean expanded) {
+        this.expanded = expanded;
     }
 
     /**

@@ -67,7 +67,7 @@ public class MetamodelController {
     public ResponseEntity<Collection<String>> getAttributes(@PathVariable String provider,
                                                             @RequestParam(required = false, defaultValue = "") String filter) throws Exception {
         Set<String> attributes = trackFindService.getDataProvider(provider).getMetamodelFlat().asMap().keySet();
-        return ResponseEntity.ok(attributes.stream().filter(a -> a.contains(filter)).collect(Collectors.toSet()));
+        return ResponseEntity.ok(attributes.parallelStream().filter(a -> a.contains(filter)).collect(Collectors.toSet()));
     }
 
     /**
@@ -85,7 +85,7 @@ public class MetamodelController {
                                                         @PathVariable String attribute,
                                                         @RequestParam(required = false, defaultValue = "") String filter) throws Exception {
         Collection<String> values = trackFindService.getDataProvider(provider).getMetamodelFlat().get(attribute);
-        return ResponseEntity.ok(values.stream().filter(a -> a.contains(filter)).collect(Collectors.toSet()));
+        return ResponseEntity.ok(values.parallelStream().filter(a -> a.contains(filter)).collect(Collectors.toSet()));
     }
 
     @Autowired

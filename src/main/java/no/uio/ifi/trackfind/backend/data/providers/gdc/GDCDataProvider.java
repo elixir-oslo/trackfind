@@ -52,7 +52,7 @@ public class GDCDataProvider extends PaginationAwareDataProvider {
         for (Map dataset : page) {
             Map<String, Collection<String>> browser = new HashMap<>();
             Collection<Map<String, Object>> files = (Collection<Map<String, Object>>) dataset.get(FILES);
-            files = files.stream().filter(f -> "open".equals(f.get("access"))).collect(Collectors.toSet());
+            files = files.parallelStream().filter(f -> "open".equals(f.get("access"))).collect(Collectors.toSet());
             for (Map<String, Object> file : files) {
                 String dataType = String.valueOf(file.get("data_type"));
                 String fileId = String.valueOf(file.get("file_id"));

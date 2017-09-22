@@ -46,7 +46,7 @@ public class IHECDataProvider extends AbstractDataProvider {
         }
         int size = releases.size();
         log.info(size + " releases collected.");
-        Set<Integer> releaseIds = releases.stream().sorted().map(Release::getId).collect(Collectors.toSet());
+        Set<Integer> releaseIds = releases.parallelStream().sorted().map(Release::getId).collect(Collectors.toSet());
         CountDownLatch countDownLatch = new CountDownLatch(size);
         for (int releaseId : releaseIds) {
             executorService.submit(() -> {
@@ -73,7 +73,7 @@ public class IHECDataProvider extends AbstractDataProvider {
                         dataset.put(properties.getMetamodel().getDataURLAttribute(), browserToStore);
                     }
                     postProcessDatasets(datasets);
-                    indexWriter.addDocuments(datasets.stream().map(mapToDocumentConverter).collect(Collectors.toSet()));
+                    indexWriter.addDocuments(datasets.parallelStream().map(mapToDocumentConverter).collect(Collectors.toSet()));
                     log.info("Release " + releaseId + " processed.");
                 } catch (IOException e) {
                     log.error(e.getMessage(), e);

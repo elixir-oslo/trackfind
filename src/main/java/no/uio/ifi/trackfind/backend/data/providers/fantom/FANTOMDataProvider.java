@@ -38,7 +38,7 @@ public class FANTOMDataProvider extends AbstractDataProvider {
     protected void fetchData(IndexWriter indexWriter) throws Exception {
         log.info("Collecting directories...");
         Document root = Jsoup.parse(new URL(METADATA_URL), 10000);
-        Set<String> dirs = root.getElementsByTag("a").stream().map(e -> e.attr("href")).filter(s -> s.contains(".") && s.endsWith("/")).collect(Collectors.toSet());
+        Set<String> dirs = root.getElementsByTag("a").parallelStream().map(e -> e.attr("href")).filter(s -> s.contains(".") && s.endsWith("/")).collect(Collectors.toSet());
         int size = dirs.size();
         log.info(size + " directories collected");
         CountDownLatch countDownLatch = new CountDownLatch(size);
@@ -46,8 +46,8 @@ public class FANTOMDataProvider extends AbstractDataProvider {
             executorService.submit(() -> {
                 try {
                     Document folder = Jsoup.parse(new URL(METADATA_URL + dir), 10000);
-                    Set<String> allFiles = folder.getElementsByTag("a").stream().map(e -> e.attr("href")).collect(Collectors.toSet());
-                    Optional<String> metadataFileOptional = allFiles.stream().filter(s -> s.endsWith("_sdrf.txt")).findAny();
+                    Set<String> allFiles = folder.getElementsByTag("a").parallelStream().map(e -> e.attr("href")).collect(Collectors.toSet());
+                    Optional<String> metadataFileOptional = allFiles.parallelStream().filter(s -> s.endsWith("_sdrf.txt")).findAny();
                     if (!metadataFileOptional.isPresent()) {
                         return;
                     }
@@ -68,7 +68,7 @@ public class FANTOMDataProvider extends AbstractDataProvider {
                                 }
                             }
                             Map<String, Collection<String>> browser = new HashMap<>();
-                            Set<String> datasetRelatedFiles = allFiles.stream().filter(s -> s.contains(next.get(0))).collect(Collectors.toSet());
+                            Set<String> datasetRelatedFiles = allFiles.parallelStream().filter(s -> s.contains(next.get(0))).collect(Collectors.toSet());
                             for (String datasetRelatedFile : datasetRelatedFiles) {
                                 browser.computeIfAbsent(getDataType(datasetRelatedFile), k -> new HashSet<>()).add(METADATA_URL + dir + datasetRelatedFile);
                             }

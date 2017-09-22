@@ -59,7 +59,7 @@ public class ICGCDataProvider extends PaginationAwareDataProvider { // TODO: Fet
 //    @Override
 //    public Collection<String> getUrlsFromDataset(String query, Map dataset) {
 //        Collection<String> submitURLs = super.getUrlsFromDataset(query, dataset);
-//        return submitURLs.stream().map(submitURL -> {
+//        return submitURLs.parallelStream().map(submitURL -> {
 //            try (InputStream inputStream = new URL(submitURL).openStream();
 //                 InputStreamReader reader = new InputStreamReader(inputStream)) {
 //                Download download = gson.fromJson(reader, Download.class);

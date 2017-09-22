@@ -44,7 +44,7 @@ public class DataController {
     public ResponseEntity<Collection<Map>> search(@PathVariable String provider,
                                                   @RequestParam String query,
                                                   @RequestParam(required = false, defaultValue = "0") int limit) throws Exception {
-        Collection<Map> result = trackFindService.getDataProvider(provider).search(query, limit).stream().map(documentToMapConverter).collect(Collectors.toSet());
+        Collection<Map> result = trackFindService.getDataProvider(provider).search(query, limit).parallelStream().map(documentToMapConverter).collect(Collectors.toSet());
         return ResponseEntity.ok(result);
     }
 

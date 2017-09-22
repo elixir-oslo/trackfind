@@ -36,7 +36,7 @@ public class ProvidersController {
     @ApiOperation(value = "Gets full set of data providers registered in the system.")
     @GetMapping(path = "/providers", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Collection<String>> getProviders() throws Exception {
-        return ResponseEntity.ok(trackFindService.getDataProviders().stream().map(DataProvider::getName).collect(Collectors.toSet()));
+        return ResponseEntity.ok(trackFindService.getDataProviders().parallelStream().map(DataProvider::getName).collect(Collectors.toSet()));
     }
 
 //    /**

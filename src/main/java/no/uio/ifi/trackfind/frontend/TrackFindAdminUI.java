@@ -107,7 +107,7 @@ public class TrackFindAdminUI extends AbstractUI {
         dragSource.setEffectAllowed(EffectAllowed.COPY);
         TreeNode root = new TreeNode(dataProvider.getMetamodelTree());
         TreeData<TreeNode> treeData = new TreeData<>();
-        Collection<TreeNode> children = root.getChildren().stream().filter(c -> properties.getMetamodel().getAdvancedSectionName().equals(c.toString())).collect(Collectors.toSet());
+        Collection<TreeNode> children = root.getChildren().parallelStream().filter(c -> properties.getMetamodel().getAdvancedSectionName().equals(c.toString())).collect(Collectors.toSet());
         treeData.addRootItems(children);
         children.forEach(c -> fillTreeData(treeData, c));
         TreeDataProvider trackDataProvider = new TreeDataProvider(treeData);

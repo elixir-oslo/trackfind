@@ -140,7 +140,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     public synchronized void applyMappings() {
         log.info("Applying mappings for " + getName());
         Collection<String> indexedFields = MultiFields.getIndexedFields(indexReader);
-        Collection<String> basicAttributes = indexedFields.stream().filter(f -> f.startsWith(properties.getMetamodel().getBasicSectionName() + properties.getMetamodel().getLevelsSeparator())).collect(Collectors.toSet());
+        Collection<String> basicAttributes = indexedFields.parallelStream().filter(f -> f.startsWith(properties.getMetamodel().getBasicSectionName() + properties.getMetamodel().getLevelsSeparator())).collect(Collectors.toSet());
         Bits liveDocs = MultiFields.getLiveDocs(indexReader);
         Map<String, String> attributesMapping = loadConfiguration().getAttributesMapping();
         IndexWriterConfig config = new IndexWriterConfig(analyzer);
@@ -159,7 +159,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
                     values.add(document.get(sourceAttribute));
                     values.remove(null);
                     if (CollectionUtils.isEmpty(values)) { // no values found - let's use nested attributes as values
-                        values = indexedFields.stream().
+                        values = indexedFields.parallelStream().
                                 filter(f -> f.startsWith(sourceAttribute)).
                                 map(f -> f.replace(sourceAttribute, "")).
                                 filter(StringUtils::isNotEmpty).

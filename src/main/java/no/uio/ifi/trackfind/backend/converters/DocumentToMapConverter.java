@@ -31,7 +31,7 @@ public class DocumentToMapConverter implements Function<Document, Map> {
     @Override
     public Map apply(Document document) {
         Map<String, Object> result = new HashMap<>();
-        Collection<String> fieldNames = document.getFields().stream().map(IndexableField::name).collect(Collectors.toSet());
+        Collection<String> fieldNames = document.getFields().parallelStream().map(IndexableField::name).collect(Collectors.toSet());
         for (String fieldName : fieldNames) {
             Map<String, Object> metamodel = result;
             String[] path = fieldName.split(properties.getMetamodel().getLevelsSeparator());
