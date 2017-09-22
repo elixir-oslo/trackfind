@@ -25,7 +25,6 @@ public class TrackFindProperties {
         private @NotBlank String idAttribute;
         private @NotBlank String rawDataAttribute;
         private @NotBlank String dataURLAttribute;
-        private @NotBlank String dataTypeAttribute;
         private TreeSet<String> basicAttributes;
 
     }

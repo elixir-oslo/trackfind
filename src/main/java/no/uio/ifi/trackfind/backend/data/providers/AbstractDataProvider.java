@@ -10,6 +10,7 @@ import no.uio.ifi.trackfind.backend.lucene.DirectoryFactory;
 import no.uio.ifi.trackfind.backend.services.VersioningService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.KeywordAnalyzer;
 import org.apache.lucene.document.Document;
@@ -20,7 +21,6 @@ import org.apache.lucene.queryparser.analyzing.AnalyzingQueryParser;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TopDocs;
-import org.apache.lucene.search.Weight;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.util.Bits;
 import org.apache.lucene.util.BytesRef;
@@ -102,43 +102,6 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
         return Collections.emptySet();
     }
 
-//    /**
-//     * {@inheritDoc}
-//     */
-//    @SuppressWarnings("unchecked")
-//    @Override
-//    public Collection<String> getUrlsFromDataset(String query, Map dataset) {
-//        Set<String> dataTypes = extractDataTypesFromQuery(query);
-//        Collection<String> urls = new HashSet<>();
-//        Map<String, Collection<String>> browser = (Map<String, Collection<String>>) dataset.get(properties.getMetamodel().getDataURLAttribute());
-//        if (CollectionUtils.isNotEmpty(dataTypes)) {
-//            dataTypes.forEach(dt -> urls.addAll(browser.getOrDefault(dt, Collections.emptySet())));
-//        } else {
-//            urls.addAll(browser.values().stream().flatMap(Collection::stream).collect(Collectors.toSet()));
-//        }
-//        return urls;
-//    }
-
-    /**
-     * Parses Lucene Query to get 'data type' terms from it.
-     *
-     * @param query Query used for finding this dataset.
-     * @return Data types.
-     */
-    private Set<String> extractDataTypesFromQuery(String query) {
-        try {
-            Query parsedQuery = new AnalyzingQueryParser("", analyzer).parse(query);
-            parsedQuery = parsedQuery.rewrite(indexReader);
-            Weight weight = parsedQuery.createWeight(searcher, false);
-            Set<Term> terms = new HashSet<>();
-            weight.extractTerms(terms);
-            return terms.stream().filter(t -> t.field().endsWith(properties.getMetamodel().getDataTypeAttribute())).map(Term::text).collect(Collectors.toSet());
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-            return Collections.emptySet();
-        }
-    }
-
     /**
      * Fetches data from the repository.
      *
@@ -175,7 +138,8 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     @Override
     public synchronized void applyMappings() {
         log.info("Applying mappings for " + getName());
-        Collection<String> basicAttributes = MultiFields.getIndexedFields(indexReader).stream().filter(f -> f.startsWith(properties.getMetamodel().getBasicSectionName() + properties.getMetamodel().getLevelsSeparator())).collect(Collectors.toSet());
+        Collection<String> indexedFields = MultiFields.getIndexedFields(indexReader);
+        Collection<String> basicAttributes = indexedFields.stream().filter(f -> f.startsWith(properties.getMetamodel().getBasicSectionName() + properties.getMetamodel().getLevelsSeparator())).collect(Collectors.toSet());
         Bits liveDocs = MultiFields.getLiveDocs(indexReader);
         Map<String, String> attributesMapping = loadConfiguration().getAttributesMapping();
         IndexWriterConfig config = new IndexWriterConfig(analyzer);
@@ -186,12 +150,21 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
                     continue;
                 }
                 Document document = indexReader.document(i);
-                basicAttributes.forEach(document::removeField);
+                basicAttributes.forEach(document::removeFields);
                 for (Map.Entry<String, String> mapping : attributesMapping.entrySet()) {
                     Set<String> values = new HashSet<>();
-                    values.addAll(Arrays.asList(document.getValues(mapping.getKey())));
-                    values.add(document.get(mapping.getKey()));
+                    String sourceAttribute = mapping.getKey();
+                    values.addAll(Arrays.asList(document.getValues(sourceAttribute)));
+                    values.add(document.get(sourceAttribute));
                     values.remove(null);
+                    if (CollectionUtils.isEmpty(values)) { // no values found - let's use nested attributes as values
+                        values = indexedFields.stream().
+                                filter(f -> f.startsWith(sourceAttribute)).
+                                map(f -> f.replace(sourceAttribute, "")).
+                                filter(StringUtils::isNotEmpty).
+                                map(f -> f.split(properties.getMetamodel().getLevelsSeparator())[1]).
+                                collect(Collectors.toSet());
+                    }
                     for (String value : values) {
                         document.add(new StringField(properties.getMetamodel().getBasicSectionName() + properties.getMetamodel().getLevelsSeparator() + mapping.getValue(), value, Field.Store.YES));
                     }
@@ -245,12 +218,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      */
     @SuppressWarnings("unchecked")
     protected void postProcessDataset(Map dataset) {
-        Map<String, Collection<String>> browser = (Map<String, Collection<String>>) dataset.get(properties.getMetamodel().getDataURLAttribute());
-        if (browser == null) {
-            log.error("'browser' field is 'null' for dataset!");
-        } else {
-            dataset.put(properties.getMetamodel().getDataTypeAttribute(), new HashSet<>(browser.keySet()));
-        }
+        // do some post-processing
     }
 
     /**

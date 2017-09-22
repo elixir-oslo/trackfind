@@ -101,7 +101,7 @@ public class FANTOMDataProvider extends AbstractDataProvider {
         if (fileName.endsWith(".rdna.fa.gz")) {
             return "fasta";
         }
-        return null;
+        return "undefined";
     }
 
     /**
