@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
  *
  * @author Dmytro Titov
  */
+// TODO: Doesn't work, fix it.
 public class TreeSelectionListener implements SelectionListener<TreeNode> {
 
     private Tree<TreeNode> tree;
@@ -77,7 +78,7 @@ public class TreeSelectionListener implements SelectionListener<TreeNode> {
             TreeNode last = oldSelection.get(oldSelection.size() - 1);
             final int[] index = {0};
             Map<TreeNode, Integer> indexedSiblings =
-                    current.getParent().fetchChildren().stream().sorted().collect(Collectors.toMap(Function.identity(), tn -> index[0]++));
+                    current.getParent().getChildren().stream().sorted().collect(Collectors.toMap(Function.identity(), tn -> index[0]++));
             int firstIndex = indexedSiblings.get(first);
             int lastIndex = indexedSiblings.get(last);
             int currentIndex = indexedSiblings.get(current);

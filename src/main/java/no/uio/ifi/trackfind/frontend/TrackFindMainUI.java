@@ -5,9 +5,13 @@ import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Title;
 import com.vaadin.annotations.Widgetset;
 import com.vaadin.data.HasValue;
+import com.vaadin.data.TreeData;
+import com.vaadin.data.ValueProvider;
+import com.vaadin.data.provider.TreeDataProvider;
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.event.ShortcutListener;
 import com.vaadin.server.*;
+import com.vaadin.shared.data.sort.SortDirection;
 import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.shared.ui.ValueChangeMode;
 import com.vaadin.shared.ui.dnd.DropEffect;
@@ -23,11 +27,10 @@ import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
 import no.uio.ifi.trackfind.frontend.components.KeyboardInterceptorExtension;
 import no.uio.ifi.trackfind.frontend.components.TrackFindTree;
 import no.uio.ifi.trackfind.frontend.data.TreeNode;
+import no.uio.ifi.trackfind.frontend.filters.MainTreeFilter;
 import no.uio.ifi.trackfind.frontend.listeners.TextAreaDropListener;
 import no.uio.ifi.trackfind.frontend.listeners.TreeItemClickListener;
 import no.uio.ifi.trackfind.frontend.listeners.TreeSelectionListener;
-import no.uio.ifi.trackfind.frontend.providers.TrackDataProvider;
-import no.uio.ifi.trackfind.frontend.providers.impl.MainTrackDataProvider;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.document.Document;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +41,6 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -95,16 +97,16 @@ public class TrackFindMainUI extends AbstractUI {
         treePanel.setSizeFull();
 
         TextField attributesFilterTextField = new TextField("Filter attributes", (HasValue.ValueChangeListener<String>) event -> {
-            TrackDataProvider dataProvider = getCurrentTrackDataProvider();
-            dataProvider.setAttributesFilter(event.getValue());
+            TreeDataProvider<TreeNode> dataProvider = getCurrentTreeDataProvider();
+            ((MainTreeFilter) dataProvider.getFilter()).setAttributesFilter(event.getValue());
             dataProvider.refreshAll();
         });
         attributesFilterTextField.setValueChangeMode(ValueChangeMode.EAGER);
         attributesFilterTextField.setWidth(100, Sizeable.Unit.PERCENTAGE);
 
         TextField valuesFilterTextField = new TextField("Filter values", (HasValue.ValueChangeListener<String>) event -> {
-            TrackDataProvider dataProvider = getCurrentTrackDataProvider();
-            dataProvider.setValuesFilter(event.getValue());
+            TreeDataProvider<TreeNode> dataProvider = getCurrentTreeDataProvider();
+            ((MainTreeFilter) dataProvider.getFilter()).setValuesFilter(event.getValue());
             dataProvider.refreshAll();
         });
         valuesFilterTextField.setValueChangeMode(ValueChangeMode.EAGER);
@@ -125,12 +127,17 @@ public class TrackFindMainUI extends AbstractUI {
         TreeGridDragSource<TreeNode> dragSource = new TreeGridDragSource<>((TreeGrid<TreeNode>) tree.getCompositionRoot());
         dragSource.setEffectAllowed(EffectAllowed.COPY);
         TreeNode root = new TreeNode(dataProvider.getMetamodelTree());
-        MainTrackDataProvider trackDataProvider = new MainTrackDataProvider(root);
+        TreeData<TreeNode> treeData = new TreeData<>();
+        Collection<TreeNode> children = root.getChildren();
+        treeData.addRootItems(children);
+        children.forEach(c -> fillTreeData(treeData, c));
+        TreeDataProvider trackDataProvider = new TreeDataProvider(treeData);
+        trackDataProvider.setFilter(new MainTreeFilter(trackDataProvider, "", ""));
+        trackDataProvider.setSortOrder((ValueProvider<TreeNode, String>) TreeNode::toString, SortDirection.ASCENDING);
         tree.setDataProvider(trackDataProvider);
         tree.setSizeFull();
-        tree.setStyleGenerator((StyleGenerator<TreeNode>) item -> item.isFinalAttribute() || item.isValue() ? null : "disabled-tree-node");
-        Optional<TreeNode> basicNode = root.fetchChildren().stream().filter(tn -> properties.getMetamodel().getBasicSectionName().equals(tn.getPath())).findAny();
-        basicNode.ifPresent(tree::expand);
+        tree.setStyleGenerator((StyleGenerator<TreeNode>) item -> item.isValue() ? "value-tree-node" : null);
+        children.stream().filter(c -> properties.getMetamodel().getBasicSectionName().equals(c.toString())).findFirst().ifPresent(tree::expand);
         return tree;
     }
 

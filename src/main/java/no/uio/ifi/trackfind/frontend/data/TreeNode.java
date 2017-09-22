@@ -1,12 +1,12 @@
 package no.uio.ifi.trackfind.frontend.data;
 
 import com.vaadin.data.provider.HierarchicalQuery;
+import com.vaadin.server.SerializablePredicate;
 
 import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -16,13 +16,12 @@ import java.util.stream.Collectors;
  */
 public class TreeNode implements Comparable<TreeNode> {
 
-    private boolean expanded = false;
     private int level = 0;
     private TreeNode parent;
     private Map.Entry<String, Object> node;
 
     private String path;
-    private HierarchicalQuery<TreeNode, Predicate<? super TreeNode>> query;
+    private HierarchicalQuery<TreeNode, SerializablePredicate<TreeNode>> query;
     private Collection<TreeNode> children;
     private Boolean finalAttribute;
 
@@ -70,7 +69,7 @@ public class TreeNode implements Comparable<TreeNode> {
      *
      * @return Vaadin's HierarchicalQuery.
      */
-    public HierarchicalQuery<TreeNode, Predicate<? super TreeNode>> getQuery() {
+    public HierarchicalQuery<TreeNode, SerializablePredicate<TreeNode>> getQuery() {
         if (query == null) { // double checked synchronization
             synchronized (this) {
                 if (query == null) {
@@ -86,7 +85,7 @@ public class TreeNode implements Comparable<TreeNode> {
      *
      * @return Vaadin's HierarchicalQuery.
      */
-    private HierarchicalQuery<TreeNode, Predicate<? super TreeNode>> getQueryInternally() {
+    private HierarchicalQuery<TreeNode, SerializablePredicate<TreeNode>> getQueryInternally() {
         return new HierarchicalQuery<>(null, this);
     }
 
@@ -95,11 +94,11 @@ public class TreeNode implements Comparable<TreeNode> {
      *
      * @return Current node's children (attributes or values).
      */
-    public Collection<TreeNode> fetchChildren() {
+    public Collection<TreeNode> getChildren() {
         if (children == null) { // double checked synchronization
             synchronized (this) {
                 if (children == null) {
-                    children = Collections.unmodifiableCollection(fetchChildrenInternally());
+                    children = Collections.unmodifiableCollection(getChildrenInternally());
                 }
             }
         }
@@ -112,7 +111,7 @@ public class TreeNode implements Comparable<TreeNode> {
      * @return Current node's children (attributes or values).
      */
     @SuppressWarnings("unchecked")
-    private Collection<TreeNode> fetchChildrenInternally() {
+    private Collection<TreeNode> getChildrenInternally() {
         Object value = node.getValue();
         if (value instanceof Map) {
             return ((Map<String, Object>) value).entrySet().parallelStream().map(e -> new TreeNode(this, e)).collect(Collectors.toSet());
@@ -121,19 +120,6 @@ public class TreeNode implements Comparable<TreeNode> {
         } else {
             return Collections.emptySet();
         }
-    }
-
-    /**
-     * Removes child.
-     *
-     * @param key Key for child to remove.
-     */
-    public void removeChild(String key) {
-        Object value = node.getValue();
-        if (value instanceof Map) {
-            ((Map) value).remove(key);
-        }
-        fetchChildrenInternally();
     }
 
     /**
@@ -198,25 +184,7 @@ public class TreeNode implements Comparable<TreeNode> {
      * @return <code>true</code> if it's a final attribute, <code>false</code> otherwise.
      */
     private boolean isFinalAttributeInternally() {
-        return fetchChildren().parallelStream().anyMatch(TreeNode::isValue);
-    }
-
-    /**
-     * Checks whether node is expanded on UI.
-     *
-     * @return <code>true</code> for expanded, <code>false</code> otherwise
-     */
-    public boolean isExpanded() {
-        return expanded;
-    }
-
-    /**
-     * Sets node state
-     *
-     * @param expanded <code>true</code> for expanded, <code>false</code> otherwise
-     */
-    public void setExpanded(boolean expanded) {
-        this.expanded = expanded;
+        return getChildren().parallelStream().anyMatch(TreeNode::isValue);
     }
 
     /**

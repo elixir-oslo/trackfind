@@ -7,9 +7,13 @@
     overflow-y: auto;
   }
 
-  .disabled-tree-node {
+  .value-tree-node {
     color: graytext;
     font-style: italic;
+  }
+
+  .no-children-tree-node {
+    background: none;
   }
 
 }

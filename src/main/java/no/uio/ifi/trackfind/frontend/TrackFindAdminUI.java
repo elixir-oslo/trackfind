@@ -4,9 +4,13 @@ import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Title;
 import com.vaadin.annotations.Widgetset;
 import com.vaadin.data.HasValue;
+import com.vaadin.data.TreeData;
+import com.vaadin.data.ValueProvider;
+import com.vaadin.data.provider.TreeDataProvider;
 import com.vaadin.event.selection.SelectionListener;
 import com.vaadin.server.Sizeable;
 import com.vaadin.server.VaadinRequest;
+import com.vaadin.shared.data.sort.SortDirection;
 import com.vaadin.shared.ui.ValueChangeMode;
 import com.vaadin.shared.ui.dnd.DropEffect;
 import com.vaadin.shared.ui.dnd.EffectAllowed;
@@ -18,15 +22,13 @@ import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
 import no.uio.ifi.trackfind.frontend.components.TrackFindTree;
 import no.uio.ifi.trackfind.frontend.data.TreeNode;
+import no.uio.ifi.trackfind.frontend.filters.AdminTreeFilter;
 import no.uio.ifi.trackfind.frontend.listeners.TextFieldDropListener;
-import no.uio.ifi.trackfind.frontend.providers.TrackDataProvider;
-import no.uio.ifi.trackfind.frontend.providers.impl.AdminTrackDataProvider;
 import org.springframework.util.CollectionUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Admin Vaadin UI of the application.
@@ -74,8 +76,8 @@ public class TrackFindAdminUI extends AbstractUI {
         treePanel.setSizeFull();
 
         TextField attributesFilterTextField = new TextField("Filter attributes", (HasValue.ValueChangeListener<String>) event -> {
-            TrackDataProvider dataProvider = getCurrentTrackDataProvider();
-            dataProvider.setAttributesFilter(event.getValue());
+            TreeDataProvider<TreeNode> dataProvider = getCurrentTreeDataProvider();
+            ((AdminTreeFilter) dataProvider.getFilter()).setAttributesFilter(event.getValue());
             dataProvider.refreshAll();
         });
         attributesFilterTextField.setValueChangeMode(ValueChangeMode.EAGER);
@@ -104,13 +106,32 @@ public class TrackFindAdminUI extends AbstractUI {
         TreeGridDragSource<TreeNode> dragSource = new TreeGridDragSource<>((TreeGrid<TreeNode>) tree.getCompositionRoot());
         dragSource.setEffectAllowed(EffectAllowed.COPY);
         TreeNode root = new TreeNode(dataProvider.getMetamodelTree());
-        root.removeChild(properties.getMetamodel().getBasicSectionName());
-        AdminTrackDataProvider trackDataProvider = new AdminTrackDataProvider(root);
+        TreeData<TreeNode> treeData = new TreeData<>();
+        Collection<TreeNode> children = root.getChildren().stream().filter(c -> properties.getMetamodel().getAdvancedSectionName().equals(c.toString())).collect(Collectors.toSet());
+        treeData.addRootItems(children);
+        children.forEach(c -> fillTreeData(treeData, c));
+        TreeDataProvider trackDataProvider = new TreeDataProvider(treeData);
+        trackDataProvider.setFilter(new AdminTreeFilter(trackDataProvider, ""));
+        trackDataProvider.setSortOrder((ValueProvider<TreeNode, String>) TreeNode::toString, SortDirection.ASCENDING);
         tree.setDataProvider(trackDataProvider);
         tree.setSizeFull();
-        tree.setStyleGenerator((StyleGenerator<TreeNode>) item -> item.isFinalAttribute() || item.isValue() ? null : "disabled-tree-node");
-        tree.expand(root.fetchChildren().iterator().next());
+        tree.setStyleGenerator((StyleGenerator<TreeNode>) item -> trackDataProvider.getChildCount(item.getQuery()) == 0 ? "no-children-tree-node" : null);
+        Iterator<TreeNode> iterator = children.iterator();
+        if (iterator.hasNext()) {
+            tree.expand(iterator.next());
+        }
         return tree;
+    }
+
+    @Override
+    protected void fillTreeData(TreeData<TreeNode> treeData, TreeNode treeNode) {
+        treeData.addItems(treeNode, treeNode.getChildren());
+        for (TreeNode child : treeNode.getChildren()) {
+            if (child.isFinalAttribute()) {
+                continue;
+            }
+            fillTreeData(treeData, child);
+        }
     }
 
     private HorizontalLayout buildMainLayout(Component... layouts) {

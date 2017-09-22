@@ -1,5 +1,7 @@
 package no.uio.ifi.trackfind.frontend;
 
+import com.vaadin.data.TreeData;
+import com.vaadin.data.provider.TreeDataProvider;
 import com.vaadin.ui.*;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
@@ -7,7 +9,6 @@ import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
 import no.uio.ifi.trackfind.backend.services.TrackFindService;
 import no.uio.ifi.trackfind.frontend.components.TrackFindTree;
 import no.uio.ifi.trackfind.frontend.data.TreeNode;
-import no.uio.ifi.trackfind.frontend.providers.TrackDataProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -37,8 +38,9 @@ public abstract class AbstractUI extends UI {
         return (TrackFindTree<TreeNode>) tabSheet.getSelectedTab();
     }
 
-    protected TrackDataProvider getCurrentTrackDataProvider() {
-        return (TrackDataProvider) getCurrentTree().getDataProvider();
+    @SuppressWarnings("unchecked")
+    protected TreeDataProvider<TreeNode> getCurrentTreeDataProvider() {
+        return (TreeDataProvider<TreeNode>) getCurrentTree().getDataProvider();
     }
 
     protected VerticalLayout buildOuterLayout(HorizontalLayout headerLayout, HorizontalLayout mainLayout, HorizontalLayout footerLayout) {
@@ -64,6 +66,13 @@ public abstract class AbstractUI extends UI {
         headerLayout.setSizeFull();
         headerLayout.setComponentAlignment(headerLabel, Alignment.TOP_CENTER);
         return headerLayout;
+    }
+
+    protected void fillTreeData(TreeData<TreeNode> treeData, TreeNode treeNode) {
+        treeData.addItems(treeNode, treeNode.getChildren());
+        for (TreeNode child : treeNode.getChildren()) {
+            fillTreeData(treeData, child);
+        }
     }
 
     @Autowired
