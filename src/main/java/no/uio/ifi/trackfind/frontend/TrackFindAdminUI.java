@@ -22,6 +22,7 @@ import no.uio.ifi.trackfind.frontend.listeners.TextFieldDropListener;
 import no.uio.ifi.trackfind.frontend.providers.TrackDataProvider;
 import no.uio.ifi.trackfind.frontend.providers.impl.AdminTrackDataProvider;
 import org.springframework.util.CollectionUtils;
+import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -128,14 +129,22 @@ public class TrackFindAdminUI extends AbstractUI {
         saveButton.addClickListener((Button.ClickListener) event -> saveConfiguration());
         Button crawlButton = new Button("Crawl");
         crawlButton.setSizeFull();
-        // TODO: Use confirmation dialog here.
-        // TODO: Think about running in background.
-        crawlButton.addClickListener((Button.ClickListener) event -> getCurrentDataProvider().crawlRemoteRepository());
+        crawlButton.addClickListener((Button.ClickListener) event -> ConfirmDialog.show(getUI(),
+                "Are you sure? Crawling is time-consuming process and will lead to changing the metadata of the local repository.",
+                (ConfirmDialog.Listener) dialog -> {
+                    if (dialog.isConfirmed()) {
+                        getCurrentDataProvider().crawlRemoteRepository();
+                    }
+                }));
         Button applyMappingsButton = new Button("Apply mappings");
         applyMappingsButton.setSizeFull();
-        // TODO: Use confirmation dialog here.
-        // TODO: Think about running in background.
-        applyMappingsButton.addClickListener((Button.ClickListener) event -> getCurrentDataProvider().applyMappings());
+        applyMappingsButton.addClickListener((Button.ClickListener) event -> ConfirmDialog.show(getUI(),
+                "Are you sure? Applying attribute mappings will change the metadata structure in the local repository.",
+                (ConfirmDialog.Listener) dialog -> {
+                    if (dialog.isConfirmed()) {
+                        getCurrentDataProvider().applyMappings();
+                    }
+                }));
         HorizontalLayout buttonsLayout = new HorizontalLayout(saveButton, crawlButton, applyMappingsButton);
         buttonsLayout.setWidth(100, Unit.PERCENTAGE);
         VerticalLayout attributesMappingOuterLayout = new VerticalLayout(attributesMappingPanel, buttonsLayout);
@@ -199,6 +208,7 @@ public class TrackFindAdminUI extends AbstractUI {
             configuration.getAttributesMapping().put(mapping.getKey().getValue(), mapping.getValue().getValue());
         }
         currentDataProvider.saveConfiguration(configuration);
+        Notification.show("Mappings saved. Apply them to take effect.");
     }
 
 }
