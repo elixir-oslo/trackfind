@@ -69,7 +69,7 @@ public class DataProviderTests {
         assertThat(metamodel).isNotNull().isNotEmpty();
         assertThat(metamodel).containsOnlyKeys("Advanced");
         metamodel = (Map<String, Object>) metamodel.get("Advanced");
-        assertThat(metamodel).containsKeys("key1", "key2", "data_type");
+        assertThat(metamodel).containsKeys("key1", "key2");
         Object value = metamodel.get("key1");
         assertThat(value).isInstanceOf(Collection.class);
         assertThat((Collection) value).containsOnly("value1", "value2");
