@@ -43,7 +43,7 @@ import java.util.stream.Stream;
  * @since 8.1
  */
 @SuppressWarnings("all")
-public class HierarchyMapper<T, F> implements DataGenerator<T> { // perfomance boot: 10s -> less than 1s
+public class HierarchyMapper<T, F> implements DataGenerator<T> {
 
     // childMap is only used for finding parents of items and clean up on
     // removing children of expanded nodes.
