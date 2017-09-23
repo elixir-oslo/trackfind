@@ -22,9 +22,6 @@ public class DataProviderTests {
     @Autowired
     private DataProvider dataProvider;
 
-    @Autowired
-    private DocumentToMapConverter documentToMapConverter;
-
     @Test
     public void getNameTest() {
         assertThat(dataProvider.getName()).isEqualTo("Test");
@@ -92,24 +89,22 @@ public class DataProviderTests {
 
     @Test
     public void searchNotFoundTest() {
-        Collection<Document> result = dataProvider.search("key1: value3", 0);
+        Collection<Map> result = dataProvider.search("key1: value3", 0);
         assertThat(result).isEmpty();
     }
 
     @Test
     public void searchFoundTest() {
-        Collection<Document> result = dataProvider.search("Advanced>key2: value3", 0);
+        Collection<Map> result = dataProvider.search("Advanced>key2: value3", 0);
         assertThat(result).size().isEqualTo(2);
     }
 
     @SuppressWarnings("unchecked")
     @Test
     public void fetch() {
-        Collection<Document> result = dataProvider.search("Advanced>key2: value3", 1);
-        Document document = result.iterator().next();
-        Map map = MapUtils.getMap(documentToMapConverter.apply(document), "Advanced");
-        map.remove("id");
-        String id = document.get("Advanced>id");
+        Collection<Map> result = dataProvider.search("Advanced>key2: value3", 1);
+        Map map = MapUtils.getMap(result.iterator().next(), "Advanced");
+        String id = String.valueOf(map.remove("id"));
         Map<String, Object> rawData = dataProvider.fetch(id);
         assertThat(rawData).isEqualTo(map);
     }

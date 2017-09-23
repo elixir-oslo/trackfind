@@ -4,7 +4,6 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.SwaggerDefinition;
 import io.swagger.annotations.Tag;
-import no.uio.ifi.trackfind.backend.converters.DocumentToMapConverter;
 import no.uio.ifi.trackfind.backend.services.TrackFindService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -13,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Data REST controller.
@@ -27,7 +25,6 @@ import java.util.stream.Collectors;
 public class DataController {
 
     private TrackFindService trackFindService;
-    private DocumentToMapConverter documentToMapConverter;
 
     /**
      * Performs search over the Directory of specified DataProvider.
@@ -44,8 +41,7 @@ public class DataController {
     public ResponseEntity<Collection<Map>> search(@PathVariable String provider,
                                                   @RequestParam String query,
                                                   @RequestParam(required = false, defaultValue = "0") int limit) throws Exception {
-        Collection<Map> result = trackFindService.getDataProvider(provider).search(query, limit).parallelStream().map(documentToMapConverter).collect(Collectors.toSet());
-        return ResponseEntity.ok(result);
+        return ResponseEntity.ok(trackFindService.getDataProvider(provider).search(query, limit));
     }
 
     /**
@@ -66,11 +62,6 @@ public class DataController {
     @Autowired
     public void setTrackFindService(TrackFindService trackFindService) {
         this.trackFindService = trackFindService;
-    }
-
-    @Autowired
-    public void setDocumentToMapConverter(DocumentToMapConverter documentToMapConverter) {
-        this.documentToMapConverter = documentToMapConverter;
     }
 
 }

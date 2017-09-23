@@ -355,7 +355,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      * {@inheritDoc}
      */
     @Override
-    public Collection<Document> search(String query, int limit) {
+    public Collection<Map> search(String query, int limit) {
         try {
             Query parsedQuery = new AnalyzingQueryParser("", analyzer).parse(query);
             TopDocs topDocs = searcher.search(parsedQuery, limit == 0 ? Integer.MAX_VALUE : limit);
@@ -365,7 +365,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
                 } catch (IOException e) {
                     return null;
                 }
-            }).filter(Objects::nonNull).collect(Collectors.toSet());
+            }).filter(Objects::nonNull).map(documentToMapConverter).collect(Collectors.toSet());
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return Collections.emptyList();
@@ -378,11 +378,11 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     @SuppressWarnings("unchecked")
     @Override
     public Map<String, Object> fetch(String documentId) {
-        Collection<Document> documents = search(properties.getMetamodel().getAdvancedIdAttribute() + ": " + documentId, 1);
+        Collection<Map> documents = search(properties.getMetamodel().getAdvancedIdAttribute() + ": " + documentId, 1);
         if (CollectionUtils.isEmpty(documents)) {
             return null;
         }
-        Map map = documentToMapConverter.apply(documents.iterator().next());
+        Map map = documents.iterator().next();
         MapUtils.getMap(map, properties.getMetamodel().getAdvancedSectionName()).remove(properties.getMetamodel().getIdAttribute());
         return MapUtils.getMap(map, properties.getMetamodel().getAdvancedSectionName());
     }

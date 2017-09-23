@@ -21,8 +21,7 @@ import com.vaadin.ui.*;
 import com.vaadin.ui.components.grid.TreeGridDragSource;
 import com.vaadin.ui.dnd.DropTargetExtension;
 import lombok.extern.slf4j.Slf4j;
-import no.uio.ifi.trackfind.backend.converters.DocumentToMapConverter;
-import no.uio.ifi.trackfind.backend.converters.DocumentToTSVConverter;
+import no.uio.ifi.trackfind.backend.converters.MapToTSVConverter;
 import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
 import no.uio.ifi.trackfind.frontend.components.KeyboardInterceptorExtension;
 import no.uio.ifi.trackfind.frontend.components.TrackFindTree;
@@ -32,7 +31,6 @@ import no.uio.ifi.trackfind.frontend.listeners.TextAreaDropListener;
 import no.uio.ifi.trackfind.frontend.listeners.TreeItemClickListener;
 import no.uio.ifi.trackfind.frontend.listeners.TreeSelectionListener;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.lucene.document.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 
@@ -41,7 +39,7 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
-import java.util.stream.Collectors;
+import java.util.Map;
 
 /**
  * Main Vaadin UI of the application.
@@ -58,11 +56,10 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TrackFindMainUI extends AbstractUI {
 
-    private DocumentToMapConverter documentToMapConverter;
-    private DocumentToTSVConverter documentToTSVConverter;
+    private MapToTSVConverter mapToTSVConverter;
     private Gson gson;
 
-    private Collection<Document> lastResults;
+    private Collection<Map> lastResults;
 
     private TextArea queryTextArea;
     private TextField limitTextField;
@@ -261,7 +258,7 @@ public class TrackFindMainUI extends AbstractUI {
         String limit = limitTextField.getValue();
         limit = StringUtils.isEmpty(limit) ? "0" : limit;
         lastResults = currentDataProvider.search(query, Integer.parseInt(limit));
-        String jsonResult = gson.toJson(lastResults.stream().map(documentToMapConverter).collect(Collectors.toSet()));
+        String jsonResult = gson.toJson(lastResults);
         if (CollectionUtils.isEmpty(lastResults)) {
             resultsTextArea.setValue("");
             Notification.show("Nothing found for such request");
@@ -269,11 +266,10 @@ public class TrackFindMainUI extends AbstractUI {
             resultsTextArea.setValue(jsonResult);
         }
 
-        // TODO: Export all available Basic Attributes here + ID + revision.
         StringBuilder result = new StringBuilder("###");
         properties.getMetamodel().getBasicAttributes().forEach(ba -> result.append(ba).append("\t"));
         result.append("\n");
-        lastResults.stream().map(documentToTSVConverter).forEach(result::append);
+        lastResults.stream().map(mapToTSVConverter).forEach(result::append);
 
         if (gSuiteFileDownloader != null) {
             exportGSuiteButton.removeExtension(gSuiteFileDownloader);
@@ -294,13 +290,8 @@ public class TrackFindMainUI extends AbstractUI {
     }
 
     @Autowired
-    public void setDocumentToMapConverter(DocumentToMapConverter documentToMapConverter) {
-        this.documentToMapConverter = documentToMapConverter;
-    }
-
-    @Autowired
-    public void setDocumentToTSVConverter(DocumentToTSVConverter documentToTSVConverter) {
-        this.documentToTSVConverter = documentToTSVConverter;
+    public void setMapToTSVConverter(MapToTSVConverter mapToTSVConverter) {
+        this.mapToTSVConverter = mapToTSVConverter;
     }
 
     @Autowired

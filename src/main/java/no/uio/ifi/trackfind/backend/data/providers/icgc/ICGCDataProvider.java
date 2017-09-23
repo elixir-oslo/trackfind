@@ -3,7 +3,6 @@ package no.uio.ifi.trackfind.backend.data.providers.icgc;
 import alexh.weak.Dynamic;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.data.providers.PaginationAwareDataProvider;
-import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexWriter;
 import org.springframework.stereotype.Component;
 
@@ -60,10 +59,10 @@ public class ICGCDataProvider extends PaginationAwareDataProvider { // TODO: Fet
      * {@inheritDoc}
      */
     @Override // hack for ICGC's "two-steps download"
-    public Collection<Document> search(String query, int limit) {
+    public Collection<Map> search(String query, int limit) {
         String separator = properties.getMetamodel().getLevelsSeparator();
         String advancedURL = properties.getMetamodel().getAdvancedSectionName() + separator + properties.getMetamodel().getDataURLAttribute();
-        return super.search(query, limit).parallelStream().map(documentToMapConverter).map(Dynamic::from).map(dynamic -> {
+        return super.search(query, limit).parallelStream().map(Dynamic::from).map(dynamic -> {
             String submitURL = dynamic.get(advancedURL, separator).asString();
             try (InputStream inputStream = new URL(submitURL).openStream();
                  InputStreamReader reader = new InputStreamReader(inputStream)) {
@@ -74,7 +73,7 @@ public class ICGCDataProvider extends PaginationAwareDataProvider { // TODO: Fet
                 return null;
             }
             return dynamic.asMap();
-        }).filter(Objects::nonNull).map(mapToDocumentConverter).collect(Collectors.toSet());
+        }).filter(Objects::nonNull).collect(Collectors.toSet());
     }
 
 }

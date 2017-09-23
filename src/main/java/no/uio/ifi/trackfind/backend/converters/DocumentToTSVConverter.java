@@ -1,13 +1,9 @@
 package no.uio.ifi.trackfind.backend.converters;
 
-import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
-import org.apache.commons.collections4.MapUtils;
 import org.apache.lucene.document.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.function.Function;
 
 /**
@@ -18,8 +14,8 @@ import java.util.function.Function;
 @Component
 public class DocumentToTSVConverter implements Function<Document, String> {
 
-    private TrackFindProperties properties;
     private DocumentToMapConverter documentToMapConverter;
+    private MapToTSVConverter mapToTSVConverter;
 
     /**
      * Convert dataset from Document to TSV.
@@ -30,15 +26,7 @@ public class DocumentToTSVConverter implements Function<Document, String> {
     @SuppressWarnings("unchecked")
     @Override
     public String apply(Document document) {
-        StringBuilder result = new StringBuilder();
-        Map map = documentToMapConverter.apply(document);
-        Map<String, Object> basicMap = MapUtils.getMap(map, properties.getMetamodel().getBasicSectionName());
-        basicMap = basicMap == null ? new HashMap<>() : basicMap;
-        for (String basicAttribute : properties.getMetamodel().getBasicAttributes()) {
-            result.append(String.valueOf(basicMap.get(basicAttribute))).append("\t");
-        }
-        result.append("\n");
-        return result.toString();
+        return mapToTSVConverter.apply(documentToMapConverter.apply(document));
     }
 
     @Autowired
@@ -47,9 +35,8 @@ public class DocumentToTSVConverter implements Function<Document, String> {
     }
 
     @Autowired
-    public void setProperties(TrackFindProperties properties) {
-        this.properties = properties;
+    public void setMapToTSVConverter(MapToTSVConverter mapToTSVConverter) {
+        this.mapToTSVConverter = mapToTSVConverter;
     }
-
 
 }
