@@ -193,7 +193,10 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     public synchronized void applyMappings() {
         log.info("Applying mappings for " + getName());
         Collection<String> indexedFields = MultiFields.getIndexedFields(indexReader);
-        Collection<String> basicAttributes = indexedFields.parallelStream().filter(f -> f.startsWith(properties.getMetamodel().getBasicSectionName() + properties.getMetamodel().getLevelsSeparator())).collect(Collectors.toSet());
+        Collection<String> basicAttributes = indexedFields.
+                parallelStream().
+                filter(f -> f.startsWith(properties.getMetamodel().getBasicSectionName() + properties.getMetamodel().getLevelsSeparator())).
+                collect(Collectors.toSet());
         Bits liveDocs = MultiFields.getLiveDocs(indexReader);
         Map<String, String> attributesMapping = loadConfiguration().getAttributesMapping();
         IndexWriterConfig config = new IndexWriterConfig(analyzer);
@@ -221,7 +224,9 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
                                 collect(Collectors.toSet());
                     }
                     for (String value : values) {
-                        document.add(new StringField(properties.getMetamodel().getBasicSectionName() + properties.getMetamodel().getLevelsSeparator() + mapping.getValue(), value, Field.Store.YES));
+                        document.add(new StringField(properties.getMetamodel().getBasicSectionName() + properties.getMetamodel().getLevelsSeparator() + mapping.getValue(),
+                                value,
+                                Field.Store.YES));
                     }
                 }
                 indexWriter.updateDocument(new Term(properties.getMetamodel().getAdvancedIdAttribute(), document.get(properties.getMetamodel().getAdvancedIdAttribute())), document);
