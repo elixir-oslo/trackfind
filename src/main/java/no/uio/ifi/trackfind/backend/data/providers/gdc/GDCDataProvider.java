@@ -6,10 +6,7 @@ import org.apache.lucene.index.IndexWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
@@ -63,17 +60,17 @@ public class GDCDataProvider extends PaginationAwareDataProvider {
         }
     }
 
-//    /**
-//     * {@inheritDoc}
-//     */
-//    @Override
-//    protected Collection<String> getAttributesToSkip() {
-//        Collection<String> attributesToSkip = new HashSet<>(super.getAttributesToSkip());
-//        attributesToSkip.addAll(Arrays.asList("id", "aliquot_ids", "analyte_ids", "portion_ids", "sample_ids",
-//                "slide_ids", "submitter_aliquot_ids", "submitter_analyte_ids", "submitter_portion_ids",
-//                "submitter_sample_ids", "submitter_slide_ids"));
-//        return attributesToSkip;
-//    }
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected Collection<String> getAttributesToSkip() {
+        Collection<String> attributesToSkip = new HashSet<>(super.getAttributesToSkip());
+        attributesToSkip.addAll(Arrays.asList("id", "aliquot_ids", "analyte_ids", "portion_ids", "sample_ids",
+                "slide_ids", "submitter_aliquot_ids", "submitter_analyte_ids", "submitter_portion_ids",
+                "submitter_sample_ids", "submitter_slide_ids"));
+        return attributesToSkip;
+    }
 
     @Autowired
     @Override

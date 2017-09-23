@@ -3,6 +3,7 @@ package no.uio.ifi.trackfind.backend.data.providers.ihec;
 import com.google.gson.reflect.TypeToken;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.data.providers.AbstractDataProvider;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.lucene.index.IndexWriter;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -53,9 +54,9 @@ public class IHECDataProvider extends AbstractDataProvider {
                 try (InputStream inputStream = new URL(FETCH_URL + releaseId).openStream();
                      InputStreamReader reader = new InputStreamReader(inputStream)) {
                     Map grid = gson.fromJson(reader, Map.class);
-                    Map datasetsMap = (Map) grid.get("datasets");
+                    Map datasetsMap = MapUtils.getMap(grid, "datasets");
                     Collection<Map> datasets = datasetsMap.values();
-                    Map samplesMap = (Map) grid.get("samples");
+                    Map samplesMap = MapUtils.getMap(grid, "samples");
                     Object hubDescription = grid.get("hub_description");
                     for (Map<String, Object> dataset : datasets) {
                         String sampleId = String.valueOf(dataset.get("sample_id"));

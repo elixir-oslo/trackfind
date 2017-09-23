@@ -1,5 +1,6 @@
 package no.uio.ifi.trackfind.backend.data.providers;
 
+import alexh.weak.Dynamic;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
@@ -10,6 +11,7 @@ import no.uio.ifi.trackfind.backend.converters.MapToDocumentConverter;
 import no.uio.ifi.trackfind.backend.lucene.DirectoryFactory;
 import no.uio.ifi.trackfind.backend.services.VersioningService;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.analysis.Analyzer;
@@ -94,6 +96,16 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
         return INDICES_FOLDER + getName() + "/";
     }
 
+
+    /**
+     * Gets attributes to skip during indexing.
+     *
+     * @return Collection of unneeded attributes.
+     */
+    protected Collection<String> getAttributesToSkip() {
+        return Collections.emptySet();
+    }
+
     /**
      * Gets attributes to hide in the tree.
      *
@@ -119,6 +131,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      */
     @SuppressWarnings("unchecked")
     protected Collection<Map> splitDatasetByDataTypes(Map dataset) {
+        clearAttributesToSkip(dataset);
         Map<String, Collection<String>> browser = (Map<String, Collection<String>>) dataset.remove(properties.getMetamodel().getBrowserAttribute());
         String json = gson.toJson(dataset);
         HashMultimap<String, String> browserMultiMap = HashMultimap.create();
@@ -128,11 +141,27 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
             Map map = gson.fromJson(json, Map.class);
             map.put(properties.getMetamodel().getDataTypeAttribute(), entry.getKey());
             map.put(properties.getMetamodel().getDataURLAttribute(), entry.getValue());
-            map.put(properties.getMetamodel().getIdAttribute(), UUID.randomUUID().toString());
             map.put(properties.getMetamodel().getDataSourceAttribute(), getName());
+            map.put(properties.getMetamodel().getIdAttribute(), UUID.randomUUID().toString());
             result.add(map);
         }
         return result;
+    }
+
+    /**
+     * Removes attributes which should be skipped.
+     *
+     * @param dataset Dataset to clear.
+     */
+    private void clearAttributesToSkip(Map dataset) {
+        for (String attributeToSkip : getAttributesToSkip()) {
+            Dynamic value = Dynamic.from(dataset).get(attributeToSkip, properties.getMetamodel().getLevelsSeparator());
+            if (value.isList()) {
+                value.asList().clear();
+            } else if (value.isMap()) {
+                value.asMap().clear();
+            }
+        }
     }
 
     /**
@@ -351,8 +380,8 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
             return null;
         }
         Map map = documentToMapConverter.apply(documents.iterator().next());
-        ((Map) map.get(properties.getMetamodel().getAdvancedSectionName())).remove(properties.getMetamodel().getIdAttribute());
-        return (Map) map.get(properties.getMetamodel().getAdvancedSectionName());
+        MapUtils.getMap(map, properties.getMetamodel().getAdvancedSectionName()).remove(properties.getMetamodel().getIdAttribute());
+        return MapUtils.getMap(map, properties.getMetamodel().getAdvancedSectionName());
     }
 
     /**

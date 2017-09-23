@@ -2,6 +2,7 @@ package no.uio.ifi.trackfind.backend.rest.controllers;
 
 import com.google.gson.Gson;
 import no.uio.ifi.trackfind.TestTrackFindApplication;
+import org.apache.commons.collections4.MapUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -18,7 +19,6 @@ import static no.uio.ifi.trackfind.TestTrackFindApplication.TEST_DATA_PROVIDER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SuppressWarnings("PMD.JUnitTestsShouldIncludeAssert")
@@ -122,7 +122,7 @@ public class TrackFindRESTTests {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        Map search = (Map) gson.fromJson(searchString.replace("[", "").replace("]", ""), Map.class).get("Advanced");
+        Map search = MapUtils.getMap(gson.fromJson(searchString.replace("[", "").replace("]", ""), Map.class), "Advanced");
         String id = search.remove("id").toString();
         String fetchString = mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/fetch").param("documentId", id))
                 .andExpect(status().isOk())

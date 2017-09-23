@@ -1,6 +1,7 @@
 package no.uio.ifi.trackfind.backend.converters;
 
 import no.uio.ifi.trackfind.TestTrackFindApplication;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
@@ -57,7 +58,7 @@ public class ConvertersTests {
     @Test
     public void mapToDocumentAndBackTest() {
         Document document = mapToDocumentConverter.apply(map);
-        Map map = (Map) documentToMapConverter.apply(document).get("Advanced");
+        Map map = MapUtils.getMap(documentToMapConverter.apply(document), "Advanced");
         map.remove("id");
         assertThat(map).isEqualTo(this.map);
     }
@@ -71,7 +72,7 @@ public class ConvertersTests {
     @Test
     public void documentToTSVConverterTest() {
         String apply = documentToTSVConverter.apply(document);
-        assertThat(apply).isEqualToIgnoringCase("null\tnull\tnull\tnull\tnull\tnull\tnull\t[value2, value3]\tnull\tnull\t\n");
+        assertThat(apply).isEqualToIgnoringCase("null\tnull\tnull\tnull\tnull\tnull\t[value2, value3]\tnull\tnull\tnull\t\n");
     }
 
 }

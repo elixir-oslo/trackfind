@@ -109,6 +109,12 @@
             <artifactId>org.eclipse.jgit</artifactId>
             <version>4.8.0.201706111038-r</version>
         </dependency>
+        <!-- TODO: Refactor everything to use this library -->
+        <dependency>
+            <groupId>com.github.alexheretic</groupId>
+            <artifactId>dynamics</artifactId>
+            <version>4.0</version>
+        </dependency>
         <dependency>
             <groupId>com.vaadin</groupId>
             <artifactId>vaadin-spring-boot-starter</artifactId>

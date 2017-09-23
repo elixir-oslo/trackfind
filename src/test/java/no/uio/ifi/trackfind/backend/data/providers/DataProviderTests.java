@@ -3,6 +3,7 @@ package no.uio.ifi.trackfind.backend.data.providers;
 import com.google.common.collect.Multimap;
 import no.uio.ifi.trackfind.TestTrackFindApplication;
 import no.uio.ifi.trackfind.backend.converters.DocumentToMapConverter;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.lucene.document.Document;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -103,11 +104,12 @@ public class DataProviderTests {
         assertThat(document.get("Advanced>key2")).isEqualToIgnoringCase("value3");
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     public void fetch() {
         Collection<Document> result = dataProvider.search("Advanced>key2: value3", 1);
         Document document = result.iterator().next();
-        Map map = (Map) documentToMapConverter.apply(document).get("Advanced");
+        Map map = MapUtils.getMap(documentToMapConverter.apply(document), "Advanced");
         map.remove("id");
         String id = document.get("Advanced>id");
         Map<String, Object> rawData = dataProvider.fetch(id);
