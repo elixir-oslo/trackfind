@@ -1,14 +1,18 @@
 package no.uio.ifi.trackfind.backend.data.providers.icgc;
 
+import alexh.weak.Dynamic;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.data.providers.PaginationAwareDataProvider;
+import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexWriter;
 import org.springframework.stereotype.Component;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Fetches data from <a href="http://docs.icgc.org/">ICGC</a>.
@@ -52,22 +56,25 @@ public class ICGCDataProvider extends PaginationAwareDataProvider { // TODO: Fet
         }
     }
 
-    // TODO: Take care of two-steps downloading.
-//    /**
-//     * {@inheritDoc}
-//     */
-//    @Override
-//    public Collection<String> getUrlsFromDataset(String query, Map dataset) {
-//        Collection<String> submitURLs = super.getUrlsFromDataset(query, dataset);
-//        return submitURLs.parallelStream().map(submitURL -> {
-//            try (InputStream inputStream = new URL(submitURL).openStream();
-//                 InputStreamReader reader = new InputStreamReader(inputStream)) {
-//                Download download = gson.fromJson(reader, Download.class);
-//                return DOWNLOAD + download.getDownloadId();
-//            } catch (IOException e) {
-//                return null;
-//            }
-//        }).filter(Objects::nonNull).collect(Collectors.toSet());
-//    }
+    /**
+     * {@inheritDoc}
+     */
+    @Override // hack for ICGC's "two-steps download"
+    public Collection<Document> search(String query, int limit) {
+        String separator = properties.getMetamodel().getLevelsSeparator();
+        String advancedURL = properties.getMetamodel().getAdvancedSectionName() + separator + properties.getMetamodel().getDataURLAttribute();
+        return super.search(query, limit).parallelStream().map(documentToMapConverter).map(Dynamic::from).map(dynamic -> {
+            String submitURL = dynamic.get(advancedURL, separator).asString();
+            try (InputStream inputStream = new URL(submitURL).openStream();
+                 InputStreamReader reader = new InputStreamReader(inputStream)) {
+                Download download = gson.fromJson(reader, Download.class);
+                dynamic.get(properties.getMetamodel().getAdvancedSectionName(), separator).asMap().put(properties.getMetamodel().getDataURLAttribute(), DOWNLOAD + download.getDownloadId());
+            } catch (IOException e) {
+                log.error(e.getMessage(), e);
+                return null;
+            }
+            return dynamic.asMap();
+        }).filter(Objects::nonNull).map(mapToDocumentConverter).collect(Collectors.toSet());
+    }
 
 }

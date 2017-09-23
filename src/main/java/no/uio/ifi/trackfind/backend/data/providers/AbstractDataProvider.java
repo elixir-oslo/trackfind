@@ -306,8 +306,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
                 }
                 String valuesKey = path[path.length - 1];
                 Collection<String> values = (Collection<String>) metamodel.computeIfAbsent(valuesKey, k -> new HashSet<>());
-                Terms terms = fields.terms(fieldName);
-                TermsEnum iterator = terms.iterator();
+                TermsEnum iterator = fields.terms(fieldName).iterator();
                 BytesRef next = iterator.next();
                 while (next != null) {
                     String value = next.utf8ToString();
@@ -338,8 +337,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
                 if (attributesToHide.contains(fieldName)) {
                     continue;
                 }
-                Terms terms = fields.terms(fieldName);
-                TermsEnum iterator = terms.iterator();
+                TermsEnum iterator = fields.terms(fieldName).iterator();
                 BytesRef next = iterator.next();
                 while (next != null) {
                     String value = next.utf8ToString();
