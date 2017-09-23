@@ -34,7 +34,7 @@ public class MapToDocumentConverter implements Function<Map, Document> {
     @Override
     public Document apply(Map map) {
         Document document = new Document();
-        convertMapToDocument(document, map, properties.getMetamodel().getLevelsSeparator() + properties.getMetamodel().getAdvancedSectionName());
+        convertMapToDocument(document, map, properties.getLevelsSeparator() + properties.getAdvancedSectionName());
         return document;
     }
 
@@ -50,7 +50,7 @@ public class MapToDocumentConverter implements Function<Map, Document> {
             Set keySet = ((Map) object).keySet();
             for (Object key : keySet) {
                 Object value = ((Map) object).get(key);
-                convertMapToDocument(document, value, path + properties.getMetamodel().getLevelsSeparator() + key);
+                convertMapToDocument(document, value, path + properties.getLevelsSeparator() + key);
             }
         } else if (object instanceof Collection) {
             Collection values = (Collection) object;

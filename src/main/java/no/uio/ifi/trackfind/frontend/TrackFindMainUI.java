@@ -1,5 +1,6 @@
 package no.uio.ifi.trackfind.frontend;
 
+import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Title;
@@ -32,7 +33,6 @@ import no.uio.ifi.trackfind.frontend.listeners.TreeItemClickListener;
 import no.uio.ifi.trackfind.frontend.listeners.TreeSelectionListener;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.CollectionUtils;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.Charset;
@@ -134,7 +134,7 @@ public class TrackFindMainUI extends AbstractUI {
         tree.setDataProvider(trackDataProvider);
         tree.setSizeFull();
         tree.setStyleGenerator((StyleGenerator<TreeNode>) item -> item.isValue() ? "value-tree-node" : null);
-        children.parallelStream().filter(c -> properties.getMetamodel().getBasicSectionName().equals(c.toString())).findFirst().ifPresent(tree::expand);
+        children.parallelStream().filter(c -> properties.getBasicSectionName().equals(c.toString())).findFirst().ifPresent(tree::expand);
         return tree;
     }
 
@@ -252,22 +252,25 @@ public class TrackFindMainUI extends AbstractUI {
         return helpLayout;
     }
 
+    @SuppressWarnings("unchecked")
     private void executeQuery(String query) {
         DataProvider currentDataProvider = getCurrentDataProvider();
 
         String limit = limitTextField.getValue();
         limit = StringUtils.isEmpty(limit) ? "0" : limit;
-        lastResults = currentDataProvider.search(query, Integer.parseInt(limit));
-        String jsonResult = gson.toJson(lastResults);
-        if (CollectionUtils.isEmpty(lastResults)) {
+        Multimap<String, Map> results = currentDataProvider.search(query, Integer.parseInt(limit));
+        if (results.isEmpty()) {
             resultsTextArea.setValue("");
             Notification.show("Nothing found for such request");
-        } else {
-            resultsTextArea.setValue(jsonResult);
+            return;
         }
+        String revision = results.keySet().iterator().next();
+        lastResults = results.values();
+        String jsonResult = gson.toJson(results.asMap());
+        resultsTextArea.setValue(jsonResult);
 
-        StringBuilder result = new StringBuilder("###");
-        properties.getMetamodel().getBasicAttributes().forEach(ba -> result.append(ba).append("\t"));
+        StringBuilder result = new StringBuilder("##Revision: " + revision + "\n###");
+        properties.getBasicAttributes().forEach(ba -> result.append(ba).append("\t"));
         result.append("\n");
         lastResults.stream().map(mapToTSVConverter).forEach(result::append);
 

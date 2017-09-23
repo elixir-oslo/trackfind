@@ -34,7 +34,7 @@ public class DocumentToMapConverter implements Function<Document, Map> {
         Collection<String> fieldNames = document.getFields().parallelStream().map(IndexableField::name).collect(Collectors.toSet());
         for (String fieldName : fieldNames) {
             Map<String, Object> metamodel = result;
-            String[] path = fieldName.split(properties.getMetamodel().getLevelsSeparator());
+            String[] path = fieldName.split(properties.getLevelsSeparator());
             for (int i = 0; i < path.length - 1; i++) {
                 String attribute = path[i];
                 metamodel = (Map<String, Object>) metamodel.computeIfAbsent(attribute, k -> new HashMap<String, Object>());

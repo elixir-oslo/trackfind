@@ -57,13 +57,13 @@ public class TestTrackFindApplication {
                 dataUrls.put("anotherDataType", Collections.singleton("anotherURL"));
                 Map<String, Object> dataset1 = new HashMap<>();
                 dataset1.put("key1", "value1");
-                dataset1.put(properties.getMetamodel().getBrowserAttribute(), dataUrls);
+                dataset1.put(properties.getBrowserAttribute(), dataUrls);
                 Set<Document> documents = splitDatasetByDataTypes(dataset1).parallelStream().map(mapToDocumentConverter).collect(Collectors.toSet());
                 indexWriter.addDocuments(documents);
                 Map<String, Object> dataset2 = new HashMap<>();
                 dataset2.put("key1", "value2");
                 dataset2.put("key2", "value3");
-                dataset2.put(properties.getMetamodel().getBrowserAttribute(), dataUrls);
+                dataset2.put(properties.getBrowserAttribute(), dataUrls);
                 documents = splitDatasetByDataTypes(dataset2).parallelStream().map(mapToDocumentConverter).collect(Collectors.toSet());
                 indexWriter.addDocuments(documents);
             }

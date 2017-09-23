@@ -72,7 +72,7 @@ public class FANTOMDataProvider extends AbstractDataProvider {
                             for (String datasetRelatedFile : datasetRelatedFiles) {
                                 browser.computeIfAbsent(getDataType(datasetRelatedFile), k -> new HashSet<>()).add(METADATA_URL + dir + datasetRelatedFile);
                             }
-                            dataset.put(properties.getMetamodel().getBrowserAttribute(), browser);
+                            dataset.put(properties.getBrowserAttribute(), browser);
                             Set<org.apache.lucene.document.Document> documents = splitDatasetByDataTypes(dataset).parallelStream().map(mapToDocumentConverter).collect(Collectors.toSet());
                             indexWriter.addDocuments(documents);
                         }

@@ -29,9 +29,9 @@ public class MapToTSVConverter implements Function<Map, String> {
     @Override
     public String apply(Map document) {
         StringBuilder result = new StringBuilder();
-        Map<String, Object> basicMap = MapUtils.getMap(document, properties.getMetamodel().getBasicSectionName());
+        Map<String, Object> basicMap = MapUtils.getMap(document, properties.getBasicSectionName());
         basicMap = basicMap == null ? new HashMap<>() : basicMap;
-        for (String basicAttribute : properties.getMetamodel().getBasicAttributes()) {
+        for (String basicAttribute : properties.getBasicAttributes()) {
             result.append(String.valueOf(basicMap.get(basicAttribute))).append("\t");
         }
         result.append("\n");

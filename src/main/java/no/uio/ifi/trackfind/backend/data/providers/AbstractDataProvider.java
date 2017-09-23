@@ -132,17 +132,17 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     @SuppressWarnings("unchecked")
     protected Collection<Map> splitDatasetByDataTypes(Map dataset) {
         clearAttributesToSkip(dataset);
-        Map<String, Collection<String>> browser = (Map<String, Collection<String>>) dataset.remove(properties.getMetamodel().getBrowserAttribute());
+        Map<String, Collection<String>> browser = (Map<String, Collection<String>>) dataset.remove(properties.getBrowserAttribute());
         String json = gson.toJson(dataset);
         HashMultimap<String, String> browserMultiMap = HashMultimap.create();
         browser.entrySet().parallelStream().forEach(e -> browserMultiMap.putAll(e.getKey(), e.getValue()));
         Collection<Map> result = new HashSet<>();
         for (Map.Entry<String, String> entry : browserMultiMap.entries()) {
             Map map = gson.fromJson(json, Map.class);
-            map.put(properties.getMetamodel().getDataTypeAttribute(), entry.getKey());
-            map.put(properties.getMetamodel().getDataURLAttribute(), entry.getValue());
-            map.put(properties.getMetamodel().getDataSourceAttribute(), getName());
-            map.put(properties.getMetamodel().getIdAttribute(), UUID.randomUUID().toString());
+            map.put(properties.getDataTypeAttribute(), entry.getKey());
+            map.put(properties.getDataURLAttribute(), entry.getValue());
+            map.put(properties.getDataSourceAttribute(), getName());
+            map.put(properties.getIdAttribute(), UUID.randomUUID().toString());
             result.add(map);
         }
         return result;
@@ -155,7 +155,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      */
     private void clearAttributesToSkip(Map dataset) {
         for (String attributeToSkip : getAttributesToSkip()) {
-            Dynamic value = Dynamic.from(dataset).get(attributeToSkip, properties.getMetamodel().getLevelsSeparator());
+            Dynamic value = Dynamic.from(dataset).get(attributeToSkip, properties.getLevelsSeparator());
             if (value.isList()) {
                 value.asList().clear();
             } else if (value.isMap()) {
@@ -195,7 +195,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
         Collection<String> indexedFields = MultiFields.getIndexedFields(indexReader);
         Collection<String> basicAttributes = indexedFields.
                 parallelStream().
-                filter(f -> f.startsWith(properties.getMetamodel().getBasicSectionName() + properties.getMetamodel().getLevelsSeparator())).
+                filter(f -> f.startsWith(properties.getBasicSectionName() + properties.getLevelsSeparator())).
                 collect(Collectors.toSet());
         Bits liveDocs = MultiFields.getLiveDocs(indexReader);
         Map<String, String> attributesMapping = loadConfiguration().getAttributesMapping();
@@ -220,16 +220,16 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
                                 filter(f -> f.startsWith(sourceAttribute)).
                                 map(f -> f.replace(sourceAttribute, "")).
                                 filter(StringUtils::isNotEmpty).
-                                map(f -> f.split(properties.getMetamodel().getLevelsSeparator())[1]).
+                                map(f -> f.split(properties.getLevelsSeparator())[1]).
                                 collect(Collectors.toSet());
                     }
                     for (String value : values) {
-                        document.add(new StringField(properties.getMetamodel().getBasicSectionName() + properties.getMetamodel().getLevelsSeparator() + mapping.getValue(),
+                        document.add(new StringField(properties.getBasicSectionName() + properties.getLevelsSeparator() + mapping.getValue(),
                                 value,
                                 Field.Store.YES));
                     }
                 }
-                indexWriter.updateDocument(new Term(properties.getMetamodel().getAdvancedIdAttribute(), document.get(properties.getMetamodel().getAdvancedIdAttribute())), document);
+                indexWriter.updateDocument(new Term(properties.getAdvancedIdAttribute(), document.get(properties.getAdvancedIdAttribute())), document);
             }
             indexWriter.flush();
             indexWriter.commit();
@@ -299,7 +299,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
                     continue;
                 }
                 Map<String, Object> metamodel = result;
-                String[] path = fieldName.split(properties.getMetamodel().getLevelsSeparator());
+                String[] path = fieldName.split(properties.getLevelsSeparator());
                 for (int i = 0; i < path.length - 1; i++) {
                     String attribute = path[i];
                     metamodel = (Map<String, Object>) metamodel.computeIfAbsent(attribute, k -> new HashMap<String, Object>());
@@ -355,21 +355,22 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      * {@inheritDoc}
      */
     @Override
-    public Collection<Map> search(String query, int limit) {
+    public Multimap<String, Map> search(String query, int limit) {
+        HashMultimap<String, Map> results = HashMultimap.create();
         try {
             Query parsedQuery = new AnalyzingQueryParser("", analyzer).parse(query);
             TopDocs topDocs = searcher.search(parsedQuery, limit == 0 ? Integer.MAX_VALUE : limit);
-            return Arrays.stream(topDocs.scoreDocs).map(scoreDoc -> {
+            results.putAll(versioningService.getCurrentRevision(), Arrays.stream(topDocs.scoreDocs).map(scoreDoc -> {
                 try {
                     return searcher.doc(scoreDoc.doc);
                 } catch (IOException e) {
                     return null;
                 }
-            }).filter(Objects::nonNull).map(documentToMapConverter).collect(Collectors.toSet());
+            }).filter(Objects::nonNull).map(documentToMapConverter).collect(Collectors.toSet()));
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return Collections.emptyList();
         }
+        return results;
     }
 
     /**
@@ -378,13 +379,13 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     @SuppressWarnings("unchecked")
     @Override
     public Map<String, Object> fetch(String documentId) {
-        Collection<Map> documents = search(properties.getMetamodel().getAdvancedIdAttribute() + ": " + documentId, 1);
+        Collection<Map> documents = search(properties.getAdvancedIdAttribute() + ": " + documentId, 1).values();
         if (CollectionUtils.isEmpty(documents)) {
             return null;
         }
         Map map = documents.iterator().next();
-        MapUtils.getMap(map, properties.getMetamodel().getAdvancedSectionName()).remove(properties.getMetamodel().getIdAttribute());
-        return MapUtils.getMap(map, properties.getMetamodel().getAdvancedSectionName());
+        MapUtils.getMap(map, properties.getAdvancedSectionName()).remove(properties.getIdAttribute());
+        return MapUtils.getMap(map, properties.getAdvancedSectionName());
     }
 
     /**

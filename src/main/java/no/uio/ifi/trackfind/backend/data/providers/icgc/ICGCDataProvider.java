@@ -1,6 +1,7 @@
 package no.uio.ifi.trackfind.backend.data.providers.icgc;
 
 import alexh.weak.Dynamic;
+import com.google.common.collect.Multimap;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.data.providers.PaginationAwareDataProvider;
 import org.apache.lucene.index.IndexWriter;
@@ -10,8 +11,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 
 /**
  * Fetches data from <a href="http://docs.icgc.org/">ICGC</a>.
@@ -50,7 +53,7 @@ public class ICGCDataProvider extends PaginationAwareDataProvider { // TODO: Fet
             for (String dataType : availableDataTypes) {
                 browser.computeIfAbsent(dataType, k -> new HashSet<>()).add(SUBMIT.replace("__DONOR_ID__", donorId).replace("__DATA_TYPE__", dataType));
             }
-            dataset.put(properties.getMetamodel().getBrowserAttribute(), browser);
+            dataset.put(properties.getBrowserAttribute(), browser);
             dataset.remove(AVAILABLE_DATA_TYPES);
         }
     }
@@ -59,21 +62,23 @@ public class ICGCDataProvider extends PaginationAwareDataProvider { // TODO: Fet
      * {@inheritDoc}
      */
     @Override // hack for ICGC's "two-steps download"
-    public Collection<Map> search(String query, int limit) {
-        String separator = properties.getMetamodel().getLevelsSeparator();
-        String advancedURL = properties.getMetamodel().getAdvancedSectionName() + separator + properties.getMetamodel().getDataURLAttribute();
-        return super.search(query, limit).parallelStream().map(Dynamic::from).map(dynamic -> {
+    public Multimap<String, Map> search(String query, int limit) {
+        String separator = properties.getLevelsSeparator();
+        String advancedURL = properties.getAdvancedSectionName() + separator + properties.getDataURLAttribute();
+        Multimap<String, Map> result = super.search(query, limit);
+        for (Map map : result.values()) {
+            Dynamic dynamic = Dynamic.from(map);
             String submitURL = dynamic.get(advancedURL, separator).asString();
             try (InputStream inputStream = new URL(submitURL).openStream();
                  InputStreamReader reader = new InputStreamReader(inputStream)) {
                 Download download = gson.fromJson(reader, Download.class);
-                dynamic.get(properties.getMetamodel().getAdvancedSectionName(), separator).asMap().put(properties.getMetamodel().getDataURLAttribute(), DOWNLOAD + download.getDownloadId());
+                dynamic.get(properties.getAdvancedSectionName(), separator).asMap().put(properties.getDataURLAttribute(), DOWNLOAD + download.getDownloadId());
             } catch (IOException e) {
                 log.error(e.getMessage(), e);
                 return null;
             }
-            return dynamic.asMap();
-        }).filter(Objects::nonNull).collect(Collectors.toSet());
+        }
+        return result;
     }
 
 }

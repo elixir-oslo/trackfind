@@ -89,20 +89,20 @@ public class DataProviderTests {
 
     @Test
     public void searchNotFoundTest() {
-        Collection<Map> result = dataProvider.search("key1: value3", 0);
+        Collection<Map> result = dataProvider.search("key1: value3", 0).values();
         assertThat(result).isEmpty();
     }
 
     @Test
     public void searchFoundTest() {
-        Collection<Map> result = dataProvider.search("Advanced>key2: value3", 0);
+        Collection<Map> result = dataProvider.search("Advanced>key2: value3", 0).values();
         assertThat(result).size().isEqualTo(2);
     }
 
     @SuppressWarnings("unchecked")
     @Test
     public void fetch() {
-        Collection<Map> result = dataProvider.search("Advanced>key2: value3", 1);
+        Collection<Map> result = dataProvider.search("Advanced>key2: value3", 1).values();
         Map map = MapUtils.getMap(result.iterator().next(), "Advanced");
         String id = String.valueOf(map.remove("id"));
         Map<String, Object> rawData = dataProvider.fetch(id);

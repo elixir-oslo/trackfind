@@ -10,26 +10,20 @@ import java.util.TreeSet;
 
 @Configuration
 @PropertySource("classpath:trackfind.properties")
-@ConfigurationProperties(prefix = "tf")
+@ConfigurationProperties
 @Data
 public class TrackFindProperties {
 
-    private Metamodel metamodel;
-
-    @Data
-    public static class Metamodel {
-
-        private @NotBlank String advancedSectionName;
-        private @NotBlank String basicSectionName;
-        private @NotBlank String levelsSeparator;
-        private @NotBlank String idAttribute;
-        private @NotBlank String advancedIdAttribute;
-        private @NotBlank String browserAttribute;
-        private @NotBlank String dataTypeAttribute;
-        private @NotBlank String dataURLAttribute;
-        private @NotBlank String dataSourceAttribute;
-        private TreeSet<String> basicAttributes;
-
-    }
+    private @NotBlank String advancedSectionName;
+    private @NotBlank String basicSectionName;
+    private @NotBlank String levelsSeparator;
+    private @NotBlank String idAttribute;
+    private @NotBlank String advancedIdAttribute;
+    private @NotBlank String browserAttribute;
+    private @NotBlank String dataTypeAttribute;
+    private @NotBlank String dataURLAttribute;
+    private @NotBlank String dataSourceAttribute;
+    private @NotBlank String revisionAttribute;
+    private TreeSet<String> basicAttributes;
 
 }

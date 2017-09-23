@@ -3,7 +3,6 @@ package no.uio.ifi.trackfind.backend.data.providers;
 import com.google.common.collect.Multimap;
 import lombok.Data;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -59,10 +58,10 @@ public interface DataProvider {
      * @param limit Results quantity limit, 0 for unlimited.
      * @return Search result.
      */
-    Collection<Map> search(String query, int limit);
+    Multimap<String, Map> search(String query, int limit);
 
     /**
-     * Fetches raw data by ID.
+     * Fetches raw data by ID, the most recent version.
      *
      * @param documentId Lucene Document ID.
      * @return Raw (JSON) data.

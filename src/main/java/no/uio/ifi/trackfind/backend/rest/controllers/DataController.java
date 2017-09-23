@@ -32,16 +32,16 @@ public class DataController {
      * @param provider DataProvider name.
      * @param query    Search query (Lucene syntax, see https://lucene.apache.org/solr/guide/6_6/the-standard-query-parser.html).
      * @param limit    Max number of entries to return.
-     * @return Search results.
+     * @return Search results by revision.
      * @throws Exception In case of some error.
      */
     @SuppressWarnings("unchecked")
     @ApiOperation(value = "Performs search over the index using Apache Lucene query language.")
     @GetMapping(path = "/{provider}/search", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<Collection<Map>> search(@PathVariable String provider,
-                                                  @RequestParam String query,
-                                                  @RequestParam(required = false, defaultValue = "0") int limit) throws Exception {
-        return ResponseEntity.ok(trackFindService.getDataProvider(provider).search(query, limit));
+    public ResponseEntity<Map<String, Collection<Map>>> search(@PathVariable String provider,
+                                                               @RequestParam String query,
+                                                               @RequestParam(required = false, defaultValue = "0") int limit) throws Exception {
+        return ResponseEntity.ok(trackFindService.getDataProvider(provider).search(query, limit).asMap());
     }
 
     /**
