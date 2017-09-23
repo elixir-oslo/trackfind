@@ -66,7 +66,15 @@ public class ConvertersTests {
     @Test
     public void documentToJSONConverterTest() {
         String apply = documentToJSONConverter.apply(document);
-        assertThat(apply).isEqualToIgnoringCase("{\"key1\":\"value1\",\"Basic\":{\"ID\":[\"value2\",\"value3\"]}}");
+        assertThat(apply).isEqualToIgnoringCase("{\n" +
+                "  \"key1\": \"value1\",\n" +
+                "  \"Basic\": {\n" +
+                "    \"ID\": [\n" +
+                "      \"value2\",\n" +
+                "      \"value3\"\n" +
+                "    ]\n" +
+                "  }\n" +
+                "}");
     }
 
     @Test
