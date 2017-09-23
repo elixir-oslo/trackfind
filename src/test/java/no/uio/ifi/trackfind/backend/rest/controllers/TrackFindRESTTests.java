@@ -13,6 +13,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+import java.util.Collection;
 import java.util.Map;
 
 import static no.uio.ifi.trackfind.TestTrackFindApplication.TEST_DATA_PROVIDER;
@@ -111,24 +112,24 @@ public class TrackFindRESTTests {
         mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/search").param("query", "Advanced>key2: value3"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
-                .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$.[0].Advanced.key2", is("value3")));
+                .andExpect(jsonPath("$", hasSize(2)));
     }
 
     @SuppressWarnings("unchecked")
     @Test
     public void fetchTest() throws Exception {
-        String searchString = mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/search").param("query", "Advanced>key2: value3"))
+        String searchResponse = mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/search").param("query", "Advanced>key2: value3"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        Map search = MapUtils.getMap(gson.fromJson(searchString.replace("[", "").replace("]", ""), Map.class), "Advanced");
+        Map search = (Map) gson.fromJson(searchResponse, Collection.class).iterator().next();
+        search = MapUtils.getMap(search, "Advanced");
         String id = search.remove("id").toString();
-        String fetchString = mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/fetch").param("documentId", id))
+        String fetchResponse = mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/fetch").param("documentId", id))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        Map fetch = gson.fromJson(fetchString, Map.class);
+        Map fetch = gson.fromJson(fetchResponse, Map.class);
         assertThat(search).isEqualTo(fetch);
     }
 

@@ -91,17 +91,15 @@ public class DataProviderTests {
     }
 
     @Test
-    public void searchNoneTest() {
+    public void searchNotFoundTest() {
         Collection<Document> result = dataProvider.search("key1: value3", 0);
         assertThat(result).isEmpty();
     }
 
     @Test
-    public void searchOneTest() {
+    public void searchFoundTest() {
         Collection<Document> result = dataProvider.search("Advanced>key2: value3", 0);
-        assertThat(result).size().isEqualTo(1);
-        Document document = result.iterator().next();
-        assertThat(document.get("Advanced>key2")).isEqualToIgnoringCase("value3");
+        assertThat(result).size().isEqualTo(2);
     }
 
     @SuppressWarnings("unchecked")

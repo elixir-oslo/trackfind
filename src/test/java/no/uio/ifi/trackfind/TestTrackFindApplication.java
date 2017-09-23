@@ -52,21 +52,19 @@ public class TestTrackFindApplication {
 
             @Override
             protected void fetchData(IndexWriter indexWriter) throws Exception {
+                Map<String, Collection<String>> dataUrls = new HashMap<>();
+                dataUrls.put("someDataType", Collections.singleton("someURL"));
+                dataUrls.put("anotherDataType", Collections.singleton("anotherURL"));
                 Map<String, Object> dataset1 = new HashMap<>();
                 dataset1.put("key1", "value1");
+                dataset1.put(properties.getMetamodel().getBrowserAttribute(), dataUrls);
                 Set<Document> documents = splitDatasetByDataTypes(dataset1).parallelStream().map(mapToDocumentConverter).collect(Collectors.toSet());
                 indexWriter.addDocuments(documents);
                 Map<String, Object> dataset2 = new HashMap<>();
                 dataset2.put("key1", "value2");
                 dataset2.put("key2", "value3");
+                dataset2.put(properties.getMetamodel().getBrowserAttribute(), dataUrls);
                 documents = splitDatasetByDataTypes(dataset2).parallelStream().map(mapToDocumentConverter).collect(Collectors.toSet());
-                indexWriter.addDocuments(documents);
-                Map<String, Object> dataset3 = new HashMap<>();
-                Map<String, Collection<String>> dataUrls = new HashMap<>();
-                dataUrls.put("someDataType", Collections.singleton("someURL"));
-                dataUrls.put("anotherDataType", Collections.singleton("anotherURL"));
-                dataset3.put(properties.getMetamodel().getBrowserAttribute(), dataUrls);
-                documents = splitDatasetByDataTypes(dataset3).parallelStream().map(mapToDocumentConverter).collect(Collectors.toSet());
                 indexWriter.addDocuments(documents);
             }
 
