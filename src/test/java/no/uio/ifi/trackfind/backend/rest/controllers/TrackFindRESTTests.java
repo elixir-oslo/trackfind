@@ -112,7 +112,7 @@ public class TrackFindRESTTests {
         mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/search").param("query", "Advanced>key2: value3"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
-                .andExpect(jsonPath("$", hasSize(2)));
+                .andExpect(jsonPath("$.*", hasSize(1)));
     }
 
     @SuppressWarnings("unchecked")
@@ -122,7 +122,7 @@ public class TrackFindRESTTests {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        Map search = (Map) gson.fromJson(searchResponse, Collection.class).iterator().next();
+        Map search = (Map) ((Collection) gson.fromJson(searchResponse, Map.class).values().iterator().next()).iterator().next();
         search = MapUtils.getMap(search, "Advanced");
         String id = search.remove("id").toString();
         String fetchResponse = mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/fetch").param("documentId", id))
