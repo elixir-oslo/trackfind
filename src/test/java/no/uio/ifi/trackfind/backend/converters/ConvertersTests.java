@@ -38,7 +38,7 @@ public class ConvertersTests {
 
     @SuppressWarnings("unchecked")
     @Before
-    public void setup() {
+    public void setUp() {
         document = new Document();
         document.add(new StringField("key1", "value1", Field.Store.NO));
         document.add(new StringField("Basic>ID", "value2", Field.Store.NO));

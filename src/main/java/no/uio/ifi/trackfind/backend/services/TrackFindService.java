@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.TreeSet;
-import java.util.stream.Collectors;
 
 /**
  * Basically the holder for all registered DataProviders.

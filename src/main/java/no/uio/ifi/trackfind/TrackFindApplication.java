@@ -28,7 +28,7 @@ public class TrackFindApplication {
     }
 
     @PostConstruct
-    private void setup() {
+    public void setup() {
         configureObjectMapper();
     }
 

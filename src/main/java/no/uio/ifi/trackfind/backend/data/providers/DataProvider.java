@@ -5,7 +5,6 @@ import lombok.Data;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
 /**
  * Interface describing access point for some external data repository.
@@ -65,7 +64,7 @@ public interface DataProvider {
      * Fetches raw data by ID.
      *
      * @param documentId Lucene Document ID.
-     * @param revision Revision of the repository.
+     * @param revision   Revision of the repository.
      * @return Raw (JSON) data.
      */
     Map<String, Object> fetch(String documentId, String revision);
