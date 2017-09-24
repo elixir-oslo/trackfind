@@ -19,6 +19,7 @@
 *.tar.gz
 *.rar
 
+archive
 indices
 target
 out

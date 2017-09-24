@@ -14,6 +14,9 @@ import java.util.TreeSet;
 @Data
 public class TrackFindProperties {
 
+    private @NotBlank String indicesFolder;
+    private @NotBlank String archiveFolder;
+
     private @NotBlank String advancedSectionName;
     private @NotBlank String basicSectionName;
     private @NotBlank String levelsSeparator;
@@ -24,6 +27,7 @@ public class TrackFindProperties {
     private @NotBlank String dataURLAttribute;
     private @NotBlank String dataSourceAttribute;
     private @NotBlank String revisionAttribute;
+
     private TreeSet<String> basicAttributes;
 
 }

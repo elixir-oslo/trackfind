@@ -2,9 +2,11 @@ package no.uio.ifi.trackfind.backend.configuration;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import springfox.documentation.builders.PathSelectors;
@@ -20,12 +22,12 @@ import java.util.Collections;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static no.uio.ifi.trackfind.TrackFindApplication.INDICES_FOLDER;
-
 @Configuration
 public class BeanDefinitions {
 
     private static final String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
+
+    private TrackFindProperties properties;
 
     @Bean
     public Gson gson() {
@@ -34,7 +36,8 @@ public class BeanDefinitions {
 
     @Bean
     public Git git() throws IOException, GitAPIException {
-        Git git = Git.init().setDirectory(new File(INDICES_FOLDER)).call();
+        FileUtils.deleteDirectory(new File(properties.getArchiveFolder()));
+        Git git = Git.init().setDirectory(new File(properties.getIndicesFolder())).call();
         try {
             git.log().call();
         } catch (NoHeadException e) {
@@ -79,6 +82,11 @@ public class BeanDefinitions {
     @Bean
     public ExecutorService fixedThreadPool() {
         return Executors.newFixedThreadPool(4);
+    }
+
+    @Autowired
+    public void setProperties(TrackFindProperties properties) {
+        this.properties = properties;
     }
 
 }

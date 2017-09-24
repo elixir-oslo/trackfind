@@ -49,14 +49,16 @@ public class DataController {
      *
      * @param provider   DataProvider name.
      * @param documentId Lucene Document ID.
+     * @param revision   Revision of the repository.
      * @return Raw (JSON) data.
      * @throws Exception In case of some error.
      */
     @ApiOperation(value = "Fetches raw (JSON) data by Lucene Document ID.")
     @GetMapping(path = "/{provider}/fetch", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Map<String, Object>> fetch(@PathVariable String provider,
-                                                     @RequestParam String documentId) throws Exception {
-        return ResponseEntity.ok(trackFindService.getDataProvider(provider).fetch(documentId));
+                                                     @RequestParam String documentId,
+                                                     @RequestParam(required = false) String revision) throws Exception {
+        return ResponseEntity.ok(trackFindService.getDataProvider(provider).fetch(documentId, revision));
     }
 
     @Autowired

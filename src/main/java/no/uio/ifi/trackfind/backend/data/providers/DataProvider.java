@@ -5,6 +5,7 @@ import lombok.Data;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Interface describing access point for some external data repository.
@@ -61,12 +62,13 @@ public interface DataProvider {
     Multimap<String, Map> search(String query, int limit);
 
     /**
-     * Fetches raw data by ID, the most recent version.
+     * Fetches raw data by ID.
      *
      * @param documentId Lucene Document ID.
+     * @param revision Revision of the repository.
      * @return Raw (JSON) data.
      */
-    Map<String, Object> fetch(String documentId);
+    Map<String, Object> fetch(String documentId, String revision);
 
     /**
      * Loads DataProvider configuration from config-file.

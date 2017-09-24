@@ -2,9 +2,7 @@ package no.uio.ifi.trackfind.backend.data.providers;
 
 import com.google.common.collect.Multimap;
 import no.uio.ifi.trackfind.TestTrackFindApplication;
-import no.uio.ifi.trackfind.backend.converters.DocumentToMapConverter;
 import org.apache.commons.collections4.MapUtils;
-import org.apache.lucene.document.Document;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -105,7 +103,7 @@ public class DataProviderTests {
         Collection<Map> result = dataProvider.search("Advanced>key2: value3", 1).values();
         Map map = MapUtils.getMap(result.iterator().next(), "Advanced");
         String id = String.valueOf(map.remove("id"));
-        Map<String, Object> rawData = dataProvider.fetch(id);
+        Map<String, Object> rawData = dataProvider.fetch(id, null);
         assertThat(rawData).isEqualTo(map);
     }
 

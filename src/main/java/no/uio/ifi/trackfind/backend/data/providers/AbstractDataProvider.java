@@ -35,10 +35,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
-
-import static no.uio.ifi.trackfind.TrackFindApplication.INDICES_FOLDER;
 
 /**
  * Abstract class for all data providers.
@@ -52,7 +51,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     private Analyzer analyzer = new KeywordAnalyzer();
 
     private IndexReader indexReader;
-    private IndexSearcher searcher;
+    private IndexSearcher indexSearcher;
     private Directory directory;
 
     private DirectoryFactory directoryFactory;
@@ -93,7 +92,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      */
     @Override
     public String getPath() {
-        return INDICES_FOLDER + getName() + "/";
+        return properties.getIndicesFolder() + getName() + File.separator;
     }
 
 
@@ -280,7 +279,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
             log.error(e.getMessage(), e);
             return;
         }
-        searcher = new IndexSearcher(indexReader);
+        indexSearcher = new IndexSearcher(indexReader);
     }
 
     /**
@@ -356,13 +355,17 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      */
     @Override
     public Multimap<String, Map> search(String query, int limit) {
+        return search(indexSearcher, query, limit);
+    }
+
+    private Multimap<String, Map> search(IndexSearcher indexSearcher, String query, int limit) {
         HashMultimap<String, Map> results = HashMultimap.create();
         try {
             Query parsedQuery = new AnalyzingQueryParser("", analyzer).parse(query);
-            TopDocs topDocs = searcher.search(parsedQuery, limit == 0 ? Integer.MAX_VALUE : limit);
+            TopDocs topDocs = indexSearcher.search(parsedQuery, limit == 0 ? Integer.MAX_VALUE : limit);
             results.putAll(versioningService.getCurrentRevision(), Arrays.stream(topDocs.scoreDocs).map(scoreDoc -> {
                 try {
-                    return searcher.doc(scoreDoc.doc);
+                    return this.indexSearcher.doc(scoreDoc.doc);
                 } catch (IOException e) {
                     return null;
                 }
@@ -376,10 +379,23 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     /**
      * {@inheritDoc}
      */
-    @SuppressWarnings("unchecked")
     @Override
-    public Map<String, Object> fetch(String documentId) {
-        Collection<Map> documents = search(properties.getAdvancedIdAttribute() + ": " + documentId, 1).values();
+    public Map<String, Object> fetch(String documentId, String revision) {
+        try {
+            return revision == null
+                    ?
+                    fetch(indexSearcher, documentId)
+                    :
+                    fetch(versioningService.getIndexSearcher(revision, getName()), documentId);
+        } catch (ExecutionException e) {
+            log.error(e.getMessage(), e);
+            return Collections.emptyMap();
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> fetch(IndexSearcher indexSearcher, String documentId) {
+        Collection<Map> documents = search(indexSearcher, properties.getAdvancedIdAttribute() + ": " + documentId, 1).values();
         if (CollectionUtils.isEmpty(documents)) {
             return null;
         }

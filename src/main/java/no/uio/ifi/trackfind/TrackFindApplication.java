@@ -21,8 +21,6 @@ import javax.annotation.PostConstruct;
 @SpringBootApplication
 public class TrackFindApplication {
 
-    public static final String INDICES_FOLDER = "indices/";
-
     private ObjectMapper objectMapper;
 
     public static void main(String[] args) {

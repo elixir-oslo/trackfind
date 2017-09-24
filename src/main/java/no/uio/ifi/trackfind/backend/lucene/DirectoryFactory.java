@@ -18,12 +18,12 @@ public class DirectoryFactory {
     /**
      * Gets the Directory for particular DataProvider.
      *
-     * @param dataProviderName Name of the DataProvider.
+     * @param path Path to Lucene Directory (index).
      * @return Lucene Directory (Index). The default one is FSDirectory (stored on hard-drive). Tests use RAMDirectory (inmemory).
      * @throws IOException In case Directory initialization fails.
      */
-    public Directory getDirectory(String dataProviderName) throws IOException {
-        return FSDirectory.open(new File(dataProviderName).toPath());
+    public Directory getDirectory(String path) throws IOException {
+        return FSDirectory.open(new File(path).toPath());
     }
 
 }
