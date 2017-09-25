@@ -410,7 +410,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     @Override
     public Configuration loadConfiguration() {
         try {
-            String json = FileUtils.readFileToString(new File(getPath() + "." + getName()), Charset.defaultCharset());
+            String json = FileUtils.readFileToString(new File(getPath() + getName()), Charset.defaultCharset());
             return gson.fromJson(json, Configuration.class);
         } catch (IOException e) {
             log.info(e.getMessage());
@@ -425,7 +425,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     @Override
     public void saveConfiguration(Configuration configuration) {
         try {
-            FileUtils.write(new File(getPath() + "." + getName()), gson.toJson(configuration), Charset.defaultCharset());
+            FileUtils.write(new File(getPath() + getName()), gson.toJson(configuration), Charset.defaultCharset());
         } catch (IOException e) {
             log.error(e.getMessage(), e);
         }
