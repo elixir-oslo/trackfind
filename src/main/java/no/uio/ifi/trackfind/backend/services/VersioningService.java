@@ -21,6 +21,7 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -115,9 +116,10 @@ public class VersioningService {
      * @param repositoryName Name of changed repo to use in commit message.
      * @throws GitAPIException In case of Git error.
      */
-    public void commitAllChanges(Operation operation, String repositoryName) throws GitAPIException {
+    public void commit(Operation operation, String repositoryName) throws GitAPIException {
         git.add().addFilepattern(".").call();
         git.commit().setAll(true).setMessage(operation.name() + ": " + repositoryName).call();
+        push();
     }
 
     /**
@@ -129,6 +131,27 @@ public class VersioningService {
     public void tag(String repositoryName) throws GitAPIException {
         List<Ref> tags = git.tagList().call();
         git.tag().setName(CollectionUtils.size(tags) + "." + repositoryName).call();
+        push();
+    }
+
+    /**
+     * Pushes changes to remote regardless depending on 'autopush' flag.
+     *
+     * @throws GitAPIException In case of Git error.
+     */
+    public void push() throws GitAPIException {
+        if (properties.getGitAutopush()) {
+            forcePush();
+        }
+    }
+
+    /**
+     * Pushes changes to remote regardless of 'autopush' flag.
+     *
+     * @throws GitAPIException In case of Git error.
+     */
+    public void forcePush() throws GitAPIException {
+        git.push().setCredentialsProvider(new UsernamePasswordCredentialsProvider("token", properties.getGitToken())).call();
     }
 
     /**

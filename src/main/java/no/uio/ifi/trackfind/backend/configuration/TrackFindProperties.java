@@ -19,6 +19,7 @@ public class TrackFindProperties {
 
     private String gitRemote;
     private String gitToken;
+    private Boolean gitAutopush;
 
     private @NotBlank String advancedSectionName;
     private @NotBlank String basicSectionName;

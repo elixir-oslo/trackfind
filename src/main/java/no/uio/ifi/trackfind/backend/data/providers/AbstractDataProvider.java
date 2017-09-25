@@ -29,7 +29,6 @@ import org.apache.lucene.util.Bits;
 import org.apache.lucene.util.BytesRef;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.DependsOn;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
@@ -47,7 +46,7 @@ import java.util.stream.Collectors;
  * @author Dmytro Titov
  */
 @Slf4j
-@DependsOn("git")
+// TODO: Find out how to propagate @DependsOn annotation to subclasses.
 public abstract class AbstractDataProvider implements DataProvider, Comparable<DataProvider> {
 
     private Analyzer analyzer = new KeywordAnalyzer();
@@ -250,7 +249,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      * @throws GitAPIException In case of Git error.
      */
     protected void commit(VersioningService.Operation operation) throws GitAPIException {
-        versioningService.commitAllChanges(operation, getName());
+        versioningService.commit(operation, getName());
     }
 
 
@@ -412,7 +411,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     @Override
     public Configuration loadConfiguration() {
         try {
-            String json = FileUtils.readFileToString(new File(getPath() + getName()), Charset.defaultCharset());
+            String json = FileUtils.readFileToString(new File(properties.getIndicesFolder() + "." + getName()), Charset.defaultCharset());
             return gson.fromJson(json, Configuration.class);
         } catch (IOException e) {
             log.info(e.getMessage());
@@ -427,7 +426,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     @Override
     public void saveConfiguration(Configuration configuration) {
         try {
-            FileUtils.write(new File(getPath() + getName()), gson.toJson(configuration), Charset.defaultCharset());
+            FileUtils.write(new File(properties.getIndicesFolder() + "." + getName()), gson.toJson(configuration), Charset.defaultCharset());
         } catch (IOException e) {
             log.error(e.getMessage(), e);
         }

@@ -5,6 +5,7 @@ import com.google.common.collect.Multimap;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.data.providers.PaginationAwareDataProvider;
 import org.apache.lucene.index.IndexWriter;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -23,6 +24,7 @@ import java.util.Map;
  */
 @Slf4j
 @Component
+@DependsOn("git")
 public class ICGCDataProvider extends PaginationAwareDataProvider { // TODO: Fetch more data.
 
     private static final String DONORS = "https://dcc.icgc.org/api/v1/donors?";

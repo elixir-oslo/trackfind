@@ -20,8 +20,10 @@ import springfox.documentation.service.Contact;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.concurrent.ExecutorService;
@@ -41,37 +43,52 @@ public class BeanDefinitions {
     }
 
     @Bean
-    public Git git() throws IOException, GitAPIException {
+    public Git git() throws IOException, GitAPIException, InterruptedException {
         FileUtils.deleteDirectory(new File(properties.getArchiveFolder()));
 
-        File indicesFolder = new File(properties.getIndicesFolder());
         String gitRemote = properties.getGitRemote();
+        File indicesFolder = new File(properties.getIndicesFolder());
         if (!indicesFolder.exists() && StringUtils.isNotEmpty(gitRemote)) {
-            log.info("Checking out indices from remote via Git LFS: " + gitRemote);
+            log.info("Cloning indices from specified clone-source via Git LFS.");
             log.info("Note: this may take a while depending on the indices size.");
-            return Git.cloneRepository().
-                    setURI(gitRemote).
-                    setDirectory(indicesFolder).
-                    setCredentialsProvider(new UsernamePasswordCredentialsProvider("token", properties.getGitToken())).
-                    call();
+            clone(gitRemote);
+            return Git.init().setDirectory(indicesFolder).call();
         }
         log.info("Loading indices Git repo.");
         Git git = Git.init().setDirectory(indicesFolder).call();
         try {
             git.log().call();
-            log.info("Existing Git repo loaded successfully.");
+            log.info("Git repo loaded successfully.");
         } catch (NoHeadException e) {
             log.info("Indices Git repo doesn't exist.");
             log.info("Tracking all existing indices (if any) and performing initial commit.");
             initRepo(git);
         }
         if (StringUtils.isNotEmpty(gitRemote)) {
-            log.info("Adding remote: " + gitRemote);
-            log.info("Pushing changes to remote (if any).");
-            addRemoteAndPush(git, gitRemote);
+            log.info("Adding specified remote.");
+            addRemote(git, gitRemote);
+            if (properties.getGitAutopush()) {
+                log.info("Pushing changes to remote (if any).");
+                git.push().setCredentialsProvider(new UsernamePasswordCredentialsProvider("token", properties.getGitToken())).call();
+            }
         }
         log.info("Loading complete.");
         return git;
+    }
+
+    /**
+     * Clones specified remote.
+     *
+     * @param gitRemote Remote to clone.
+     * @throws IOException In case of some filesystem-related error.
+     */
+    private void clone(String gitRemote) throws IOException {
+        Process process = Runtime.getRuntime().exec("git-lfs clone " + gitRemote + " " + properties.getIndicesFolder());
+        BufferedReader stdInput = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        String output;
+        while ((output = stdInput.readLine()) != null) {
+            log.info(output);
+        }
     }
 
     /**
@@ -98,18 +115,17 @@ public class BeanDefinitions {
     }
 
     /**
-     * Adds remote from properties-file (if present) and performs push.
+     * Adds remote to the repo.
      *
      * @param git       JGit instance.
      * @param gitRemote URL of remote to add.
      * @throws IOException     In case of some filesystem-related error.
      * @throws GitAPIException In case of some Git-related error.
      */
-    private void addRemoteAndPush(Git git, String gitRemote) throws IOException, GitAPIException {
+    private void addRemote(Git git, String gitRemote) throws IOException, GitAPIException {
         StoredConfig config = git.getRepository().getConfig();
         config.setString("remote", "origin", "url", gitRemote);
         config.save();
-        git.push().setCredentialsProvider(new UsernamePasswordCredentialsProvider("token", properties.getGitToken())).call();
     }
 
     @Bean

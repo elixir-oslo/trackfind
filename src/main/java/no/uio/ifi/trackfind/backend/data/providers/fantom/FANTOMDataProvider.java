@@ -9,6 +9,7 @@ import org.apache.lucene.index.IndexWriter;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
@@ -27,6 +28,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Component
+@DependsOn("git")
 public class FANTOMDataProvider extends AbstractDataProvider {
 
     private static final String METADATA_URL = "http://fantom.gsc.riken.jp/5/datafiles/latest/basic/";
