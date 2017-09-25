@@ -18,6 +18,7 @@ import springfox.documentation.spring.web.plugins.Docket;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -41,6 +42,7 @@ public class BeanDefinitions {
         try {
             git.log().call();
         } catch (NoHeadException e) {
+            FileUtils.write(new File(properties.getIndicesFolder() + ".gitattributes"), "*.* filter=lfs diff=lfs merge=lfs -text", Charset.defaultCharset());
             git.add().addFilepattern(".").call();
             git.commit().setMessage("Initial commit.").call();
         }
