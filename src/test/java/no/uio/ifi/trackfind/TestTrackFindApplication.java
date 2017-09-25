@@ -5,17 +5,21 @@ import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
 import no.uio.ifi.trackfind.backend.data.providers.ihec.IHECDataProvider;
 import no.uio.ifi.trackfind.backend.lucene.DirectoryFactory;
 import no.uio.ifi.trackfind.backend.services.VersioningService;
+import org.apache.commons.io.FileUtils;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
+import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.internal.storage.dfs.InMemoryRepository;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -30,6 +34,15 @@ public class TestTrackFindApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(TestTrackFindApplication.class, args);
+    }
+
+    @Bean
+    public Git git() throws IOException, GitAPIException {
+        File tempDirectory = FileUtils.getTempDirectory();
+        Git git = Git.init().setDirectory(tempDirectory).call();
+        git.add().addFilepattern("console.log").call();
+        git.commit().setMessage("").call();
+        return git;
     }
 
     @Bean
