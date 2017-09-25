@@ -29,6 +29,7 @@ import org.apache.lucene.util.Bits;
 import org.apache.lucene.util.BytesRef;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.DependsOn;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
@@ -46,6 +47,7 @@ import java.util.stream.Collectors;
  * @author Dmytro Titov
  */
 @Slf4j
+@DependsOn("git")
 public abstract class AbstractDataProvider implements DataProvider, Comparable<DataProvider> {
 
     private Analyzer analyzer = new KeywordAnalyzer();

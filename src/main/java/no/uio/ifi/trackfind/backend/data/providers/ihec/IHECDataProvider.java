@@ -29,6 +29,8 @@ public class IHECDataProvider extends AbstractDataProvider {
     private static final String RELEASES_URL = "http://epigenomesportal.ca/cgi-bin/api/getReleases.py";
     private static final String FETCH_URL = "http://epigenomesportal.ca/cgi-bin/api/getDataHub.py?data_release_id=";
 
+    private static final String BROWSER = "BROWSER";
+
     /**
      * {@inheritDoc}
      */
@@ -63,7 +65,7 @@ public class IHECDataProvider extends AbstractDataProvider {
                         Object sample = samplesMap.get(sampleId);
                         dataset.put("sample_data", sample);
                         dataset.put("hub_description", hubDescription);
-                        Map<String, Collection<Map<String, String>>> browser = (Map<String, Collection<Map<String, String>>>) dataset.get(properties.getBrowserAttribute());
+                        Map<String, Collection<Map<String, String>>> browser = (Map<String, Collection<Map<String, String>>>) dataset.get(BROWSER);
                         Map<String, Collection<String>> browserToStore = new HashMap<>();
                         for (String dataType : browser.keySet()) {
                             Collection<Map<String, String>> bigDataUrls = browser.get(dataType);

@@ -17,6 +17,9 @@ public class TrackFindProperties {
     private @NotBlank String indicesFolder;
     private @NotBlank String archiveFolder;
 
+    private String gitRemote;
+    private String gitToken;
+
     private @NotBlank String advancedSectionName;
     private @NotBlank String basicSectionName;
     private @NotBlank String levelsSeparator;
