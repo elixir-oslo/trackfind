@@ -41,7 +41,6 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 @Service
-// TODO: Add git-lfs.
 public class VersioningService {
 
     private TrackFindProperties properties;
