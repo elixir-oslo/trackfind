@@ -82,7 +82,7 @@ public class BeanDefinitions {
      * @param gitRemote Remote to clone.
      * @throws IOException In case of some filesystem-related error.
      */
-    private void clone(String gitRemote) throws IOException {
+    private void clone(String gitRemote) throws IOException, InterruptedException {
         Process process = Runtime.getRuntime().exec("git-lfs clone " + gitRemote + " " + properties.getIndicesFolder());
         BufferedReader stdInput = new BufferedReader(new InputStreamReader(process.getInputStream()));
         String output;

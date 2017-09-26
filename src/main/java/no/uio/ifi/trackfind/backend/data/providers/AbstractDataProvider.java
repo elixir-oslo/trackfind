@@ -46,7 +46,6 @@ import java.util.stream.Collectors;
  * @author Dmytro Titov
  */
 @Slf4j
-// TODO: Find out how to propagate @DependsOn annotation to subclasses.
 public abstract class AbstractDataProvider implements DataProvider, Comparable<DataProvider> {
 
     private Analyzer analyzer = new KeywordAnalyzer();

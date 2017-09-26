@@ -1,6 +1,7 @@
 package no.uio.ifi.trackfind.backend.data.providers.fantom;
 
 import lombok.extern.slf4j.Slf4j;
+import no.uio.ifi.trackfind.backend.annotations.VersionedComponent;
 import no.uio.ifi.trackfind.backend.data.providers.AbstractDataProvider;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -9,7 +10,6 @@ import org.apache.lucene.index.IndexWriter;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
@@ -27,8 +27,7 @@ import java.util.stream.Collectors;
  * @author Dmytro Titov
  */
 @Slf4j
-@Component
-@DependsOn("git")
+@VersionedComponent
 public class FANTOMDataProvider extends AbstractDataProvider {
 
     private static final String METADATA_URL = "http://fantom.gsc.riken.jp/5/datafiles/latest/basic/";

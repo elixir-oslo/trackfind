@@ -3,10 +3,9 @@ package no.uio.ifi.trackfind.backend.data.providers.icgc;
 import alexh.weak.Dynamic;
 import com.google.common.collect.Multimap;
 import lombok.extern.slf4j.Slf4j;
+import no.uio.ifi.trackfind.backend.annotations.VersionedComponent;
 import no.uio.ifi.trackfind.backend.data.providers.PaginationAwareDataProvider;
 import org.apache.lucene.index.IndexWriter;
-import org.springframework.context.annotation.DependsOn;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,8 +22,7 @@ import java.util.Map;
  * @author Dmytro Titov
  */
 @Slf4j
-@Component
-@DependsOn("git")
+@VersionedComponent
 public class ICGCDataProvider extends PaginationAwareDataProvider { // TODO: Fetch more data.
 
     private static final String DONORS = "https://dcc.icgc.org/api/v1/donors?";

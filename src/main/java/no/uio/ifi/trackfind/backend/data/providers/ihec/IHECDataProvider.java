@@ -2,11 +2,10 @@ package no.uio.ifi.trackfind.backend.data.providers.ihec;
 
 import com.google.gson.reflect.TypeToken;
 import lombok.extern.slf4j.Slf4j;
+import no.uio.ifi.trackfind.backend.annotations.VersionedComponent;
 import no.uio.ifi.trackfind.backend.data.providers.AbstractDataProvider;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.lucene.index.IndexWriter;
-import org.springframework.context.annotation.DependsOn;
-import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
@@ -24,8 +23,7 @@ import java.util.stream.Collectors;
  * @author Dmytro Titov
  */
 @Slf4j
-@Component
-@DependsOn("git")
+@VersionedComponent
 public class IHECDataProvider extends AbstractDataProvider {
 
     private static final String RELEASES_URL = "http://epigenomesportal.ca/cgi-bin/api/getReleases.py";
