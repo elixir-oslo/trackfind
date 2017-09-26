@@ -4,6 +4,13 @@
 [![Build Status](https://travis-ci.org/elixir-no-nels/trackfind.svg?branch=master)](https://travis-ci.org/elixir-no-nels/trackfind)
 [![Docker Pulls](https://img.shields.io/docker/pulls/dtitov/trackfind.svg)](https://hub.docker.com/r/dtitov/trackfind/)
 
+## Requirements
+There are no any special requirements for deploying application using containering (via [Docker](#Docker) or [Singularity](#Singularity])), but if you prefer to run it natively, then you will need these parts to be installed on the host system:
+- **JRE 8**
+- **Git** + **Git LFS**
+
+(also you will need **Maven 3** and **JDK 8** instead of **JRE 8** for building and running from [sources](#Sources)).
+
 ## Deployment
 ### Docker
 ```bash
