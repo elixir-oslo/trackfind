@@ -9,12 +9,13 @@
 ```bash
 docker run -d \
   -it \
-  -v /path/to/indices/directory:/indices \
+  -v /absolute/path/to/indices/directory:/trackfind/indices \
+  -v /absolute/path/to/trackfind.properties:/trackfind/trackfind.properties \
   -p 8888:8888 \
   --name trackfind \
   dtitov/trackfind:1.0.0
 ```
-*Note: specifying volume to mount is optional.*
+*Note: specifying volumes to mount is optional: first one will init application with pre-populated indices and the second one will override default application properties.*
 
 Logs are available at `docker logs -f trackfind`
 
