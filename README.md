@@ -5,7 +5,7 @@
 [![Docker Pulls](https://img.shields.io/docker/pulls/dtitov/trackfind.svg)](https://hub.docker.com/r/dtitov/trackfind/)
 
 ## Requirements
-There are no any special requirements for deploying application using containering (via [Docker](#docker) or [Singularity](#singularity])), but if you prefer to run it natively, then you will need these parts to be installed on the host system:
+There are no any special requirements for deploying application using containering (via [Docker](#docker) or [Singularity](#singularity)), but if you prefer to run it natively, then you will need these parts to be installed on the host system:
 - **JRE 8**
 - **Git** + **Git LFS**
 
