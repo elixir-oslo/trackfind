@@ -9,7 +9,7 @@ import org.springframework.context.annotation.PropertySource;
 import java.util.TreeSet;
 
 @Configuration
-@PropertySource("classpath:trackfind.properties")
+@PropertySource(value = {"classpath:trackfind.properties", "file:trackfind.properties"}, ignoreResourceNotFound = true)
 @ConfigurationProperties
 @Data
 public class TrackFindProperties {

@@ -89,6 +89,10 @@ public class BeanDefinitions {
         while ((output = stdInput.readLine()) != null) {
             log.info(output);
         }
+        process.waitFor();
+        if (process.exitValue() != 0) {
+            throw new InterruptedException("An error occurred during 'git clone'! Check the remote accessibility and/or credentials.");
+        }
     }
 
     /**

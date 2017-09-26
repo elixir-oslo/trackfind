@@ -19,6 +19,7 @@
 *.tar.gz
 *.rar
 
+trackfind.properties
 archive
 indices
 target
