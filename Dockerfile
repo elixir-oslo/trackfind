@@ -3,7 +3,6 @@ FROM ubuntu:17.04
 MAINTAINER https://github.com/dtitov
 
 RUN mkdir /cluster
-#RUN mkdir /trackfind
 
 RUN apt update && apt install git openjdk-8-jre -yq --no-install-recommends
 
