@@ -17,6 +17,6 @@ deploy:
 after_success:
   - if [ -n "$TRAVIS_TAG" ]; then
     docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
-    docker build -t dtitov/trackfind:$TRAVIS_TAG .;
-    docker push dtitov/trackfind:$TRAVIS_TAG;
+    docker build -t nels/trackfind:$TRAVIS_TAG .;
+    docker push nels/trackfind:$TRAVIS_TAG;
     fi
