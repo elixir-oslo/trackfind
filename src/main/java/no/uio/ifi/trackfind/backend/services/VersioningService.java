@@ -18,6 +18,7 @@ import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.revwalk.RevCommit;
@@ -118,7 +119,7 @@ public class VersioningService {
     public void commit(Operation operation, String repositoryName) throws GitAPIException {
         git.add().addFilepattern(".").call();
         git.commit().setAll(true).setMessage(operation.name() + ": " + repositoryName).call();
-        push();
+        push(false);
     }
 
     /**
@@ -130,27 +131,33 @@ public class VersioningService {
     public void tag(String repositoryName) throws GitAPIException {
         List<Ref> tags = git.tagList().call();
         git.tag().setName(CollectionUtils.size(tags) + "." + repositoryName).call();
-        push();
+        push(true);
     }
 
     /**
      * Pushes changes to remote regardless depending on 'autopush' flag.
      *
+     * @param pushTags Flag specifying whether to push tags or not.
      * @throws GitAPIException In case of Git error.
      */
-    public void push() throws GitAPIException {
+    private void push(boolean pushTags) throws GitAPIException {
         if (properties.getGitAutopush()) {
-            forcePush();
+            forcePush(pushTags);
         }
     }
 
     /**
      * Pushes changes to remote regardless of 'autopush' flag.
      *
+     * @param pushTags Flag specifying whether to push tags or not.
      * @throws GitAPIException In case of Git error.
      */
-    public void forcePush() throws GitAPIException {
-        git.push().setCredentialsProvider(new UsernamePasswordCredentialsProvider("token", properties.getGitToken())).call();
+    private void forcePush(boolean pushTags) throws GitAPIException {
+        PushCommand pushCommand = git.push().setCredentialsProvider(new UsernamePasswordCredentialsProvider("token", properties.getGitToken()));
+        if (pushTags) {
+            pushCommand.setPushTags();
+        }
+        pushCommand.call();
     }
 
     /**
