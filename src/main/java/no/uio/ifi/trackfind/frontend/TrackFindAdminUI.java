@@ -174,7 +174,7 @@ public class TrackFindAdminUI extends AbstractUI {
                 }));
         HorizontalLayout buttonsLayout = new HorizontalLayout(saveButton, crawlButton, applyMappingsButton);
         buttonsLayout.setWidth(100, Unit.PERCENTAGE);
-        buttonsLayout.setEnabled(true);
+        buttonsLayout.setEnabled(!properties.isDemoMode());
         VerticalLayout attributesMappingOuterLayout = new VerticalLayout(attributesMappingPanel, buttonsLayout);
         attributesMappingOuterLayout.setSizeFull();
         attributesMappingOuterLayout.setExpandRatio(attributesMappingPanel, 0.8f);

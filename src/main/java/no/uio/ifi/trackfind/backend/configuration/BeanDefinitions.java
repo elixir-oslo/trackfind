@@ -67,7 +67,7 @@ public class BeanDefinitions {
         if (StringUtils.isNotEmpty(gitRemote)) {
             log.info("Adding specified remote.");
             addRemote(git, gitRemote);
-            if (properties.getGitAutopush()) {
+            if (properties.isGitAutopush()) {
                 log.info("Pushing changes to remote (if any).");
                 git.push().setPushTags().setCredentialsProvider(new UsernamePasswordCredentialsProvider("token", properties.getGitToken())).call();
             }

@@ -19,7 +19,7 @@ public class TrackFindProperties {
 
     private String gitRemote;
     private String gitToken;
-    private Boolean gitAutopush;
+    private boolean gitAutopush;
 
     private @NotBlank String advancedSectionName;
     private @NotBlank String basicSectionName;
@@ -33,5 +33,7 @@ public class TrackFindProperties {
     private @NotBlank String revisionAttribute;
 
     private TreeSet<String> basicAttributes;
+
+    private boolean demoMode;
 
 }

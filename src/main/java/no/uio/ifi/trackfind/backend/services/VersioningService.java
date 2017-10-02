@@ -150,7 +150,7 @@ public class VersioningService {
      * @throws GitAPIException In case of Git error.
      */
     private void push(boolean pushTags) throws GitAPIException {
-        if (properties.getGitAutopush()) {
+        if (properties.isGitAutopush()) {
             forcePush(pushTags);
         }
     }
