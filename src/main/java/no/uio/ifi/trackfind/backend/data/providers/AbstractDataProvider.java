@@ -33,8 +33,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -139,17 +137,12 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
         browser.entrySet().parallelStream().forEach(e -> browserMultiMap.putAll(e.getKey(), e.getValue()));
         Collection<Map> result = new HashSet<>();
         for (Map.Entry<String, String> entry : browserMultiMap.entries()) {
-            try {
-                URL url = new URL(entry.getValue());
-                Map map = gson.fromJson(json, Map.class);
-                map.put(properties.getDataTypeAttribute(), entry.getKey());
-                map.put(properties.getDataURLAttribute(), url.toString());
-                map.put(properties.getDataSourceAttribute(), getName());
-                map.put(properties.getIdAttribute(), UUID.randomUUID().toString());
-                result.add(map);
-            } catch (MalformedURLException e) {
-                log.info("Malformed URL: " + entry.getValue());
-            }
+            Map map = gson.fromJson(json, Map.class);
+            map.put(properties.getDataTypeAttribute(), entry.getKey());
+            map.put(properties.getDataURLAttribute(), entry.getValue());
+            map.put(properties.getDataSourceAttribute(), getName());
+            map.put(properties.getIdAttribute(), UUID.randomUUID().toString());
+            result.add(map);
         }
         return result;
     }
