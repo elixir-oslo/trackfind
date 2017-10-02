@@ -135,6 +135,15 @@ public class VersioningService {
     }
 
     /**
+     * Pulls all indices from the remote.
+     *
+     * @throws GitAPIException In case of Git error.
+     */
+    public void pull() throws GitAPIException {
+        git.pull().setCredentialsProvider(new UsernamePasswordCredentialsProvider("token", properties.getGitToken())).call();
+    }
+
+    /**
      * Pushes changes to remote regardless depending on 'autopush' flag.
      *
      * @param pushTags Flag specifying whether to push tags or not.

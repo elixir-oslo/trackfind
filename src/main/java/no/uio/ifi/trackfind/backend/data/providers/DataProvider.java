@@ -38,6 +38,11 @@ public interface DataProvider {
     void applyMappings();
 
     /**
+     * Reinitialize Directory Reader and Searcher (in case of Directory update).
+     */
+    void reinitIndexSearcher();
+
+    /**
      * Gets metamodel of the repository in "tree-from" (with nesting).
      *
      * @return Tree metamodel.

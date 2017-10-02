@@ -262,9 +262,9 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     }
 
     /**
-     * Reinitialize Directory Reader and Searcher (in case of Directory update).
+     * {@inheritDoc}
      */
-    private synchronized void reinitIndexSearcher() {
+    public synchronized void reinitIndexSearcher() {
         if (indexReader != null) {
             try {
                 indexReader.close();

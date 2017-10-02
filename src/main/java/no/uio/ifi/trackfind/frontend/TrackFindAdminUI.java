@@ -20,10 +20,14 @@ import com.vaadin.ui.components.grid.TreeGridDragSource;
 import com.vaadin.ui.dnd.DropTargetExtension;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
+import no.uio.ifi.trackfind.backend.services.VersioningService;
 import no.uio.ifi.trackfind.frontend.components.TrackFindTree;
 import no.uio.ifi.trackfind.frontend.data.TreeNode;
 import no.uio.ifi.trackfind.frontend.filters.AdminTreeFilter;
 import no.uio.ifi.trackfind.frontend.listeners.TextFieldDropListener;
+import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
@@ -43,6 +47,8 @@ import java.util.stream.Collectors;
 @Theme("trackfind")
 @Slf4j
 public class TrackFindAdminUI extends AbstractUI {
+
+    private VersioningService versioningService;
 
     private Button addMappingButton;
     private VerticalLayout attributesMappingLayout;
@@ -168,9 +174,28 @@ public class TrackFindAdminUI extends AbstractUI {
                 }));
         HorizontalLayout buttonsLayout = new HorizontalLayout(saveButton, crawlButton, applyMappingsButton);
         buttonsLayout.setWidth(100, Unit.PERCENTAGE);
+        buttonsLayout.setEnabled(true);
         VerticalLayout attributesMappingOuterLayout = new VerticalLayout(attributesMappingPanel, buttonsLayout);
         attributesMappingOuterLayout.setSizeFull();
-        attributesMappingOuterLayout.setExpandRatio(attributesMappingPanel, 1f);
+        attributesMappingOuterLayout.setExpandRatio(attributesMappingPanel, 0.8f);
+        if (StringUtils.isNotEmpty(properties.getGitRemote())) {
+            Button pullIndicesButton = new Button("Pull indices");
+            pullIndicesButton.setSizeFull();
+            pullIndicesButton.addClickListener((Button.ClickListener) event -> ConfirmDialog.show(getUI(),
+                    "Are you sure? Indices will be pulled from remote source and all local changes will be overridden (for all repos).",
+                    (ConfirmDialog.Listener) dialog -> {
+                        if (dialog.isConfirmed()) {
+                            try {
+                                versioningService.pull();
+                                trackFindService.getDataProviders().forEach(DataProvider::reinitIndexSearcher);
+                            } catch (GitAPIException e) {
+                                log.error(e.getMessage(), e);
+                            }
+                        }
+                    }));
+            attributesMappingOuterLayout.addComponent(pullIndicesButton);
+            attributesMappingOuterLayout.setExpandRatio(pullIndicesButton, 0.07f);
+        }
         return attributesMappingOuterLayout;
     }
 
@@ -230,6 +255,11 @@ public class TrackFindAdminUI extends AbstractUI {
         }
         currentDataProvider.saveConfiguration(configuration);
         Notification.show("Mappings saved. Apply them to take effect.");
+    }
+
+    @Autowired
+    public void setVersioningService(VersioningService versioningService) {
+        this.versioningService = versioningService;
     }
 
 }
