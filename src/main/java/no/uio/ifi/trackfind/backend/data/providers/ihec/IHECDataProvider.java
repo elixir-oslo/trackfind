@@ -29,7 +29,7 @@ public class IHECDataProvider extends AbstractDataProvider {
     private static final String RELEASES_URL = "http://epigenomesportal.ca/cgi-bin/api/getReleases.py";
     private static final String FETCH_URL = "http://epigenomesportal.ca/cgi-bin/api/getDataHub.py?data_release_id=";
 
-    private static final String BROWSER = "BROWSER";
+    private static final String BROWSER = "browser";
 
     /**
      * {@inheritDoc}
@@ -77,7 +77,7 @@ public class IHECDataProvider extends AbstractDataProvider {
                     }
                     indexWriter.addDocuments(datasets.parallelStream().map(this::splitDatasetByDataTypes).flatMap(Collection::parallelStream).map(mapToDocumentConverter).collect(Collectors.toSet()));
                     log.info("Release " + releaseId + " processed.");
-                } catch (IOException e) {
+                } catch (Exception e) {
                     log.error(e.getMessage(), e);
                 } finally {
                     countDownLatch.countDown();
