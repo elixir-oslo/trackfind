@@ -63,6 +63,7 @@ public class TrackFindMainUI extends AbstractUI {
 
     private TextArea queryTextArea;
     private TextField limitTextField;
+    private Button searchButton;
     private TextArea resultsTextArea;
     private FileDownloader gSuiteFileDownloader;
     private FileDownloader jsonFileDownloader;
@@ -192,16 +193,20 @@ public class TrackFindMainUI extends AbstractUI {
                 executeQuery(queryTextArea.getValue());
             }
         });
+        queryTextArea.addValueChangeListener((HasValue.ValueChangeListener<String>) event -> {
+            searchButton.setEnabled(StringUtils.isNotEmpty(queryTextArea.getValue()));
+        });
         DropTargetExtension<TextArea> dropTarget = new DropTargetExtension<>(queryTextArea);
         dropTarget.setDropEffect(DropEffect.COPY);
         dropTarget.addDropListener(new TextAreaDropListener(queryTextArea));
         Panel queryPanel = new Panel("Search query", queryTextArea);
         queryPanel.setSizeFull();
 
-        Button searchButton = new Button("Search", (Button.ClickListener) clickEvent -> executeQuery(queryTextArea.getValue()));
+        searchButton = new Button("Search", (Button.ClickListener) clickEvent -> executeQuery(queryTextArea.getValue()));
         searchButton.setWidth(100, Unit.PERCENTAGE);
+        searchButton.setEnabled(false);
 
-        limitTextField = new TextField("Limit");
+        limitTextField = new TextField("Limit", "10");
         limitTextField.setWidth(100, Unit.PERCENTAGE);
         limitTextField.setValueChangeMode(ValueChangeMode.EAGER);
         limitTextField.addValueChangeListener((HasValue.ValueChangeListener<String>) valueChangeEvent -> {
