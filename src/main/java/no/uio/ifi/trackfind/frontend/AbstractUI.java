@@ -28,14 +28,14 @@ public abstract class AbstractUI extends UI {
     protected TabSheet tabSheet;
 
     @SuppressWarnings("unchecked")
-    protected DataProvider getCurrentDataProvider() {
-        TrackFindTree<TreeNode> tree = (TrackFindTree<TreeNode>) tabSheet.getSelectedTab();
-        return tree.getBackEndDataProvider();
+    public TrackFindTree<TreeNode> getCurrentTree() {
+        return (TrackFindTree<TreeNode>) tabSheet.getSelectedTab();
     }
 
     @SuppressWarnings("unchecked")
-    protected TrackFindTree<TreeNode> getCurrentTree() {
-        return (TrackFindTree<TreeNode>) tabSheet.getSelectedTab();
+    protected DataProvider getCurrentDataProvider() {
+        TrackFindTree<TreeNode> tree = (TrackFindTree<TreeNode>) tabSheet.getSelectedTab();
+        return tree.getBackEndDataProvider();
     }
 
     @SuppressWarnings("unchecked")

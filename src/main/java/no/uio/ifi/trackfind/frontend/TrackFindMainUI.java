@@ -28,6 +28,7 @@ import no.uio.ifi.trackfind.frontend.components.KeyboardInterceptorExtension;
 import no.uio.ifi.trackfind.frontend.components.TrackFindTree;
 import no.uio.ifi.trackfind.frontend.data.TreeNode;
 import no.uio.ifi.trackfind.frontend.filters.MainTreeFilter;
+import no.uio.ifi.trackfind.frontend.listeners.AddToQueryButtonClickListener;
 import no.uio.ifi.trackfind.frontend.listeners.TextAreaDropListener;
 import no.uio.ifi.trackfind.frontend.listeners.TreeItemClickListener;
 import no.uio.ifi.trackfind.frontend.listeners.TreeSelectionListener;
@@ -110,7 +111,10 @@ public class TrackFindMainUI extends AbstractUI {
         valuesFilterTextField.setValueChangeMode(ValueChangeMode.EAGER);
         valuesFilterTextField.setWidth(100, Sizeable.Unit.PERCENTAGE);
 
-        VerticalLayout treeLayout = new VerticalLayout(treePanel, attributesFilterTextField, valuesFilterTextField);
+        Button addToQueryButton = new Button("Add to query ➚", new AddToQueryButtonClickListener(this));
+        addToQueryButton.setWidth(100, Unit.PERCENTAGE);
+
+        VerticalLayout treeLayout = new VerticalLayout(treePanel, attributesFilterTextField, valuesFilterTextField, addToQueryButton);
         treeLayout.setSizeFull();
         treeLayout.setExpandRatio(treePanel, 1f);
         return treeLayout;
@@ -196,6 +200,7 @@ public class TrackFindMainUI extends AbstractUI {
         queryTextArea.addValueChangeListener((HasValue.ValueChangeListener<String>) event -> {
             searchButton.setEnabled(StringUtils.isNotEmpty(queryTextArea.getValue()));
         });
+        queryTextArea.addStyleName("scrollable-text-area");
         DropTargetExtension<TextArea> dropTarget = new DropTargetExtension<>(queryTextArea);
         dropTarget.setDropEffect(DropEffect.COPY);
         dropTarget.addDropListener(new TextAreaDropListener(queryTextArea));
@@ -238,23 +243,16 @@ public class TrackFindMainUI extends AbstractUI {
         instructions.add(new Label("<b>How to perform a search:<b> ", ContentMode.HTML));
         instructions.add(new Label("1. Navigate through metamodel tree using browser on the left."));
         instructions.add(new Label("2. Filter attributes or values using text-fields in the bottom if needed."));
-        instructions.add(new Label("3. Drag and drop attribute name or value to the query area."));
-        instructions.add(new Label("4. Correct query manually if necessary (some special characters should be escaped using backslash)."));
-        instructions.add(new Label("5. Press <i>Ctrl+Shift</i> or <i>Command+Shift</i> or click <i>Search</i> button to execute the query.", ContentMode.HTML));
+        instructions.add(new Label("3. Select attribute or value(s) you want to use in the search query. Multiple values can be selected using <i>Shift</i> or <i>Ctrl</i> / <i>Command</i>.", ContentMode.HTML));
+        instructions.add(new Label("4. Drag and drop attribute name or value to the query area or simply use <i>Add to query</i> button."));
+        instructions.add(new Label("5. Correct query manually if necessary (some special characters should be escaped using backslash)."));
+        instructions.add(new Label("6. Press <i>Ctrl+Shift</i> or <i>Command+Shift</i> or click <i>Search</i> button to execute the query.", ContentMode.HTML));
         instructions.add(new Label("<b>Hotkeys:<b> ", ContentMode.HTML));
         instructions.add(new Label("Use <i>Ctrl</i> or <i>Command</i> to select multiple values in tree.", ContentMode.HTML));
         instructions.add(new Label("Use <i>Shift</i> to select range of values in tree.", ContentMode.HTML));
         instructions.add(new Label("Hold <i>Alt</i> or <i>Option</i> key while dragging to use OR operator instead of AND.", ContentMode.HTML));
         instructions.add(new Label("Hold <i>Shift</i> key while dragging to add NOT operator.", ContentMode.HTML));
-
-        VerticalLayout helpLayout = new VerticalLayout();
-        instructions.forEach(helpLayout::addComponent);
-
-        TextField sampleQueryTextField = new TextField("Sample query", "sample_id: SRS306625_*_471 OR other_attributes>lab: U??D AND ihec_data_portal>assay: (WGB-Seq OR something)");
-        sampleQueryTextField.setEnabled(false);
-        sampleQueryTextField.setWidth(100, Unit.PERCENTAGE);
-        helpLayout.addComponent(sampleQueryTextField);
-        return helpLayout;
+        return new VerticalLayout(instructions.toArray(new Component[]{}));
     }
 
     @SuppressWarnings("unchecked")
@@ -295,6 +293,10 @@ public class TrackFindMainUI extends AbstractUI {
                 Calendar.getInstance().getTime().toString() + ".json");
         jsonFileDownloader = new FileDownloader(jsonResource);
         jsonFileDownloader.extend(exportJSONButton);
+    }
+
+    public TextArea getQueryTextArea() {
+        return queryTextArea;
     }
 
     @Autowired
