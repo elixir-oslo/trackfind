@@ -32,7 +32,8 @@ public class MapToTSVConverter implements Function<Map, String> {
         Map<String, Object> basicMap = MapUtils.getMap(document, properties.getBasicSectionName());
         basicMap = basicMap == null ? new HashMap<>() : basicMap;
         for (String basicAttribute : properties.getBasicAttributes()) {
-            result.append(String.valueOf(basicMap.get(basicAttribute))).append("\t");
+            Object value = basicMap.get(basicAttribute);
+            result.append(value == null ? "." : String.valueOf(value)).append("\t");
         }
         return result.toString();
     }
