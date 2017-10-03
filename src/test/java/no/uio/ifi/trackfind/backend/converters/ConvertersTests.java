@@ -80,7 +80,7 @@ public class ConvertersTests {
     @Test
     public void documentToTSVConverterTest() {
         String apply = documentToTSVConverter.apply(document);
-        assertThat(apply).isEqualToIgnoringCase("null\tnull\tnull\tnull\tnull\tnull\t[value2, value3]\tnull\tnull\tnull\t\n");
+        assertThat(apply).isEqualToIgnoringCase("null\tnull\tnull\tnull\tnull\tnull\tnull\tnull\tnull\t[value2, value3]\t");
     }
 
 }
