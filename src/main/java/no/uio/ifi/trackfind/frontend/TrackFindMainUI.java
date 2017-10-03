@@ -272,10 +272,10 @@ public class TrackFindMainUI extends AbstractUI {
         String jsonResult = gson.toJson(results.asMap());
         resultsTextArea.setValue(jsonResult);
 
-        StringBuilder result = new StringBuilder("##Revision: " + revision + "\n###");
+        StringBuilder result = new StringBuilder("###");
         properties.getBasicAttributes().forEach(ba -> result.append(ba).append("\t"));
-        result.append("\n");
-        lastResults.stream().map(mapToTSVConverter).forEach(result::append);
+        result.append("Revision").append("\n");
+        lastResults.stream().map(mapToTSVConverter).forEach(tsv -> result.append(tsv).append(revision).append("\n"));
 
         if (gSuiteFileDownloader != null) {
             exportGSuiteButton.removeExtension(gSuiteFileDownloader);

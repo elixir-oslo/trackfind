@@ -34,7 +34,6 @@ public class MapToTSVConverter implements Function<Map, String> {
         for (String basicAttribute : properties.getBasicAttributes()) {
             result.append(String.valueOf(basicMap.get(basicAttribute))).append("\t");
         }
-        result.append("\n");
         return result.toString();
     }
 

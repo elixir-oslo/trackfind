@@ -6,7 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 
-import java.util.TreeSet;
+import java.util.List;
 
 @Configuration
 @PropertySource(value = {"classpath:trackfind.properties", "file:trackfind.properties"}, ignoreResourceNotFound = true)
@@ -32,7 +32,7 @@ public class TrackFindProperties {
     private @NotBlank String dataSourceAttribute;
     private @NotBlank String revisionAttribute;
 
-    private TreeSet<String> basicAttributes;
+    private List<String> basicAttributes;
 
     private boolean demoMode;
 
