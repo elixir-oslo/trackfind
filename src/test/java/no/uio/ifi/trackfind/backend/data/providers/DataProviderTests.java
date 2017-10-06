@@ -33,22 +33,22 @@ public class DataProviderTests {
     @Test
     public void saveLoadConfigurationTest() {
         DataProvider.Configuration oldConfiguration = new DataProvider.Configuration();
-        oldConfiguration.setAttributesMapping(new HashMap<String, String>() {{
+        oldConfiguration.setAttributesStaticMapping(new HashMap<String, String>() {{
             put("1", "2");
         }});
         dataProvider.saveConfiguration(oldConfiguration);
         DataProvider.Configuration newConfiguration = dataProvider.loadConfiguration();
         assertThat(newConfiguration).isNotNull();
-        Map<String, String> attributesMapping = newConfiguration.getAttributesMapping();
-        assertThat(attributesMapping).isNotNull().isNotEmpty();
-        assertThat(attributesMapping).containsOnlyKeys("1");
-        assertThat(attributesMapping).containsEntry("1", "2");
+        Map<String, String> attributesStaticMapping = newConfiguration.getAttributesStaticMapping();
+        assertThat(attributesStaticMapping).isNotNull().isNotEmpty();
+        assertThat(attributesStaticMapping).containsOnlyKeys("1");
+        assertThat(attributesStaticMapping).containsEntry("1", "2");
     }
 
     @Test
     public void applyMappingsTest() {
         DataProvider.Configuration oldConfiguration = new DataProvider.Configuration();
-        oldConfiguration.setAttributesMapping(new HashMap<String, String>() {{
+        oldConfiguration.setAttributesStaticMapping(new HashMap<String, String>() {{
             put("Advanced>key1", "BasicKey");
         }});
         dataProvider.saveConfiguration(oldConfiguration);

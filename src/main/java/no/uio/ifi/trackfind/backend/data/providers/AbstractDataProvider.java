@@ -175,7 +175,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
             fetchData(indexWriter);
             indexWriter.flush();
             indexWriter.commit();
-            commit(VersioningService.Operation.CRAWLING);
+            commit(VersioningService.Operation.CRAWLING); // TODO: commit only changes in this repo.
             tag();
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -197,7 +197,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
                 filter(f -> f.startsWith(properties.getBasicSectionName() + properties.getLevelsSeparator())).
                 collect(Collectors.toSet());
         Bits liveDocs = MultiFields.getLiveDocs(indexReader);
-        Map<String, String> attributesMapping = loadConfiguration().getAttributesMapping();
+        Map<String, String> attributesStaticMapping = loadConfiguration().getAttributesStaticMapping();
         IndexWriterConfig config = new IndexWriterConfig(analyzer);
         config.setOpenMode(IndexWriterConfig.OpenMode.APPEND);
         try (IndexWriter indexWriter = new IndexWriter(directory, config)) {
@@ -207,9 +207,9 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
                 }
                 Document document = indexReader.document(i);
                 basicAttributes.forEach(document::removeFields);
-                for (Map.Entry<String, String> mapping : attributesMapping.entrySet()) {
+                for (Map.Entry<String, String> mapping : attributesStaticMapping.entrySet()) {
                     Set<String> values = new HashSet<>();
-                    String sourceAttribute = mapping.getKey();
+                    String sourceAttribute = mapping.getValue();
                     values.addAll(Arrays.asList(document.getValues(sourceAttribute)));
                     values.add(document.get(sourceAttribute));
                     values.remove(null);
@@ -223,7 +223,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
                                 collect(Collectors.toSet());
                     }
                     for (String value : values) {
-                        document.add(new StringField(properties.getBasicSectionName() + properties.getLevelsSeparator() + mapping.getValue(),
+                        document.add(new StringField(properties.getBasicSectionName() + properties.getLevelsSeparator() + mapping.getKey(),
                                 value,
                                 Field.Store.YES));
                     }
@@ -232,7 +232,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
             }
             indexWriter.flush();
             indexWriter.commit();
-            commit(VersioningService.Operation.REMAPPING);
+            commit(VersioningService.Operation.REMAPPING); // TODO: commit only changes in this repo.
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return;

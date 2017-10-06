@@ -50,10 +50,11 @@ public class TrackFindAdminUI extends AbstractUI {
 
     private VersioningService versioningService;
 
-    private Button addMappingButton;
+    private Button addStaticMappingButton;
+    private Button addDynamicMappingButton;
     private VerticalLayout attributesMappingLayout;
 
-    private Map<TextField, ComboBox<String>> attributesMapping = new HashMap<>();
+    private Map<TextField, ComboBox<String>> attributesStaticMapping = new HashMap<>();
 
     @Override
     protected void init(VaadinRequest vaadinRequest) {
@@ -89,16 +90,27 @@ public class TrackFindAdminUI extends AbstractUI {
         attributesFilterTextField.setValueChangeMode(ValueChangeMode.EAGER);
         attributesFilterTextField.setWidth(100, Sizeable.Unit.PERCENTAGE);
 
-        addMappingButton = new Button("Add mapping");
-        addMappingButton.setWidth(100, Unit.PERCENTAGE);
-        addMappingButton.setEnabled(!CollectionUtils.isEmpty(getCurrentTree().getSelectedItems()));
-        addMappingButton.addClickListener((Button.ClickListener) event -> {
+        addStaticMappingButton = new Button("Add static mapping");
+        addStaticMappingButton.setWidth(100, Unit.PERCENTAGE);
+        addStaticMappingButton.setEnabled(!CollectionUtils.isEmpty(getCurrentTree().getSelectedItems()));
+        addStaticMappingButton.addClickListener((Button.ClickListener) event -> {
             Set<TreeNode> selectedItems = getCurrentTree().getSelectedItems();
             String sourceAttribute = CollectionUtils.isEmpty(selectedItems) ? "" : selectedItems.iterator().next().getPath();
-            addMappingPair(sourceAttribute, "");
+            addMappingPair("", sourceAttribute);
         });
 
-        VerticalLayout treeLayout = new VerticalLayout(treePanel, attributesFilterTextField, addMappingButton);
+        addDynamicMappingButton = new Button("Add dynamic mapping");
+        addDynamicMappingButton.setWidth(100, Unit.PERCENTAGE);
+        addDynamicMappingButton.setEnabled(!CollectionUtils.isEmpty(getCurrentTree().getSelectedItems()));
+        addDynamicMappingButton.addClickListener((Button.ClickListener) event -> {
+            Set<TreeNode> selectedItems = getCurrentTree().getSelectedItems();
+            String sourceAttribute = CollectionUtils.isEmpty(selectedItems) ? "" : selectedItems.iterator().next().getPath();
+            addMappingPair("", sourceAttribute);
+        });
+
+        HorizontalLayout mappingButtons = new HorizontalLayout(addStaticMappingButton, addDynamicMappingButton);
+        mappingButtons.setWidth(100, Unit.PERCENTAGE);
+        VerticalLayout treeLayout = new VerticalLayout(treePanel, attributesFilterTextField, mappingButtons);
         treeLayout.setSizeFull();
         treeLayout.setExpandRatio(treePanel, 1f);
         return treeLayout;
@@ -108,7 +120,7 @@ public class TrackFindAdminUI extends AbstractUI {
     protected TrackFindTree<TreeNode> buildTree(DataProvider dataProvider) {
         TrackFindTree<TreeNode> tree = new TrackFindTree<>(dataProvider);
         tree.setSelectionMode(Grid.SelectionMode.SINGLE);
-        tree.addSelectionListener((SelectionListener<TreeNode>) event -> addMappingButton.setEnabled(!CollectionUtils.isEmpty(event.getAllSelectedItems())));
+        tree.addSelectionListener((SelectionListener<TreeNode>) event -> addStaticMappingButton.setEnabled(!CollectionUtils.isEmpty(event.getAllSelectedItems())));
         TreeGridDragSource<TreeNode> dragSource = new TreeGridDragSource<>((TreeGrid<TreeNode>) tree.getCompositionRoot());
         dragSource.setEffectAllowed(EffectAllowed.COPY);
         TreeNode root = new TreeNode(dataProvider.getMetamodelTree());
@@ -156,6 +168,7 @@ public class TrackFindAdminUI extends AbstractUI {
         saveButton.addClickListener((Button.ClickListener) event -> saveConfiguration());
         Button crawlButton = new Button("Crawl");
         crawlButton.setSizeFull();
+        // TODO: add message about modifying remote repo if it will be.
         crawlButton.addClickListener((Button.ClickListener) event -> ConfirmDialog.show(getUI(),
                 "Are you sure? Crawling is time-consuming process and will lead to changing the metadata of the local repository.",
                 (ConfirmDialog.Listener) dialog -> {
@@ -199,7 +212,7 @@ public class TrackFindAdminUI extends AbstractUI {
         return attributesMappingOuterLayout;
     }
 
-    private HorizontalLayout buildAttributesPairLayout(String sourceAttribute, String targetAttribute) {
+    private HorizontalLayout buildAttributesPairLayout(String basicAttribute, String sourceAttribute) {
         HorizontalLayout attributesPairLayout = new HorizontalLayout();
 
         TextField sourceAttributeTextField = new TextField("Source attribute name", sourceAttribute);
@@ -208,18 +221,18 @@ public class TrackFindAdminUI extends AbstractUI {
         dropTarget.setDropEffect(DropEffect.COPY);
         dropTarget.addDropListener(new TextFieldDropListener(sourceAttributeTextField));
 
-        ComboBox<String> targetAttributeComboBox = buildGlobalAttributesComboBox(targetAttribute);
+        ComboBox<String> targetAttributeComboBox = buildGlobalAttributesComboBox(basicAttribute);
 
-        attributesMapping.put(sourceAttributeTextField, targetAttributeComboBox);
+        attributesStaticMapping.put(sourceAttributeTextField, targetAttributeComboBox);
 
         Button deleteMappingButton = new Button("Delete mapping");
         deleteMappingButton.addClickListener((Button.ClickListener) event -> {
             ((AbstractLayout) attributesPairLayout.getParent()).removeComponent(attributesPairLayout);
-            attributesMapping.remove(sourceAttributeTextField);
+            attributesStaticMapping.remove(sourceAttributeTextField);
         });
 
-        attributesPairLayout.addComponent(sourceAttributeTextField);
         attributesPairLayout.addComponent(targetAttributeComboBox);
+        attributesPairLayout.addComponent(sourceAttributeTextField);
         attributesPairLayout.addComponent(deleteMappingButton);
         attributesPairLayout.setComponentAlignment(deleteMappingButton, Alignment.BOTTOM_LEFT);
         attributesPairLayout.setSizeUndefined();
@@ -234,24 +247,24 @@ public class TrackFindAdminUI extends AbstractUI {
 
     private void loadConfiguration() {
         DataProvider.Configuration configuration = getCurrentDataProvider().loadConfiguration();
-        attributesMapping.clear();
+        attributesStaticMapping.clear();
         attributesMappingLayout.removeAllComponents();
-        for (Map.Entry<String, String> mapping : configuration.getAttributesMapping().entrySet()) {
+        for (Map.Entry<String, String> mapping : configuration.getAttributesStaticMapping().entrySet()) {
             addMappingPair(mapping.getKey(), mapping.getValue());
         }
     }
 
-    private void addMappingPair(String sourceAttribute, String targetAttribute) {
-        HorizontalLayout attributesPairLayout = buildAttributesPairLayout(sourceAttribute, targetAttribute);
+    private void addMappingPair(String basicAttribute, String sourceAttribute) {
+        HorizontalLayout attributesPairLayout = buildAttributesPairLayout(basicAttribute, sourceAttribute);
         attributesMappingLayout.addComponent(attributesPairLayout);
     }
 
     private void saveConfiguration() {
         DataProvider currentDataProvider = getCurrentDataProvider();
         DataProvider.Configuration configuration = currentDataProvider.loadConfiguration();
-        configuration.getAttributesMapping().clear();
-        for (Map.Entry<TextField, ComboBox<String>> mapping : attributesMapping.entrySet()) {
-            configuration.getAttributesMapping().put(mapping.getKey().getValue(), mapping.getValue().getValue());
+        configuration.getAttributesStaticMapping().clear();
+        for (Map.Entry<TextField, ComboBox<String>> mapping : attributesStaticMapping.entrySet()) {
+            configuration.getAttributesStaticMapping().put(mapping.getValue().getValue(), mapping.getKey().getValue());
         }
         currentDataProvider.saveConfiguration(configuration);
         Notification.show("Mappings saved. Apply them to take effect.");
