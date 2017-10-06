@@ -41,8 +41,8 @@ public class ConvertersTests {
     public void setUp() {
         document = new Document();
         document.add(new StringField("key1", "value1", Field.Store.NO));
-        document.add(new StringField("Basic>ID", "value2", Field.Store.NO));
-        document.add(new StringField("Basic>ID", "value3", Field.Store.NO));
+        document.add(new StringField("Basic>id", "value2", Field.Store.NO));
+        document.add(new StringField("Basic>id", "value3", Field.Store.NO));
 
         map = new HashMap();
         map.put("key1", "value1");
@@ -51,7 +51,7 @@ public class ConvertersTests {
         Collection collection = new HashSet();
         collection.add("value2");
         collection.add("value3");
-        innerMap.put("ID", collection);
+        innerMap.put("id", collection);
     }
 
     @SuppressWarnings("unchecked")
@@ -69,7 +69,7 @@ public class ConvertersTests {
         assertThat(apply).isEqualToIgnoringCase("{\n" +
                 "  \"key1\": \"value1\",\n" +
                 "  \"Basic\": {\n" +
-                "    \"ID\": [\n" +
+                "    \"id\": [\n" +
                 "      \"value2\",\n" +
                 "      \"value3\"\n" +
                 "    ]\n" +
