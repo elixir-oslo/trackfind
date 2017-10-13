@@ -168,9 +168,9 @@ public class TrackFindAdminUI extends AbstractUI {
         saveButton.addClickListener((Button.ClickListener) event -> saveConfiguration());
         Button crawlButton = new Button("Crawl");
         crawlButton.setSizeFull();
-        // TODO: add message about modifying remote repo if it will be.
         crawlButton.addClickListener((Button.ClickListener) event -> ConfirmDialog.show(getUI(),
-                "Are you sure? Crawling is time-consuming process and will lead to changing the metadata of the local repository.",
+                "Are you sure? " +
+                        "Crawling is time-consuming process and will lead to changing the metadata of the " + (properties.isGitAutopush() ? "remote" : "local") + " repository.",
                 (ConfirmDialog.Listener) dialog -> {
                     if (dialog.isConfirmed()) {
                         getCurrentDataProvider().crawlRemoteRepository();
@@ -179,7 +179,8 @@ public class TrackFindAdminUI extends AbstractUI {
         Button applyMappingsButton = new Button("Apply mappings");
         applyMappingsButton.setSizeFull();
         applyMappingsButton.addClickListener((Button.ClickListener) event -> ConfirmDialog.show(getUI(),
-                "Are you sure? Applying attribute mappings will change the metadata structure in the local repository.",
+                "Are you sure? " +
+                        "Applying attribute mappings will change the metadata structure in the " + (properties.isGitAutopush() ? "remote" : "local") + " repository.",
                 (ConfirmDialog.Listener) dialog -> {
                     if (dialog.isConfirmed()) {
                         getCurrentDataProvider().applyMappings();
