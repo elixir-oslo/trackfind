@@ -54,7 +54,8 @@ public class TrackFindAdminUI extends AbstractUI {
     private Button addDynamicMappingButton;
     private VerticalLayout attributesMappingLayout;
 
-    private Map<TextField, ComboBox<String>> attributesStaticMapping = new HashMap<>();
+    private Map<ComboBox<String>, TextField> attributesStaticMapping = new HashMap<>();
+    private Map<ComboBox<String>, TextArea> attributesDynamicMapping = new HashMap<>();
 
     @Override
     protected void init(VaadinRequest vaadinRequest) {
@@ -96,16 +97,15 @@ public class TrackFindAdminUI extends AbstractUI {
         addStaticMappingButton.addClickListener((Button.ClickListener) event -> {
             Set<TreeNode> selectedItems = getCurrentTree().getSelectedItems();
             String sourceAttribute = CollectionUtils.isEmpty(selectedItems) ? "" : selectedItems.iterator().next().getPath();
-            addMappingPair("", sourceAttribute);
+            addStaticMappingPair("", sourceAttribute);
         });
 
         addDynamicMappingButton = new Button("Add dynamic mapping");
         addDynamicMappingButton.setWidth(100, Unit.PERCENTAGE);
-        addDynamicMappingButton.setEnabled(!CollectionUtils.isEmpty(getCurrentTree().getSelectedItems()));
         addDynamicMappingButton.addClickListener((Button.ClickListener) event -> {
             Set<TreeNode> selectedItems = getCurrentTree().getSelectedItems();
             String sourceAttribute = CollectionUtils.isEmpty(selectedItems) ? "" : selectedItems.iterator().next().getPath();
-            addMappingPair("", sourceAttribute);
+            addDynamicMappingPair("", sourceAttribute);
         });
 
         HorizontalLayout mappingButtons = new HorizontalLayout(addStaticMappingButton, addDynamicMappingButton);
@@ -160,7 +160,7 @@ public class TrackFindAdminUI extends AbstractUI {
 
     private VerticalLayout buildAttributesMappingLayout() {
         attributesMappingLayout = new VerticalLayout();
-        attributesMappingLayout.setSizeUndefined();
+        attributesMappingLayout.setWidth(100, Unit.PERCENTAGE);
         Panel attributesMappingPanel = new Panel("Mappings", attributesMappingLayout);
         attributesMappingPanel.setSizeFull();
         Button saveButton = new Button("Save");
@@ -213,34 +213,64 @@ public class TrackFindAdminUI extends AbstractUI {
         return attributesMappingOuterLayout;
     }
 
-    private HorizontalLayout buildAttributesPairLayout(String basicAttribute, String sourceAttribute) {
-        HorizontalLayout attributesPairLayout = new HorizontalLayout();
+    private HorizontalLayout buildAttributeToAttributeLayout(String basicAttribute, String sourceAttribute) {
+        HorizontalLayout attributeToAttributeLayout = new HorizontalLayout();
+        attributeToAttributeLayout.setWidth(100, Unit.PERCENTAGE);
 
         TextField sourceAttributeTextField = new TextField("Source attribute name", sourceAttribute);
+        sourceAttributeTextField.setWidth(100, Unit.PERCENTAGE);
         sourceAttributeTextField.setReadOnly(true);
         DropTargetExtension<TextField> dropTarget = new DropTargetExtension<>(sourceAttributeTextField);
         dropTarget.setDropEffect(DropEffect.COPY);
         dropTarget.addDropListener(new TextFieldDropListener(sourceAttributeTextField));
 
-        ComboBox<String> targetAttributeComboBox = buildGlobalAttributesComboBox(basicAttribute);
-
-        attributesStaticMapping.put(sourceAttributeTextField, targetAttributeComboBox);
+        ComboBox<String> targetAttributeComboBox = buildBasicAttributesComboBox(basicAttribute);
+        targetAttributeComboBox.setWidth(100, Unit.PERCENTAGE);
+        attributesStaticMapping.put(targetAttributeComboBox, sourceAttributeTextField);
 
         Button deleteMappingButton = new Button("Delete mapping");
+        deleteMappingButton.setWidth(100, Unit.PERCENTAGE);
         deleteMappingButton.addClickListener((Button.ClickListener) event -> {
-            ((AbstractLayout) attributesPairLayout.getParent()).removeComponent(attributesPairLayout);
-            attributesStaticMapping.remove(sourceAttributeTextField);
+            ((AbstractLayout) attributeToAttributeLayout.getParent()).removeComponent(attributeToAttributeLayout);
+            attributesStaticMapping.remove(targetAttributeComboBox);
         });
 
-        attributesPairLayout.addComponent(targetAttributeComboBox);
-        attributesPairLayout.addComponent(sourceAttributeTextField);
-        attributesPairLayout.addComponent(deleteMappingButton);
-        attributesPairLayout.setComponentAlignment(deleteMappingButton, Alignment.BOTTOM_LEFT);
-        attributesPairLayout.setSizeUndefined();
-        return attributesPairLayout;
+        attributeToAttributeLayout.addComponent(targetAttributeComboBox);
+        attributeToAttributeLayout.setComponentAlignment(targetAttributeComboBox, Alignment.BOTTOM_LEFT);
+        attributeToAttributeLayout.addComponent(sourceAttributeTextField);
+        attributeToAttributeLayout.setComponentAlignment(sourceAttributeTextField, Alignment.BOTTOM_LEFT);
+        attributeToAttributeLayout.addComponent(deleteMappingButton);
+        attributeToAttributeLayout.setComponentAlignment(deleteMappingButton, Alignment.BOTTOM_LEFT);
+        return attributeToAttributeLayout;
     }
 
-    private ComboBox<String> buildGlobalAttributesComboBox(String targetAttribute) {
+    private HorizontalLayout buildAttributeToScriptLayout(String basicAttribute, String script) {
+        HorizontalLayout attributeToScriptLayout = new HorizontalLayout();
+        attributeToScriptLayout.setWidth(100, Unit.PERCENTAGE);
+
+        ComboBox<String> targetAttributeComboBox = buildBasicAttributesComboBox(basicAttribute);
+        targetAttributeComboBox.setWidth(100, Unit.PERCENTAGE);
+        TextArea scriptTextArea = new TextArea("Script", script);
+        scriptTextArea.setWidth(100, Unit.PERCENTAGE);
+        attributesDynamicMapping.put(targetAttributeComboBox, scriptTextArea);
+
+        Button deleteMappingButton = new Button("Delete mapping");
+        deleteMappingButton.setWidth(100, Unit.PERCENTAGE);
+        deleteMappingButton.addClickListener((Button.ClickListener) event -> {
+            ((AbstractLayout) attributeToScriptLayout.getParent()).removeComponent(attributeToScriptLayout);
+            attributesDynamicMapping.remove(targetAttributeComboBox);
+        });
+
+        attributeToScriptLayout.addComponent(targetAttributeComboBox);
+        attributeToScriptLayout.setComponentAlignment(targetAttributeComboBox, Alignment.BOTTOM_LEFT);
+        attributeToScriptLayout.addComponent(scriptTextArea);
+        attributeToScriptLayout.setComponentAlignment(scriptTextArea, Alignment.BOTTOM_LEFT);
+        attributeToScriptLayout.addComponent(deleteMappingButton);
+        attributeToScriptLayout.setComponentAlignment(deleteMappingButton, Alignment.BOTTOM_LEFT);
+        return attributeToScriptLayout;
+    }
+
+    private ComboBox<String> buildBasicAttributesComboBox(String targetAttribute) {
         ComboBox<String> targetAttributeName = new ComboBox<>("Target attribute name", properties.getBasicAttributes());
         targetAttributeName.setSelectedItem(targetAttribute);
         return targetAttributeName;
@@ -249,23 +279,33 @@ public class TrackFindAdminUI extends AbstractUI {
     private void loadConfiguration() {
         DataProvider.Configuration configuration = getCurrentDataProvider().loadConfiguration();
         attributesStaticMapping.clear();
+        attributesDynamicMapping.clear();
         attributesMappingLayout.removeAllComponents();
         for (Map.Entry<String, String> mapping : configuration.getAttributesStaticMapping().entrySet()) {
-            addMappingPair(mapping.getKey(), mapping.getValue());
+            addStaticMappingPair(mapping.getKey(), mapping.getValue());
+        }
+        for (Map.Entry<String, String> mapping : configuration.getAttributesDynamicMapping().entrySet()) {
+            addDynamicMappingPair(mapping.getKey(), mapping.getValue());
         }
     }
 
-    private void addMappingPair(String basicAttribute, String sourceAttribute) {
-        HorizontalLayout attributesPairLayout = buildAttributesPairLayout(basicAttribute, sourceAttribute);
-        attributesMappingLayout.addComponent(attributesPairLayout);
+    private void addStaticMappingPair(String basicAttribute, String sourceAttribute) {
+        attributesMappingLayout.addComponent(buildAttributeToAttributeLayout(basicAttribute, sourceAttribute));
+    }
+
+    private void addDynamicMappingPair(String basicAttribute, String script) {
+        attributesMappingLayout.addComponent(buildAttributeToScriptLayout(basicAttribute, script));
     }
 
     private void saveConfiguration() {
         DataProvider currentDataProvider = getCurrentDataProvider();
         DataProvider.Configuration configuration = currentDataProvider.loadConfiguration();
         configuration.getAttributesStaticMapping().clear();
-        for (Map.Entry<TextField, ComboBox<String>> mapping : attributesStaticMapping.entrySet()) {
-            configuration.getAttributesStaticMapping().put(mapping.getValue().getValue(), mapping.getKey().getValue());
+        for (Map.Entry<ComboBox<String>, TextField> mapping : attributesStaticMapping.entrySet()) {
+            configuration.getAttributesStaticMapping().put(mapping.getKey().getValue(), mapping.getValue().getValue());
+        }
+        for (Map.Entry<ComboBox<String>, TextArea> mapping : attributesDynamicMapping.entrySet()) {
+            configuration.getAttributesDynamicMapping().put(mapping.getKey().getValue(), mapping.getValue().getValue());
         }
         currentDataProvider.saveConfiguration(configuration);
         Notification.show("Mappings saved. Apply them to take effect.");

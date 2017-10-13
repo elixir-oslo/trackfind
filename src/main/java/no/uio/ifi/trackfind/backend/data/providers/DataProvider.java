@@ -94,6 +94,7 @@ public interface DataProvider {
     @Data
     class Configuration {
         private Map<String, String> attributesStaticMapping = new HashMap<>();
+        private Map<String, String> attributesDynamicMapping = new HashMap<>();
     }
 
 }
