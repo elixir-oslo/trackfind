@@ -49,7 +49,7 @@ public class DataProviderTests {
     public void applyMappingsTest() {
         DataProvider.Configuration oldConfiguration = new DataProvider.Configuration();
         oldConfiguration.setAttributesStaticMapping(new HashMap<String, String>() {{
-            put("Advanced>key1", "BasicKey");
+            put("BasicKey", "Advanced>key1");
         }});
         dataProvider.saveConfiguration(oldConfiguration);
         dataProvider.applyMappings();
