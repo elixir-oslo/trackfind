@@ -175,7 +175,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
             fetchData(indexWriter);
             indexWriter.flush();
             indexWriter.commit();
-            commit(VersioningService.Operation.CRAWLING); // TODO: commit only changes in this repo.
+            commit(VersioningService.Operation.CRAWLING);
             tag();
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -232,7 +232,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
             }
             indexWriter.flush();
             indexWriter.commit();
-            commit(VersioningService.Operation.REMAPPING); // TODO: commit only changes in this repo.
+            commit(VersioningService.Operation.REMAPPING);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return;
