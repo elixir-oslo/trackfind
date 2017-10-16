@@ -88,7 +88,7 @@ public class VersioningService {
             git.checkout().setName(revision).call();
         } catch (GitAPIException e) {
             FileUtils.deleteDirectory(revisionFolder);
-            throw new RuntimeException("No such revision: " + revision);
+            throw new IOException("No such revision: " + revision);
         }
         return revisionFolderPath;
     }

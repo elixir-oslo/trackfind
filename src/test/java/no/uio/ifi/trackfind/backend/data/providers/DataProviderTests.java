@@ -45,6 +45,7 @@ public class DataProviderTests {
         assertThat(attributesStaticMapping).containsEntry("1", "2");
     }
 
+    @SuppressWarnings("NonStaticInitializer")
     @Test
     public void applyMappingsTest() {
         DataProvider.Configuration oldConfiguration = new DataProvider.Configuration();

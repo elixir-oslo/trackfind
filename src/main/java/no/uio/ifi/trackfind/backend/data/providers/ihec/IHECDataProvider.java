@@ -8,7 +8,6 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.lucene.index.IndexWriter;
 import org.springframework.util.CollectionUtils;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
