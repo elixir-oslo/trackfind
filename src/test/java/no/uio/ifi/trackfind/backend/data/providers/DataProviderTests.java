@@ -30,6 +30,7 @@ public class DataProviderTests {
         assertThat(dataProvider.getPath()).isEqualTo("indices/Test/");
     }
 
+    @SuppressWarnings("NonStaticInitializer")
     @Test
     public void saveLoadConfigurationTest() {
         DataProvider.Configuration oldConfiguration = new DataProvider.Configuration();

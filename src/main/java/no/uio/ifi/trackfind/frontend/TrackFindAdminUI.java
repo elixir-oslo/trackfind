@@ -158,6 +158,7 @@ public class TrackFindAdminUI extends AbstractUI {
         return mainLayout;
     }
 
+    @SuppressWarnings("PMD.NPathComplexity")
     private VerticalLayout buildAttributesMappingLayout() {
         attributesMappingLayout = new VerticalLayout();
         attributesMappingLayout.setWidth(100, Unit.PERCENTAGE);
