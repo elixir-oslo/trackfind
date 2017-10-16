@@ -21,6 +21,8 @@ public class TrackFindProperties {
     private String gitToken;
     private boolean gitAutopush;
 
+    private @NotBlank String scriptingDatasetVariableName;
+
     private @NotBlank String advancedSectionName;
     private @NotBlank String basicSectionName;
     private @NotBlank String levelsSeparator;

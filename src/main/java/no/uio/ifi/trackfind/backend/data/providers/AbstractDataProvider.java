@@ -4,8 +4,12 @@ import alexh.weak.Dynamic;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
+import groovy.lang.Binding;
+import groovy.lang.GroovyShell;
+import groovy.lang.Script;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
+import no.uio.ifi.trackfind.backend.converters.DocumentToJSONConverter;
 import no.uio.ifi.trackfind.backend.converters.DocumentToMapConverter;
 import no.uio.ifi.trackfind.backend.converters.MapToDocumentConverter;
 import no.uio.ifi.trackfind.backend.lucene.DirectoryFactory;
@@ -49,6 +53,7 @@ import java.util.stream.Collectors;
 public abstract class AbstractDataProvider implements DataProvider, Comparable<DataProvider> {
 
     private Analyzer analyzer = new KeywordAnalyzer();
+    private GroovyShell shell = new GroovyShell();
 
     private IndexReader indexReader;
     private IndexSearcher indexSearcher;
@@ -60,6 +65,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     protected TrackFindProperties properties;
     protected MapToDocumentConverter mapToDocumentConverter;
     protected DocumentToMapConverter documentToMapConverter;
+    protected DocumentToJSONConverter documentToJSONConverter;
     protected ExecutorService executorService;
     protected Gson gson;
 
@@ -198,6 +204,10 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
                 collect(Collectors.toSet());
         Bits liveDocs = MultiFields.getLiveDocs(indexReader);
         Map<String, String> attributesStaticMapping = loadConfiguration().getAttributesStaticMapping();
+        Map<String, Script> attributesDynamicMapping = new HashMap<>();
+        for (Map.Entry<String, String> dynamicMapping : loadConfiguration().getAttributesDynamicMapping().entrySet()) {
+            attributesDynamicMapping.put(dynamicMapping.getKey(), shell.parse(dynamicMapping.getValue()));
+        }
         IndexWriterConfig config = new IndexWriterConfig(analyzer);
         config.setOpenMode(IndexWriterConfig.OpenMode.APPEND);
         try (IndexWriter indexWriter = new IndexWriter(directory, config)) {
@@ -207,27 +217,8 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
                 }
                 Document document = indexReader.document(i);
                 basicAttributes.forEach(document::removeFields);
-                for (Map.Entry<String, String> mapping : attributesStaticMapping.entrySet()) {
-                    Set<String> values = new HashSet<>();
-                    String sourceAttribute = mapping.getValue();
-                    values.addAll(Arrays.asList(document.getValues(sourceAttribute)));
-                    values.add(document.get(sourceAttribute));
-                    values.remove(null);
-                    if (CollectionUtils.isEmpty(values)) { // no values found - let's use nested attributes as values
-                        values = document.getFields().parallelStream().
-                                map(IndexableField::name).
-                                filter(f -> f.startsWith(sourceAttribute)).
-                                map(f -> f.replace(sourceAttribute, "")).
-                                filter(StringUtils::isNotEmpty).
-                                map(f -> f.split(properties.getLevelsSeparator())[1]).
-                                collect(Collectors.toSet());
-                    }
-                    for (String value : values) {
-                        document.add(new StringField(properties.getBasicSectionName() + properties.getLevelsSeparator() + mapping.getKey(),
-                                value,
-                                Field.Store.YES));
-                    }
-                }
+                applyStaticMappings(attributesStaticMapping, document);
+                applyDynamicMappings(attributesDynamicMapping, document);
                 indexWriter.updateDocument(new Term(properties.getAdvancedIdAttribute(), document.get(properties.getAdvancedIdAttribute())), document);
             }
             indexWriter.flush();
@@ -239,6 +230,57 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
         }
         reinitIndexSearcher();
         log.info("Success!");
+    }
+
+    private void applyDynamicMappings(Map<String, Script> attributesDynamicMapping, Document document) {
+        for (Map.Entry<String, Script> mapping : attributesDynamicMapping.entrySet()) {
+            Script script = mapping.getValue();
+            Binding binding = new Binding();
+            binding.setVariable(properties.getScriptingDatasetVariableName(), documentToJSONConverter.apply(document));
+            script.setBinding(binding);
+            Object result = script.run();
+
+            Set<String> values = new HashSet<>();
+            if (result instanceof Collection) { // multiple values
+                for (Object value : (Collection) result) {
+                    values.add(String.valueOf(value));
+                }
+            } else { // single value
+                values.add(String.valueOf(result));
+            }
+            values.remove(null);
+            values.remove("null");
+
+            for (String value : values) {
+                document.add(new StringField(properties.getBasicSectionName() + properties.getLevelsSeparator() + mapping.getKey(),
+                        value,
+                        Field.Store.YES));
+            }
+        }
+    }
+
+    private void applyStaticMappings(Map<String, String> attributesStaticMapping, Document document) {
+        for (Map.Entry<String, String> mapping : attributesStaticMapping.entrySet()) {
+            Set<String> values = new HashSet<>();
+            String sourceAttribute = mapping.getValue();
+            values.addAll(Arrays.asList(document.getValues(sourceAttribute)));
+            values.add(document.get(sourceAttribute));
+            values.remove(null);
+            if (CollectionUtils.isEmpty(values)) { // no values found - let's use nested attributes as values
+                values = document.getFields().parallelStream().
+                        map(IndexableField::name).
+                        filter(f -> f.startsWith(sourceAttribute)).
+                        map(f -> f.replace(sourceAttribute, "")).
+                        filter(StringUtils::isNotEmpty).
+                        map(f -> f.split(properties.getLevelsSeparator())[1]).
+                        collect(Collectors.toSet());
+            }
+            for (String value : values) {
+                document.add(new StringField(properties.getBasicSectionName() + properties.getLevelsSeparator() + mapping.getKey(),
+                        value,
+                        Field.Store.YES));
+            }
+        }
     }
 
     /**
@@ -462,6 +504,11 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     @Autowired
     public void setDocumentToMapConverter(DocumentToMapConverter documentToMapConverter) {
         this.documentToMapConverter = documentToMapConverter;
+    }
+
+    @Autowired
+    public void setDocumentToJSONConverter(DocumentToJSONConverter documentToJSONConverter) {
+        this.documentToJSONConverter = documentToJSONConverter;
     }
 
     @Autowired
