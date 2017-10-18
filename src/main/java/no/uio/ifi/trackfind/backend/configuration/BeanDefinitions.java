@@ -2,9 +2,14 @@ package no.uio.ifi.trackfind.backend.configuration;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.netopyr.coffee4java.CoffeeScriptEngine;
+import com.netopyr.coffee4java.CoffeeScriptEngineFactory;
+import groovy.lang.GroovyShell;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.core.KeywordAnalyzer;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
@@ -40,6 +45,21 @@ public class BeanDefinitions {
     @Bean
     public Gson gson() {
         return new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().setDateFormat(DATE_FORMAT).create();
+    }
+
+    @Bean
+    public Analyzer analyzer() {
+        return new KeywordAnalyzer();
+    }
+
+    @Bean
+    public CoffeeScriptEngine coffeeScriptEngine() {
+        return (CoffeeScriptEngine) new CoffeeScriptEngineFactory().getScriptEngine();
+    }
+
+    @Bean
+    public GroovyShell groovyShell() {
+        return new GroovyShell();
     }
 
     @Bean

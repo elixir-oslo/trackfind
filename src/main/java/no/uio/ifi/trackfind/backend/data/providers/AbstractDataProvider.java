@@ -4,22 +4,18 @@ import alexh.weak.Dynamic;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
-import groovy.lang.Binding;
-import groovy.lang.GroovyShell;
-import groovy.lang.Script;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
-import no.uio.ifi.trackfind.backend.converters.DocumentToJSONConverter;
 import no.uio.ifi.trackfind.backend.converters.DocumentToMapConverter;
 import no.uio.ifi.trackfind.backend.converters.MapToDocumentConverter;
 import no.uio.ifi.trackfind.backend.lucene.DirectoryFactory;
+import no.uio.ifi.trackfind.backend.scripting.ScriptingEngine;
 import no.uio.ifi.trackfind.backend.services.VersioningService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.core.KeywordAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
@@ -35,6 +31,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
+import javax.script.ScriptException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -52,9 +49,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public abstract class AbstractDataProvider implements DataProvider, Comparable<DataProvider> {
 
-    private Analyzer analyzer = new KeywordAnalyzer();
-    private GroovyShell shell = new GroovyShell();
-
+    private Analyzer analyzer;
     private IndexReader indexReader;
     private IndexSearcher indexSearcher;
     private Directory directory;
@@ -65,9 +60,9 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     protected TrackFindProperties properties;
     protected MapToDocumentConverter mapToDocumentConverter;
     protected DocumentToMapConverter documentToMapConverter;
-    protected DocumentToJSONConverter documentToJSONConverter;
     protected ExecutorService executorService;
     protected Gson gson;
+    protected Collection<ScriptingEngine> scriptingEngines;
 
     /**
      * Initialize Lucene Directory (Index) and the Searcher over this Directory.
@@ -204,12 +199,10 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
                 collect(Collectors.toSet());
         Bits liveDocs = MultiFields.getLiveDocs(indexReader);
         Map<String, String> attributesStaticMapping = loadConfiguration().getAttributesStaticMapping();
-        Map<String, Script> attributesDynamicMapping = new HashMap<>();
-        for (Map.Entry<String, String> dynamicMapping : loadConfiguration().getAttributesDynamicMapping().entrySet()) {
-            attributesDynamicMapping.put(dynamicMapping.getKey(), shell.parse(dynamicMapping.getValue()));
-        }
+        Map<String, String> attributesDynamicMapping = loadConfiguration().getAttributesDynamicMapping();
         IndexWriterConfig config = new IndexWriterConfig(analyzer);
         config.setOpenMode(IndexWriterConfig.OpenMode.APPEND);
+        ScriptingEngine scriptingEngine = scriptingEngines.stream().filter(se -> properties.getScriptingLanguage().equals(se.getLanguage())).findAny().orElseThrow(RuntimeException::new);
         try (IndexWriter indexWriter = new IndexWriter(directory, config)) {
             for (int i = 0; i < indexReader.maxDoc(); i++) {
                 if (liveDocs != null && !liveDocs.get(i)) {
@@ -218,7 +211,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
                 Document document = indexReader.document(i);
                 basicAttributes.forEach(document::removeFields);
                 applyStaticMappings(attributesStaticMapping, document);
-                applyDynamicMappings(attributesDynamicMapping, document);
+                applyDynamicMappings(attributesDynamicMapping, document, scriptingEngine);
                 indexWriter.updateDocument(new Term(properties.getAdvancedIdAttribute(), document.get(properties.getAdvancedIdAttribute())), document);
             }
             indexWriter.flush();
@@ -232,25 +225,10 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
         log.info("Success!");
     }
 
-    private void applyDynamicMappings(Map<String, Script> attributesDynamicMapping, Document document) {
-        for (Map.Entry<String, Script> mapping : attributesDynamicMapping.entrySet()) {
-            Script script = mapping.getValue();
-            Binding binding = new Binding();
-            binding.setVariable(properties.getScriptingDatasetVariableName(), documentToJSONConverter.apply(document));
-            script.setBinding(binding);
-            Object result = script.run();
-
-            Set<String> values = new HashSet<>();
-            if (result instanceof Collection) { // multiple values
-                for (Object value : (Collection) result) {
-                    values.add(String.valueOf(value));
-                }
-            } else { // single value
-                values.add(String.valueOf(result));
-            }
-            values.remove(null);
-            values.remove("null");
-
+    private void applyDynamicMappings(Map<String, String> attributesDynamicMapping, Document document, ScriptingEngine scriptingEngine) throws ScriptException {
+        for (Map.Entry<String, String> mapping : attributesDynamicMapping.entrySet()) {
+            String script = mapping.getValue();
+            Collection<String> values = scriptingEngine.execute(script, document);
             for (String value : values) {
                 document.add(new StringField(properties.getBasicSectionName() + properties.getLevelsSeparator() + mapping.getKey(),
                         value,
@@ -487,6 +465,11 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     }
 
     @Autowired
+    public void setAnalyzer(Analyzer analyzer) {
+        this.analyzer = analyzer;
+    }
+
+    @Autowired
     public void setDirectoryFactory(DirectoryFactory directoryFactory) {
         this.directoryFactory = directoryFactory;
     }
@@ -507,11 +490,6 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     }
 
     @Autowired
-    public void setDocumentToJSONConverter(DocumentToJSONConverter documentToJSONConverter) {
-        this.documentToJSONConverter = documentToJSONConverter;
-    }
-
-    @Autowired
     public void setExecutorService(ExecutorService workStealingPool) {
         this.executorService = workStealingPool;
     }
@@ -519,6 +497,11 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     @Autowired
     public void setGson(Gson gson) {
         this.gson = gson;
+    }
+
+    @Autowired
+    public void setScriptingEngines(Collection<ScriptingEngine> scriptingEngines) {
+        this.scriptingEngines = scriptingEngines;
     }
 
 }

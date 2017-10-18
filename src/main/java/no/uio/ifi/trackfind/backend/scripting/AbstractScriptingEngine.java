@@ -1,0 +1,46 @@
+package no.uio.ifi.trackfind.backend.scripting;
+
+import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
+import no.uio.ifi.trackfind.backend.converters.DocumentToJSONConverter;
+import org.apache.lucene.document.Document;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import javax.script.ScriptException;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+
+// TODO: Add JavaDocs to all of the new files.
+public abstract class AbstractScriptingEngine implements ScriptingEngine {
+
+    protected TrackFindProperties properties;
+    protected DocumentToJSONConverter documentToJSONConverter;
+
+    @Override
+    public Collection<String> execute(String script, Document document) throws ScriptException {
+        Object result = executeInternally(script, document);
+        Set<String> values = new HashSet<>();
+        if (result instanceof Collection) { // multiple values
+            for (Object value : (Collection) result) {
+                values.add(String.valueOf(value));
+            }
+        } else { // single value
+            values.add(String.valueOf(result));
+        }
+        values.remove("null");
+        return values;
+    }
+
+    protected abstract Object executeInternally(String script, Document document) throws ScriptException;
+
+    @Autowired
+    public void setProperties(TrackFindProperties properties) {
+        this.properties = properties;
+    }
+
+    @Autowired
+    public void setDocumentToJSONConverter(DocumentToJSONConverter documentToJSONConverter) {
+        this.documentToJSONConverter = documentToJSONConverter;
+    }
+
+}
