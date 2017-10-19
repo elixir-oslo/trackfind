@@ -2,7 +2,6 @@ package no.uio.ifi.trackfind.backend.scripting;
 
 import org.apache.lucene.document.Document;
 
-import javax.script.ScriptException;
 import java.util.Collection;
 
 /**
@@ -25,8 +24,8 @@ public interface ScriptingEngine {
      * @param script   Mappings script.
      * @param document Document to process.
      * @return Mapped values.
-     * @throws ScriptException When script can't be interpreted/executed.
+     * @throws Exception When script can't be interpreted/executed.
      */
-    Collection<String> execute(String script, Document document) throws ScriptException;
+    Collection<String> execute(String script, Document document) throws Exception;
 
 }

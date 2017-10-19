@@ -9,6 +9,7 @@ import javax.script.ScriptException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Common methods holder for all Scripting Engines.
@@ -24,7 +25,7 @@ public abstract class AbstractScriptingEngine implements ScriptingEngine {
      * {@inheritDoc}
      */
     @Override
-    public Collection<String> execute(String script, Document document) throws ScriptException {
+    public Collection<String> execute(String script, Document document) throws Exception {
         Object result = executeInternally(script, document);
         Set<String> values = new HashSet<>();
         if (result instanceof Collection) { // multiple values
@@ -46,7 +47,7 @@ public abstract class AbstractScriptingEngine implements ScriptingEngine {
      * @return Mapped values.
      * @throws ScriptException When script can't be interpreted/executed.
      */
-    protected abstract Object executeInternally(String script, Document document) throws ScriptException;
+    protected abstract Object executeInternally(String script, Document document) throws Exception;
 
     @Autowired
     public void setProperties(TrackFindProperties properties) {

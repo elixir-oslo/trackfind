@@ -31,7 +31,6 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
-import javax.script.ScriptException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -225,7 +224,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
         log.info("Success!");
     }
 
-    private void applyDynamicMappings(Map<String, String> attributesDynamicMapping, Document document, ScriptingEngine scriptingEngine) throws ScriptException {
+    private void applyDynamicMappings(Map<String, String> attributesDynamicMapping, Document document, ScriptingEngine scriptingEngine) throws Exception {
         for (Map.Entry<String, String> mapping : attributesDynamicMapping.entrySet()) {
             String script = mapping.getValue();
             Collection<String> values = scriptingEngine.execute(script, document);
