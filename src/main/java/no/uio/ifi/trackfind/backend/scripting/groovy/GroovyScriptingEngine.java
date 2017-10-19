@@ -44,6 +44,7 @@ public class GroovyScriptingEngine extends AbstractScriptingEngine {
     /**
      * {@inheritDoc}
      */
+    @SuppressWarnings("NonStaticInitializer")
     @Override
     protected Object executeInternally(String script, Document document) throws Exception {
         Script parsedScript = scripts.get(script);

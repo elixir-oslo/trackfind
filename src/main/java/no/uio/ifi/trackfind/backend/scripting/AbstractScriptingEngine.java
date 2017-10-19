@@ -9,7 +9,6 @@ import javax.script.ScriptException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 
 /**
  * Common methods holder for all Scripting Engines.

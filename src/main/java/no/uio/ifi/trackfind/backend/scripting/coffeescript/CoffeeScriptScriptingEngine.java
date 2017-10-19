@@ -44,6 +44,7 @@ public class CoffeeScriptScriptingEngine extends AbstractScriptingEngine {
     /**
      * {@inheritDoc}
      */
+    @SuppressWarnings("NonStaticInitializer")
     @Override
     protected Object executeInternally(String script, Document document) throws Exception {
         CompiledScript compiledScript = scripts.get(script);
