@@ -10,12 +10,19 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-// TODO: Add JavaDocs to all of the new files.
+/**
+ * Common methods holder for all Scripting Engines.
+ *
+ * @author Dmytro Titov
+ */
 public abstract class AbstractScriptingEngine implements ScriptingEngine {
 
     protected TrackFindProperties properties;
     protected DocumentToJSONConverter documentToJSONConverter;
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Collection<String> execute(String script, Document document) throws ScriptException {
         Object result = executeInternally(script, document);
@@ -31,6 +38,14 @@ public abstract class AbstractScriptingEngine implements ScriptingEngine {
         return values;
     }
 
+    /**
+     * Execute script.
+     *
+     * @param script   Mappings script.
+     * @param document Document to process.
+     * @return Mapped values.
+     * @throws ScriptException When script can't be interpreted/executed.
+     */
     protected abstract Object executeInternally(String script, Document document) throws ScriptException;
 
     @Autowired

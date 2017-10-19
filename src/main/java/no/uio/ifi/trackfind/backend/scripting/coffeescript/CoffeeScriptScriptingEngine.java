@@ -11,17 +11,27 @@ import javax.script.ScriptException;
 import javax.script.SimpleBindings;
 import java.util.HashMap;
 
-// TODO: Implement scripts caching.
+/**
+ * CoffeeScript implementation of the Scripting Engine.
+ *
+ * @author Dmytro Titov
+ */
 @Component
 public class CoffeeScriptScriptingEngine extends AbstractScriptingEngine {
 
     private CoffeeScriptEngine coffeeScriptEngine;
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getLanguage() {
         return "CoffeeScript";
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected Object executeInternally(String script, Document document) throws ScriptException {
         CompiledScript compiledScript = coffeeScriptEngine.compile(script);

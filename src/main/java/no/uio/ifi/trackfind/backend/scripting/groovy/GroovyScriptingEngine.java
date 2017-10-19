@@ -11,17 +11,27 @@ import org.springframework.stereotype.Component;
 import javax.script.ScriptException;
 import java.util.HashMap;
 
-// TODO: Implement scripts caching.
+/**
+ * Groovy implementation of the Scripting Engine.
+ *
+ * @author Dmytro Titov
+ */
 @Component
 public class GroovyScriptingEngine extends AbstractScriptingEngine {
 
     private GroovyShell groovyShell;
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getLanguage() {
         return "Groovy";
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected Object executeInternally(String script, Document document) throws ScriptException {
         Script parsedScript = groovyShell.parse(script);
