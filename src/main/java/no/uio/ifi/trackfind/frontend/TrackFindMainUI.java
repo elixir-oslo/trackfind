@@ -274,7 +274,7 @@ public class TrackFindMainUI extends AbstractUI {
 
         StringBuilder result = new StringBuilder("###");
         properties.getBasicAttributes().forEach(ba -> result.append(ba).append("\t"));
-        result.append("Revision").append("\n");
+        result.append("revision").append("\n");
         lastResults.stream().map(mapToTSVConverter).forEach(tsv -> result.append(tsv).append(revision).append("\n"));
 
         if (gSuiteFileDownloader != null) {
