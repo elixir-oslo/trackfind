@@ -5,6 +5,7 @@ import com.vaadin.ui.TextArea;
 import no.uio.ifi.trackfind.frontend.data.TreeNode;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.client.solrj.util.ClientUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -63,10 +64,10 @@ public abstract class MoveAttributeValueHandler {
         TreeNode firstItem = items.iterator().next();
         String path = firstItem.getPath();
         String queryTerm = path.substring(0, path.lastIndexOf(">"));
-        String attribute = escapeQueryTerm(queryTerm.split(":")[0]);
+        String attribute = ClientUtils.escapeQueryChars(queryTerm.split(":")[0]);
         query.append(attribute).append(": (");
         for (TreeNode item : items) {
-            query.append(escapeQueryTerm(item.toString())).append(" OR ");
+            query.append(ClientUtils.escapeQueryChars(item.toString())).append(" OR ");
         }
         query = new StringBuilder(query.subSequence(0, query.length() - 4) + ")\n");
         textArea.setValue(query.toString());
@@ -91,26 +92,12 @@ public abstract class MoveAttributeValueHandler {
         }
         String path = item.getPath();
         if (item.isValue()) {
-            query += escapeQueryTerm(path.substring(0, path.lastIndexOf(">"))) + ": " + escapeQueryTerm(item.toString());
+            query += ClientUtils.escapeQueryChars(path.substring(0, path.lastIndexOf(">"))) + ": " + ClientUtils.escapeQueryChars(item.toString());
         } else {
-            query += escapeQueryTerm(path) + ": ";
+            query += ClientUtils.escapeQueryChars(path) + ": ";
         }
         query += "\n";
         textArea.setValue(query);
-    }
-
-    /**
-     * Sanitizes query for Apache Lucene.
-     *
-     * @param queryTerm Raw query term (attribute or value).
-     * @return Sanitized query term (attribute or value).
-     */
-    private String escapeQueryTerm(String queryTerm) {
-        String escaped = queryTerm.replace("/", "\\/").replace(" ", "\\ ").replace(":", "\\:");
-        if (escaped.startsWith("-")) {
-            escaped = "\\" + escaped;
-        }
-        return escaped;
     }
 
 }
