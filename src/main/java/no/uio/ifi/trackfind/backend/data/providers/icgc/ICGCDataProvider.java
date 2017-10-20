@@ -53,7 +53,7 @@ public class ICGCDataProvider extends PaginationAwareDataProvider { // TODO: Fet
             for (String dataType : availableDataTypes) {
                 browser.computeIfAbsent(dataType, k -> new HashSet<>()).add(SUBMIT.replace("__DONOR_ID__", donorId).replace("__DATA_TYPE__", dataType));
             }
-            dataset.put(properties.getBrowserAttribute(), browser);
+            dataset.put("browser", browser);
             dataset.remove(AVAILABLE_DATA_TYPES);
         }
     }
@@ -63,21 +63,21 @@ public class ICGCDataProvider extends PaginationAwareDataProvider { // TODO: Fet
      */
     @Override // hack for ICGC's "two-steps download"
     public Multimap<String, Map> search(String query, int limit) {
-        String separator = properties.getLevelsSeparator();
-        String advancedURL = properties.getAdvancedSectionName() + separator + properties.getDataURLAttribute();
+//        String separator = properties.getLevelsSeparator();
+//        String advancedURL = properties.getAdvancedSectionName() + separator + properties.getDataURLAttribute();
         Multimap<String, Map> result = super.search(query, limit);
-        for (Map map : result.values()) {
-            Dynamic dynamic = Dynamic.from(map);
-            String submitURL = dynamic.get(advancedURL, separator).asString();
-            try (InputStream inputStream = new URL(submitURL).openStream();
-                 InputStreamReader reader = new InputStreamReader(inputStream)) {
-                Download download = gson.fromJson(reader, Download.class);
-                dynamic.get(properties.getAdvancedSectionName(), separator).asMap().put(properties.getDataURLAttribute(), DOWNLOAD + download.getDownloadId());
-            } catch (IOException e) {
-                log.error(e.getMessage(), e);
-                return null;
-            }
-        }
+//        for (Map map : result.values()) {
+//            Dynamic dynamic = Dynamic.from(map);
+//            String submitURL = dynamic.get(advancedURL, separator).asString();
+//            try (InputStream inputStream = new URL(submitURL).openStream();
+//                 InputStreamReader reader = new InputStreamReader(inputStream)) {
+//                Download download = gson.fromJson(reader, Download.class);
+//                dynamic.get(properties.getAdvancedSectionName(), separator).asMap().put(properties.getDataURLAttribute(), DOWNLOAD + download.getDownloadId());
+//            } catch (IOException e) {
+//                log.error(e.getMessage(), e);
+//                return null;
+//            }
+//        }
         return result;
     }
 

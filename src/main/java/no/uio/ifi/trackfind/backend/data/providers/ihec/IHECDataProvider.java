@@ -11,7 +11,9 @@ import org.springframework.util.CollectionUtils;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.util.*;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
@@ -27,8 +29,6 @@ public class IHECDataProvider extends AbstractDataProvider {
 
     private static final String RELEASES_URL = "http://epigenomesportal.ca/cgi-bin/api/getReleases.py";
     private static final String FETCH_URL = "http://epigenomesportal.ca/cgi-bin/api/getDataHub.py?data_release_id=";
-
-    private static final String BROWSER = "browser";
 
     /**
      * {@inheritDoc}
@@ -64,17 +64,8 @@ public class IHECDataProvider extends AbstractDataProvider {
                         Object sample = samplesMap.get(sampleId);
                         dataset.put("sample_data", sample);
                         dataset.put("hub_description", hubDescription);
-                        Map<String, Collection<Map<String, String>>> browser = (Map<String, Collection<Map<String, String>>>) dataset.get(BROWSER);
-                        Map<String, Collection<String>> browserToStore = new HashMap<>();
-                        for (String dataType : browser.keySet()) {
-                            Collection<Map<String, String>> bigDataUrls = browser.get(dataType);
-                            for (Map<String, String> bigDataUrl : bigDataUrls) {
-                                browserToStore.computeIfAbsent(dataType, k -> new HashSet<>()).add(bigDataUrl.get("big_data_url"));
-                            }
-                        }
-                        dataset.put(properties.getBrowserAttribute(), browserToStore);
                     }
-                    indexWriter.addDocuments(datasets.parallelStream().map(this::splitDatasetByDataTypes).flatMap(Collection::parallelStream).map(mapToDocumentConverter).collect(Collectors.toSet()));
+                    indexWriter.addDocuments(datasets.parallelStream().map(this::postprocessDataset).map(mapToDocumentConverter).collect(Collectors.toSet()));
                     log.info("Release " + releaseId + " processed.");
                 } catch (Exception e) {
                     log.error(e.getMessage(), e);

@@ -123,28 +123,16 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     protected abstract void fetchData(IndexWriter indexWriter) throws Exception;
 
     /**
-     * Split one dataset into multiple by DataType/URL pair.
+     * Postprocess Dataset.
      *
      * @param dataset Dataset to split.
-     * @return Multiple datasets extracted from single input.
+     * @return Postprocessed dataset.
      */
     @SuppressWarnings("unchecked")
-    protected Collection<Map> splitDatasetByDataTypes(Map dataset) {
+    protected Map postprocessDataset(Map dataset) {
         clearAttributesToSkip(dataset);
-        Map<String, Collection<String>> browser = (Map<String, Collection<String>>) dataset.remove(properties.getBrowserAttribute());
-        String json = gson.toJson(dataset);
-        HashMultimap<String, String> browserMultiMap = HashMultimap.create();
-        browser.entrySet().parallelStream().forEach(e -> browserMultiMap.putAll(e.getKey(), e.getValue()));
-        Collection<Map> result = new HashSet<>();
-        for (Map.Entry<String, String> entry : browserMultiMap.entries()) {
-            Map map = gson.fromJson(json, Map.class);
-            map.put(properties.getDataTypeAttribute(), entry.getKey());
-            map.put(properties.getDataURLAttribute(), entry.getValue());
-            map.put(properties.getDataSourceAttribute(), getName());
-            map.put(properties.getIdAttribute(), UUID.randomUUID().toString());
-            result.add(map);
-        }
-        return result;
+        dataset.put(properties.getIdAttribute(), UUID.randomUUID().toString());
+        return dataset;
     }
 
     /**

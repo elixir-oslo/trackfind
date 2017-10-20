@@ -29,10 +29,6 @@ public class TrackFindProperties {
     private @NotBlank String levelsSeparator;
     private @NotBlank String idAttribute;
     private @NotBlank String advancedIdAttribute;
-    private @NotBlank String browserAttribute;
-    private @NotBlank String dataTypeAttribute;
-    private @NotBlank String dataURLAttribute;
-    private @NotBlank String dataSourceAttribute;
     private @NotBlank String revisionAttribute;
 
     private List<String> basicAttributes;

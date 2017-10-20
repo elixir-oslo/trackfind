@@ -67,14 +67,10 @@ public class FANTOMDataProvider extends AbstractDataProvider {
                                     dataset.put(attributes[i], next.get(i));
                                 }
                             }
-                            Map<String, Collection<String>> browser = new HashMap<>();
-                            Set<String> datasetRelatedFiles = allFiles.parallelStream().filter(s -> s.contains(next.get(0))).collect(Collectors.toSet());
-                            for (String datasetRelatedFile : datasetRelatedFiles) {
-                                browser.computeIfAbsent(getDataType(datasetRelatedFile), k -> new HashSet<>()).add(METADATA_URL + dir + datasetRelatedFile);
-                            }
-                            dataset.put(properties.getBrowserAttribute(), browser);
-                            Set<org.apache.lucene.document.Document> documents = splitDatasetByDataTypes(dataset).parallelStream().map(mapToDocumentConverter).collect(Collectors.toSet());
-                            indexWriter.addDocuments(documents);
+
+                            Set<String> datasetRelatedFiles = allFiles.parallelStream().filter(s -> s.contains(next.get(0))).map(f -> METADATA_URL + dir + f).collect(Collectors.toSet());
+                            dataset.put("files", datasetRelatedFiles);
+                            indexWriter.addDocument(mapToDocumentConverter.apply(postprocessDataset(dataset)));
                         }
                         log.info("Directory " + dir + " processed.");
                     }
@@ -86,22 +82,6 @@ public class FANTOMDataProvider extends AbstractDataProvider {
             });
         }
         countDownLatch.await();
-    }
-
-    private String getDataType(String fileName) {
-        if (fileName.endsWith(".bam")) {
-            return "bam";
-        }
-        if (fileName.endsWith(".bam.bai")) {
-            return "bam_bai";
-        }
-        if (fileName.endsWith(".ctss.bed.gz")) {
-            return "cage_tss";
-        }
-        if (fileName.endsWith(".rdna.fa.gz")) {
-            return "fasta";
-        }
-        return "undefined";
     }
 
     /**

@@ -6,7 +6,6 @@ import no.uio.ifi.trackfind.backend.data.providers.ihec.IHECDataProvider;
 import no.uio.ifi.trackfind.backend.lucene.DirectoryFactory;
 import no.uio.ifi.trackfind.backend.services.VersioningService;
 import org.apache.commons.io.FileUtils;
-import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
@@ -20,8 +19,10 @@ import org.springframework.context.annotation.FilterType;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @SpringBootApplication
@@ -69,15 +70,13 @@ public class TestTrackFindApplication {
                 dataUrls.put("anotherDataType", Collections.singleton("anotherURL"));
                 Map<String, Object> dataset1 = new HashMap<>();
                 dataset1.put("key1", "value1");
-                dataset1.put(properties.getBrowserAttribute(), dataUrls);
-                Set<Document> documents = splitDatasetByDataTypes(dataset1).parallelStream().map(mapToDocumentConverter).collect(Collectors.toSet());
-                indexWriter.addDocuments(documents);
+                dataset1.put("browser", dataUrls);
+                indexWriter.addDocument(mapToDocumentConverter.apply(postprocessDataset(dataset1)));
                 Map<String, Object> dataset2 = new HashMap<>();
                 dataset2.put("key1", "value2");
                 dataset2.put("key2", "value3");
-                dataset2.put(properties.getBrowserAttribute(), dataUrls);
-                documents = splitDatasetByDataTypes(dataset2).parallelStream().map(mapToDocumentConverter).collect(Collectors.toSet());
-                indexWriter.addDocuments(documents);
+                dataset2.put("browser", dataUrls);
+                indexWriter.addDocument(mapToDocumentConverter.apply(postprocessDataset(dataset2)));
             }
 
             @Override

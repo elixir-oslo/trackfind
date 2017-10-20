@@ -6,7 +6,10 @@ import no.uio.ifi.trackfind.backend.data.providers.PaginationAwareDataProvider;
 import org.apache.lucene.index.IndexWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
@@ -46,18 +49,7 @@ public class GDCDataProvider extends PaginationAwareDataProvider {
     @SuppressWarnings("unchecked")
     @Override
     protected void postProcessPage(Collection<Map> page) {
-        for (Map dataset : page) {
-            Map<String, Collection<String>> browser = new HashMap<>();
-            Collection<Map<String, Object>> files = (Collection<Map<String, Object>>) dataset.get(FILES);
-            files = files.parallelStream().filter(f -> "open".equals(f.get("access"))).collect(Collectors.toSet());
-            for (Map<String, Object> file : files) {
-                String dataType = String.valueOf(file.get("data_type"));
-                String fileId = String.valueOf(file.get("file_id"));
-                browser.computeIfAbsent(dataType, k -> new HashSet<>()).add(DOWNLOAD + fileId);
-            }
-            dataset.put(properties.getBrowserAttribute(), browser);
-            dataset.put(FILES, files);
-        }
+        page.forEach(dataset -> dataset.put(FILES, ((Collection<Map<String, Object>>) dataset.get(FILES)).parallelStream().filter(f -> "open".equals(f.get("access"))).collect(Collectors.toSet())));
     }
 
     /**

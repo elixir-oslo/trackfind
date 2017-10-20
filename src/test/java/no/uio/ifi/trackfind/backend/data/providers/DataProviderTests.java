@@ -96,7 +96,7 @@ public class DataProviderTests {
     @Test
     public void searchFoundTest() {
         Collection<Map> result = dataProvider.search("Advanced>key2: value3", 0).values();
-        assertThat(result).size().isEqualTo(2);
+        assertThat(result).size().isEqualTo(1);
     }
 
     @SuppressWarnings("unchecked")
