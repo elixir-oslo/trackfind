@@ -104,7 +104,7 @@ public class DataProviderTests {
     public void fetch() {
         Collection<Map> result = dataProvider.search("Advanced>key2: value3", 1).values();
         Map map = MapUtils.getMap(result.iterator().next(), "Advanced");
-        String id = String.valueOf(map.remove("id"));
+        String id = String.valueOf(map.remove("track_find_id"));
         Map<String, Object> rawData = dataProvider.fetch(id, null);
         assertThat(rawData).isEqualTo(map);
     }
