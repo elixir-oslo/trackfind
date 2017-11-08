@@ -6,7 +6,6 @@ import com.google.common.cache.LoadingCache;
 import no.uio.ifi.trackfind.backend.scripting.AbstractScriptingEngine;
 import org.apache.lucene.document.Document;
 import org.python.core.PyCode;
-import org.python.core.PyObject;
 import org.python.util.PythonInterpreter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
