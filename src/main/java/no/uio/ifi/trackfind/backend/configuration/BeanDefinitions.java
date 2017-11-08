@@ -15,6 +15,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
 import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import org.python.util.PythonInterpreter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -60,6 +61,11 @@ public class BeanDefinitions {
     @Bean
     public GroovyShell groovyShell() {
         return new GroovyShell();
+    }
+
+    @Bean
+    public PythonInterpreter pythonInterpreter() {
+        return new PythonInterpreter();
     }
 
     @Bean
