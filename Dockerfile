@@ -1,17 +1,16 @@
-FROM ubuntu:17.04
+FROM openjdk:8-jre
 
 MAINTAINER https://github.com/dtitov
 
-RUN mkdir /cluster
-
-RUN apt update && apt install git openjdk-8-jre -yq --no-install-recommends
-
-ADD https://github.com/git-lfs/git-lfs/releases/download/v2.3.0/git-lfs-linux-amd64-2.3.0.tar.gz lfs/
-RUN tar -xvzf lfs/git-lfs-linux-amd64-2.3.0.tar.gz && git-lfs-2.3.0/install.sh && git lfs install
-
-EXPOSE 8888
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends curl ca-certificates && \
+    curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends git-lfs && \
+    git lfs install && \
+    rm -r /var/lib/apt/lists/*
 
 COPY target/trackfind-*.jar /trackfind/trackfind.jar
+
 WORKDIR trackfind
 
-ENTRYPOINT ["java", "-jar", "trackfind.jar"]
+ENTRYPOINT ["java", "-jar", "trackfind.jar", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseCGroupMemoryLimitForHeap"]

@@ -118,6 +118,7 @@ public class VersioningService {
      */
     public void commit(Operation operation, String repositoryName) throws GitAPIException {
         git.add().addFilepattern(properties.getIndicesFolder() + repositoryName).call();
+        log.info(properties.getIndicesFolder());
         git.commit().setAll(true).setMessage(operation.name() + ": " + repositoryName).call();
         push(false);
     }
