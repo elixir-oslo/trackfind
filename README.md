@@ -5,7 +5,7 @@
 [![Docker Pulls](https://img.shields.io/docker/pulls/nels/trackfind.svg)](https://hub.docker.com/r/nels/trackfind/)
 
 ## Requirements
-There are no any special requirements for deploying application using containering (via [Docker](#docker) or [Singularity](#singularity)), but if you prefer to run it [natively](#java), then you will need these parts to be installed on the host system:
+There are no any special requirements for deploying application using [Docker](#docker), but if you prefer to run it [natively](#java), then you will need these parts to be installed on the host system:
 - **JRE 8**
 - **Git** + **Git LFS**
 
@@ -33,16 +33,6 @@ docker rm trackfind && \
 docker rmi nels/trackfind:1.1.0 && \
 ```
 ...and the first step.
-
-### Singularity
-```bash
-singularity create trackfind.img && \
-singularity import trackfind.img docker://nels/trackfind:1.1.0 && \
-nohup singularity run trackfind.img &
-```
-Logs are available at `tail -f console.log`
-
-App can be stopped by executing `kill -9 $!` as `$!` is the PID of the last launched process (alternatively you can find it using `ps auxw | grep trackfind`.
 
 ### Java
 ```bash
