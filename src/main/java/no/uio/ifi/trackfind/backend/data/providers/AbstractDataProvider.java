@@ -20,7 +20,7 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.index.*;
-import org.apache.lucene.queryparser.analyzing.AnalyzingQueryParser;
+import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TopDocs;
@@ -367,7 +367,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     private Multimap<String, Map> search(IndexSearcher indexSearcher, String query, int limit) {
         HashMultimap<String, Map> results = HashMultimap.create();
         try {
-            Query parsedQuery = new AnalyzingQueryParser("", analyzer).parse(query);
+            Query parsedQuery = new QueryParser("", analyzer).parse(query);
             TopDocs topDocs = indexSearcher.search(parsedQuery, limit == 0 ? Integer.MAX_VALUE : limit);
             results.putAll(versioningService.getCurrentRevision(), Arrays.stream(topDocs.scoreDocs).map(scoreDoc -> {
                 try {
