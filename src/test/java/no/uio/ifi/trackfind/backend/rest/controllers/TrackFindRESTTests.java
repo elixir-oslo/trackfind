@@ -124,7 +124,7 @@ public class TrackFindRESTTests {
                 .andReturn().getResponse().getContentAsString();
         Map search = (Map) ((Collection) gson.fromJson(searchResponse, Map.class).values().iterator().next()).iterator().next();
         search = MapUtils.getMap(search, "Advanced");
-        String id = search.remove("track_find_id").toString();
+        String id = search.remove("id").toString();
         String fetchResponse = mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/fetch").param("documentId", id))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
