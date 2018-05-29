@@ -1,7 +1,7 @@
 package no.uio.ifi.trackfind.backend.scripting;
 
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
-import no.uio.ifi.trackfind.backend.converters.DocumentToJSONConverter;
+import no.uio.ifi.trackfind.backend.converters.DocumentToMapConverter;
 import org.apache.lucene.document.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -18,7 +18,7 @@ import java.util.Set;
 public abstract class AbstractScriptingEngine implements ScriptingEngine {
 
     protected TrackFindProperties properties;
-    protected DocumentToJSONConverter documentToJSONConverter;
+    protected DocumentToMapConverter documentToMapConverter;
 
     /**
      * {@inheritDoc}
@@ -54,8 +54,8 @@ public abstract class AbstractScriptingEngine implements ScriptingEngine {
     }
 
     @Autowired
-    public void setDocumentToJSONConverter(DocumentToJSONConverter documentToJSONConverter) {
-        this.documentToJSONConverter = documentToJSONConverter;
+    public void setDocumentToMapConverter(DocumentToMapConverter documentToMapConverter) {
+        this.documentToMapConverter = documentToMapConverter;
     }
 
 }

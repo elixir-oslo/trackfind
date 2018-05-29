@@ -23,6 +23,7 @@ public class TrackFindProperties {
 
     private @NotBlank String scriptingLanguage;
     private @NotBlank String scriptingDatasetVariableName;
+    private @NotBlank String scriptingResultVariableName;
 
     private @NotBlank String advancedSectionName;
     private @NotBlank String basicSectionName;

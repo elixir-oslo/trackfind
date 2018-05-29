@@ -226,9 +226,8 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
 
     private void applyStaticMappings(Map<String, String> attributesStaticMapping, Document document) {
         for (Map.Entry<String, String> mapping : attributesStaticMapping.entrySet()) {
-            Set<String> values = new HashSet<>();
             String sourceAttribute = mapping.getValue();
-            values.addAll(Arrays.asList(document.getValues(sourceAttribute)));
+            Set<String> values = new HashSet<>(Arrays.asList(document.getValues(sourceAttribute)));
             values.add(document.get(sourceAttribute));
             values.remove(null);
             if (CollectionUtils.isEmpty(values)) { // no values found - let's use nested attributes as values

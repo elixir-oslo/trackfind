@@ -6,12 +6,9 @@ import com.google.common.cache.LoadingCache;
 import no.uio.ifi.trackfind.backend.scripting.AbstractScriptingEngine;
 import org.apache.lucene.document.Document;
 import org.python.core.PyCode;
-import org.python.core.PyObject;
 import org.python.util.PythonInterpreter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import javax.script.ScriptException;
 
 /**
  * Python implementation of the Scripting Engine.
@@ -27,7 +24,7 @@ public class PythonScriptingEngine extends AbstractScriptingEngine {
             .maximumSize(100)
             .build(
                     new CacheLoader<String, PyCode>() {
-                        public PyCode load(String script) throws ScriptException {
+                        public PyCode load(String script) {
                             return commonInterpreter.compile(script);
                         }
                     });
@@ -46,8 +43,9 @@ public class PythonScriptingEngine extends AbstractScriptingEngine {
     @Override
     protected Object executeInternally(String script, Document document) throws Exception {
         PythonInterpreter localInterpreter = new PythonInterpreter();
-        localInterpreter.set(properties.getScriptingDatasetVariableName(), documentToJSONConverter.apply(document));
-        return localInterpreter.eval(scripts.get(script));
+        localInterpreter.set(properties.getScriptingDatasetVariableName(), documentToMapConverter.apply(document));
+        localInterpreter.eval(scripts.get(script));
+        return localInterpreter.get(properties.getScriptingResultVariableName());
     }
 
     @Autowired

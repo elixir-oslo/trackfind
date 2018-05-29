@@ -49,7 +49,7 @@ public class CoffeeScriptScriptingEngine extends AbstractScriptingEngine {
     protected Object executeInternally(String script, Document document) throws Exception {
         CompiledScript compiledScript = scripts.get(script);
         return compiledScript.eval(new SimpleBindings(new HashMap<String, Object>() {{
-            put(properties.getScriptingDatasetVariableName(), documentToJSONConverter.apply(document));
+            put(properties.getScriptingDatasetVariableName(), documentToMapConverter.apply(document));
         }}));
     }
 
