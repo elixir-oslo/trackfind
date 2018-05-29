@@ -21,7 +21,7 @@ import java.util.Map;
  * @author Dmytro Titov
  */
 @Slf4j
-//@VersionedComponent
+@VersionedComponent
 public class ICGCDataProvider extends PaginationAwareDataProvider { // TODO: Fetch more data.
 
     private static final String DONORS = "https://dcc.icgc.org/api/v1/donors?";

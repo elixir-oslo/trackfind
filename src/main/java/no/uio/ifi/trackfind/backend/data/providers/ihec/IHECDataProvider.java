@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
  * @author Dmytro Titov
  */
 @Slf4j
-//@VersionedComponent
+@VersionedComponent
 public class IHECDataProvider extends AbstractDataProvider {
 
     private static final String RELEASES_URL = "http://epigenomesportal.ca/cgi-bin/api/getReleases.py";
