@@ -272,10 +272,10 @@ public class TrackFindMainUI extends AbstractUI {
         String jsonResult = gson.toJson(results.asMap());
         resultsTextArea.setValue(jsonResult);
 
-        StringBuilder result = new StringBuilder("###");
-        properties.getBasicAttributes().forEach(ba -> result.append(ba).append("\t"));
-        result.append("revision").append("\n");
-        lastResults.stream().map(mapToTSVConverter).forEach(tsv -> result.append(tsv).append(revision).append("\n"));
+        StringBuilder gSuiteResult = new StringBuilder("###");
+        properties.getBasicAttributes().forEach(ba -> gSuiteResult.append(ba).append("\t"));
+        gSuiteResult.append("revision").append("\n");
+        lastResults.stream().map(mapToTSVConverter).forEach(tsv -> gSuiteResult.append(tsv).append(revision).append("\n"));
 
         if (gSuiteFileDownloader != null) {
             exportGSuiteButton.removeExtension(gSuiteFileDownloader);
@@ -283,8 +283,7 @@ public class TrackFindMainUI extends AbstractUI {
         if (jsonFileDownloader != null) {
             exportJSONButton.removeExtension(jsonFileDownloader);
         }
-        String finalResult = result.toString();
-        Resource gSuiteResource = new StreamResource((StreamResource.StreamSource) () -> new ByteArrayInputStream(finalResult.getBytes(Charset.defaultCharset())),
+        Resource gSuiteResource = new StreamResource((StreamResource.StreamSource) () -> new ByteArrayInputStream(gSuiteResult.toString().getBytes(Charset.defaultCharset())),
                 Calendar.getInstance().getTime().toString() + ".gsuite");
         gSuiteFileDownloader = new FileDownloader(gSuiteResource);
         gSuiteFileDownloader.extend(exportGSuiteButton);

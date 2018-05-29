@@ -6,6 +6,7 @@ import com.google.common.cache.LoadingCache;
 import no.uio.ifi.trackfind.backend.scripting.AbstractScriptingEngine;
 import org.apache.lucene.document.Document;
 import org.python.core.PyCode;
+import org.python.core.PyObject;
 import org.python.util.PythonInterpreter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -45,7 +46,13 @@ public class PythonScriptingEngine extends AbstractScriptingEngine {
         PythonInterpreter localInterpreter = new PythonInterpreter();
         localInterpreter.set(properties.getScriptingDatasetVariableName(), documentToMapConverter.apply(document));
         localInterpreter.eval(scripts.get(script));
-        return localInterpreter.get(properties.getScriptingResultVariableName());
+        PyObject result = localInterpreter.get(properties.getScriptingResultVariableName());
+        String qualifiedClassName = result.getType().getModule() + "." + result.getType().getName();
+        try {
+            return result.__tojava__(Class.forName(qualifiedClassName));
+        } catch (ClassNotFoundException e) {
+            return null;
+        }
     }
 
     @Autowired
