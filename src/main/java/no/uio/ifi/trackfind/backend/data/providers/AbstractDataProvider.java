@@ -30,7 +30,6 @@ import org.apache.lucene.util.BytesRef;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -63,18 +62,20 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     protected Collection<ScriptingEngine> scriptingEngines;
 
     /**
-     * Initialize Lucene Directory (Index) and the Searcher over this Directory.
-     *
-     * @throws Exception If initialization fails.
+     * {@inheritDoc}
      */
     @SuppressWarnings("unused")
-    @PostConstruct
-    private void postConstruct() throws Exception {
-        directory = directoryFactory.getDirectory(getPath());
-        if (DirectoryReader.indexExists(directory)) {
-            reinitIndexSearcher();
-        } else {
-            crawlRemoteRepository();
+    public void init() {
+        try {
+            directory = directoryFactory.getDirectory(getPath());
+            if (DirectoryReader.indexExists(directory)) {
+                reinitIndexSearcher();
+            } else {
+                crawlRemoteRepository();
+            }
+        } catch (Exception e) {
+            log.error(getName() + " initialization failure!");
+            log.error(e.getMessage(), e);
         }
     }
 
