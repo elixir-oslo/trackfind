@@ -35,7 +35,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
@@ -387,16 +386,11 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      */
     @Override
     public Map<String, Object> fetch(String documentId, String revision) {
-        try {
-            return revision == null
-                    ?
-                    fetch(indexSearcher, documentId)
-                    :
-                    fetch(versioningService.getIndexSearcher(revision, getName()), documentId);
-        } catch (ExecutionException e) {
-            log.error(e.getMessage(), e);
-            return Collections.emptyMap();
-        }
+        return revision == null
+                ?
+                fetch(indexSearcher, documentId)
+                :
+                fetch(versioningService.getIndexSearcher(revision, getName()), documentId);
     }
 
     @SuppressWarnings("unchecked")
