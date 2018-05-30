@@ -115,7 +115,6 @@ public class VersioningService {
      * @throws GitAPIException In case of Git error.
      */
     public void commit(Operation operation, String repositoryName) throws GitAPIException {
-        log.info("Properties: " + properties);
         log.info("Committing changes. Git repo folder: " + properties.getIndicesFolder());
         git.add().addFilepattern(properties.getIndicesFolder() + repositoryName).call();
         git.commit().setAll(true).setMessage(operation.name() + ": " + repositoryName).call();

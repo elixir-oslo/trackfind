@@ -37,7 +37,7 @@ public class TestTrackFindApplication {
     }
 
     @Bean
-    public Git git() throws IOException, GitAPIException {
+    public Git git() throws GitAPIException {
         File tempDirectory = FileUtils.getTempDirectory();
         Git git = Git.init().setDirectory(tempDirectory).call();
         git.add().addFilepattern("console.log").call();

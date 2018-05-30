@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
  * @author Dmytro Titov
  */
 @Slf4j
-@VersionedComponent
+//@VersionedComponent
 public class GDCDataProvider extends PaginationAwareDataProvider {
 
     private static final String CASES = "https://api.gdc.cancer.gov/cases?" +

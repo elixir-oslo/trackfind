@@ -19,6 +19,7 @@ import org.python.util.PythonInterpreter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.service.ApiInfo;
@@ -73,6 +74,7 @@ public class BeanDefinitions {
         return new PythonInterpreter();
     }
 
+    @Lazy
     @Bean
     public Git git() throws IOException, GitAPIException, InterruptedException {
         FileUtils.deleteDirectory(new File(properties.getArchiveFolder()));
