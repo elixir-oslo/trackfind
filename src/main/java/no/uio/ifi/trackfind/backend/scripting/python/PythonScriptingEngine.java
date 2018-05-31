@@ -5,11 +5,13 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import no.uio.ifi.trackfind.backend.scripting.AbstractScriptingEngine;
 import org.apache.lucene.document.Document;
-import org.python.core.PyCode;
-import org.python.core.PyObject;
+import org.python.core.*;
 import org.python.util.PythonInterpreter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 /**
  * Python implementation of the Scripting Engine.
@@ -46,13 +48,35 @@ public class PythonScriptingEngine extends AbstractScriptingEngine {
         PythonInterpreter localInterpreter = new PythonInterpreter();
         localInterpreter.set(properties.getScriptingDatasetVariableName(), documentToMapConverter.apply(document));
         localInterpreter.eval(scripts.get(script));
-        PyObject result = localInterpreter.get(properties.getScriptingResultVariableName());
-        String qualifiedClassName = result.getType().getModule() + "." + result.getType().getName();
-        try {
-            return result.__tojava__(Class.forName(qualifiedClassName));
-        } catch (ClassNotFoundException e) {
+        return convertToJava(localInterpreter.get(properties.getScriptingResultVariableName()));
+    }
+
+    protected Object convertToJava(Object result) {
+        if (result == null || result instanceof PyNone) {
             return null;
         }
+
+        if (!(result instanceof PyObject)) {
+            return result;
+        }
+
+        PyObject pythonObject = (PyObject) result;
+
+        String qualifiedClassName = pythonObject.getType().getModule() + "." + pythonObject.getType().getName();
+        try {
+            return pythonObject.__tojava__(Class.forName(qualifiedClassName));
+        } catch (ClassNotFoundException ignored) {
+        }
+
+        if (pythonObject instanceof PyArray) {
+            return Arrays.stream((Object[]) ((PyArray) pythonObject).getArray()).map(this::convertToJava).collect(Collectors.toList());
+        }
+
+        if (pythonObject instanceof PyString) {
+            return pythonObject.toString();
+        }
+
+        return pythonObject.__tojava__(Object.class);
     }
 
     @Autowired

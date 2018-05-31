@@ -22,7 +22,7 @@ import com.vaadin.ui.*;
 import com.vaadin.ui.components.grid.TreeGridDragSource;
 import com.vaadin.ui.dnd.DropTargetExtension;
 import lombok.extern.slf4j.Slf4j;
-import no.uio.ifi.trackfind.backend.converters.MapToTSVConverter;
+import no.uio.ifi.trackfind.backend.converters.MapToGSuiteConverter;
 import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
 import no.uio.ifi.trackfind.frontend.components.KeyboardInterceptorExtension;
 import no.uio.ifi.trackfind.frontend.components.TrackFindTree;
@@ -57,10 +57,10 @@ import java.util.Map;
 @Slf4j
 public class TrackFindMainUI extends AbstractUI {
 
-    private MapToTSVConverter mapToTSVConverter;
+    private MapToGSuiteConverter mapToGSuiteConverter;
     private Gson gson;
 
-    private Collection<Map> lastResults;
+    private int numberOfResults;
 
     private TextArea queryTextArea;
     private TextField limitTextField;
@@ -162,9 +162,9 @@ public class TrackFindMainUI extends AbstractUI {
                 exportJSONButton.setCaption("Export as JSON file");
             } else {
                 exportGSuiteButton.setEnabled(true);
-                exportGSuiteButton.setCaption("Export (" + lastResults.size() + ") entries as GSuite file");
+                exportGSuiteButton.setCaption("Export (" + numberOfResults + ") entries as GSuite file");
                 exportJSONButton.setEnabled(true);
-                exportJSONButton.setCaption("Export (" + lastResults.size() + ") entries as JSON file");
+                exportJSONButton.setCaption("Export (" + numberOfResults + ") entries as JSON file");
             }
         });
         Panel resultsPanel = new Panel("Data", resultsTextArea);
@@ -267,15 +267,11 @@ public class TrackFindMainUI extends AbstractUI {
             Notification.show("Nothing found for such request");
             return;
         }
-        String revision = results.keySet().iterator().next();
-        lastResults = results.values();
+        numberOfResults = results.values().size();
         String jsonResult = gson.toJson(results.asMap());
         resultsTextArea.setValue(jsonResult);
 
-        StringBuilder gSuiteResult = new StringBuilder("###");
-        properties.getBasicAttributes().forEach(ba -> gSuiteResult.append(ba).append("\t"));
-        gSuiteResult.append("revision").append("\n");
-        lastResults.stream().map(mapToTSVConverter).forEach(tsv -> gSuiteResult.append(tsv).append(revision).append("\n"));
+        String gSuiteResult = mapToGSuiteConverter.apply(results.asMap());
 
         if (gSuiteFileDownloader != null) {
             exportGSuiteButton.removeExtension(gSuiteFileDownloader);
@@ -283,7 +279,7 @@ public class TrackFindMainUI extends AbstractUI {
         if (jsonFileDownloader != null) {
             exportJSONButton.removeExtension(jsonFileDownloader);
         }
-        Resource gSuiteResource = new StreamResource((StreamResource.StreamSource) () -> new ByteArrayInputStream(gSuiteResult.toString().getBytes(Charset.defaultCharset())),
+        Resource gSuiteResource = new StreamResource((StreamResource.StreamSource) () -> new ByteArrayInputStream(gSuiteResult.getBytes(Charset.defaultCharset())),
                 Calendar.getInstance().getTime().toString() + ".gsuite");
         gSuiteFileDownloader = new FileDownloader(gSuiteResource);
         gSuiteFileDownloader.extend(exportGSuiteButton);
@@ -299,8 +295,8 @@ public class TrackFindMainUI extends AbstractUI {
     }
 
     @Autowired
-    public void setMapToTSVConverter(MapToTSVConverter mapToTSVConverter) {
-        this.mapToTSVConverter = mapToTSVConverter;
+    public void setMapToGSuiteConverter(MapToGSuiteConverter mapToGSuiteConverter) {
+        this.mapToGSuiteConverter = mapToGSuiteConverter;
     }
 
     @Autowired

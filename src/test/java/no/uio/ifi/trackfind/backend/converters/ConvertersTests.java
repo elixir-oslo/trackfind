@@ -29,9 +29,6 @@ public class ConvertersTests {
     private DocumentToMapConverter documentToMapConverter;
     @Autowired
     private DocumentToJSONConverter documentToJSONConverter;
-    @Autowired
-    private DocumentToTSVConverter documentToTSVConverter;
-
 
     private Document document;
     private Map map;
@@ -75,12 +72,6 @@ public class ConvertersTests {
                 "    ]\n" +
                 "  }\n" +
                 "}");
-    }
-
-    @Test
-    public void documentToTSVConverterTest() {
-        String apply = documentToTSVConverter.apply(document);
-        assertThat(apply).isEqualToIgnoringCase(".\t.\t.\t.\t.\t.\t.\t.\t.\t[value2, value3]\t");
     }
 
 }
