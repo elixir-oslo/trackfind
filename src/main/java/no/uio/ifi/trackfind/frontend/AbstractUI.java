@@ -53,7 +53,7 @@ public abstract class AbstractUI extends UI {
     }
 
     protected HorizontalLayout buildFooterLayout() {
-        Label footerLabel = new Label("2017");
+        Label footerLabel = new Label("2017-2018");
         HorizontalLayout footerLayout = new HorizontalLayout(footerLabel);
         footerLayout.setSizeFull();
         footerLayout.setComponentAlignment(footerLabel, Alignment.BOTTOM_CENTER);
