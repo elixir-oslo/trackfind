@@ -1,9 +1,6 @@
 package no.uio.ifi.trackfind.backend.rest.controllers;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.SwaggerDefinition;
-import io.swagger.annotations.Tag;
+import io.swagger.annotations.*;
 import no.uio.ifi.trackfind.backend.services.TrackFindService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -37,9 +34,13 @@ public class DataController {
     @SuppressWarnings("unchecked")
     @ApiOperation(value = "Performs search over the index using Apache Lucene query language.")
     @GetMapping(path = "/{provider}/search", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<Map<String, Collection<Map>>> search(@PathVariable String provider,
-                                                               @RequestParam String query,
-                                                               @RequestParam(required = false, defaultValue = "0") int limit) {
+    public ResponseEntity<Map<String, Collection<Map>>> search(
+            @ApiParam(value = "Data provider name.", required = true)
+            @PathVariable String provider,
+            @ApiParam(value = "Search query to execute.", required = true)
+            @RequestParam String query,
+            @ApiParam(value = "Max number of results to return. Unlimited by default.", required = false, defaultValue = "0")
+            @RequestParam(required = false, defaultValue = "0") int limit) {
         return ResponseEntity.ok(trackFindService.getDataProvider(provider).search(query, limit).asMap());
     }
 
@@ -53,9 +54,13 @@ public class DataController {
      */
     @ApiOperation(value = "Fetches raw (JSON) data by Lucene Document ID.")
     @GetMapping(path = "/{provider}/fetch", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<Map<String, Object>> fetch(@PathVariable String provider,
-                                                     @RequestParam String documentId,
-                                                     @RequestParam(required = false) String revision) {
+    public ResponseEntity<Map<String, Object>> fetch(
+            @ApiParam(value = "Data provider name.", required = true)
+            @PathVariable String provider,
+            @ApiParam(value = "ID of the document to return.", required = true)
+            @RequestParam String documentId,
+            @ApiParam(value = "Revision of the document to return.", required = false)
+            @RequestParam(required = false) String revision) {
         return ResponseEntity.ok(trackFindService.getDataProvider(provider).fetch(documentId, revision));
     }
 
