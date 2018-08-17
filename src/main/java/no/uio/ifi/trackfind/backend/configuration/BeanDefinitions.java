@@ -6,8 +6,6 @@ import com.netopyr.coffee4java.CoffeeScriptEngine;
 import com.netopyr.coffee4java.CoffeeScriptEngineFactory;
 import groovy.lang.GroovyShell;
 import lombok.extern.slf4j.Slf4j;
-import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
-import no.uio.ifi.trackfind.backend.services.TrackFindService;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.analysis.Analyzer;
@@ -21,8 +19,6 @@ import org.python.util.PythonInterpreter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.context.event.EventListener;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.service.ApiInfo;
@@ -47,13 +43,6 @@ public class BeanDefinitions {
     private static final String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
     private TrackFindProperties properties;
-    private TrackFindService trackFindService;
-
-    @EventListener({ContextRefreshedEvent.class})
-    public void contextRefreshedEvent() {
-        log.info("Spring Application Context (re)initialized.");
-        trackFindService.getDataProviders().forEach(DataProvider::init);
-    }
 
     @Bean
     public Gson gson() {
@@ -214,11 +203,6 @@ public class BeanDefinitions {
     @Autowired
     public void setProperties(TrackFindProperties properties) {
         this.properties = properties;
-    }
-
-    @Autowired
-    public void setTrackFindService(TrackFindService trackFindService) {
-        this.trackFindService = trackFindService;
     }
 
 }
