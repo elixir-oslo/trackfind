@@ -40,7 +40,19 @@ public class TrackHubDataProvider extends AbstractDataProvider {
             for (Map hit : hits) {
                 Map source = MapUtils.getMap(hit, "_source");
                 Collection<Map> data = (Collection<Map>) source.get("data");
-                datasets.addAll(data);
+                Map allMembers = MapUtils.getMap(MapUtils.getMap(MapUtils.getMap(source, "configuration"), "bp"), "members");
+                Map signalMembers = MapUtils.getMap(MapUtils.getMap(allMembers, "signal"), "members");
+                Map regionMembers = MapUtils.getMap(MapUtils.getMap(allMembers, "region"), "members");
+                for (Map dataset : data) {
+                    String id = MapUtils.getString(dataset, "id");
+                    if (signalMembers.containsKey(id)) {
+                        dataset.put("signal", signalMembers.get(id));
+                    }
+                    if (regionMembers.containsKey(id)) {
+                        dataset.put("region", regionMembers.get(id));
+                    }
+                    datasets.add(dataset);
+                }
             }
             indexWriter.addDocuments(datasets.parallelStream().map(this::postprocessDataset).map(mapToDocumentConverter).collect(Collectors.toSet()));
         } catch (Exception e) {
