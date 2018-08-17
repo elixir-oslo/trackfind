@@ -33,14 +33,13 @@ public class DataController {
      * @param query    Search query (Lucene syntax, see https://lucene.apache.org/solr/guide/6_6/the-standard-query-parser.html).
      * @param limit    Max number of entries to return.
      * @return Search results by revision.
-     * @throws Exception In case of some error.
      */
     @SuppressWarnings("unchecked")
     @ApiOperation(value = "Performs search over the index using Apache Lucene query language.")
     @GetMapping(path = "/{provider}/search", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Map<String, Collection<Map>>> search(@PathVariable String provider,
                                                                @RequestParam String query,
-                                                               @RequestParam(required = false, defaultValue = "0") int limit) throws Exception {
+                                                               @RequestParam(required = false, defaultValue = "0") int limit) {
         return ResponseEntity.ok(trackFindService.getDataProvider(provider).search(query, limit).asMap());
     }
 
@@ -51,13 +50,12 @@ public class DataController {
      * @param documentId Lucene Document ID.
      * @param revision   Revision of the repository.
      * @return Raw (JSON) data.
-     * @throws Exception In case of some error.
      */
     @ApiOperation(value = "Fetches raw (JSON) data by Lucene Document ID.")
     @GetMapping(path = "/{provider}/fetch", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Map<String, Object>> fetch(@PathVariable String provider,
                                                      @RequestParam String documentId,
-                                                     @RequestParam(required = false) String revision) throws Exception {
+                                                     @RequestParam(required = false) String revision) {
         return ResponseEntity.ok(trackFindService.getDataProvider(provider).fetch(documentId, revision));
     }
 
