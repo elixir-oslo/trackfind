@@ -178,7 +178,7 @@ public class BeanDefinitions {
                 "Search engine for finding genomic tracks",
                 String.valueOf(getClass().getPackage().getImplementationVersion()),
                 null,
-                new Contact(null, "https://github.com/elixir-no-nels/trackfind", null),
+                new Contact("Elixir Norway", "https://github.com/elixir-no-nels/", null),
                 null,
                 null,
                 Collections.emptyList());
