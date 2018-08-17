@@ -155,9 +155,8 @@ public class BeanDefinitions {
      * @param git       JGit instance.
      * @param gitRemote URL of remote to add.
      * @throws IOException     In case of some filesystem-related error.
-     * @throws GitAPIException In case of some Git-related error.
      */
-    private void addRemote(Git git, String gitRemote) throws IOException, GitAPIException {
+    private void addRemote(Git git, String gitRemote) throws IOException {
         StoredConfig config = git.getRepository().getConfig();
         config.setString("remote", "origin", "url", gitRemote);
         config.save();
