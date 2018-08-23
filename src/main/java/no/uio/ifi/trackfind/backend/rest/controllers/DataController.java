@@ -1,6 +1,7 @@
 package no.uio.ifi.trackfind.backend.rest.controllers;
 
 import io.swagger.annotations.*;
+import no.uio.ifi.trackfind.backend.rest.responses.SearchResponse;
 import no.uio.ifi.trackfind.backend.services.TrackFindService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -32,7 +33,7 @@ public class DataController {
      * @return Search results by revision.
      */
     @SuppressWarnings("unchecked")
-    @ApiOperation(value = "Performs search over the index using Apache Lucene query language.")
+    @ApiOperation(value = "Performs search over the index using Apache Lucene query language.", response = SearchResponse.class, responseContainer = "Map")
     @GetMapping(path = "/{provider}/search", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Map<String, Collection<Map>>> search(
             @ApiParam(value = "Data provider name.", required = true, example = "IHEC")
