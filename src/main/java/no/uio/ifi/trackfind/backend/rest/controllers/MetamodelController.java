@@ -34,7 +34,7 @@ public class MetamodelController {
     @ApiOperation(value = "Gets the metamodel of the specified provider in the hierarchical form.")
     @GetMapping(path = "/{provider}/metamodel-tree", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Map<String, Object>> getMetamodelTree(
-            @ApiParam(value = "Data provider name.", required = true)
+            @ApiParam(value = "Data provider name.", required = true, example = "IHEC")
             @PathVariable String provider) {
         return ResponseEntity.ok(trackFindService.getDataProvider(provider).getMetamodelTree());
     }
@@ -48,7 +48,7 @@ public class MetamodelController {
     @ApiOperation(value = "Gets the metamodel of the specified provider in the flat form.")
     @GetMapping(path = "/{provider}/metamodel-flat", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Map<String, Collection<String>>> getMetamodelFlat(
-            @ApiParam(value = "Data provider name.", required = true)
+            @ApiParam(value = "Data provider name.", required = true, example = "IHEC")
             @PathVariable String provider) {
         return ResponseEntity.ok(trackFindService.getDataProvider(provider).getMetamodelFlat().asMap());
     }
@@ -62,9 +62,9 @@ public class MetamodelController {
      */
     @ApiOperation(value = "Gets full set of attributes for specified data provider.")
     @GetMapping(path = "/{provider}/attributes", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<Collection<String>> getAttributes(@ApiParam(value = "Data provider name.", required = true)
+    public ResponseEntity<Collection<String>> getAttributes(@ApiParam(value = "Data provider name.", required = true, example = "IHEC")
                                                             @PathVariable String provider,
-                                                            @ApiParam(value = "Text mask to use as a filter.", required = false, defaultValue = "")
+                                                            @ApiParam(value = "Text mask to use as a filter.", required = false, defaultValue = "", example = "data")
                                                             @RequestParam(required = false, defaultValue = "") String filter) {
         Set<String> attributes = trackFindService.getDataProvider(provider).getMetamodelFlat().asMap().keySet();
         return ResponseEntity.ok(attributes.parallelStream().filter(a -> a.contains(filter)).collect(Collectors.toSet()));
@@ -80,11 +80,11 @@ public class MetamodelController {
      */
     @ApiOperation(value = "Gets full set of values for specified data provider and the attribute.")
     @GetMapping(path = "/{provider}/{attribute}/values", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<Collection<String>> getValues(@ApiParam(value = "Data provider name.", required = true)
+    public ResponseEntity<Collection<String>> getValues(@ApiParam(value = "Data provider name.", required = true, example = "IHEC")
                                                         @PathVariable String provider,
-                                                        @ApiParam(value = "Attribute name.", required = true)
+                                                        @ApiParam(value = "Attribute name.", required = true, example = "Advanced>sample_id")
                                                         @PathVariable String attribute,
-                                                        @ApiParam(value = "Text mask to use as a filter.", required = false, defaultValue = "")
+                                                        @ApiParam(value = "Text mask to use as a filter.", required = false, defaultValue = "", example = "MS")
                                                         @RequestParam(required = false, defaultValue = "") String filter) {
         Collection<String> values = trackFindService.getDataProvider(provider).getMetamodelFlat().get(attribute);
         return ResponseEntity.ok(values.parallelStream().filter(a -> a.contains(filter)).collect(Collectors.toSet()));

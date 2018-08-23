@@ -35,11 +35,11 @@ public class DataController {
     @ApiOperation(value = "Performs search over the index using Apache Lucene query language.")
     @GetMapping(path = "/{provider}/search", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Map<String, Collection<Map>>> search(
-            @ApiParam(value = "Data provider name.", required = true)
+            @ApiParam(value = "Data provider name.", required = true, example = "IHEC")
             @PathVariable String provider,
-            @ApiParam(value = "Search query to execute.", required = true)
+            @ApiParam(value = "Search query to execute.", required = true, example = "Advanced>analysis_attributes>alignment_software: Bowtie")
             @RequestParam String query,
-            @ApiParam(value = "Max number of results to return. Unlimited by default.", required = false, defaultValue = "0")
+            @ApiParam(value = "Max number of results to return. Unlimited by default.", required = false, defaultValue = "0", example = "10")
             @RequestParam(required = false, defaultValue = "0") int limit) {
         return ResponseEntity.ok(trackFindService.getDataProvider(provider).search(query, limit).asMap());
     }
@@ -55,7 +55,7 @@ public class DataController {
     @ApiOperation(value = "Fetches raw (JSON) data by Lucene Document ID.")
     @GetMapping(path = "/{provider}/fetch", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Map<String, Object>> fetch(
-            @ApiParam(value = "Data provider name.", required = true)
+            @ApiParam(value = "Data provider name.", required = true, example = "IHEC")
             @PathVariable String provider,
             @ApiParam(value = "ID of the document to return.", required = true)
             @RequestParam String documentId,
