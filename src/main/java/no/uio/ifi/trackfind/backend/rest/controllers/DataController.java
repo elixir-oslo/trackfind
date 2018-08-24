@@ -1,6 +1,7 @@
 package no.uio.ifi.trackfind.backend.rest.controllers;
 
 import io.swagger.annotations.*;
+import no.uio.ifi.trackfind.backend.rest.responses.AdvancedDocument;
 import no.uio.ifi.trackfind.backend.rest.responses.SearchResponse;
 import no.uio.ifi.trackfind.backend.services.TrackFindService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,7 +54,7 @@ public class DataController {
      * @param revision   Revision of the repository.
      * @return Raw (JSON) data.
      */
-    @ApiOperation(value = "Fetches raw (JSON) data by Lucene Document ID.")
+    @ApiOperation(value = "Fetches raw (JSON) data by Lucene Document ID.", response = AdvancedDocument.class, responseContainer = "Map")
     @GetMapping(path = "/{provider}/fetch", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Map<String, Object>> fetch(
             @ApiParam(value = "Data provider name.", required = true, example = "IHEC")
