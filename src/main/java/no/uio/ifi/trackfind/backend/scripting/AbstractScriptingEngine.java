@@ -6,9 +6,8 @@ import org.apache.lucene.document.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.script.ScriptException;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Common methods holder for all Scripting Engines.
@@ -26,7 +25,7 @@ public abstract class AbstractScriptingEngine implements ScriptingEngine {
     @Override
     public Collection<String> execute(String script, Document document) throws Exception {
         Object result = executeInternally(script, document);
-        Set<String> values = new HashSet<>();
+        Collection<String> values = new ArrayList<>();
         if (result instanceof Collection) { // multiple values
             for (Object value : (Collection) result) {
                 values.add(String.valueOf(value));

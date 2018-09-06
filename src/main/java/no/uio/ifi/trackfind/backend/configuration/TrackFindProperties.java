@@ -35,6 +35,8 @@ public class TrackFindProperties {
     private @NotBlank String idAttribute;
     private @NotBlank String advancedIdAttribute;
     private @NotBlank String revisionAttribute;
+    private @NotBlank String uriAttribute;
+    private @NotBlank String dataTypeAttribute;
 
     private List<String> basicAttributes;
 
