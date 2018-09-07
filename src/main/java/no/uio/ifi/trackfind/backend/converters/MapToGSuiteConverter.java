@@ -52,8 +52,21 @@ public class MapToGSuiteConverter implements Function<Map, String> {
     @SuppressWarnings("unchecked")
     private Collection<Map<String, Object>> getBasicMaps(Map<String, Object> dataset) {
         Map<?, ?> basicMap = MapUtils.getMap(dataset, properties.getBasicSectionName(), new HashMap<>());
-        Collection<String> dataTypes = (Collection<String>) basicMap.get(properties.getDataTypeAttribute());
-        Collection<String> uris = (Collection<String>) basicMap.get(properties.getUriAttribute());
+        Object dataTypesObject = basicMap.get(properties.getDataTypeAttribute());
+        Collection<String> dataTypes;
+        if (dataTypesObject instanceof Collection) {
+            dataTypes = (Collection<String>) dataTypesObject;
+        } else {
+            dataTypes = Collections.singleton(String.valueOf(dataTypesObject));
+        }
+        Object urisObject = basicMap.get(properties.getUriAttribute());
+        Collection<String> uris;
+        if (urisObject instanceof Collection) {
+            uris = (Collection<String>) urisObject;
+        } else {
+            uris = Collections.singleton(String.valueOf(urisObject));
+        }
+
         Asserts.check(CollectionUtils.size(dataTypes) == CollectionUtils.size(uris), "DataTypes and URIs mismatch!");
         Collection<Map<String, Object>> result = new HashSet<>();
         Iterator<String> iterator = uris.iterator();
