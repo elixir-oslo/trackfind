@@ -11,7 +11,6 @@ import org.apache.lucene.document.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.script.ScriptException;
 import java.util.HashMap;
 
 /**
