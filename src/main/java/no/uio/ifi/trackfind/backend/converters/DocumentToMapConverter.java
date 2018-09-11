@@ -40,9 +40,8 @@ public class DocumentToMapConverter implements Function<Document, Map> {
                 metamodel = (Map<String, Object>) metamodel.computeIfAbsent(attribute, k -> new HashMap<String, Object>());
             }
             String valuesKey = path[path.length - 1];
-            Collection<String> values = (Collection<String>) metamodel.computeIfAbsent(valuesKey, k -> new HashSet<>());
+            Collection<String> values = (Collection<String>) metamodel.computeIfAbsent(valuesKey, k -> new ArrayList<>());
             values.addAll(Arrays.asList(document.getValues(fieldName)));
-            values.add(document.get(fieldName));
             values.remove(null);
             if (CollectionUtils.isEmpty(values)) {
                 metamodel.remove(valuesKey);

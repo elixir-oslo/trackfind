@@ -20,7 +20,7 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.index.*;
-import org.apache.lucene.queryparser.analyzing.AnalyzingQueryParser;
+import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TopDocs;
@@ -30,12 +30,10 @@ import org.apache.lucene.util.BytesRef;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
@@ -64,18 +62,20 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     protected Collection<ScriptingEngine> scriptingEngines;
 
     /**
-     * Initialize Lucene Directory (Index) and the Searcher over this Directory.
-     *
-     * @throws Exception If initialization fails.
+     * {@inheritDoc}
      */
     @SuppressWarnings("unused")
-    @PostConstruct
-    private void postConstruct() throws Exception {
-        directory = directoryFactory.getDirectory(getPath());
-        if (DirectoryReader.indexExists(directory)) {
-            reinitIndexSearcher();
-        } else {
-            crawlRemoteRepository();
+    public void init() {
+        try {
+            directory = directoryFactory.getDirectory(getPath());
+            if (DirectoryReader.indexExists(directory)) {
+                reinitIndexSearcher();
+            } else {
+                crawlRemoteRepository();
+            }
+        } catch (Exception e) {
+            log.error(getName() + " initialization failure!");
+            log.error(e.getMessage(), e);
         }
     }
 
@@ -123,28 +123,16 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     protected abstract void fetchData(IndexWriter indexWriter) throws Exception;
 
     /**
-     * Split one dataset into multiple by DataType/URL pair.
+     * Postprocess Dataset.
      *
      * @param dataset Dataset to split.
-     * @return Multiple datasets extracted from single input.
+     * @return Postprocessed dataset.
      */
     @SuppressWarnings("unchecked")
-    protected Collection<Map> splitDatasetByDataTypes(Map dataset) {
+    protected Map postprocessDataset(Map dataset) {
         clearAttributesToSkip(dataset);
-        Map<String, Collection<String>> browser = (Map<String, Collection<String>>) dataset.remove(properties.getBrowserAttribute());
-        String json = gson.toJson(dataset);
-        HashMultimap<String, String> browserMultiMap = HashMultimap.create();
-        browser.entrySet().parallelStream().forEach(e -> browserMultiMap.putAll(e.getKey(), e.getValue()));
-        Collection<Map> result = new HashSet<>();
-        for (Map.Entry<String, String> entry : browserMultiMap.entries()) {
-            Map map = gson.fromJson(json, Map.class);
-            map.put(properties.getDataTypeAttribute(), entry.getKey());
-            map.put(properties.getDataURLAttribute(), entry.getValue());
-            map.put(properties.getDataSourceAttribute(), getName());
-            map.put(properties.getIdAttribute(), UUID.randomUUID().toString());
-            result.add(map);
-        }
-        return result;
+        dataset.put(properties.getIdAttribute(), UUID.randomUUID().toString());
+        return dataset;
     }
 
     /**
@@ -238,9 +226,8 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
 
     private void applyStaticMappings(Map<String, String> attributesStaticMapping, Document document) {
         for (Map.Entry<String, String> mapping : attributesStaticMapping.entrySet()) {
-            Set<String> values = new HashSet<>();
             String sourceAttribute = mapping.getValue();
-            values.addAll(Arrays.asList(document.getValues(sourceAttribute)));
+            Set<String> values = new HashSet<>(Arrays.asList(document.getValues(sourceAttribute)));
             values.add(document.get(sourceAttribute));
             values.remove(null);
             if (CollectionUtils.isEmpty(values)) { // no values found - let's use nested attributes as values
@@ -380,7 +367,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     private Multimap<String, Map> search(IndexSearcher indexSearcher, String query, int limit) {
         HashMultimap<String, Map> results = HashMultimap.create();
         try {
-            Query parsedQuery = new AnalyzingQueryParser("", analyzer).parse(query);
+            Query parsedQuery = new QueryParser("", analyzer).parse(query);
             TopDocs topDocs = indexSearcher.search(parsedQuery, limit == 0 ? Integer.MAX_VALUE : limit);
             results.putAll(versioningService.getCurrentRevision(), Arrays.stream(topDocs.scoreDocs).map(scoreDoc -> {
                 try {
@@ -400,16 +387,11 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      */
     @Override
     public Map<String, Object> fetch(String documentId, String revision) {
-        try {
-            return revision == null
-                    ?
-                    fetch(indexSearcher, documentId)
-                    :
-                    fetch(versioningService.getIndexSearcher(revision, getName()), documentId);
-        } catch (ExecutionException e) {
-            log.error(e.getMessage(), e);
-            return Collections.emptyMap();
-        }
+        return revision == null
+                ?
+                fetch(indexSearcher, documentId)
+                :
+                fetch(versioningService.getIndexSearcher(revision, getName()), documentId);
     }
 
     @SuppressWarnings("unchecked")

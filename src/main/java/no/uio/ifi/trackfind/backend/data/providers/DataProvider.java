@@ -14,6 +14,11 @@ import java.util.Map;
 public interface DataProvider {
 
     /**
+     * Initialize Lucene Directory (Index) and the Searcher over this Directory.
+     */
+    void init();
+
+    /**
      * Gets the name of the repository.
      *
      * @return Repository name.

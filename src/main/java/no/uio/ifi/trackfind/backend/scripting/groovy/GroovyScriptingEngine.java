@@ -28,7 +28,7 @@ public class GroovyScriptingEngine extends AbstractScriptingEngine {
             .maximumSize(100)
             .build(
                     new CacheLoader<String, Script>() {
-                        public Script load(String script) throws ScriptException {
+                        public Script load(String script) {
                             return groovyShell.parse(script);
                         }
                     });
@@ -49,7 +49,7 @@ public class GroovyScriptingEngine extends AbstractScriptingEngine {
     protected Object executeInternally(String script, Document document) throws Exception {
         Script parsedScript = scripts.get(script);
         parsedScript.setBinding(new Binding(new HashMap<String, Object>() {{
-            put(properties.getScriptingDatasetVariableName(), documentToJSONConverter.apply(document));
+            put(properties.getScriptingDatasetVariableName(), documentToMapConverter.apply(document));
         }}));
         return parsedScript.evaluate(script);
     }

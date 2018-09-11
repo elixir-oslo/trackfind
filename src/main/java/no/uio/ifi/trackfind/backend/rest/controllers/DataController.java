@@ -1,9 +1,8 @@
 package no.uio.ifi.trackfind.backend.rest.controllers;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.SwaggerDefinition;
-import io.swagger.annotations.Tag;
+import io.swagger.annotations.*;
+import no.uio.ifi.trackfind.backend.rest.responses.AdvancedDocument;
+import no.uio.ifi.trackfind.backend.rest.responses.SearchResponse;
 import no.uio.ifi.trackfind.backend.services.TrackFindService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -33,14 +32,17 @@ public class DataController {
      * @param query    Search query (Lucene syntax, see https://lucene.apache.org/solr/guide/6_6/the-standard-query-parser.html).
      * @param limit    Max number of entries to return.
      * @return Search results by revision.
-     * @throws Exception In case of some error.
      */
     @SuppressWarnings("unchecked")
-    @ApiOperation(value = "Performs search over the index using Apache Lucene query language.")
+    @ApiOperation(value = "Performs search over the index using Apache Lucene query language.", response = SearchResponse.class, responseContainer = "Map")
     @GetMapping(path = "/{provider}/search", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<Map<String, Collection<Map>>> search(@PathVariable String provider,
-                                                               @RequestParam String query,
-                                                               @RequestParam(required = false, defaultValue = "0") int limit) throws Exception {
+    public ResponseEntity<Map<String, Collection<Map>>> search(
+            @ApiParam(value = "Data provider name.", required = true, example = "IHEC")
+            @PathVariable String provider,
+            @ApiParam(value = "Search query to execute.", required = true, example = "Advanced>analysis_attributes>alignment_software: Bowtie")
+            @RequestParam String query,
+            @ApiParam(value = "Max number of results to return. Unlimited by default.", required = false, defaultValue = "0", example = "10")
+            @RequestParam(required = false, defaultValue = "0") int limit) {
         return ResponseEntity.ok(trackFindService.getDataProvider(provider).search(query, limit).asMap());
     }
 
@@ -51,13 +53,16 @@ public class DataController {
      * @param documentId Lucene Document ID.
      * @param revision   Revision of the repository.
      * @return Raw (JSON) data.
-     * @throws Exception In case of some error.
      */
-    @ApiOperation(value = "Fetches raw (JSON) data by Lucene Document ID.")
+    @ApiOperation(value = "Fetches raw (JSON) data by Lucene Document ID.", response = AdvancedDocument.class, responseContainer = "Map")
     @GetMapping(path = "/{provider}/fetch", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<Map<String, Object>> fetch(@PathVariable String provider,
-                                                     @RequestParam String documentId,
-                                                     @RequestParam(required = false) String revision) throws Exception {
+    public ResponseEntity<Map<String, Object>> fetch(
+            @ApiParam(value = "Data provider name.", required = true, example = "IHEC")
+            @PathVariable String provider,
+            @ApiParam(value = "ID of the document to return.", required = true)
+            @RequestParam String documentId,
+            @ApiParam(value = "Revision of the document to return.", required = false)
+            @RequestParam(required = false) String revision) {
         return ResponseEntity.ok(trackFindService.getDataProvider(provider).fetch(documentId, revision));
     }
 

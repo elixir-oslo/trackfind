@@ -12,10 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -29,9 +26,6 @@ public class ConvertersTests {
     private DocumentToMapConverter documentToMapConverter;
     @Autowired
     private DocumentToJSONConverter documentToJSONConverter;
-    @Autowired
-    private DocumentToTSVConverter documentToTSVConverter;
-
 
     private Document document;
     private Map map;
@@ -60,7 +54,10 @@ public class ConvertersTests {
         Document document = mapToDocumentConverter.apply(map);
         Map map = MapUtils.getMap(documentToMapConverter.apply(document), "Advanced");
         map.remove("id");
-        assertThat(map).isEqualTo(this.map);
+        assertThat(map).containsKeys("Basic");
+        assertThat(map).containsKeys("key1");
+        assertThat(MapUtils.getMap(map, "Basic").get("id")).isEqualTo(Arrays.asList("value2", "value3"));
+        assertThat(map.get("key1")).isEqualTo("value1");
     }
 
     @Test
@@ -75,12 +72,6 @@ public class ConvertersTests {
                 "    ]\n" +
                 "  }\n" +
                 "}");
-    }
-
-    @Test
-    public void documentToTSVConverterTest() {
-        String apply = documentToTSVConverter.apply(document);
-        assertThat(apply).isEqualToIgnoringCase(".\t.\t.\t.\t.\t.\t.\t.\t.\t[value2, value3]\t");
     }
 
 }

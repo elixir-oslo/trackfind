@@ -32,7 +32,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -66,9 +65,8 @@ public class VersioningService {
      * @param revision         Revision to checkout.
      * @param dataProviderName DataProvider to return IndexSearcher for.
      * @return Apache Lucene IndexSearcher.
-     * @throws ExecutionException In case of some error.
      */
-    public IndexSearcher getIndexSearcher(String revision, String dataProviderName) throws ExecutionException {
+    public IndexSearcher getIndexSearcher(String revision, String dataProviderName) {
         return cache.get(revision).index.get(dataProviderName).getValue();
     }
 
@@ -117,6 +115,7 @@ public class VersioningService {
      * @throws GitAPIException In case of Git error.
      */
     public void commit(Operation operation, String repositoryName) throws GitAPIException {
+        log.info("Committing changes. Git repo folder: " + properties.getIndicesFolder());
         git.add().addFilepattern(properties.getIndicesFolder() + repositoryName).call();
         git.commit().setAll(true).setMessage(operation.name() + ": " + repositoryName).call();
         push(false);

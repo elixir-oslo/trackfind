@@ -9,7 +9,9 @@ import no.uio.ifi.trackfind.backend.services.TrackFindService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collection;
 import java.util.stream.Collectors;
@@ -31,11 +33,10 @@ public class ProvidersController {
      * Gets all available DataProviders (only published ones by default).
      *
      * @return Collection of DataProviders available.
-     * @throws Exception In case of some error.
      */
     @ApiOperation(value = "Gets full set of data providers registered in the system.")
     @GetMapping(path = "/providers", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<Collection<String>> getProviders() throws Exception {
+    public ResponseEntity<Collection<String>> getProviders() {
         return ResponseEntity.ok(trackFindService.getDataProviders().parallelStream().map(DataProvider::getName).collect(Collectors.toSet()));
     }
 

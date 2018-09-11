@@ -1,14 +1,13 @@
 package no.uio.ifi.trackfind.backend.scripting;
 
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
-import no.uio.ifi.trackfind.backend.converters.DocumentToJSONConverter;
+import no.uio.ifi.trackfind.backend.converters.DocumentToMapConverter;
 import org.apache.lucene.document.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.script.ScriptException;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Common methods holder for all Scripting Engines.
@@ -18,7 +17,7 @@ import java.util.Set;
 public abstract class AbstractScriptingEngine implements ScriptingEngine {
 
     protected TrackFindProperties properties;
-    protected DocumentToJSONConverter documentToJSONConverter;
+    protected DocumentToMapConverter documentToMapConverter;
 
     /**
      * {@inheritDoc}
@@ -26,7 +25,7 @@ public abstract class AbstractScriptingEngine implements ScriptingEngine {
     @Override
     public Collection<String> execute(String script, Document document) throws Exception {
         Object result = executeInternally(script, document);
-        Set<String> values = new HashSet<>();
+        Collection<String> values = new ArrayList<>();
         if (result instanceof Collection) { // multiple values
             for (Object value : (Collection) result) {
                 values.add(String.valueOf(value));
@@ -54,8 +53,8 @@ public abstract class AbstractScriptingEngine implements ScriptingEngine {
     }
 
     @Autowired
-    public void setDocumentToJSONConverter(DocumentToJSONConverter documentToJSONConverter) {
-        this.documentToJSONConverter = documentToJSONConverter;
+    public void setDocumentToMapConverter(DocumentToMapConverter documentToMapConverter) {
+        this.documentToMapConverter = documentToMapConverter;
     }
 
 }

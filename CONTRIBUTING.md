@@ -33,7 +33,7 @@ git checkout -b 325-fix-parsing-json
 
 ### 4. Get the test suite running
 
-Make sure you're using correcnt Maven version and appropriate Java version.
+Make sure you're using correct Maven version and appropriate Java version.
 
 You should be able to run the tests using:
 

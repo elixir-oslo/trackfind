@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.util.Collections;
+import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -65,6 +66,10 @@ public class BeanDefinitions {
 
     @Bean
     public PythonInterpreter pythonInterpreter() {
+        Properties props = new Properties();
+        props.put("python.import.site", "false");
+        Properties systemProperties = System.getProperties();
+        PythonInterpreter.initialize(systemProperties, props, new String[0]);
         return new PythonInterpreter();
     }
 
@@ -150,9 +155,8 @@ public class BeanDefinitions {
      * @param git       JGit instance.
      * @param gitRemote URL of remote to add.
      * @throws IOException     In case of some filesystem-related error.
-     * @throws GitAPIException In case of some Git-related error.
      */
-    private void addRemote(Git git, String gitRemote) throws IOException, GitAPIException {
+    private void addRemote(Git git, String gitRemote) throws IOException {
         StoredConfig config = git.getRepository().getConfig();
         config.setString("remote", "origin", "url", gitRemote);
         config.save();
@@ -174,7 +178,7 @@ public class BeanDefinitions {
                 "Search engine for finding genomic tracks",
                 String.valueOf(getClass().getPackage().getImplementationVersion()),
                 null,
-                new Contact(null, "https://github.com/elixir-no-nels/trackfind", null),
+                new Contact("Elixir Norway", "https://github.com/elixir-no-nels/", null),
                 null,
                 null,
                 Collections.emptyList());
