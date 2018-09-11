@@ -17,7 +17,9 @@ import java.util.HashMap;
  * Groovy implementation of the Scripting Engine.
  *
  * @author Dmytro Titov
+ * @deprecated Too slow.
  */
+@Deprecated
 @Component
 public class GroovyScriptingEngine extends AbstractScriptingEngine {
 

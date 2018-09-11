@@ -59,6 +59,7 @@ public class BeanDefinitions {
         return (CoffeeScriptEngine) new CoffeeScriptEngineFactory().getScriptEngine();
     }
 
+    @Deprecated
     @Bean
     public GroovyShell groovyShell() {
         return new GroovyShell();
