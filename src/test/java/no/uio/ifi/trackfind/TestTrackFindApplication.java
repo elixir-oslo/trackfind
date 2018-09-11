@@ -80,12 +80,12 @@ public class TestTrackFindApplication {
             }
 
             @Override
-            protected void commit(VersioningService.Operation operation) throws GitAPIException {
+            protected void commit(VersioningService.Operation operation) {
                 // do nothing
             }
 
             @Override
-            protected void tag() throws GitAPIException {
+            protected void tag() {
                 // do nothing
             }
 
