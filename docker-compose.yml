@@ -11,8 +11,7 @@ services:
     - POSTGRES_USER
     - POSTGRES_PASSWORD
     volumes:
-    - trackfind-db:/var/lib/postgresql/data
-    - db.sql:/docker-entrypoint-initdb.d/db.sql:ro
+    - db:/var/lib/postgresql/data
 
   trackfind:
     image: nels/trackfind:latest
@@ -28,4 +27,4 @@ services:
         window: 120s
 
 volumes:
-  trackfind-db:
+  db:
