@@ -19,18 +19,18 @@ import com.vaadin.ui.*;
 import com.vaadin.ui.components.grid.TreeGridDragSource;
 import com.vaadin.ui.dnd.DropTargetExtension;
 import lombok.extern.slf4j.Slf4j;
+import no.uio.ifi.trackfind.backend.dao.Mapping;
 import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
-import no.uio.ifi.trackfind.backend.services.VersioningService;
+import no.uio.ifi.trackfind.backend.repositories.MappingRepository;
 import no.uio.ifi.trackfind.frontend.components.TrackFindTree;
 import no.uio.ifi.trackfind.frontend.data.TreeNode;
 import no.uio.ifi.trackfind.frontend.filters.AdminTreeFilter;
 import no.uio.ifi.trackfind.frontend.listeners.TextFieldDropListener;
-import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
+import javax.transaction.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -48,7 +48,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TrackFindAdminUI extends AbstractUI {
 
-    private VersioningService versioningService;
+    private MappingRepository mappingRepository;
 
     private Button addStaticMappingButton;
     private Button addDynamicMappingButton;
@@ -171,7 +171,7 @@ public class TrackFindAdminUI extends AbstractUI {
         crawlButton.setSizeFull();
         crawlButton.addClickListener((Button.ClickListener) event -> ConfirmDialog.show(getUI(),
                 "Are you sure? " +
-                        "Crawling is time-consuming process and will lead to changing the metadata of the " + (properties.isGitAutopush() ? "remote" : "local") + " repository.",
+                        "Crawling is time-consuming process and will lead to changing the metadata of in the database.",
                 (ConfirmDialog.Listener) dialog -> {
                     if (dialog.isConfirmed()) {
                         getCurrentDataProvider().crawlRemoteRepository();
@@ -181,7 +181,7 @@ public class TrackFindAdminUI extends AbstractUI {
         applyMappingsButton.setSizeFull();
         applyMappingsButton.addClickListener((Button.ClickListener) event -> ConfirmDialog.show(getUI(),
                 "Are you sure? " +
-                        "Applying attribute mappings will change the metadata structure in the " + (properties.isGitAutopush() ? "remote" : "local") + " repository.",
+                        "Applying attribute mappings will change the metadata structure in the database.",
                 (ConfirmDialog.Listener) dialog -> {
                     if (dialog.isConfirmed()) {
                         getCurrentDataProvider().applyMappings();
@@ -193,24 +193,6 @@ public class TrackFindAdminUI extends AbstractUI {
         VerticalLayout attributesMappingOuterLayout = new VerticalLayout(attributesMappingPanel, buttonsLayout);
         attributesMappingOuterLayout.setSizeFull();
         attributesMappingOuterLayout.setExpandRatio(attributesMappingPanel, 0.8f);
-        if (StringUtils.isNotEmpty(properties.getGitRemote())) {
-            Button pullIndicesButton = new Button("Pull indices");
-            pullIndicesButton.setSizeFull();
-            pullIndicesButton.addClickListener((Button.ClickListener) event -> ConfirmDialog.show(getUI(),
-                    "Are you sure? Indices will be pulled from remote source and all local changes will be overridden (for all repos).",
-                    (ConfirmDialog.Listener) dialog -> {
-                        if (dialog.isConfirmed()) {
-                            try {
-                                versioningService.pull();
-                                trackFindService.getDataProviders().forEach(DataProvider::reinitIndexSearcher);
-                            } catch (GitAPIException e) {
-                                log.error(e.getMessage(), e);
-                            }
-                        }
-                    }));
-            attributesMappingOuterLayout.addComponent(pullIndicesButton);
-            attributesMappingOuterLayout.setExpandRatio(pullIndicesButton, 0.07f);
-        }
         return attributesMappingOuterLayout;
     }
 
@@ -278,15 +260,18 @@ public class TrackFindAdminUI extends AbstractUI {
     }
 
     private void loadConfiguration() {
-        DataProvider.Configuration configuration = getCurrentDataProvider().loadConfiguration();
+        String repository = getCurrentDataProvider().getName();
+        Collection<Mapping> mappings = mappingRepository.findByRepository(repository);
+        Collection<Mapping> staticMappings = mappings.stream().filter(Mapping::getStaticMapping).collect(Collectors.toSet());
+        Collection<Mapping> dynamicMappings = mappings.stream().filter(m -> !m.getStaticMapping()).collect(Collectors.toSet());
         attributesStaticMapping.clear();
         attributesDynamicMapping.clear();
         attributesMappingLayout.removeAllComponents();
-        for (Map.Entry<String, String> mapping : configuration.getAttributesStaticMapping().entrySet()) {
-            addStaticMappingPair(mapping.getKey(), mapping.getValue());
+        for (Mapping mapping : staticMappings) {
+            addStaticMappingPair(mapping.getTo(), mapping.getFrom());
         }
-        for (Map.Entry<String, String> mapping : configuration.getAttributesDynamicMapping().entrySet()) {
-            addDynamicMappingPair(mapping.getKey(), mapping.getValue());
+        for (Mapping mapping : dynamicMappings) {
+            addDynamicMappingPair(mapping.getTo(), mapping.getFrom());
         }
     }
 
@@ -298,23 +283,33 @@ public class TrackFindAdminUI extends AbstractUI {
         attributesMappingLayout.addComponent(buildAttributeToScriptLayout(basicAttribute, script));
     }
 
+    @Transactional
     private void saveConfiguration() {
-        DataProvider currentDataProvider = getCurrentDataProvider();
-        DataProvider.Configuration configuration = currentDataProvider.loadConfiguration();
-        configuration.getAttributesStaticMapping().clear();
-        for (Map.Entry<ComboBox<String>, TextField> mapping : attributesStaticMapping.entrySet()) {
-            configuration.getAttributesStaticMapping().put(mapping.getKey().getValue(), mapping.getValue().getValue());
+        String repository = getCurrentDataProvider().getName();
+        Collection<Mapping> mappings = new HashSet<>();
+        for (Map.Entry<ComboBox<String>, TextField> mappingPair : attributesStaticMapping.entrySet()) {
+            Mapping mapping = new Mapping();
+            mapping.setRepository(repository);
+            mapping.setStaticMapping(true);
+            mapping.setFrom(mappingPair.getValue().getValue());
+            mapping.setTo(mappingPair.getKey().getValue());
+            mappings.add(mapping);
         }
-        for (Map.Entry<ComboBox<String>, TextArea> mapping : attributesDynamicMapping.entrySet()) {
-            configuration.getAttributesDynamicMapping().put(mapping.getKey().getValue(), mapping.getValue().getValue());
+        for (Map.Entry<ComboBox<String>, TextArea> mappingPair : attributesDynamicMapping.entrySet()) {
+            Mapping mapping = new Mapping();
+            mapping.setRepository(repository);
+            mapping.setStaticMapping(false);
+            mapping.setFrom(mappingPair.getValue().getValue());
+            mapping.setTo(mappingPair.getKey().getValue());
+            mappings.add(mapping);
         }
-        currentDataProvider.saveConfiguration(configuration);
+        mappingRepository.saveAll(mappings);
         Notification.show("Mappings saved. Apply them to take effect.");
     }
 
     @Autowired
-    public void setVersioningService(VersioningService versioningService) {
-        this.versioningService = versioningService;
+    public void setMappingRepository(MappingRepository mappingRepository) {
+        this.mappingRepository = mappingRepository;
     }
 
 }

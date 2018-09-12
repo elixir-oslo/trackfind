@@ -1,18 +1,16 @@
 package no.uio.ifi.trackfind.backend.data.providers.trackhub;
 
 import lombok.extern.slf4j.Slf4j;
-import no.uio.ifi.trackfind.backend.annotations.VersionedComponent;
 import no.uio.ifi.trackfind.backend.data.providers.AbstractDataProvider;
 import org.apache.commons.collections4.MapUtils;
-import org.apache.lucene.index.IndexWriter;
 
+import javax.transaction.Transactional;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Draft of Data Provider for TrackHub
@@ -20,7 +18,7 @@ import java.util.stream.Collectors;
  * @author Dmytro Titov
  */
 @Slf4j
-@VersionedComponent
+//@Component
 public class TrackHubDataProvider extends AbstractDataProvider {
 
     private static final String FETCH_URL = "https://hyperbrowser.uio.no/hb/static/hyperbrowser/files/trackfind/blueprint_hub.json";
@@ -29,8 +27,9 @@ public class TrackHubDataProvider extends AbstractDataProvider {
      * {@inheritDoc}
      */
     @SuppressWarnings("unchecked")
+    @Transactional
     @Override
-    protected void fetchData(IndexWriter indexWriter) {
+    protected void fetchData() {
         try (InputStream inputStream = new URL(FETCH_URL).openStream();
              InputStreamReader reader = new InputStreamReader(inputStream)) {
             Map document = gson.fromJson(reader, Map.class);
@@ -54,7 +53,7 @@ public class TrackHubDataProvider extends AbstractDataProvider {
                     datasets.add(dataset);
                 }
             }
-            indexWriter.addDocuments(datasets.parallelStream().map(this::postprocessDataset).map(mapToDocumentConverter).collect(Collectors.toSet()));
+            save(datasets);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }

@@ -1,6 +1,5 @@
 package no.uio.ifi.trackfind.frontend;
 
-import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Title;
@@ -23,6 +22,7 @@ import com.vaadin.ui.components.grid.TreeGridDragSource;
 import com.vaadin.ui.dnd.DropTargetExtension;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.converters.MapToGSuiteConverter;
+import no.uio.ifi.trackfind.backend.dao.Dataset;
 import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
 import no.uio.ifi.trackfind.frontend.components.KeyboardInterceptorExtension;
 import no.uio.ifi.trackfind.frontend.components.TrackFindTree;
@@ -40,7 +40,6 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
-import java.util.Map;
 
 /**
  * Main Vaadin UI of the application.
@@ -261,17 +260,20 @@ public class TrackFindMainUI extends AbstractUI {
 
         String limit = limitTextField.getValue();
         limit = StringUtils.isEmpty(limit) ? "0" : limit;
-        Multimap<String, Map> results = currentDataProvider.search(query, Integer.parseInt(limit));
+        Collection<Dataset> results = currentDataProvider.search(query, Integer.parseInt(limit));
         if (results.isEmpty()) {
             resultsTextArea.setValue("");
             Notification.show("Nothing found for such request");
             return;
         }
-        numberOfResults = results.values().size();
-        String jsonResult = gson.toJson(results.asMap());
-        resultsTextArea.setValue(jsonResult);
+        numberOfResults = results.size();
+        StringBuilder jsonResult = new StringBuilder();
+        for (Dataset dataset : results) {
+            jsonResult.append(dataset.getRawDataset()).append("\n");
+        }
+        resultsTextArea.setValue(jsonResult.toString());
 
-        String gSuiteResult = mapToGSuiteConverter.apply(results.asMap());
+        String gSuiteResult = mapToGSuiteConverter.apply(results);
 
         if (gSuiteFileDownloader != null) {
             exportGSuiteButton.removeExtension(gSuiteFileDownloader);
@@ -284,7 +286,7 @@ public class TrackFindMainUI extends AbstractUI {
         gSuiteFileDownloader = new FileDownloader(gSuiteResource);
         gSuiteFileDownloader.extend(exportGSuiteButton);
 
-        Resource jsonResource = new StreamResource((StreamResource.StreamSource) () -> new ByteArrayInputStream(jsonResult.getBytes(Charset.defaultCharset())),
+        Resource jsonResource = new StreamResource((StreamResource.StreamSource) () -> new ByteArrayInputStream(jsonResult.toString().getBytes(Charset.defaultCharset())),
                 Calendar.getInstance().getTime().toString() + ".json");
         jsonFileDownloader = new FileDownloader(jsonResource);
         jsonFileDownloader.extend(exportJSONButton);

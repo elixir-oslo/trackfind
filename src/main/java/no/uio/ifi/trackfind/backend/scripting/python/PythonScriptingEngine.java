@@ -4,13 +4,13 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import no.uio.ifi.trackfind.backend.scripting.AbstractScriptingEngine;
-import org.apache.lucene.document.Document;
 import org.python.core.*;
 import org.python.util.PythonInterpreter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -44,9 +44,9 @@ public class PythonScriptingEngine extends AbstractScriptingEngine {
      * {@inheritDoc}
      */
     @Override
-    protected Object executeInternally(String script, Document document) throws Exception {
+    protected Object executeInternally(String script, Map dataset) throws Exception {
         PythonInterpreter localInterpreter = new PythonInterpreter();
-        localInterpreter.set(properties.getScriptingDatasetVariableName(), documentToMapConverter.apply(document));
+        localInterpreter.set(properties.getScriptingDatasetVariableName(), dataset);
         localInterpreter.eval(scripts.get(script));
         return convertToJava(localInterpreter.get(properties.getScriptingResultVariableName()));
     }

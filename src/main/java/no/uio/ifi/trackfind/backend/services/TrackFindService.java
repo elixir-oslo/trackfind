@@ -3,8 +3,6 @@ package no.uio.ifi.trackfind.backend.services;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -20,15 +18,6 @@ import java.util.TreeSet;
 public class TrackFindService {
 
     private Collection<DataProvider> dataProviders;
-
-    /**
-     * Captures `ContextRefreshedEvent` and re-inits DataProviders.
-     */
-    @EventListener({ContextRefreshedEvent.class})
-    public void contextRefreshedEvent() {
-        log.info("Spring Application Context (re)initialized.");
-        dataProviders.forEach(DataProvider::init);
-    }
 
     /**
      * Get all registered DataProviders.

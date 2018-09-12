@@ -1,8 +1,8 @@
 package no.uio.ifi.trackfind.backend.data.providers;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.lucene.index.IndexWriter;
 
+import javax.transaction.Transactional;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -12,7 +12,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
-import java.util.stream.Collectors;
 
 /**
  * Extension for AbstractDataProvider that provides some common pagination handling.
@@ -52,14 +51,14 @@ public abstract class PaginationAwareDataProvider extends AbstractDataProvider {
     /**
      * Fetches all pages.
      *
-     * @param indexWriter       Handler to write to te Lucene Index.
      * @param urlWithPagination Paginated API endpoint.
      * @param urlWithPage       Paginated API endpoint with actual data.
      * @param pageClass         Implementation of {@link Page} interface.
      * @param <T>               Implements {@link Page} interface.
      * @throws Exception In case if something goes wrong.
      */
-    protected <T extends Page> void fetchPages(IndexWriter indexWriter, String urlWithPagination, String urlWithPage, Class<T> pageClass) throws Exception {
+    @Transactional
+    protected <T extends Page> void fetchPages(String urlWithPagination, String urlWithPage, Class<T> pageClass) throws Exception {
         int pagesTotal = getPagesTotal(urlWithPagination, pageClass);
         if (pagesTotal == 0) {
             return;
@@ -72,7 +71,7 @@ public abstract class PaginationAwareDataProvider extends AbstractDataProvider {
             executorService.submit(() -> {
                 try {
                     Collection<Map> page = fetchPage(urlWithPage, pageClass, finalI);
-                    indexWriter.addDocuments(page.parallelStream().map(this::postprocessDataset).map(mapToDocumentConverter).collect(Collectors.toSet()));
+                    save(page);
                     log.info("Page " + finalI + " processed.");
                 } catch (Exception e) {
                     log.error(e.getMessage(), e);

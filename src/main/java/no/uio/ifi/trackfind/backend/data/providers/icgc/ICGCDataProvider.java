@@ -1,16 +1,8 @@
 package no.uio.ifi.trackfind.backend.data.providers.icgc;
 
-import alexh.weak.Dynamic;
-import com.google.common.collect.Multimap;
 import lombok.extern.slf4j.Slf4j;
-import no.uio.ifi.trackfind.backend.annotations.VersionedComponent;
 import no.uio.ifi.trackfind.backend.data.providers.PaginationAwareDataProvider;
-import org.apache.lucene.index.IndexWriter;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URL;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,7 +13,7 @@ import java.util.Map;
  * @author Dmytro Titov
  */
 @Slf4j
-@VersionedComponent
+//@Component
 public class ICGCDataProvider extends PaginationAwareDataProvider { // TODO: Fetch more data.
 
     private static final String DONORS = "https://dcc.icgc.org/api/v1/donors?";
@@ -33,9 +25,9 @@ public class ICGCDataProvider extends PaginationAwareDataProvider { // TODO: Fet
      */
     @SuppressWarnings("unchecked")
     @Override
-    protected void fetchData(IndexWriter indexWriter) throws Exception {
+    protected void fetchData() throws Exception {
         log.info("Fetching donors...");
-        fetchPages(indexWriter, DONORS, DONORS, ICGCPage.class);
+        fetchPages(DONORS, DONORS, ICGCPage.class);
     }
 
     /**
@@ -55,27 +47,27 @@ public class ICGCDataProvider extends PaginationAwareDataProvider { // TODO: Fet
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @SuppressWarnings("unchecked")
-    @Override // hack for ICGC's "two-steps download"
-    public Multimap<String, Map> search(String query, int limit) {
-        Multimap<String, Map> result = super.search(query, limit);
-        for (Map map : result.values()) {
-            Map<String, String> browser = Dynamic.from(map).get("Advanced>browser", properties.getLevelsSeparator()).asMap();
-            for (String dataType : browser.keySet()) {
-                String submitURL = browser.get(dataType);
-                try (InputStream inputStream = new URL(submitURL).openStream();
-                     InputStreamReader reader = new InputStreamReader(inputStream)) {
-                    Download download = gson.fromJson(reader, Download.class);
-                    browser.put(dataType, DOWNLOAD + download.getDownloadId());
-                } catch (IOException e) {
-                    log.error(e.getMessage(), e);
-                }
-            }
-        }
-        return result;
-    }
+//    /**
+//     * {@inheritDoc}
+//     */
+//    @SuppressWarnings("unchecked")
+//    @Override // hack for ICGC's "two-steps download"
+//    public Collection<Dataset> search(String query, int limit) {
+//        Multimap<String, Map> result = super.search(query, limit);
+//        for (Map map : result.values()) {
+//            Map<String, String> browser = Dynamic.from(map).get("Advanced>browser", properties.getLevelsSeparator()).asMap();
+//            for (String dataType : browser.keySet()) {
+//                String submitURL = browser.get(dataType);
+//                try (InputStream inputStream = new URL(submitURL).openStream();
+//                     InputStreamReader reader = new InputStreamReader(inputStream)) {
+//                    Download download = gson.fromJson(reader, Download.class);
+//                    browser.put(dataType, DOWNLOAD + download.getDownloadId());
+//                } catch (IOException e) {
+//                    log.error(e.getMessage(), e);
+//                }
+//            }
+//        }
+//        return result;
+//    }
 
 }

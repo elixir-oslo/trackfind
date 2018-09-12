@@ -2,16 +2,18 @@ package no.uio.ifi.trackfind.backend.data.providers.ihec;
 
 import com.google.gson.reflect.TypeToken;
 import lombok.extern.slf4j.Slf4j;
-import no.uio.ifi.trackfind.backend.annotations.VersionedComponent;
+import no.uio.ifi.trackfind.backend.dao.Dataset;
 import no.uio.ifi.trackfind.backend.data.providers.AbstractDataProvider;
 import org.apache.commons.collections4.MapUtils;
-import org.apache.lucene.index.IndexWriter;
+import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
+import javax.transaction.Transactional;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
@@ -24,7 +26,7 @@ import java.util.stream.Collectors;
  * @author Dmytro Titov
  */
 @Slf4j
-@VersionedComponent
+@Component
 public class IHECDataProvider extends AbstractDataProvider {
 
     private static final String RELEASES_URL = "http://epigenomesportal.ca/cgi-bin/api/getReleases.py";
@@ -34,8 +36,9 @@ public class IHECDataProvider extends AbstractDataProvider {
      * {@inheritDoc}
      */
     @SuppressWarnings("unchecked")
+    @Transactional
     @Override
-    protected void fetchData(IndexWriter indexWriter) throws Exception {
+    protected void fetchData() throws Exception {
         log.info("Collecting releases...");
         Collection<Release> releases;
         try (InputStream inputStream = new URL(RELEASES_URL).openStream();
@@ -47,9 +50,10 @@ public class IHECDataProvider extends AbstractDataProvider {
             return;
         }
         int size = releases.size();
-        log.info(size + " releases collected.");
+        log.info(size + " releases to process.");
         Set<Integer> releaseIds = releases.parallelStream().sorted().map(Release::getId).collect(Collectors.toSet());
         CountDownLatch countDownLatch = new CountDownLatch(size);
+        Collection<Map> allDatasets = new HashSet<>();
         for (int releaseId : releaseIds) {
             executorService.submit(() -> {
                 try (InputStream inputStream = new URL(FETCH_URL + releaseId).openStream();
@@ -65,8 +69,8 @@ public class IHECDataProvider extends AbstractDataProvider {
                         dataset.put("sample_data", sample);
                         dataset.put("hub_description", hubDescription);
                     }
-                    indexWriter.addDocuments(datasets.parallelStream().map(this::postprocessDataset).map(mapToDocumentConverter).collect(Collectors.toSet()));
-                    log.info("Release " + releaseId + " processed.");
+                    allDatasets.addAll(datasets);
+                    log.info("Release " + releaseId + " fetched.");
                 } catch (Exception e) {
                     log.error(e.getMessage(), e);
                 } finally {
@@ -75,6 +79,8 @@ public class IHECDataProvider extends AbstractDataProvider {
             });
         }
         countDownLatch.await();
+        save(allDatasets);
+        log.info(size + " releases stored.");
     }
 
 }

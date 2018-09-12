@@ -6,33 +6,17 @@ import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
-import no.uio.ifi.trackfind.backend.converters.DocumentToMapConverter;
-import no.uio.ifi.trackfind.backend.converters.MapToDocumentConverter;
-import no.uio.ifi.trackfind.backend.lucene.DirectoryFactory;
+import no.uio.ifi.trackfind.backend.dao.Dataset;
+import no.uio.ifi.trackfind.backend.dao.Mapping;
+import no.uio.ifi.trackfind.backend.repositories.DatasetRepository;
+import no.uio.ifi.trackfind.backend.repositories.MappingRepository;
 import no.uio.ifi.trackfind.backend.scripting.ScriptingEngine;
-import no.uio.ifi.trackfind.backend.services.VersioningService;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field;
-import org.apache.lucene.document.StringField;
-import org.apache.lucene.index.*;
-import org.apache.lucene.queryparser.classic.QueryParser;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.TopDocs;
-import org.apache.lucene.store.Directory;
-import org.apache.lucene.util.Bits;
-import org.apache.lucene.util.BytesRef;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.Charset;
+import javax.annotation.PostConstruct;
+import javax.transaction.Transactional;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
@@ -46,36 +30,60 @@ import java.util.stream.Collectors;
 @Slf4j
 public abstract class AbstractDataProvider implements DataProvider, Comparable<DataProvider> {
 
-    private Analyzer analyzer;
-    private IndexReader indexReader;
-    private IndexSearcher indexSearcher;
-    private Directory directory;
-
-    private DirectoryFactory directoryFactory;
-    private VersioningService versioningService;
-
     protected TrackFindProperties properties;
-    protected MapToDocumentConverter mapToDocumentConverter;
-    protected DocumentToMapConverter documentToMapConverter;
+    protected JdbcTemplate jdbcTemplate;
+    protected DatasetRepository datasetRepository;
+    protected MappingRepository mappingRepository;
     protected ExecutorService executorService;
     protected Gson gson;
     protected Collection<ScriptingEngine> scriptingEngines;
 
-    /**
-     * {@inheritDoc}
-     */
-    @SuppressWarnings("unused")
-    public void init() {
-        try {
-            directory = directoryFactory.getDirectory(getPath());
-            if (DirectoryReader.indexExists(directory)) {
-                reinitIndexSearcher();
-            } else {
-                crawlRemoteRepository();
-            }
-        } catch (Exception e) {
-            log.error(getName() + " initialization failure!");
-            log.error(e.getMessage(), e);
+    @PostConstruct
+    protected void init() {
+        if (datasetRepository.countByRepository(getName()) == 0) {
+            crawlRemoteRepository();
+            jdbcTemplate.execute("\n" +
+                    "CREATE OR REPLACE VIEW metamodel AS\n" +
+                    "  WITH RECURSIVE collect_metadata AS (\n" +
+                    "    SELECT datasets.repository,\n" +
+                    "           datasets.version,\n" +
+                    "           first_level.key,\n" +
+                    "           first_level.value,\n" +
+                    "           json_typeof(first_level.value) AS type\n" +
+                    "    FROM datasets,\n" +
+                    "         json_each(datasets.raw_dataset) first_level\n" +
+                    "\n" +
+                    "    UNION ALL\n" +
+                    "\n" +
+                    "    (WITH prev_level AS (\n" +
+                    "        SELECT *\n" +
+                    "        FROM collect_metadata\n" +
+                    "    )\n" +
+                    "    SELECT prev_level.repository,\n" +
+                    "           prev_level.version,\n" +
+                    "           concat(prev_level.key, '>', current_level.key),\n" +
+                    "           current_level.value,\n" +
+                    "           json_typeof(current_level.value) AS type\n" +
+                    "    FROM prev_level,\n" +
+                    "         json_each(prev_level.value) AS current_level\n" +
+                    "    WHERE prev_level.type = 'object'\n" +
+                    "\n" +
+                    "    UNION ALL\n" +
+                    "\n" +
+                    "    SELECT prev_level.repository,\n" +
+                    "           prev_level.version,\n" +
+                    "           concat(prev_level.key, '>', current_level.key),\n" +
+                    "           current_level.value,\n" +
+                    "           json_typeof(current_level.value) AS type\n" +
+                    "    FROM prev_level,\n" +
+                    "         json_array_elements(prev_level.value) AS entries,\n" +
+                    "         json_each(entries) AS current_level\n" +
+                    "    WHERE prev_level.type = 'array')\n" +
+                    "  )\n" +
+                    "  SELECT DISTINCT repository, version, key AS attribute, string_agg(DISTINCT collect_metadata.value :: text, ',') AS value , type\n" +
+                    "  FROM collect_metadata\n" +
+                    "  WHERE collect_metadata.type NOT IN ('object', 'array')\n" +
+                    "  GROUP BY repository, version, key, type");
         }
     }
 
@@ -84,17 +92,8 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      */
     @Override
     public String getName() {
-        return getClass().getSimpleName().replace("DataProvider", "");
+        return getClass().getSimpleName().replace("DataProvider", "").toLowerCase();
     }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getPath() {
-        return properties.getIndicesFolder() + getName() + File.separator;
-    }
-
 
     /**
      * Gets attributes to skip during indexing.
@@ -117,10 +116,9 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     /**
      * Fetches data from the repository.
      *
-     * @param indexWriter Handler to write to te Lucene Index.
      * @throws Exception in case of some problems.
      */
-    protected abstract void fetchData(IndexWriter indexWriter) throws Exception;
+    protected abstract void fetchData() throws Exception;
 
     /**
      * Postprocess Dataset.
@@ -131,7 +129,6 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     @SuppressWarnings("unchecked")
     protected Map postprocessDataset(Map dataset) {
         clearAttributesToSkip(dataset);
-        dataset.put(properties.getIdAttribute(), UUID.randomUUID().toString());
         return dataset;
     }
 
@@ -157,135 +154,67 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     @Override
     public synchronized void crawlRemoteRepository() {
         log.info("Fetching data using " + getName());
-        IndexWriterConfig config = new IndexWriterConfig(analyzer);
-        config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
-        try (IndexWriter indexWriter = new IndexWriter(directory, config)) {
-            fetchData(indexWriter);
-            indexWriter.flush();
-            indexWriter.commit();
-            commit(VersioningService.Operation.CRAWLING);
-            tag();
+        try {
+            fetchData();
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return;
         }
-        reinitIndexSearcher();
         log.info("Success!");
+    }
+
+    /**
+     * Saves datasets to the database.
+     *
+     * @param datasets Datasets to save.
+     */
+    protected void save(Collection<Map> datasets) {
+        datasetRepository.saveAll(datasets.parallelStream().map(this::postprocessDataset).map(map -> {
+            Dataset dataset = new Dataset();
+            dataset.setRepository(getName());
+            dataset.setVersion(getCurrentVersion());
+            dataset.setRawDataset(gson.toJson(map));
+            return dataset;
+        }).collect(Collectors.toSet()));
     }
 
     /**
      * {@inheritDoc}
      */
+    @SuppressWarnings("unchecked")
+    @Transactional
     @Override
     public synchronized void applyMappings() {
         log.info("Applying mappings for " + getName());
-        Collection<String> indexedFields = MultiFields.getIndexedFields(indexReader);
-        Collection<String> basicAttributes = indexedFields.
-                parallelStream().
-                filter(f -> f.startsWith(properties.getBasicSectionName() + properties.getLevelsSeparator())).
-                collect(Collectors.toSet());
-        Bits liveDocs = MultiFields.getLiveDocs(indexReader);
-        Map<String, String> attributesStaticMapping = loadConfiguration().getAttributesStaticMapping();
-        Map<String, String> attributesDynamicMapping = loadConfiguration().getAttributesDynamicMapping();
-        IndexWriterConfig config = new IndexWriterConfig(analyzer);
-        config.setOpenMode(IndexWriterConfig.OpenMode.APPEND);
+        Collection<Mapping> mappings = mappingRepository.findByRepository(getName());
+        Collection<Dataset> datasets = datasetRepository.findAllByVersion(getCurrentVersion());
         ScriptingEngine scriptingEngine = scriptingEngines.stream().filter(se -> properties.getScriptingLanguage().equals(se.getLanguage())).findAny().orElseThrow(RuntimeException::new);
-        try (IndexWriter indexWriter = new IndexWriter(directory, config)) {
-            for (int i = 0; i < indexReader.maxDoc(); i++) {
-                if (liveDocs != null && !liveDocs.get(i)) {
-                    continue;
-                }
-                Document document = indexReader.document(i);
-                basicAttributes.forEach(document::removeFields);
-                applyStaticMappings(attributesStaticMapping, document);
-                applyDynamicMappings(attributesDynamicMapping, document, scriptingEngine);
-                indexWriter.updateDocument(new Term(properties.getAdvancedIdAttribute(), document.get(properties.getAdvancedIdAttribute())), document);
-            }
-            indexWriter.flush();
-            indexWriter.commit();
-            commit(VersioningService.Operation.REMAPPING);
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-            return;
-        }
-        reinitIndexSearcher();
-        log.info("Success!");
-    }
-
-    private void applyDynamicMappings(Map<String, String> attributesDynamicMapping, Document document, ScriptingEngine scriptingEngine) throws Exception {
-        for (Map.Entry<String, String> mapping : attributesDynamicMapping.entrySet()) {
-            String script = mapping.getValue();
-            Collection<String> values = scriptingEngine.execute(script, document);
-            for (String value : values) {
-                document.add(new StringField(properties.getBasicSectionName() + properties.getLevelsSeparator() + mapping.getKey(),
-                        value,
-                        Field.Store.YES));
-            }
-        }
-    }
-
-    private void applyStaticMappings(Map<String, String> attributesStaticMapping, Document document) {
-        for (Map.Entry<String, String> mapping : attributesStaticMapping.entrySet()) {
-            String sourceAttribute = mapping.getValue();
-            Set<String> values = new HashSet<>(Arrays.asList(document.getValues(sourceAttribute)));
-            values.add(document.get(sourceAttribute));
-            values.remove(null);
-            if (CollectionUtils.isEmpty(values)) { // no values found - let's use nested attributes as values
-                values = document.getFields().parallelStream().
-                        map(IndexableField::name).
-                        filter(f -> f.startsWith(sourceAttribute)).
-                        map(f -> f.replace(sourceAttribute, "")).
-                        filter(StringUtils::isNotEmpty).
-                        map(f -> f.split(properties.getLevelsSeparator())[1]).
-                        collect(Collectors.toSet());
-            }
-            for (String value : values) {
-                document.add(new StringField(properties.getBasicSectionName() + properties.getLevelsSeparator() + mapping.getKey(),
-                        value,
-                        Field.Store.YES));
-            }
-        }
-    }
-
-    /**
-     * Commit changes.
-     *
-     * @param operation Operation to commit.
-     * @throws GitAPIException In case of Git error.
-     */
-    protected void commit(VersioningService.Operation operation) throws GitAPIException {
-        versioningService.commit(operation, getName());
-    }
-
-
-    /**
-     * Tag current revision (HEAD, hopefully).
-     *
-     * @throws GitAPIException In case of Git error.
-     */
-    protected void tag() throws GitAPIException {
-        versioningService.tag(getName());
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public synchronized void reinitIndexSearcher() {
-        if (indexReader != null) {
-            try {
-                indexReader.close();
-            } catch (IOException e) {
-                log.error(e.getMessage(), e);
-                return;
-            }
-        }
         try {
-            indexReader = DirectoryReader.open(directory);
+            for (Dataset dataset : datasets) {
+                Map<String, Object> rawMap = gson.fromJson(dataset.getRawDataset(), Map.class);
+                Map<String, Object> basicMap = new HashMap<>();
+                for (Mapping mapping : mappings) {
+                    String script = mapping.getFrom();
+                    Collection<String> values;
+                    if (mapping.getStaticMapping()) {
+                        values = Dynamic.from(rawMap).get(mapping.getFrom(), properties.getLevelsSeparator()).asList();
+                    } else {
+                        values = scriptingEngine.execute(script, rawMap);
+                    }
+                    if (CollectionUtils.size(values) == 1) {
+                        basicMap.put(mapping.getTo(), values.iterator().next());
+                    } else {
+                        basicMap.put(mapping.getTo(), values);
+                    }
+                }
+                dataset.setBasicDataset(gson.toJson(basicMap));
+            }
+            datasetRepository.saveAll(datasets);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return;
         }
-        indexSearcher = new IndexSearcher(indexReader);
+        log.info("Success!");
     }
 
     /**
@@ -295,36 +224,6 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     @SuppressWarnings("unchecked")
     public Map<String, Object> getMetamodelTree() {
         Map<String, Object> result = new HashMap<>();
-        try {
-            Collection<String> fieldNames = MultiFields.getIndexedFields(indexReader);
-            Fields fields = MultiFields.getFields(indexReader);
-            Collection<String> attributesToHide = getAttributesToHide();
-            for (String fieldName : fieldNames) {
-                if (attributesToHide.contains(fieldName)) {
-                    continue;
-                }
-                Map<String, Object> metamodel = result;
-                String[] path = fieldName.split(properties.getLevelsSeparator());
-                for (int i = 0; i < path.length - 1; i++) {
-                    String attribute = path[i];
-                    metamodel = (Map<String, Object>) metamodel.computeIfAbsent(attribute, k -> new HashMap<String, Object>());
-                }
-                String valuesKey = path[path.length - 1];
-                Collection<String> values = (Collection<String>) metamodel.computeIfAbsent(valuesKey, k -> new HashSet<>());
-                TermsEnum iterator = fields.terms(fieldName).iterator();
-                BytesRef next = iterator.next();
-                while (next != null) {
-                    String value = next.utf8ToString();
-                    values.add(value);
-                    next = iterator.next();
-                }
-                if (CollectionUtils.isEmpty(values)) {
-                    metamodel.remove(valuesKey);
-                }
-            }
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-        }
         return result;
     }
 
@@ -334,25 +233,6 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     @Override
     public Multimap<String, String> getMetamodelFlat() {
         Multimap<String, String> metamodel = HashMultimap.create();
-        try {
-            Collection<String> fieldNames = MultiFields.getIndexedFields(indexReader);
-            Fields fields = MultiFields.getFields(indexReader);
-            Collection<String> attributesToHide = getAttributesToHide();
-            for (String fieldName : fieldNames) {
-                if (attributesToHide.contains(fieldName)) {
-                    continue;
-                }
-                TermsEnum iterator = fields.terms(fieldName).iterator();
-                BytesRef next = iterator.next();
-                while (next != null) {
-                    String value = next.utf8ToString();
-                    metamodel.put(fieldName, value);
-                    next = iterator.next();
-                }
-            }
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-        }
         return metamodel;
     }
 
@@ -360,63 +240,14 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      * {@inheritDoc}
      */
     @Override
-    public Multimap<String, Map> search(String query, int limit) {
-        return search(indexSearcher, query, limit);
-    }
-
-    private Multimap<String, Map> search(IndexSearcher indexSearcher, String query, int limit) {
-        HashMultimap<String, Map> results = HashMultimap.create();
-        try {
-            Query parsedQuery = new QueryParser("", analyzer).parse(query);
-            TopDocs topDocs = indexSearcher.search(parsedQuery, limit == 0 ? Integer.MAX_VALUE : limit);
-            results.putAll(versioningService.getCurrentRevision(), Arrays.stream(topDocs.scoreDocs).map(scoreDoc -> {
-                try {
-                    return this.indexSearcher.doc(scoreDoc.doc);
-                } catch (IOException e) {
-                    return null;
-                }
-            }).filter(Objects::nonNull).map(documentToMapConverter).collect(Collectors.toSet()));
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-        }
-        return results;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Map<String, Object> fetch(String documentId, String revision) {
-        return revision == null
-                ?
-                fetch(indexSearcher, documentId)
-                :
-                fetch(versioningService.getIndexSearcher(revision, getName()), documentId);
-    }
-
-    @SuppressWarnings("unchecked")
-    private Map<String, Object> fetch(IndexSearcher indexSearcher, String documentId) {
-        Collection<Map> documents = search(indexSearcher, properties.getAdvancedIdAttribute() + ": " + documentId, 1).values();
-        if (CollectionUtils.isEmpty(documents)) {
-            return null;
-        }
-        Map map = documents.iterator().next();
-        MapUtils.getMap(map, properties.getAdvancedSectionName()).remove(properties.getIdAttribute());
-        return MapUtils.getMap(map, properties.getAdvancedSectionName());
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Configuration loadConfiguration() {
-        try {
-            String json = FileUtils.readFileToString(new File(properties.getIndicesFolder() + "." + getName()), Charset.defaultCharset());
-            return gson.fromJson(json, Configuration.class);
-        } catch (IOException e) {
-            log.info(e.getMessage());
-            return new Configuration();
-        }
+    public Collection<Dataset> search(String query, int limit) {
+        limit = limit == 0 ? Integer.MAX_VALUE : limit;
+        List<Long> ids = jdbcTemplate.queryForList("SELECT id " +
+                "FROM datasets " +
+                "WHERE version = ? " +
+                "AND (raw_dataset::jsonb @> ? OR basic_dataset::jsonb @> ?)" +
+                "ORDER BY id ASC LIMIT ?", Long.TYPE, getCurrentVersion(), query, query, limit);
+        return datasetRepository.findAllByIdIn(ids);
     }
 
     /**
@@ -424,12 +255,15 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      */
     @SuppressWarnings("unchecked")
     @Override
-    public void saveConfiguration(Configuration configuration) {
-        try {
-            FileUtils.write(new File(properties.getIndicesFolder() + "." + getName()), gson.toJson(configuration), Charset.defaultCharset());
-        } catch (IOException e) {
-            log.error(e.getMessage(), e);
-        }
+    public Map<String, Object> fetch(String datasetId, String version) {
+        long longVersion = version == null ? getCurrentVersion() : Long.parseLong(version);
+        Dataset dataset = datasetRepository.findByIdAndVersion(Long.parseLong(datasetId), longVersion);
+        return gson.fromJson(dataset.getRawDataset(), Map.class);
+    }
+
+    protected long getCurrentVersion() {
+        Long version = jdbcTemplate.queryForObject("SELECT MAX(version) FROM datasets", Long.TYPE);
+        return version == null ? 0 : version;
     }
 
     /**
@@ -441,33 +275,23 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     }
 
     @Autowired
-    public void setVersioningService(VersioningService versioningService) {
-        this.versioningService = versioningService;
-    }
-
-    @Autowired
-    public void setAnalyzer(Analyzer analyzer) {
-        this.analyzer = analyzer;
-    }
-
-    @Autowired
-    public void setDirectoryFactory(DirectoryFactory directoryFactory) {
-        this.directoryFactory = directoryFactory;
-    }
-
-    @Autowired
     public void setProperties(TrackFindProperties properties) {
         this.properties = properties;
     }
 
     @Autowired
-    public void setMapToDocumentConverter(MapToDocumentConverter mapToDocumentConverter) {
-        this.mapToDocumentConverter = mapToDocumentConverter;
+    public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     @Autowired
-    public void setDocumentToMapConverter(DocumentToMapConverter documentToMapConverter) {
-        this.documentToMapConverter = documentToMapConverter;
+    public void setDatasetRepository(DatasetRepository datasetRepository) {
+        this.datasetRepository = datasetRepository;
+    }
+
+    @Autowired
+    public void setMappingRepository(MappingRepository mappingRepository) {
+        this.mappingRepository = mappingRepository;
     }
 
     @Autowired

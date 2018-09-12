@@ -1,8 +1,7 @@
 package no.uio.ifi.trackfind.backend.scripting;
 
-import org.apache.lucene.document.Document;
-
 import java.util.Collection;
+import java.util.Map;
 
 /**
  * Scripting Engine for performing dynamic attribute mappings.
@@ -21,11 +20,11 @@ public interface ScriptingEngine {
     /**
      * Execute script.
      *
-     * @param script   Mappings script.
-     * @param document Document to process.
+     * @param script  Mappings script.
+     * @param dataset Dataset to process.
      * @return Mapped values.
      * @throws Exception When script can't be interpreted/executed.
      */
-    Collection<String> execute(String script, Document document) throws Exception;
+    Collection<String> execute(String script, Map dataset) throws Exception;
 
 }

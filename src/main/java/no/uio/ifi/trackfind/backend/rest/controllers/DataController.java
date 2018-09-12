@@ -1,6 +1,7 @@
 package no.uio.ifi.trackfind.backend.rest.controllers;
 
 import io.swagger.annotations.*;
+import no.uio.ifi.trackfind.backend.dao.Dataset;
 import no.uio.ifi.trackfind.backend.rest.responses.AdvancedDocument;
 import no.uio.ifi.trackfind.backend.rest.responses.SearchResponse;
 import no.uio.ifi.trackfind.backend.services.TrackFindService;
@@ -36,14 +37,14 @@ public class DataController {
     @SuppressWarnings("unchecked")
     @ApiOperation(value = "Performs search over the index using Apache Lucene query language.", response = SearchResponse.class, responseContainer = "Map")
     @GetMapping(path = "/{provider}/search", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<Map<String, Collection<Map>>> search(
+    public ResponseEntity<Collection<Dataset>> search(
             @ApiParam(value = "Data provider name.", required = true, example = "IHEC")
             @PathVariable String provider,
             @ApiParam(value = "Search query to execute.", required = true, example = "Advanced>analysis_attributes>alignment_software: Bowtie")
             @RequestParam String query,
             @ApiParam(value = "Max number of results to return. Unlimited by default.", required = false, defaultValue = "0", example = "10")
             @RequestParam(required = false, defaultValue = "0") int limit) {
-        return ResponseEntity.ok(trackFindService.getDataProvider(provider).search(query, limit).asMap());
+        return ResponseEntity.ok(trackFindService.getDataProvider(provider).search(query, limit));
     }
 
     /**

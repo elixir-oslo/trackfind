@@ -1,9 +1,9 @@
 package no.uio.ifi.trackfind.backend.data.providers;
 
 import com.google.common.collect.Multimap;
-import lombok.Data;
+import no.uio.ifi.trackfind.backend.dao.Dataset;
 
-import java.util.HashMap;
+import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -14,23 +14,11 @@ import java.util.Map;
 public interface DataProvider {
 
     /**
-     * Initialize Lucene Directory (Index) and the Searcher over this Directory.
-     */
-    void init();
-
-    /**
      * Gets the name of the repository.
      *
      * @return Repository name.
      */
     String getName();
-
-    /**
-     * Gets the path of the repository.
-     *
-     * @return Repository name.
-     */
-    String getPath();
 
     /**
      * Re-fetches data, rebuilds index.
@@ -41,11 +29,6 @@ public interface DataProvider {
      * Applies attributes mappings, rebuilds index.
      */
     void applyMappings();
-
-    /**
-     * Reinitialize Directory Reader and Searcher (in case of Directory update).
-     */
-    void reinitIndexSearcher();
 
     /**
      * Gets metamodel of the repository in "tree-from" (with nesting).
@@ -68,38 +51,15 @@ public interface DataProvider {
      * @param limit Results quantity limit, 0 for unlimited.
      * @return Search result.
      */
-    Multimap<String, Map> search(String query, int limit);
+    Collection<Dataset> search(String query, int limit);
 
     /**
      * Fetches raw data by ID.
      *
-     * @param documentId Lucene Document ID.
-     * @param revision   Revision of the repository.
+     * @param datasetId Dataset ID.
+     * @param version   Version.
      * @return Raw (JSON) data.
      */
-    Map<String, Object> fetch(String documentId, String revision);
-
-    /**
-     * Loads DataProvider configuration from config-file.
-     *
-     * @return Configuration for this DataProvider.
-     */
-    Configuration loadConfiguration();
-
-    /**
-     * Saves DataProvider configuration to config-file.
-     *
-     * @param configuration Configuration to save.
-     */
-    void saveConfiguration(Configuration configuration);
-
-    /**
-     * Inner class for representing configuration of DataProvider.
-     */
-    @Data
-    class Configuration {
-        private Map<String, String> attributesStaticMapping = new HashMap<>();
-        private Map<String, String> attributesDynamicMapping = new HashMap<>();
-    }
+    Map<String, Object> fetch(String datasetId, String version);
 
 }

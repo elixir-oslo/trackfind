@@ -1,16 +1,16 @@
 package no.uio.ifi.trackfind.backend.data.providers.fantom;
 
 import lombok.extern.slf4j.Slf4j;
-import no.uio.ifi.trackfind.backend.annotations.VersionedComponent;
+import no.uio.ifi.trackfind.backend.dao.Dataset;
 import no.uio.ifi.trackfind.backend.data.providers.AbstractDataProvider;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
-import org.apache.lucene.index.IndexWriter;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.transaction.Transactional;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
  * @author Dmytro Titov
  */
 @Slf4j
-@VersionedComponent
+//@Component
 public class FANTOMDataProvider extends AbstractDataProvider {
 
     private static final String METADATA_URL = "http://fantom.gsc.riken.jp/5/datafiles/latest/basic/";
@@ -34,8 +34,9 @@ public class FANTOMDataProvider extends AbstractDataProvider {
     /**
      * {@inheritDoc}
      */
+    @Transactional
     @Override
-    protected void fetchData(IndexWriter indexWriter) throws Exception {
+    protected void fetchData() throws Exception {
         log.info("Collecting directories...");
         Document root = Jsoup.parse(new URL(METADATA_URL), 10000);
         Set<String> dirs = root.getElementsByTag("a").parallelStream().map(e -> e.attr("href")).filter(s -> s.contains(".") && s.endsWith("/")).collect(Collectors.toSet());
@@ -60,17 +61,21 @@ public class FANTOMDataProvider extends AbstractDataProvider {
                         CSVRecord header = recordIterator.next();
                         String[] attributes = parseAttributes(header);
                         while (recordIterator.hasNext()) {
-                            Map<String, Object> dataset = new HashMap<>();
+                            Map<String, Object> map = new HashMap<>();
                             CSVRecord next = recordIterator.next();
                             for (int i = 0; i < attributes.length; i++) {
                                 if (!attributes[i].startsWith("skip")) {
-                                    dataset.put(attributes[i], next.get(i));
+                                    map.put(attributes[i], next.get(i));
                                 }
                             }
 
                             Set<String> datasetRelatedFiles = allFiles.parallelStream().filter(s -> s.contains(next.get(0))).map(f -> METADATA_URL + dir + f).collect(Collectors.toSet());
-                            dataset.put("files", datasetRelatedFiles);
-                            indexWriter.addDocument(mapToDocumentConverter.apply(postprocessDataset(dataset)));
+                            map.put("files", datasetRelatedFiles);
+                            Dataset dataset = new Dataset();
+                            dataset.setRepository(getName());
+                            dataset.setVersion(getCurrentVersion());
+                            dataset.setRawDataset(gson.toJson(postprocessDataset(map)));
+                            datasetRepository.save(dataset);
                         }
                         log.info("Directory " + dir + " processed.");
                     }

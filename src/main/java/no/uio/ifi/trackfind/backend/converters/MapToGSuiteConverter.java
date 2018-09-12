@@ -2,6 +2,7 @@ package no.uio.ifi.trackfind.backend.converters;
 
 import com.google.gson.Gson;
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
+import no.uio.ifi.trackfind.backend.dao.Dataset;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.http.util.Asserts;
@@ -17,41 +18,41 @@ import java.util.function.Function;
  * @author Dmytro Titov
  */
 @Component
-public class MapToGSuiteConverter implements Function<Map, String> {
+public class MapToGSuiteConverter implements Function<Collection<Dataset>, String> {
 
     private TrackFindProperties properties;
     private Gson gson;
 
     /**
-     * Convert revisioned datasets from Map to GSuite.
+     * Convert datasets from to GSuite.
      *
-     * @param map Datasets as Map.
+     * @param datasets Datasets to convert.
      * @return GSuite string.
      */
     @SuppressWarnings("unchecked")
     @Override
-    public String apply(Map map) {
+    public String apply(Collection<Dataset> datasets) {
         StringBuilder result = new StringBuilder("###");
         properties.getBasicAttributes().forEach(a -> result.append(a).append("\t"));
-        result.append(properties.getRevisionAttribute()).append("\n");
-        String revision = String.valueOf(map.keySet().iterator().next());
-        Collection<Map<String, Object>> datasets = (Collection<Map<String, Object>>) map.get(revision);
-        for (Map<String, Object> dataset : datasets) {
+        result.append("version").append("\n");
+        long version = datasets.iterator().next().getVersion();
+        for (Dataset dataset : datasets) {
             Collection<Map<String, Object>> basicMaps = getBasicMaps(dataset);
             for (Map<String, Object> basicMap : basicMaps) {
                 for (String basicAttribute : properties.getBasicAttributes()) {
                     String value = MapUtils.getString(basicMap, basicAttribute, ".");
                     result.append(value).append("\t");
                 }
-                result.append(revision).append("\n");
+                result.append(version).append("\n");
             }
         }
         return result.toString();
     }
 
     @SuppressWarnings("unchecked")
-    private Collection<Map<String, Object>> getBasicMaps(Map<String, Object> dataset) {
-        Map<?, ?> basicMap = MapUtils.getMap(dataset, properties.getBasicSectionName(), new HashMap<>());
+    private Collection<Map<String, Object>> getBasicMaps(Dataset dataset) {
+        Map map = gson.fromJson(dataset.getBasicDataset(), Map.class);
+        Map<?, ?> basicMap = MapUtils.getMap(map, properties.getBasicSectionName(), new HashMap<>());
         Object dataTypesObject = basicMap.get(properties.getDataTypeAttribute());
         Collection<String> dataTypes;
         if (dataTypesObject instanceof Collection) {

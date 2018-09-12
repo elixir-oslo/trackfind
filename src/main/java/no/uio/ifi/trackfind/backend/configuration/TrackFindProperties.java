@@ -18,13 +18,6 @@ import java.util.List;
 @Data
 public class TrackFindProperties {
 
-    private @NotBlank String indicesFolder;
-    private @NotBlank String archiveFolder;
-
-    private String gitRemote;
-    private String gitToken;
-    private boolean gitAutopush;
-
     private @NotBlank String scriptingLanguage;
     private @NotBlank String scriptingDatasetVariableName;
     private @NotBlank String scriptingResultVariableName;
@@ -34,7 +27,6 @@ public class TrackFindProperties {
     private @NotBlank String levelsSeparator;
     private @NotBlank String idAttribute;
     private @NotBlank String advancedIdAttribute;
-    private @NotBlank String revisionAttribute;
     private @NotBlank String uriAttribute;
     private @NotBlank String dataTypeAttribute;
 

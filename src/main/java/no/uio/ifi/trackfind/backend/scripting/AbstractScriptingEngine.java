@@ -1,13 +1,12 @@
 package no.uio.ifi.trackfind.backend.scripting;
 
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
-import no.uio.ifi.trackfind.backend.converters.DocumentToMapConverter;
-import org.apache.lucene.document.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.script.ScriptException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Map;
 
 /**
  * Common methods holder for all Scripting Engines.
@@ -17,14 +16,13 @@ import java.util.Collection;
 public abstract class AbstractScriptingEngine implements ScriptingEngine {
 
     protected TrackFindProperties properties;
-    protected DocumentToMapConverter documentToMapConverter;
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public Collection<String> execute(String script, Document document) throws Exception {
-        Object result = executeInternally(script, document);
+    public Collection<String> execute(String script, Map dataset) throws Exception {
+        Object result = executeInternally(script, dataset);
         Collection<String> values = new ArrayList<>();
         if (result instanceof Collection) { // multiple values
             for (Object value : (Collection) result) {
@@ -40,21 +38,16 @@ public abstract class AbstractScriptingEngine implements ScriptingEngine {
     /**
      * Execute script.
      *
-     * @param script   Mappings script.
-     * @param document Document to process.
+     * @param script  Mappings script.
+     * @param dataset Dataset to process.
      * @return Mapped values.
      * @throws ScriptException When script can't be interpreted/executed.
      */
-    protected abstract Object executeInternally(String script, Document document) throws Exception;
+    protected abstract Object executeInternally(String script, Map dataset) throws Exception;
 
     @Autowired
     public void setProperties(TrackFindProperties properties) {
         this.properties = properties;
-    }
-
-    @Autowired
-    public void setDocumentToMapConverter(DocumentToMapConverter documentToMapConverter) {
-        this.documentToMapConverter = documentToMapConverter;
     }
 
 }
