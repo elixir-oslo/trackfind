@@ -4,8 +4,15 @@ services:
 
   db:
     image: postgres:10.5
+    ports:
+    - "5432:5432"
+    environment:
+    - POSTGRES_DB=trackfind
+    - POSTGRES_USER
+    - POSTGRES_PASSWORD
     volumes:
     - trackfind-db:/var/lib/postgresql/data
+    - db.sql:/docker-entrypoint-initdb.d/db.sql:ro
 
   trackfind:
     image: nels/trackfind:latest
