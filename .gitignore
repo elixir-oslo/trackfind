@@ -24,3 +24,5 @@ archive
 indices
 target
 out
+*.json
+*.gz

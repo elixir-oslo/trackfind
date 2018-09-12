@@ -9,7 +9,7 @@
     <packaging>jar</packaging>
 
     <name>trackfind</name>
-    <description>Tracks search engine</description>
+    <description>Tracks search and metadata curation engine</description>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -40,6 +40,10 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -205,6 +209,39 @@
                         <goals>
                             <goal>update-widgetset</goal>
                             <goal>compile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.spotify</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>1.0.0</version>
+                <configuration>
+                    <imageName>nels/trackfind</imageName>
+                    <baseImage>openjdk:8-jre-alpine</baseImage>
+                    <!-- Next line needs to be a single line, otherwise plugin crashes-->
+                    <entryPoint>["java", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005", "-jar", "/${project.build.finalName}.jar", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseCGroupMemoryLimitForHeap"]
+                    </entryPoint>
+                    <healthcheck>
+                        <options>--interval=10s</options>
+                        <cmd>curl --fail http://localhost:8080/healthcheck || exit 1</cmd>
+                    </healthcheck>
+                    <!-- copy the service's jar fileDescriptor from target into the root directory of the image -->
+                    <resources>
+                        <resource>
+                            <targetPath>/</targetPath>
+                            <directory>${project.build.directory}</directory>
+                            <include>${project.build.finalName}.jar</include>
+                        </resource>
+                    </resources>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>build-image</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>build</goal>
                         </goals>
                     </execution>
                 </executions>

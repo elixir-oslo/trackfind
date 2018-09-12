@@ -1,0 +1,24 @@
+version: "3"
+
+services:
+
+  db:
+    image: postgres:10.5
+    volumes:
+    - trackfind-db:/var/lib/postgresql/data
+
+  trackfind:
+    image: nels/trackfind:latest
+    ports:
+    - "8080:8080"
+    depends_on:
+    - db
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 3
+        window: 120s
+
+volumes:
+  trackfind-db:
