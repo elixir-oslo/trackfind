@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
 import no.uio.ifi.trackfind.backend.dao.Dataset;
 import no.uio.ifi.trackfind.backend.dao.Mapping;
+import no.uio.ifi.trackfind.backend.dao.Queries;
 import no.uio.ifi.trackfind.backend.repositories.DatasetRepository;
 import no.uio.ifi.trackfind.backend.repositories.MappingRepository;
 import no.uio.ifi.trackfind.backend.scripting.ScriptingEngine;
@@ -42,48 +43,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     protected void init() {
         if (datasetRepository.countByRepository(getName()) == 0) {
             crawlRemoteRepository();
-            jdbcTemplate.execute("\n" +
-                    "CREATE OR REPLACE VIEW metamodel AS\n" +
-                    "  WITH RECURSIVE collect_metadata AS (\n" +
-                    "    SELECT datasets.repository,\n" +
-                    "           datasets.version,\n" +
-                    "           first_level.key,\n" +
-                    "           first_level.value,\n" +
-                    "           json_typeof(first_level.value) AS type\n" +
-                    "    FROM datasets,\n" +
-                    "         json_each(datasets.raw_dataset) first_level\n" +
-                    "\n" +
-                    "    UNION ALL\n" +
-                    "\n" +
-                    "    (WITH prev_level AS (\n" +
-                    "        SELECT *\n" +
-                    "        FROM collect_metadata\n" +
-                    "    )\n" +
-                    "    SELECT prev_level.repository,\n" +
-                    "           prev_level.version,\n" +
-                    "           concat(prev_level.key, '>', current_level.key),\n" +
-                    "           current_level.value,\n" +
-                    "           json_typeof(current_level.value) AS type\n" +
-                    "    FROM prev_level,\n" +
-                    "         json_each(prev_level.value) AS current_level\n" +
-                    "    WHERE prev_level.type = 'object'\n" +
-                    "\n" +
-                    "    UNION ALL\n" +
-                    "\n" +
-                    "    SELECT prev_level.repository,\n" +
-                    "           prev_level.version,\n" +
-                    "           concat(prev_level.key, '>', current_level.key),\n" +
-                    "           current_level.value,\n" +
-                    "           json_typeof(current_level.value) AS type\n" +
-                    "    FROM prev_level,\n" +
-                    "         json_array_elements(prev_level.value) AS entries,\n" +
-                    "         json_each(entries) AS current_level\n" +
-                    "    WHERE prev_level.type = 'array')\n" +
-                    "  )\n" +
-                    "  SELECT DISTINCT repository, version, key AS attribute, string_agg(DISTINCT collect_metadata.value :: text, ',') AS value , type\n" +
-                    "  FROM collect_metadata\n" +
-                    "  WHERE collect_metadata.type NOT IN ('object', 'array')\n" +
-                    "  GROUP BY repository, version, key, type");
+            jdbcTemplate.execute(Queries.METAMODEL_VIEW);
         }
     }
 
@@ -224,6 +184,21 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     @SuppressWarnings("unchecked")
     public Map<String, Object> getMetamodelTree() {
         Map<String, Object> result = new HashMap<>();
+        Multimap<String, String> metamodelFlat = getMetamodelFlat();
+        for (Map.Entry<String, Collection<String>> entry : metamodelFlat.asMap().entrySet()) {
+            String attribute = entry.getKey();
+            if (getAttributesToHide().contains(attribute)) {
+                continue;
+            }
+            Map<String, Object> metamodel = result;
+            String[] path = attribute.split(properties.getLevelsSeparator());
+            for (int i = 0; i < path.length - 1; i++) {
+                String part = path[i];
+                metamodel = (Map<String, Object>) metamodel.computeIfAbsent(part, k -> new HashMap<String, Object>());
+            }
+            String valuesKey = path[path.length - 1];
+            metamodel.put(valuesKey, entry.getValue());
+        }
         return result;
     }
 
@@ -233,6 +208,17 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     @Override
     public Multimap<String, String> getMetamodelFlat() {
         Multimap<String, String> metamodel = HashMultimap.create();
+        List<Map<String, Object>> attributeValuePairs = jdbcTemplate.queryForList(
+                "SELECT attribute, value FROM metamodel WHERE repository = ? AND version = ?"
+                , getName(), getCurrentVersion());
+        for (Map attributeValuePair : attributeValuePairs) {
+            String attribute = String.valueOf(attributeValuePair.get("attribute"));
+            if (getAttributesToHide().contains(attribute)) {
+                continue;
+            }
+            String value = String.valueOf(attributeValuePair.get("value"));
+            metamodel.put(attribute, value);
+        }
         return metamodel;
     }
 
@@ -242,11 +228,13 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     @Override
     public Collection<Dataset> search(String query, int limit) {
         limit = limit == 0 ? Integer.MAX_VALUE : limit;
-        List<Long> ids = jdbcTemplate.queryForList("SELECT id " +
-                "FROM datasets " +
-                "WHERE version = ? " +
-                "AND (raw_dataset::jsonb @> ? OR basic_dataset::jsonb @> ?)" +
-                "ORDER BY id ASC LIMIT ?", Long.TYPE, getCurrentVersion(), query, query, limit);
+        List<Long> ids = jdbcTemplate.queryForList(
+                "SELECT id " +
+                        "FROM datasets " +
+                        "WHERE version = ? " +
+                        "AND (raw_dataset::jsonb @> ? OR basic_dataset::jsonb @> ?)" +
+                        "ORDER BY id ASC LIMIT ?"
+                , Long.TYPE, getCurrentVersion(), query, query, limit);
         return datasetRepository.findAllByIdIn(ids);
     }
 
@@ -262,7 +250,9 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     }
 
     protected long getCurrentVersion() {
-        Long version = jdbcTemplate.queryForObject("SELECT MAX(version) FROM datasets", Long.TYPE);
+        Long version = jdbcTemplate.queryForObject(
+                "SELECT MAX(version) FROM datasets"
+                , Long.TYPE);
         return version == null ? 0 : version;
     }
 
