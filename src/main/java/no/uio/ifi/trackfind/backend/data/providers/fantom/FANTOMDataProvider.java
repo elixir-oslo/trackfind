@@ -9,6 +9,7 @@ import org.apache.commons.csv.CSVRecord;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import javax.transaction.Transactional;
 import java.io.InputStream;
@@ -26,7 +27,7 @@ import java.util.stream.Collectors;
  * @author Dmytro Titov
  */
 @Slf4j
-//@Component
+@Component
 public class FANTOMDataProvider extends AbstractDataProvider {
 
     private static final String METADATA_URL = "http://fantom.gsc.riken.jp/5/datafiles/latest/basic/";
@@ -41,8 +42,9 @@ public class FANTOMDataProvider extends AbstractDataProvider {
         Document root = Jsoup.parse(new URL(METADATA_URL), 10000);
         Set<String> dirs = root.getElementsByTag("a").parallelStream().map(e -> e.attr("href")).filter(s -> s.contains(".") && s.endsWith("/")).collect(Collectors.toSet());
         int size = dirs.size();
-        log.info(size + " directories collected");
+        log.info(size + " directories to process");
         CountDownLatch countDownLatch = new CountDownLatch(size);
+        Collection<Map> allDatasets = new HashSet<>();
         for (String dir : dirs) {
             executorService.submit(() -> {
                 try {
@@ -71,11 +73,7 @@ public class FANTOMDataProvider extends AbstractDataProvider {
 
                             Set<String> datasetRelatedFiles = allFiles.parallelStream().filter(s -> s.contains(next.get(0))).map(f -> METADATA_URL + dir + f).collect(Collectors.toSet());
                             map.put("files", datasetRelatedFiles);
-                            Dataset dataset = new Dataset();
-                            dataset.setRepository(getName());
-                            dataset.setVersion(getCurrentVersion());
-                            dataset.setRawDataset(gson.toJson(postprocessDataset(map)));
-                            datasetRepository.save(dataset);
+                            allDatasets.add(map);
                         }
                         log.info("Directory " + dir + " processed.");
                     }
@@ -87,6 +85,8 @@ public class FANTOMDataProvider extends AbstractDataProvider {
             });
         }
         countDownLatch.await();
+        save(allDatasets);
+        log.info(size + " releases stored.");
     }
 
     /**

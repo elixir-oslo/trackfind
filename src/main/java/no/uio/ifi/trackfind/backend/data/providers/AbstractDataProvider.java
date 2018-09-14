@@ -52,7 +52,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      */
     @Override
     public String getName() {
-        return getClass().getSimpleName().replace("DataProvider", "").toLowerCase();
+        return getClass().getSimpleName().replace("DataProvider", "");
     }
 
     /**
