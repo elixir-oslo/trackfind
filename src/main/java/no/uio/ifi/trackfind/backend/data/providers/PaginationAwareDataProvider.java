@@ -66,12 +66,13 @@ public abstract class PaginationAwareDataProvider extends AbstractDataProvider {
         log.info(pagesTotal * getEntriesPerPage() + " entries available.");
         log.info("Pages total: " + pagesTotal);
         CountDownLatch countDownLatch = new CountDownLatch(pagesTotal);
+        Collection<Map> allDatasets = new HashSet<>();
         for (int i = 0; i < pagesTotal; i++) {
             int finalI = i;
             executorService.submit(() -> {
                 try {
                     Collection<Map> page = fetchPage(urlWithPage, pageClass, finalI);
-                    save(page);
+                    allDatasets.addAll(page);
                     log.info("Page " + finalI + " processed.");
                 } catch (Exception e) {
                     log.error(e.getMessage(), e);
@@ -81,6 +82,7 @@ public abstract class PaginationAwareDataProvider extends AbstractDataProvider {
             });
         }
         countDownLatch.await();
+        save(allDatasets);
     }
 
     /**

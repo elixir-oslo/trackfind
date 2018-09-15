@@ -3,6 +3,7 @@ package no.uio.ifi.trackfind.backend.data.providers.gdc;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.data.providers.PaginationAwareDataProvider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.Collection;

@@ -1,8 +1,14 @@
 package no.uio.ifi.trackfind.backend.data.providers.icgc;
 
 import lombok.extern.slf4j.Slf4j;
+import no.uio.ifi.trackfind.backend.dao.Dataset;
 import no.uio.ifi.trackfind.backend.data.providers.PaginationAwareDataProvider;
+import org.springframework.stereotype.Component;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URL;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -47,27 +53,29 @@ public class ICGCDataProvider extends PaginationAwareDataProvider { // TODO: Fet
         }
     }
 
-//    /**
-//     * {@inheritDoc}
-//     */
-//    @SuppressWarnings("unchecked")
-//    @Override // hack for ICGC's "two-steps download"
-//    public Collection<Dataset> search(String query, int limit) {
-//        Multimap<String, Map> result = super.search(query, limit);
-//        for (Map map : result.values()) {
-//            Map<String, String> browser = Dynamic.from(map).get("Advanced>browser", properties.getLevelsSeparator()).asMap();
-//            for (String dataType : browser.keySet()) {
-//                String submitURL = browser.get(dataType);
-//                try (InputStream inputStream = new URL(submitURL).openStream();
-//                     InputStreamReader reader = new InputStreamReader(inputStream)) {
-//                    Download download = gson.fromJson(reader, Download.class);
-//                    browser.put(dataType, DOWNLOAD + download.getDownloadId());
-//                } catch (IOException e) {
-//                    log.error(e.getMessage(), e);
-//                }
-//            }
-//        }
-//        return result;
-//    }
+    /**
+     * {@inheritDoc}
+     */
+    @SuppressWarnings("unchecked")
+    @Override // hack for ICGC's "two-steps download"
+    public Collection<Dataset> search(String query, int limit) {
+        Collection<Dataset> result = super.search(query, limit);
+        for (Dataset dataset : result) {
+            Map map = gson.fromJson(dataset.getRawDataset(), Map.class);
+            Map<String, String> browser = (Map<String, String>) map.get("browser");
+            for (String dataType : browser.keySet()) {
+                String submitURL = browser.get(dataType);
+                try (InputStream inputStream = new URL(submitURL).openStream();
+                     InputStreamReader reader = new InputStreamReader(inputStream)) {
+                    Download download = gson.fromJson(reader, Download.class);
+                    browser.put(dataType, DOWNLOAD + download.getDownloadId());
+                } catch (IOException e) {
+                    log.error(e.getMessage(), e);
+                }
+            }
+            dataset.setRawDataset(gson.toJson(map));
+        }
+        return result;
+    }
 
 }
