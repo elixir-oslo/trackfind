@@ -26,7 +26,7 @@ public class TrackFindProperties {
     private @NotBlank String basicSectionName;
     private @NotBlank String levelsSeparator;
     private @NotBlank String idAttribute;
-    private @NotBlank String advancedIdAttribute;
+    private @NotBlank String versionAttribute;
     private @NotBlank String uriAttribute;
     private @NotBlank String dataTypeAttribute;
 
