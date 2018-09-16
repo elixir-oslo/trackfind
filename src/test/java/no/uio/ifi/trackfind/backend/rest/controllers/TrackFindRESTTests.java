@@ -16,7 +16,6 @@ import org.springframework.web.context.WebApplicationContext;
 import java.util.Collection;
 import java.util.Map;
 
-import static no.uio.ifi.trackfind.TestTrackFindApplication.TEST_DATA_PROVIDER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -27,6 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(classes = TestTrackFindApplication.class)
 public class TrackFindRESTTests {
 
+    private static final String TEST_DATA_PROVIDER = "Test";
     private static final String API_PREFIX = "/api/v1/";
 
     @Autowired

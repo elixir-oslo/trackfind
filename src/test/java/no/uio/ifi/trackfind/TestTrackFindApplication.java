@@ -12,8 +12,6 @@ import org.springframework.context.annotation.FilterType;
 //        excludeFilters = @ComponentScan.Filter(type = FilterType.REGEX, pattern = "no.uio.ifi.trackfind.backend.data.providers.*.*"))
 public class TestTrackFindApplication {
 
-    public static final String TEST_DATA_PROVIDER = "Test";
-
     public static void main(String[] args) {
         SpringApplication.run(TestTrackFindApplication.class, args);
     }
