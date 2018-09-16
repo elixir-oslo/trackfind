@@ -32,11 +32,6 @@ public class TrackFindRESTTests {
     @Autowired
     private MockMvc mockMvc;
 
-    @Before
-    public void setUp() {
-
-    }
-
     @Test
     public void getProvidersTest() throws Exception {
         mockMvc.perform(get(API_PREFIX + "providers").param("published", "false"))
@@ -126,6 +121,11 @@ public class TrackFindRESTTests {
                 .andReturn().getResponse().getContentAsString();
         Map fetch = gson.fromJson(fetchResponse, Map.class);
         assertThat(search).isEqualTo(fetch);
+    }
+
+    @Before
+    public void setUp() {
+
     }
 
 }

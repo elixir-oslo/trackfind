@@ -30,6 +30,13 @@ public class DatasetsToGSuiteConverterTest {
 
     private Dataset dataset;
 
+    @Test
+    public void apply() {
+        String gSuite = datasetsToGSuiteConverter.apply(Collections.singleton(dataset));
+        assertEquals("###uri\tdata_type\tattribute\tid\tversion\n" +
+                "uri\tdata_type\tvalue\t1\t2\n", gSuite);
+    }
+
     @Before
     public void setUp() {
         datasetsToGSuiteConverter.setGson(new Gson());
@@ -50,13 +57,6 @@ public class DatasetsToGSuiteConverterTest {
         basicDataset.put("uri", "uri");
         basicDataset.put("attribute", "value");
         dataset.setBasicDataset(gson.toJson(basicDataset));
-    }
-
-    @Test
-    public void apply() {
-        String gSuite = datasetsToGSuiteConverter.apply(Collections.singleton(dataset));
-        assertEquals("###uri\tdata_type\tattribute\tid\tversion\n" +
-                "uri\tdata_type\tvalue\t1\t2\n", gSuite);
     }
 
 }

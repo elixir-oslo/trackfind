@@ -17,7 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
-public class TrackFindServiceTests {
+public class TrackFindServiceTest {
 
     private static final String TEST_DATA_PROVIDER = "TEST";
 
@@ -29,12 +29,6 @@ public class TrackFindServiceTests {
 
     @Mock
     private IHECDataProvider dataProvider;
-
-    @Before
-    public void setUp() {
-        when(dataProvider.getName()).thenReturn(TEST_DATA_PROVIDER);
-        dataProviders.add(dataProvider);
-    }
 
     @Test
     public void getDataProvidersTest() {
@@ -48,6 +42,12 @@ public class TrackFindServiceTests {
     public void getDataProviderTest() {
         DataProvider dataProvider = trackFindService.getDataProvider(TEST_DATA_PROVIDER);
         assertThat(dataProvider.getName()).isEqualTo(TEST_DATA_PROVIDER);
+    }
+
+    @Before
+    public void setUp() {
+        when(dataProvider.getName()).thenReturn(TEST_DATA_PROVIDER);
+        dataProviders.add(dataProvider);
     }
 
 }

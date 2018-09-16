@@ -1,12 +1,14 @@
 package no.uio.ifi.trackfind.backend.dao;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import javax.persistence.*;
 
 @Entity
 @Table(name = "datasets")
 @Data
+@EqualsAndHashCode(of = "id")
 public class Dataset {
 
     @Id

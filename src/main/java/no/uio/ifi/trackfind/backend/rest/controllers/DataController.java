@@ -11,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collection;
-import java.util.Map;
 
 /**
  * Data REST controller.
@@ -57,7 +56,7 @@ public class DataController {
      */
     @ApiOperation(value = "Fetches raw (JSON) data by Lucene Document ID.", response = AdvancedDocument.class, responseContainer = "Map")
     @GetMapping(path = "/{provider}/fetch", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<Map<String, Object>> fetch(
+    public ResponseEntity<Dataset> fetch(
             @ApiParam(value = "Data provider name.", required = true, example = "IHEC")
             @PathVariable String provider,
             @ApiParam(value = "ID of the document to return.", required = true)

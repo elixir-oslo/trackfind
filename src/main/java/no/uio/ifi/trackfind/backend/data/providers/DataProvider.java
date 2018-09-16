@@ -54,12 +54,12 @@ public interface DataProvider {
     Collection<Dataset> search(String query, int limit);
 
     /**
-     * Fetches raw data by ID.
+     * Fetches Dataset by ID.
      *
      * @param datasetId Dataset ID.
      * @param version   Version.
-     * @return Raw (JSON) data.
+     * @return Dataset.
      */
-    Map<String, Object> fetch(String datasetId, String version);
+    Dataset fetch(String datasetId, String version);
 
 }

@@ -148,7 +148,6 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
         log.info("Applying mappings for " + getName());
         Collection<Mapping> mappings = mappingRepository.findByRepository(getName());
         Collection<Dataset> datasets = datasetRepository.findByRepositoryAndVersion(getName(), getCurrentVersion());
-        ScriptingEngine scriptingEngine = scriptingEngines.stream().filter(se -> properties.getScriptingLanguage().equals(se.getLanguage())).findAny().orElseThrow(RuntimeException::new);
         try {
             for (Dataset dataset : datasets) {
                 Map<String, Object> rawMap = gson.fromJson(dataset.getRawDataset(), Map.class);
@@ -168,6 +167,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
                             values = Collections.emptyList();
                         }
                     } else {
+                        ScriptingEngine scriptingEngine = scriptingEngines.stream().filter(se -> properties.getScriptingLanguage().equals(se.getLanguage())).findAny().orElseThrow(RuntimeException::new);
                         values = scriptingEngine.execute(script, rawMap);
                     }
                     if (CollectionUtils.size(values) == 1) {
@@ -252,10 +252,9 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      */
     @SuppressWarnings("unchecked")
     @Override
-    public Map<String, Object> fetch(String datasetId, String version) {
+    public Dataset fetch(String datasetId, String version) {
         long longVersion = version == null ? getCurrentVersion() : Long.parseLong(version);
-        Dataset dataset = datasetRepository.findByIdAndVersion(Long.parseLong(datasetId), longVersion);
-        return gson.fromJson(dataset.getRawDataset(), Map.class);
+        return datasetRepository.findByIdAndVersion(Long.parseLong(datasetId), longVersion);
     }
 
     protected long getCurrentVersion() {
