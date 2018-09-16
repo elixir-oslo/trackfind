@@ -27,12 +27,12 @@ public class DataController {
      * Performs search over the Directory of specified DataProvider.
      *
      * @param provider DataProvider name.
-     * @param query    Search query (Lucene syntax, see https://lucene.apache.org/solr/guide/6_6/the-standard-query-parser.html).
+     * @param query    Search query.
      * @param limit    Max number of entries to return.
      * @return Search results by revision.
      */
     @SuppressWarnings("unchecked")
-    @ApiOperation(value = "Performs search over the index using Apache Lucene query language.", responseContainer = "Set")
+    @ApiOperation(value = "Performs search in the database.", responseContainer = "Set")
     @GetMapping(path = "/{provider}/search", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Collection<Dataset>> search(
             @ApiParam(value = "Data provider name.", required = true, example = "IHEC")
@@ -47,21 +47,21 @@ public class DataController {
     /**
      * Fetches raw data by ID.
      *
-     * @param provider   DataProvider name.
-     * @param documentId Lucene Document ID.
-     * @param revision   Revision of the repository.
+     * @param provider DataProvider name.
+     * @param id       Dataset ID.
+     * @param revision Revision of the repository.
      * @return Raw (JSON) data.
      */
-    @ApiOperation(value = "Fetches raw (JSON) data by Lucene Document ID.")
+    @ApiOperation(value = "Fetches raw (JSON) data by DatasetID.")
     @GetMapping(path = "/{provider}/fetch", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Dataset> fetch(
             @ApiParam(value = "Data provider name.", required = true, example = "IHEC")
             @PathVariable String provider,
-            @ApiParam(value = "ID of the document to return.", required = true)
-            @RequestParam String documentId,
-            @ApiParam(value = "Revision of the document to return.", required = false)
+            @ApiParam(value = "ID of the dataset to return.", required = true)
+            @RequestParam String id,
+            @ApiParam(value = "Revision of the dataset to return.", required = false)
             @RequestParam(required = false) String revision) {
-        return ResponseEntity.ok(trackFindService.getDataProvider(provider).fetch(documentId, revision));
+        return ResponseEntity.ok(trackFindService.getDataProvider(provider).fetch(id, revision));
     }
 
     @Autowired

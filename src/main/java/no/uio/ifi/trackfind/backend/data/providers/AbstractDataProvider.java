@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 
 /**
  * Abstract class for all data providers.
- * Implements some common logic like Lucene Directory initialization, getting metamodel, searching, etc.
+ * Implements some common logic like getting metamodel, searching, etc.
  *
  * @author Dmytro Titov
  */
@@ -193,7 +193,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     /**
      * {@inheritDoc}
      */
-    @Cacheable(value = "metamodel-tree", key = "#root.methodName")
+    @Cacheable(value = "metamodel-tree", key = "#root.targetClass + #root.methodName")
     @Override
     @SuppressWarnings("unchecked")
     public Map<String, Object> getMetamodelTree() {
@@ -219,7 +219,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     /**
      * {@inheritDoc}
      */
-    @Cacheable(value = "metamodel-flat", key = "#root.methodName")
+    @Cacheable(value = "metamodel-flat", key = "#root.targetClass + #root.methodName")
     @Override
     public Multimap<String, String> getMetamodelFlat() {
         Multimap<String, String> metamodel = HashMultimap.create();
