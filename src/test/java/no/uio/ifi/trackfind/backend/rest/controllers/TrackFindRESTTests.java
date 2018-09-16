@@ -123,7 +123,7 @@ public class TrackFindRESTTests {
     @SuppressWarnings("unchecked")
     @Test
     public void fetchTest() throws Exception {
-        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/fetch").param("documentId", "0"))
+        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/fetch").param("id", "0"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andExpect(jsonPath("$.id", is(0)));
