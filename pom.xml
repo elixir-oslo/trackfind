@@ -209,10 +209,7 @@
                     <imageName>nels/trackfind</imageName>
                     <baseImage>openjdk:8-jre-alpine</baseImage>
                     <!-- Next line needs to be a single line, otherwise plugin crashes-->
-                    <entryPoint>["java", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005", "-jar",
-                        "/${project.build.finalName}.jar", "-XX:+UnlockExperimentalVMOptions",
-                        "-XX:+UseCGroupMemoryLimitForHeap"]
-                    </entryPoint>
+                    <entryPoint>["java", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005", "-jar", "/${project.build.finalName}.jar", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseCGroupMemoryLimitForHeap"]</entryPoint>
                     <healthcheck>
                         <options>--interval=10s</options>
                         <cmd>curl --fail http://localhost:8080/healthcheck || exit 1</cmd>
