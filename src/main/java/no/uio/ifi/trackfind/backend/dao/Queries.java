@@ -54,4 +54,8 @@ public interface Queries {
             "  FROM collect_metadata\n" +
             "  WHERE collect_metadata.type NOT IN ('object', 'array')";
 
+    String RAW_INDEX = "CREATE INDEX IF NOT EXISTS raw_dataset_index ON datasets USING gin (raw_dataset)";
+
+    String BASIC_INDEX = "CREATE INDEX IF NOT EXISTS basic_dataset_index ON datasets USING gin (basic_dataset)";
+
 }
