@@ -21,7 +21,7 @@ import com.vaadin.ui.*;
 import com.vaadin.ui.components.grid.TreeGridDragSource;
 import com.vaadin.ui.dnd.DropTargetExtension;
 import lombok.extern.slf4j.Slf4j;
-import no.uio.ifi.trackfind.backend.converters.MapToGSuiteConverter;
+import no.uio.ifi.trackfind.backend.converters.DatasetsToGSuiteConverter;
 import no.uio.ifi.trackfind.backend.dao.Dataset;
 import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
 import no.uio.ifi.trackfind.frontend.components.KeyboardInterceptorExtension;
@@ -56,7 +56,7 @@ import java.util.Collection;
 @Slf4j
 public class TrackFindMainUI extends AbstractUI {
 
-    private MapToGSuiteConverter mapToGSuiteConverter;
+    private DatasetsToGSuiteConverter datasetsToGSuiteConverter;
     private Gson gson;
 
     private int numberOfResults;
@@ -273,7 +273,7 @@ public class TrackFindMainUI extends AbstractUI {
         }
         resultsTextArea.setValue(jsonResult.toString());
 
-        String gSuiteResult = mapToGSuiteConverter.apply(results);
+        String gSuiteResult = datasetsToGSuiteConverter.apply(results);
 
         if (gSuiteFileDownloader != null) {
             exportGSuiteButton.removeExtension(gSuiteFileDownloader);
@@ -297,8 +297,8 @@ public class TrackFindMainUI extends AbstractUI {
     }
 
     @Autowired
-    public void setMapToGSuiteConverter(MapToGSuiteConverter mapToGSuiteConverter) {
-        this.mapToGSuiteConverter = mapToGSuiteConverter;
+    public void setDatasetsToGSuiteConverter(DatasetsToGSuiteConverter datasetsToGSuiteConverter) {
+        this.datasetsToGSuiteConverter = datasetsToGSuiteConverter;
     }
 
     @Autowired

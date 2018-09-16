@@ -5,11 +5,12 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.PropertySources;
+import org.springframework.stereotype.Component;
 
 import javax.validation.constraints.NotBlank;
 import java.util.List;
 
-@Configuration
+@Component
 @PropertySources({
         @PropertySource("classpath:trackfind.properties"),
         @PropertySource(value = "file:trackfind.properties", ignoreResourceNotFound = true),

@@ -5,9 +5,9 @@ import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
 import no.uio.ifi.trackfind.backend.dao.Dataset;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
-import org.apache.http.util.Asserts;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 
 import java.util.*;
 import java.util.function.Function;
@@ -18,7 +18,7 @@ import java.util.function.Function;
  * @author Dmytro Titov
  */
 @Component
-public class MapToGSuiteConverter implements Function<Collection<Dataset>, String> {
+public class DatasetsToGSuiteConverter implements Function<Collection<Dataset>, String> {
 
     private TrackFindProperties properties;
     private Gson gson;
@@ -51,8 +51,7 @@ public class MapToGSuiteConverter implements Function<Collection<Dataset>, Strin
 
     @SuppressWarnings("unchecked")
     private Collection<Map<String, Object>> getBasicMaps(Dataset dataset) {
-        Map map = gson.fromJson(dataset.getBasicDataset(), Map.class);
-        Map<?, ?> basicMap = MapUtils.getMap(map, properties.getBasicSectionName(), new HashMap<>());
+        Map basicMap = gson.fromJson(dataset.getBasicDataset(), Map.class);
         Object dataTypesObject = basicMap.get(properties.getDataTypeAttribute());
         Collection<String> dataTypes;
         if (dataTypesObject instanceof Collection) {
@@ -67,8 +66,7 @@ public class MapToGSuiteConverter implements Function<Collection<Dataset>, Strin
         } else {
             uris = Collections.singleton(String.valueOf(urisObject));
         }
-
-        Asserts.check(CollectionUtils.size(dataTypes) == CollectionUtils.size(uris), "DataTypes and URIs mismatch!");
+        Assert.isTrue(CollectionUtils.size(dataTypes) == CollectionUtils.size(uris), "DataTypes and URIs mismatch!");
         Collection<Map<String, Object>> result = new HashSet<>();
         Iterator<String> iterator = uris.iterator();
         for (String dataType : dataTypes) {
