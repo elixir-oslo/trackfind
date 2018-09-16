@@ -14,6 +14,8 @@ import no.uio.ifi.trackfind.backend.repositories.MappingRepository;
 import no.uio.ifi.trackfind.backend.scripting.ScriptingEngine;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.annotation.PostConstruct;
@@ -111,6 +113,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     /**
      * {@inheritDoc}
      */
+    @CacheEvict(cacheNames = {"metamodel-tree", "metamodel-flat"}, allEntries = true)
     @Override
     public synchronized void crawlRemoteRepository() {
         log.info("Fetching data using " + getName());
@@ -142,6 +145,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      * {@inheritDoc}
      */
     @SuppressWarnings("unchecked")
+    @CacheEvict(cacheNames = {"metamodel-tree", "metamodel-flat"}, allEntries = true)
     @Transactional
     @Override
     public synchronized void applyMappings() {
@@ -189,6 +193,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     /**
      * {@inheritDoc}
      */
+    @Cacheable(value = "metamodel-tree", key = "#root.methodName")
     @Override
     @SuppressWarnings("unchecked")
     public Map<String, Object> getMetamodelTree() {
@@ -214,6 +219,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     /**
      * {@inheritDoc}
      */
+    @Cacheable(value = "metamodel-flat", key = "#root.methodName")
     @Override
     public Multimap<String, String> getMetamodelFlat() {
         Multimap<String, String> metamodel = HashMultimap.create();
