@@ -125,7 +125,7 @@ public class TrackFindAdminUI extends AbstractUI {
         dragSource.setEffectAllowed(EffectAllowed.COPY);
         TreeNode root = new TreeNode(dataProvider.getMetamodelTree());
         TreeData<TreeNode> treeData = new TreeData<>();
-        Collection<TreeNode> children = root.getChildren().parallelStream().filter(c -> properties.getAdvancedSectionName().equals(c.toString())).collect(Collectors.toSet());
+        Collection<TreeNode> children = root.getChildren().parallelStream().collect(Collectors.toSet());
         treeData.addRootItems(children);
         children.forEach(c -> fillTreeData(treeData, c));
         TreeDataProvider trackDataProvider = new TreeDataProvider(treeData);
@@ -284,7 +284,7 @@ public class TrackFindAdminUI extends AbstractUI {
     }
 
     @Transactional
-    private void saveConfiguration() {
+    protected void saveConfiguration() {
         String repository = getCurrentDataProvider().getName();
         Collection<Mapping> mappings = new HashSet<>();
         for (Map.Entry<ComboBox<String>, TextField> mappingPair : attributesStaticMapping.entrySet()) {
@@ -304,7 +304,7 @@ public class TrackFindAdminUI extends AbstractUI {
             mappings.add(mapping);
         }
         mappingRepository.saveAll(mappings);
-        Notification.show("Mappings saved. Apply them to take effect.");
+        Notification.show("Mappings saved. Press \"Apply\" for changes to take effect.");
     }
 
     @Autowired

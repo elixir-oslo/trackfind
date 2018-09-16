@@ -1,7 +1,6 @@
 package no.uio.ifi.trackfind.backend.services;
 
 import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
-import no.uio.ifi.trackfind.backend.data.providers.TestDataProvider;
 import no.uio.ifi.trackfind.backend.data.providers.ihec.IHECDataProvider;
 import org.junit.Before;
 import org.junit.Test;
@@ -9,8 +8,6 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Collection;
@@ -51,16 +48,6 @@ public class TrackFindServiceTests {
     public void getDataProviderTest() {
         DataProvider dataProvider = trackFindService.getDataProvider(TEST_DATA_PROVIDER);
         assertThat(dataProvider.getName()).isEqualTo(TEST_DATA_PROVIDER);
-    }
-
-    @ComponentScan(basePackageClasses = no.uio.ifi.trackfind.backend.services.TrackFindService.class)
-    static class TestConfiguration {
-
-        @Bean
-        public DataProvider testDataProvider() {
-            return new TestDataProvider();
-        }
-
     }
 
 }

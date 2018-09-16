@@ -147,7 +147,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     public synchronized void applyMappings() {
         log.info("Applying mappings for " + getName());
         Collection<Mapping> mappings = mappingRepository.findByRepository(getName());
-        Collection<Dataset> datasets = datasetRepository.findAllByVersion(getCurrentVersion());
+        Collection<Dataset> datasets = datasetRepository.findByRepositoryAndVersion(getName(), getCurrentVersion());
         ScriptingEngine scriptingEngine = scriptingEngines.stream().filter(se -> properties.getScriptingLanguage().equals(se.getLanguage())).findAny().orElseThrow(RuntimeException::new);
         try {
             for (Dataset dataset : datasets) {
@@ -157,7 +157,16 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
                     String script = mapping.getFrom();
                     Collection<String> values;
                     if (mapping.getStaticMapping()) {
-                        values = Dynamic.from(rawMap).get(mapping.getFrom(), properties.getLevelsSeparator()).asList();
+                        Dynamic dynamicValues = Dynamic.from(rawMap).get(mapping.getFrom(), properties.getLevelsSeparator());
+                        if (dynamicValues.isPresent()) {
+                            if (dynamicValues.isList()) {
+                                values = dynamicValues.asList();
+                            } else {
+                                values = Collections.singletonList(dynamicValues.asString());
+                            }
+                        } else {
+                            values = Collections.emptyList();
+                        }
                     } else {
                         values = scriptingEngine.execute(script, rawMap);
                     }
@@ -235,7 +244,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
                         "AND (raw_dataset::jsonb @> ? OR basic_dataset::jsonb @> ?)" +
                         "ORDER BY id ASC LIMIT ?"
                 , Long.TYPE, getCurrentVersion(), query, query, limit);
-        return datasetRepository.findAllByIdIn(ids);
+        return datasetRepository.findByIdIn(ids);
     }
 
     /**

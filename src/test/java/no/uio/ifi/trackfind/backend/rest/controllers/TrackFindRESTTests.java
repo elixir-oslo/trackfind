@@ -1,25 +1,18 @@
 package no.uio.ifi.trackfind.backend.rest.controllers;
 
 import com.google.gson.Gson;
-import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
-import no.uio.ifi.trackfind.backend.data.providers.TestDataProvider;
 import org.apache.commons.collections4.MapUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
 
 import java.util.Collection;
 import java.util.Map;
 
-import static no.uio.ifi.trackfind.backend.data.providers.TestDataProvider.TEST_DATA_PROVIDER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -30,19 +23,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest
 public class TrackFindRESTTests {
 
+    private static final String TEST_DATA_PROVIDER = "TEST";
     private static final String API_PREFIX = "/api/v1/";
-
-    @Autowired
-    private WebApplicationContext webApplicationContext;
 
     @Autowired
     private Gson gson;
 
+    @Autowired
     private MockMvc mockMvc;
 
     @Before
     public void setUp() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
+
     }
 
     @Test
@@ -134,16 +126,6 @@ public class TrackFindRESTTests {
                 .andReturn().getResponse().getContentAsString();
         Map fetch = gson.fromJson(fetchResponse, Map.class);
         assertThat(search).isEqualTo(fetch);
-    }
-
-    @ComponentScan(basePackageClasses = no.uio.ifi.trackfind.backend.services.TrackFindService.class)
-    static class TestConfiguration {
-
-        @Bean
-        public DataProvider testDataProvider() {
-            return new TestDataProvider();
-        }
-
     }
 
 }

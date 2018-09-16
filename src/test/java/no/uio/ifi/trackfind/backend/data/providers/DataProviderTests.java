@@ -2,10 +2,15 @@ package no.uio.ifi.trackfind.backend.data.providers;
 
 import com.google.common.collect.Multimap;
 import no.uio.ifi.trackfind.TestTrackFindApplication;
+import no.uio.ifi.trackfind.backend.repositories.DatasetRepository;
+import no.uio.ifi.trackfind.backend.repositories.MappingRepository;
 import org.apache.commons.collections4.MapUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -14,16 +19,23 @@ import java.util.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = TestTrackFindApplication.class)
+@JdbcTest
+@DataJpaTest
 public class DataProviderTests {
 
-//    @Autowired
-//    private DataProvider dataProvider;
-//
-//    @Test
-//    public void getNameTest() {
-//        assertThat(dataProvider.getName()).isEqualTo("Test");
-//    }
+    @Autowired
+    private TestEntityManager entityManager;
+
+    @Autowired
+    private DatasetRepository datasetRepository;
+
+    @Autowired
+    private MappingRepository mappingRepository;
+
+    @Test
+    public void getNameTest() {
+        assertThat("Test").isEqualTo("Test");
+    }
 //
 //    @Test
 //    public void getPathTest() {
