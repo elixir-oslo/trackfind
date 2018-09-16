@@ -3,6 +3,7 @@ package no.uio.ifi.trackfind.backend.data.providers.trackhub;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.data.providers.AbstractDataProvider;
 import org.apache.commons.collections4.MapUtils;
+import org.springframework.stereotype.Component;
 
 import javax.transaction.Transactional;
 import java.io.InputStream;
@@ -18,7 +19,7 @@ import java.util.Map;
  * @author Dmytro Titov
  */
 @Slf4j
-//@Component
+@Component
 public class TrackHubDataProvider extends AbstractDataProvider {
 
     private static final String FETCH_URL = "https://hyperbrowser.uio.no/hb/static/hyperbrowser/files/trackfind/blueprint_hub.json";

@@ -2,8 +2,6 @@ package no.uio.ifi.trackfind.backend.rest.controllers;
 
 import io.swagger.annotations.*;
 import no.uio.ifi.trackfind.backend.dao.Dataset;
-import no.uio.ifi.trackfind.backend.rest.responses.AdvancedDocument;
-import no.uio.ifi.trackfind.backend.rest.responses.SearchResponse;
 import no.uio.ifi.trackfind.backend.services.TrackFindService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -34,7 +32,7 @@ public class DataController {
      * @return Search results by revision.
      */
     @SuppressWarnings("unchecked")
-    @ApiOperation(value = "Performs search over the index using Apache Lucene query language.", response = SearchResponse.class, responseContainer = "Map")
+    @ApiOperation(value = "Performs search over the index using Apache Lucene query language.", responseContainer = "Set")
     @GetMapping(path = "/{provider}/search", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Collection<Dataset>> search(
             @ApiParam(value = "Data provider name.", required = true, example = "IHEC")
@@ -54,7 +52,7 @@ public class DataController {
      * @param revision   Revision of the repository.
      * @return Raw (JSON) data.
      */
-    @ApiOperation(value = "Fetches raw (JSON) data by Lucene Document ID.", response = AdvancedDocument.class, responseContainer = "Map")
+    @ApiOperation(value = "Fetches raw (JSON) data by Lucene Document ID.")
     @GetMapping(path = "/{provider}/fetch", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Dataset> fetch(
             @ApiParam(value = "Data provider name.", required = true, example = "IHEC")
