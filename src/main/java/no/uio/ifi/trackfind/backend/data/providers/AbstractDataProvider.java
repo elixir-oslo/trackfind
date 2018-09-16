@@ -138,7 +138,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
             dataset.setVersion(getCurrentVersion());
             dataset.setRawDataset(gson.toJson(map));
             return dataset;
-        }).collect(Collectors.toSet()));
+        }).collect(Collectors.toList()));
     }
 
     /**

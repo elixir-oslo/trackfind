@@ -21,10 +21,10 @@ public class Dataset {
     @Column(name = "version", nullable = false)
     private Long version;
 
-    @Column(name = "raw_dataset", nullable = false, columnDefinition = "json")
+    @Column(name = "raw_dataset", nullable = false, columnDefinition = "jsonb")
     private String rawDataset;
 
-    @Column(name = "basic_dataset", columnDefinition = "json")
+    @Column(name = "basic_dataset", columnDefinition = "jsonb")
     private String basicDataset;
 
 }

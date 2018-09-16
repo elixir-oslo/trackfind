@@ -7,9 +7,9 @@ public interface Queries {
             "                                             datasets.version,\n" +
             "                                             first_level.key,\n" +
             "                                             first_level.value,\n" +
-            "                                             json_typeof(first_level.value) AS type\n" +
+            "                                             jsonb_typeof(first_level.value) AS type\n" +
             "                                      FROM datasets,\n" +
-            "                                           json_each(datasets.raw_dataset) first_level\n" +
+            "                                           jsonb_each(datasets.raw_dataset) first_level\n" +
             "\n" +
             "                                      UNION ALL\n" +
             "\n" +
@@ -21,9 +21,9 @@ public interface Queries {
             "                                             prev_level.version,\n" +
             "                                             concat(prev_level.key, '>', current_level.key),\n" +
             "                                             current_level.value,\n" +
-            "                                             json_typeof(current_level.value) AS type\n" +
+            "                                             jsonb_typeof(current_level.value) AS type\n" +
             "                                      FROM prev_level,\n" +
-            "                                           json_each(prev_level.value) AS current_level\n" +
+            "                                           jsonb_each(prev_level.value) AS current_level\n" +
             "                                      WHERE prev_level.type = 'object'\n" +
             "\n" +
             "                                      UNION ALL\n" +
@@ -32,12 +32,12 @@ public interface Queries {
             "                                             prev_level.version,\n" +
             "                                             concat(prev_level.key, '>', current_level.key),\n" +
             "                                             current_level.value,\n" +
-            "                                             json_typeof(current_level.value) AS type\n" +
+            "                                             jsonb_typeof(current_level.value) AS type\n" +
             "                                      FROM prev_level,\n" +
-            "                                           json_array_elements(prev_level.value) AS entry,\n" +
-            "                                           json_each(entry) AS current_level\n" +
+            "                                           jsonb_array_elements(prev_level.value) AS entry,\n" +
+            "                                           jsonb_each(entry) AS current_level\n" +
             "                                      WHERE prev_level.type = 'array'\n" +
-            "                                        AND json_typeof(entry) = 'object'\n" +
+            "                                        AND jsonb_typeof(entry) = 'object'\n" +
             "\n" +
             "                                      UNION ALL\n" +
             "\n" +
@@ -45,11 +45,11 @@ public interface Queries {
             "                                             prev_level.version,\n" +
             "                                             prev_level.key,\n" +
             "                                             entry,\n" +
-            "                                             json_typeof(entry) AS type\n" +
+            "                                             jsonb_typeof(entry) AS type\n" +
             "                                      FROM prev_level,\n" +
-            "                                           json_array_elements(prev_level.value) AS entry\n" +
+            "                                           jsonb_array_elements(prev_level.value) AS entry\n" +
             "                                      WHERE prev_level.type = 'array'\n" +
-            "                                        AND json_typeof(entry) <> 'object'))\n" +
+            "                                        AND jsonb_typeof(entry) <> 'object'))\n" +
             "  SELECT DISTINCT repository, version, key AS attribute, array_to_json(ARRAY[collect_metadata.value])->>0 AS value, type\n" +
             "  FROM collect_metadata\n" +
             "  WHERE collect_metadata.type NOT IN ('object', 'array')";
