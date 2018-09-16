@@ -1,20 +1,29 @@
 package no.uio.ifi.trackfind.backend.rest.controllers;
 
-import com.google.gson.Gson;
-import org.apache.commons.collections4.MapUtils;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+import no.uio.ifi.trackfind.backend.dao.Dataset;
+import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
+import no.uio.ifi.trackfind.backend.services.TrackFindService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.Collection;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -27,10 +36,15 @@ public class TrackFindRESTTests {
     private static final String API_PREFIX = "/api/v1/";
 
     @Autowired
-    private Gson gson;
-
-    @Autowired
     private MockMvc mockMvc;
+
+    @MockBean
+    private DataProvider dataProvider;
+
+    @MockBean
+    private TrackFindService trackFindService;
+
+    private Dataset dataset;
 
     @Test
     public void getProvidersTest() throws Exception {
@@ -46,9 +60,9 @@ public class TrackFindRESTTests {
         mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/metamodel-tree"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
-                .andExpect(jsonPath("$.Advanced.key1", hasSize(2)))
-                .andExpect(jsonPath("$.Advanced.key1", containsInAnyOrder("value1", "value2")))
-                .andExpect(jsonPath("$.Advanced.key2", contains("value3")));
+                .andExpect(jsonPath("$.level1.level2_1", hasSize(2)))
+                .andExpect(jsonPath("$.level1.level2_1", containsInAnyOrder("value1", "value2")))
+                .andExpect(jsonPath("$.level1.level2_2", contains("value3")));
     }
 
     @Test
@@ -56,23 +70,23 @@ public class TrackFindRESTTests {
         mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/metamodel-flat"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
-                .andExpect(jsonPath("$.Advanced>key1", hasSize(2)))
-                .andExpect(jsonPath("$.Advanced>key1", containsInAnyOrder("value1", "value2")))
-                .andExpect(jsonPath("$.Advanced>key2", contains("value3")));
+                .andExpect(jsonPath("$.level1>level2_1", hasSize(2)))
+                .andExpect(jsonPath("$.level1>level2_1", containsInAnyOrder("value1", "value2")))
+                .andExpect(jsonPath("$.level1>level2_2", contains("value3")));
     }
 
     @Test
     public void getAttributesWithFilterTest() throws Exception {
-        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/attributes").param("filter", "ey1"))
+        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/attributes").param("filter", "vel2_2"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$.[0]", is("Advanced>key1")));
+                .andExpect(jsonPath("$.[0]", is("level1>level2_2")));
     }
 
     @Test
     public void getValuesSingleTest() throws Exception {
-        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/Advanced>key2/values"))
+        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/level1>level2_2/values"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andExpect(jsonPath("$", hasSize(1)))
@@ -81,7 +95,7 @@ public class TrackFindRESTTests {
 
     @Test
     public void getValuesMultipleTest() throws Exception {
-        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/Advanced>key1/values"))
+        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/level1>level2_1/values"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andExpect(jsonPath("$", hasSize(2)))
@@ -90,7 +104,7 @@ public class TrackFindRESTTests {
 
     @Test
     public void getValuesWithFilterTest() throws Exception {
-        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/Advanced>key1/values").param("filter", "lue2"))
+        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/level1>level2_1/values").param("filter", "lue2"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andExpect(jsonPath("$", hasSize(1)))
@@ -99,33 +113,42 @@ public class TrackFindRESTTests {
 
     @Test
     public void searchTest() throws Exception {
-        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/search").param("query", "Advanced>key2: value3"))
+        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/search").param("query", "someQuery"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
-                .andExpect(jsonPath("$.*", hasSize(1)));
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$.[0].id", is(0)));
     }
 
     @SuppressWarnings("unchecked")
     @Test
     public void fetchTest() throws Exception {
-        String searchResponse = mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/search").param("query", "Advanced>key2: value3"))
+        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/fetch").param("documentId", "0"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
-                .andReturn().getResponse().getContentAsString();
-        Map search = (Map) ((Collection) gson.fromJson(searchResponse, Map.class).values().iterator().next()).iterator().next();
-        search = MapUtils.getMap(search, "Advanced");
-        String id = search.remove("id").toString();
-        String fetchResponse = mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/fetch").param("documentId", id))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType("application/json;charset=UTF-8"))
-                .andReturn().getResponse().getContentAsString();
-        Map fetch = gson.fromJson(fetchResponse, Map.class);
-        assertThat(search).isEqualTo(fetch);
+                .andExpect(jsonPath("$.id", is(0)));
     }
 
     @Before
     public void setUp() {
-
+        when(trackFindService.getDataProviders()).thenReturn(Collections.singleton(dataProvider));
+        when(trackFindService.getDataProvider(anyString())).thenReturn(dataProvider);
+        when(dataProvider.getName()).thenReturn(TEST_DATA_PROVIDER);
+        Multimap<String, String> metamodelFlat = HashMultimap.create();
+        metamodelFlat.put("level1>level2_1", "value1");
+        metamodelFlat.put("level1>level2_1", "value2");
+        metamodelFlat.put("level1>level2_2", "value3");
+        when(dataProvider.getMetamodelFlat()).thenReturn(metamodelFlat);
+        Map<String, Object> metamodelTree = new HashMap<>();
+        Map<String, Object> metamodelTreeInner = new HashMap<>();
+        metamodelTreeInner.put("level2_1", Arrays.asList("value1", "value2"));
+        metamodelTreeInner.put("level2_2", Collections.singleton("value3"));
+        metamodelTree.put("level1", metamodelTreeInner);
+        when(dataProvider.getMetamodelTree()).thenReturn(metamodelTree);
+        dataset = new Dataset();
+        dataset.setId(0L);
+        when(dataProvider.search(anyString(), anyInt())).thenReturn(Collections.singleton(dataset));
+        when(dataProvider.fetch(anyString(), Mockito.any())).thenReturn(dataset);
     }
 
 }

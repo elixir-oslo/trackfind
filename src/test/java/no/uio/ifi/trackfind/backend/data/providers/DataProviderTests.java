@@ -34,6 +34,9 @@ public class DataProviderTests {
     private Gson gson = new Gson();
 
     @Mock
+    private TrackFindProperties trackFindProperties;
+
+    @Mock
     private JdbcTemplate jdbcTemplate;
 
     @Mock
@@ -103,9 +106,8 @@ public class DataProviderTests {
     @Before
     public void setUp() {
         dataProvider.setGson(gson);
-        TrackFindProperties trackFindProperties = new TrackFindProperties();
-        trackFindProperties.setLevelsSeparator(">");
-        dataProvider.setProperties(trackFindProperties);
+
+        when(trackFindProperties.getLevelsSeparator()).thenReturn(">");
 
         Mapping mapping = new Mapping();
         mapping.setFrom("analysis_attributes>alignment_software");
