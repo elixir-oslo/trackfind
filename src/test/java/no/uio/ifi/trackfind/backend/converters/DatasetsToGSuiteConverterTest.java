@@ -6,65 +6,57 @@ import no.uio.ifi.trackfind.backend.dao.Dataset;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.test.autoconfigure.json.JsonTest;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.test.context.TestPropertySource;
+import org.mockito.InjectMocks;
+import org.mockito.Spy;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = DatasetsToGSuiteConverterTest.TestConfiguration.class)
-@JsonTest
-@TestPropertySource("/trackfind.properties")
 public class DatasetsToGSuiteConverterTest {
 
-    @Autowired
-    private TrackFindProperties properties;
-
-    @Autowired
-    private Gson gson;
-
-    @Autowired
+    @InjectMocks
     private DatasetsToGSuiteConverter datasetsToGSuiteConverter;
+
+    private Gson gson = new Gson();
+
+    @Spy
+    private TrackFindProperties properties = new TrackFindProperties();
 
     private Dataset dataset;
 
     @Before
     public void setUp() {
+        datasetsToGSuiteConverter.setGson(new Gson());
+
+        properties.setIdAttribute("id");
+        properties.setVersionAttribute("version");
+        properties.setUriAttribute("uri");
+        properties.setDataTypeAttribute("data_type");
+        properties.setBasicAttributes(Arrays.asList("uri", "data_type", "attribute"));
+
         dataset = new Dataset();
-        dataset.setId(9L);
+        dataset.setId(1L);
         dataset.setRepository("test");
-        dataset.setVersion(10L);
+        dataset.setVersion(2L);
 
         Map<String, String> basicDataset = new HashMap<>();
-        List<String> basicAttributes = properties.getBasicAttributes();
-        int i = 0;
-        for (String basicAttribute : basicAttributes) {
-            basicDataset.put(basicAttribute, String.valueOf(i++));
-        }
+        basicDataset.put("data_type", "data_type");
+        basicDataset.put("uri", "uri");
+        basicDataset.put("attribute", "value");
         dataset.setBasicDataset(gson.toJson(basicDataset));
     }
 
     @Test
     public void apply() {
         String gSuite = datasetsToGSuiteConverter.apply(Collections.singleton(dataset));
-        assertEquals("###uri\tdata_type\tgenome_build\ttissue_type\tcell_type\ttarget\texperiment_type\tfile_suffix\tdata_source\tidversion\n" +
-                "0\t1\t2\t3\t4\t5\t6\t7\t8\t9\t10\n", gSuite);
-    }
-
-    @EnableConfigurationProperties(TrackFindProperties.class)
-    @ComponentScan(basePackageClasses = no.uio.ifi.trackfind.backend.converters.DatasetsToGSuiteConverter.class)
-    static class TestConfiguration {
-        // nothing
+        assertEquals("###uri\tdata_type\tattribute\tid\tversion\n" +
+                "uri\tdata_type\tvalue\t1\t2\n", gSuite);
     }
 
 }

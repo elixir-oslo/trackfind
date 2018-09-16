@@ -2,27 +2,42 @@ package no.uio.ifi.trackfind.backend.services;
 
 import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
 import no.uio.ifi.trackfind.backend.data.providers.TestDataProvider;
+import no.uio.ifi.trackfind.backend.data.providers.ihec.IHECDataProvider;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Spy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Collection;
+import java.util.HashSet;
 
-import static no.uio.ifi.trackfind.backend.data.providers.TestDataProvider.TEST_DATA_PROVIDER;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
-@ImportAutoConfiguration
-@SpringBootTest(classes = TrackFindServiceTests.TestConfiguration.class)
 public class TrackFindServiceTests {
 
-    @Autowired
+    private static final String TEST_DATA_PROVIDER = "TEST";
+
+    @InjectMocks
     private TrackFindService trackFindService;
+
+    @Spy
+    private Collection<DataProvider> dataProviders = new HashSet<>();
+
+    @Mock
+    private IHECDataProvider dataProvider;
+
+    @Before
+    public void setUp() {
+        when(dataProvider.getName()).thenReturn(TEST_DATA_PROVIDER);
+        dataProviders.add(dataProvider);
+    }
 
     @Test
     public void getDataProvidersTest() {

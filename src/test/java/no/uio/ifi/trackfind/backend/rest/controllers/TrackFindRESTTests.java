@@ -1,13 +1,16 @@
 package no.uio.ifi.trackfind.backend.rest.controllers;
 
 import com.google.gson.Gson;
-import no.uio.ifi.trackfind.TestTrackFindApplication;
+import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
+import no.uio.ifi.trackfind.backend.data.providers.TestDataProvider;
 import org.apache.commons.collections4.MapUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -24,7 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SuppressWarnings("PMD.JUnitTestsShouldIncludeAssert")
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = TestTrackFindApplication.class)
+@WebMvcTest
 public class TrackFindRESTTests {
 
     private static final String API_PREFIX = "/api/v1/";
@@ -131,6 +134,16 @@ public class TrackFindRESTTests {
                 .andReturn().getResponse().getContentAsString();
         Map fetch = gson.fromJson(fetchResponse, Map.class);
         assertThat(search).isEqualTo(fetch);
+    }
+
+    @ComponentScan(basePackageClasses = no.uio.ifi.trackfind.backend.services.TrackFindService.class)
+    static class TestConfiguration {
+
+        @Bean
+        public DataProvider testDataProvider() {
+            return new TestDataProvider();
+        }
+
     }
 
 }

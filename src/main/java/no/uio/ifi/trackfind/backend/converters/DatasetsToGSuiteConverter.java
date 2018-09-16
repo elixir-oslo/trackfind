@@ -34,7 +34,7 @@ public class DatasetsToGSuiteConverter implements Function<Collection<Dataset>, 
     public String apply(Collection<Dataset> datasets) {
         StringBuilder result = new StringBuilder("###");
         properties.getBasicAttributes().forEach(a -> result.append(a).append("\t"));
-        result.append(properties.getIdAttribute()).append(properties.getVersionAttribute()).append("\n");
+        result.append(properties.getIdAttribute()).append("\t").append(properties.getVersionAttribute()).append("\n");
         long version = datasets.iterator().next().getVersion();
         for (Dataset dataset : datasets) {
             Collection<Map<String, Object>> basicMaps = getBasicMaps(dataset);
