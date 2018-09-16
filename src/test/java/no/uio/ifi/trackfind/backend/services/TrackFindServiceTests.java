@@ -1,8 +1,7 @@
 package no.uio.ifi.trackfind.backend.services;
 
-import com.google.common.collect.Multimap;
-import no.uio.ifi.trackfind.backend.dao.Dataset;
 import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
+import no.uio.ifi.trackfind.backend.data.providers.TestDataProvider;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,16 +12,14 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Collection;
-import java.util.Map;
 
+import static no.uio.ifi.trackfind.backend.data.providers.TestDataProvider.TEST_DATA_PROVIDER;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
 @ImportAutoConfiguration
 @SpringBootTest(classes = TrackFindServiceTests.TestConfiguration.class)
 public class TrackFindServiceTests {
-
-    private static final String TEST_DATA_PROVIDER = "TEST";
 
     @Autowired
     private TrackFindService trackFindService;
@@ -41,51 +38,7 @@ public class TrackFindServiceTests {
         assertThat(dataProvider.getName()).isEqualTo(TEST_DATA_PROVIDER);
     }
 
-    static class TestDataProvider implements DataProvider, Comparable<DataProvider> {
-
-        @Override
-        public String getName() {
-            return TEST_DATA_PROVIDER;
-        }
-
-        @Override
-        public void crawlRemoteRepository() {
-
-        }
-
-        @Override
-        public void applyMappings() {
-
-        }
-
-        @Override
-        public Map<String, Object> getMetamodelTree() {
-            return null;
-        }
-
-        @Override
-        public Multimap<String, String> getMetamodelFlat() {
-            return null;
-        }
-
-        @Override
-        public Collection<Dataset> search(String query, int limit) {
-            return null;
-        }
-
-        @Override
-        public Map<String, Object> fetch(String datasetId, String version) {
-            return null;
-        }
-
-        @Override
-        public int compareTo(DataProvider o) {
-            return 0;
-        }
-
-    }
-
-    @ComponentScan(basePackages = "no.uio.ifi.trackfind.backend.services")
+    @ComponentScan(basePackageClasses = no.uio.ifi.trackfind.backend.services.TrackFindService.class)
     static class TestConfiguration {
 
         @Bean

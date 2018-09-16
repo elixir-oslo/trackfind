@@ -62,7 +62,7 @@ public class DatasetsToGSuiteConverterTest {
     }
 
     @EnableConfigurationProperties(TrackFindProperties.class)
-    @ComponentScan(basePackages = "no.uio.ifi.trackfind.backend.converters")
+    @ComponentScan(basePackageClasses = no.uio.ifi.trackfind.backend.converters.DatasetsToGSuiteConverter.class)
     static class TestConfiguration {
         // nothing
     }
