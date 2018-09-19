@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import javax.persistence.*;
+import java.math.BigInteger;
 
 @Entity
 @Table(name = "datasets")
@@ -13,7 +14,7 @@ public class Dataset {
 
     @Id
     @GeneratedValue
-    private Long id;
+    private BigInteger id;
 
     @Column(name = "repository", nullable = false)
     private String repository;

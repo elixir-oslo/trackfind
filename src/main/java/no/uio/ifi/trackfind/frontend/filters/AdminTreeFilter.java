@@ -17,9 +17,9 @@ public class AdminTreeFilter implements SerializablePredicate<TreeNode> {
     @Override
     public boolean test(TreeNode treeNode) {
         String attributeOrValue = treeNode.toString().toLowerCase();
-        if (treeNode.isFinalAttribute() && !StringUtils.containsIgnoreCase(attributeOrValue, attributesFilter)) {
+        if (treeNode.isValue()) {
             return false;
-        } else if (!treeNode.isFinalAttribute() && dataProvider.getChildCount(treeNode.getQuery()) == 0) {
+        } else if (treeNode.isFinalAttribute() && !StringUtils.containsIgnoreCase(attributeOrValue, attributesFilter)) {
             return false;
         }
         return true;

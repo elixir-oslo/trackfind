@@ -20,6 +20,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.annotation.PostConstruct;
 import javax.transaction.Transactional;
+import java.math.BigInteger;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
@@ -245,13 +246,13 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     @Override
     public Collection<Dataset> search(String query, int limit) {
         limit = limit == 0 ? Integer.MAX_VALUE : limit;
-        List<Long> ids = jdbcTemplate.queryForList(
+        List<BigInteger> ids = jdbcTemplate.queryForList(
                 "SELECT id " +
                         "FROM datasets " +
                         "WHERE version = ? " +
-                        "AND (raw_dataset::jsonb @> ? OR basic_dataset::jsonb @> ?)" +
+                        "AND (raw_dataset @> ? OR basic_dataset @> ?)" +
                         "ORDER BY id ASC LIMIT ?"
-                , Long.TYPE, getCurrentVersion(), query, query, limit);
+                , BigInteger.class, getCurrentVersion(), query, query, limit);
         return datasetRepository.findByIdIn(ids);
     }
 
@@ -262,7 +263,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     @Override
     public Dataset fetch(String datasetId, String version) {
         long longVersion = version == null ? getCurrentVersion() : Long.parseLong(version);
-        return datasetRepository.findByIdAndVersion(Long.parseLong(datasetId), longVersion);
+        return datasetRepository.findByIdAndVersion(new BigInteger(datasetId), longVersion);
     }
 
     protected long getCurrentVersion() {

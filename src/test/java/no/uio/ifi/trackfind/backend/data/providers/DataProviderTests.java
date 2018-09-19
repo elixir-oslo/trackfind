@@ -16,6 +16,7 @@ import org.mockito.Mock;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.math.BigInteger;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -117,7 +118,7 @@ public class DataProviderTests {
         originalDataset = new Dataset();
         when(mappingRepository.findByRepository(anyString())).thenReturn(Collections.singleton(mapping));
         when(datasetRepository.findByRepositoryAndVersion(anyString(), anyLong())).thenReturn(Collections.singleton(originalDataset));
-        when(datasetRepository.findByIdAndVersion(anyLong(), anyLong())).thenReturn(originalDataset);
+        when(datasetRepository.findByIdAndVersion(any(), anyLong())).thenReturn(originalDataset);
         when(datasetRepository.findByIdIn(any())).thenReturn(Collections.singleton(originalDataset));
         when(jdbcTemplate.queryForObject(anyString(), eq(Long.TYPE))).thenReturn(0L);
         when(jdbcTemplate.queryForList(anyString(), eq(Long.TYPE), anyLong(), anyString(), anyString(), anyInt())).thenReturn(Collections.singletonList(0L));
@@ -128,7 +129,7 @@ public class DataProviderTests {
         attributeValueMap2.put("attribute", "level1>level2");
         attributeValueMap2.put("value", "value2");
         when(jdbcTemplate.queryForList(anyString(), anyString(), anyLong())).thenReturn(Arrays.asList(attributeValueMap1, attributeValueMap2));
-        originalDataset.setId(0L);
+        originalDataset.setId(BigInteger.ZERO);
         originalDataset.setVersion(0L);
         originalDataset.setRawDataset(SAMPLE_DATASET);
     }

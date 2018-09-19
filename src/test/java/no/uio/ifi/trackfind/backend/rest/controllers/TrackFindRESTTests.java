@@ -15,6 +15,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -146,7 +147,7 @@ public class TrackFindRESTTests {
         metamodelTree.put("level1", metamodelTreeInner);
         when(dataProvider.getMetamodelTree()).thenReturn(metamodelTree);
         dataset = new Dataset();
-        dataset.setId(0L);
+        dataset.setId(BigInteger.ZERO);
         when(dataProvider.search(anyString(), anyInt())).thenReturn(Collections.singleton(dataset));
         when(dataProvider.fetch(anyString(), Mockito.any())).thenReturn(dataset);
     }

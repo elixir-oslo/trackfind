@@ -10,6 +10,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Spy;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -48,7 +49,7 @@ public class DatasetsToGSuiteConverterTest {
         properties.setBasicAttributes(Arrays.asList("uri", "data_type", "attribute"));
 
         dataset = new Dataset();
-        dataset.setId(1L);
+        dataset.setId(BigInteger.ONE);
         dataset.setRepository("test");
         dataset.setVersion(2L);
 

@@ -143,11 +143,11 @@ public class TrackFindAdminUI extends AbstractUI {
 
     @Override
     protected void fillTreeData(TreeData<TreeNode> treeData, TreeNode treeNode) {
+        if (treeNode.isFinalAttribute()) {
+            return;
+        }
         treeData.addItems(treeNode, treeNode.getChildren());
         for (TreeNode child : treeNode.getChildren()) {
-            if (child.isFinalAttribute()) {
-                continue;
-            }
             fillTreeData(treeData, child);
         }
     }
