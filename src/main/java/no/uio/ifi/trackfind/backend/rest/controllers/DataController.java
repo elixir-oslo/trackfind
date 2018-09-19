@@ -29,7 +29,7 @@ public class DataController {
      * @param provider DataProvider name.
      * @param query    Search query.
      * @param limit    Max number of entries to return.
-     * @return Search results by revision.
+     * @return Search results by version.
      */
     @SuppressWarnings("unchecked")
     @ApiOperation(value = "Performs search in the database.", responseContainer = "Set")
@@ -49,7 +49,7 @@ public class DataController {
      *
      * @param provider DataProvider name.
      * @param id       Dataset ID.
-     * @param revision Revision of the repository.
+     * @param version  Version of the dataset.
      * @return Raw (JSON) data.
      */
     @ApiOperation(value = "Fetches raw (JSON) data by DatasetID.")
@@ -59,9 +59,9 @@ public class DataController {
             @PathVariable String provider,
             @ApiParam(value = "ID of the dataset to return.", required = true)
             @RequestParam String id,
-            @ApiParam(value = "Revision of the dataset to return.", required = false)
-            @RequestParam(required = false) String revision) {
-        return ResponseEntity.ok(trackFindService.getDataProvider(provider).fetch(id, revision));
+            @ApiParam(value = "Version of the dataset to return.", required = false)
+            @RequestParam(required = false) String version) {
+        return ResponseEntity.ok(trackFindService.getDataProvider(provider).fetch(id, version));
     }
 
     @Autowired
