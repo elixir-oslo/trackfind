@@ -75,6 +75,7 @@ public class TrackFindAdminUI extends AbstractUI {
 
         for (DataProvider dataProvider : trackFindService.getDataProviders()) {
             TrackFindTree<TreeNode> tree = buildTree(dataProvider);
+            refreshTrees(true);
             tabSheet.addTab(tree, dataProvider.getName());
         }
 
@@ -118,26 +119,21 @@ public class TrackFindAdminUI extends AbstractUI {
 
     @SuppressWarnings("unchecked")
     protected TrackFindTree<TreeNode> buildTree(DataProvider dataProvider) {
+        TreeDataProvider treeDataProvider = new TreeDataProvider(new TreeData());
+        treeDataProvider.setFilter(new AdminTreeFilter(treeDataProvider, ""));
+        treeDataProvider.setSortOrder((ValueProvider<TreeNode, String>) TreeNode::toString, SortDirection.ASCENDING);
+        dataProviders.put(treeDataProvider, dataProvider);
+
         TrackFindTree<TreeNode> tree = new TrackFindTree<>(dataProvider);
         tree.setSelectionMode(Grid.SelectionMode.SINGLE);
         tree.addSelectionListener((SelectionListener<TreeNode>) event -> addStaticMappingButton.setEnabled(!CollectionUtils.isEmpty(event.getAllSelectedItems())));
+        tree.setDataProvider(treeDataProvider);
+        tree.setSizeFull();
+        tree.setStyleGenerator((StyleGenerator<TreeNode>) item -> treeDataProvider.getChildCount(item.getQuery()) == 0 ? "no-children-tree-node" : null);
+
         TreeGridDragSource<TreeNode> dragSource = new TreeGridDragSource<>((TreeGrid<TreeNode>) tree.getCompositionRoot());
         dragSource.setEffectAllowed(EffectAllowed.COPY);
-        TreeNode root = new TreeNode(dataProvider.getMetamodelTree());
-        TreeData<TreeNode> treeData = new TreeData<>();
-        Collection<TreeNode> children = root.getChildren().parallelStream().collect(Collectors.toSet());
-        treeData.addRootItems(children);
-        children.forEach(c -> fillTreeData(treeData, c));
-        TreeDataProvider trackDataProvider = new TreeDataProvider(treeData);
-        trackDataProvider.setFilter(new AdminTreeFilter(trackDataProvider, ""));
-        trackDataProvider.setSortOrder((ValueProvider<TreeNode, String>) TreeNode::toString, SortDirection.ASCENDING);
-        tree.setDataProvider(trackDataProvider);
-        tree.setSizeFull();
-        tree.setStyleGenerator((StyleGenerator<TreeNode>) item -> trackDataProvider.getChildCount(item.getQuery()) == 0 ? "no-children-tree-node" : null);
-        Iterator<TreeNode> iterator = children.iterator();
-        if (iterator.hasNext()) {
-            tree.expand(iterator.next());
-        }
+
         return tree;
     }
 

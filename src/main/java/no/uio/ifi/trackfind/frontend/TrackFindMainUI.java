@@ -1,6 +1,5 @@
 package no.uio.ifi.trackfind.frontend;
 
-import com.google.gson.Gson;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Title;
 import com.vaadin.annotations.Widgetset;
@@ -57,13 +56,11 @@ import java.util.Collection;
 public class TrackFindMainUI extends AbstractUI {
 
     private DatasetsToGSuiteConverter datasetsToGSuiteConverter;
-    private Gson gson;
 
     private int numberOfResults;
 
     private TextArea queryTextArea;
     private TextField limitTextField;
-    private Button searchButton;
     private TextArea resultsTextArea;
     private FileDownloader gSuiteFileDownloader;
     private FileDownloader jsonFileDownloader;
@@ -88,11 +85,15 @@ public class TrackFindMainUI extends AbstractUI {
 
         for (DataProvider dataProvider : trackFindService.getDataProviders()) {
             TrackFindTree<TreeNode> tree = buildTree(dataProvider);
+            refreshTrees(false);
             tabSheet.addTab(tree, dataProvider.getName());
         }
 
         Panel treePanel = new Panel("Model browser", tabSheet);
         treePanel.setSizeFull();
+
+        CheckBox checkBox = new CheckBox("Advanced metamodel");
+        checkBox.addValueChangeListener((HasValue.ValueChangeListener<Boolean>) event -> refreshTrees(event.getValue()));
 
         TextField attributesFilterTextField = new TextField("Filter attributes", (HasValue.ValueChangeListener<String>) event -> {
             TreeDataProvider<TreeNode> dataProvider = getCurrentTreeDataProvider();
@@ -113,7 +114,7 @@ public class TrackFindMainUI extends AbstractUI {
         Button addToQueryButton = new Button("Add to query ➚", new AddToQueryButtonClickListener(this));
         addToQueryButton.setWidth(100, Unit.PERCENTAGE);
 
-        VerticalLayout treeLayout = new VerticalLayout(treePanel, attributesFilterTextField, valuesFilterTextField, addToQueryButton);
+        VerticalLayout treeLayout = new VerticalLayout(treePanel, checkBox, attributesFilterTextField, valuesFilterTextField, addToQueryButton);
         treeLayout.setSizeFull();
         treeLayout.setExpandRatio(treePanel, 1f);
         return treeLayout;
@@ -121,24 +122,22 @@ public class TrackFindMainUI extends AbstractUI {
 
     @SuppressWarnings("unchecked")
     protected TrackFindTree<TreeNode> buildTree(DataProvider dataProvider) {
+        TreeDataProvider treeDataProvider = new TreeDataProvider(new TreeData<>());
+        treeDataProvider.setFilter(new MainTreeFilter(treeDataProvider, "", ""));
+        treeDataProvider.setSortOrder((ValueProvider<TreeNode, String>) TreeNode::toString, SortDirection.ASCENDING);
+        dataProviders.put(treeDataProvider, dataProvider);
+
         TrackFindTree<TreeNode> tree = new TrackFindTree<>(dataProvider);
         tree.setSelectionMode(Grid.SelectionMode.MULTI);
         tree.addItemClickListener(new TreeItemClickListener(tree));
         tree.addSelectionListener(new TreeSelectionListener(tree, new KeyboardInterceptorExtension(tree)));
-        TreeGridDragSource<TreeNode> dragSource = new TreeGridDragSource<>((TreeGrid<TreeNode>) tree.getCompositionRoot());
-        dragSource.setEffectAllowed(EffectAllowed.COPY);
-        TreeNode root = new TreeNode(dataProvider.getMetamodelTree());
-        TreeData<TreeNode> treeData = new TreeData<>();
-        Collection<TreeNode> children = root.getChildren();
-        treeData.addRootItems(children);
-        children.forEach(c -> fillTreeData(treeData, c));
-        TreeDataProvider trackDataProvider = new TreeDataProvider(treeData);
-        trackDataProvider.setFilter(new MainTreeFilter(trackDataProvider, "", ""));
-        trackDataProvider.setSortOrder((ValueProvider<TreeNode, String>) TreeNode::toString, SortDirection.ASCENDING);
-        tree.setDataProvider(trackDataProvider);
+        tree.setDataProvider(treeDataProvider);
         tree.setSizeFull();
         tree.setStyleGenerator((StyleGenerator<TreeNode>) item -> item.isValue() ? "value-tree-node" : null);
-        children.parallelStream().filter(c -> properties.getBasicSectionName().equals(c.toString())).findFirst().ifPresent(tree::expand);
+
+        TreeGridDragSource<TreeNode> dragSource = new TreeGridDragSource<>((TreeGrid<TreeNode>) tree.getCompositionRoot());
+        dragSource.setEffectAllowed(EffectAllowed.COPY);
+
         return tree;
     }
 
@@ -196,6 +195,7 @@ public class TrackFindMainUI extends AbstractUI {
                 executeQuery(queryTextArea.getValue());
             }
         });
+        Button searchButton = new Button("Search", (Button.ClickListener) clickEvent -> executeQuery(queryTextArea.getValue()));
         queryTextArea.addValueChangeListener((HasValue.ValueChangeListener<String>) event -> {
             searchButton.setEnabled(StringUtils.isNotEmpty(queryTextArea.getValue()));
         });
@@ -206,7 +206,6 @@ public class TrackFindMainUI extends AbstractUI {
         Panel queryPanel = new Panel("Search query", queryTextArea);
         queryPanel.setSizeFull();
 
-        searchButton = new Button("Search", (Button.ClickListener) clickEvent -> executeQuery(queryTextArea.getValue()));
         searchButton.setWidth(100, Unit.PERCENTAGE);
         searchButton.setEnabled(false);
 
@@ -299,11 +298,6 @@ public class TrackFindMainUI extends AbstractUI {
     @Autowired
     public void setDatasetsToGSuiteConverter(DatasetsToGSuiteConverter datasetsToGSuiteConverter) {
         this.datasetsToGSuiteConverter = datasetsToGSuiteConverter;
-    }
-
-    @Autowired
-    public void setGson(Gson gson) {
-        this.gson = gson;
     }
 
 }

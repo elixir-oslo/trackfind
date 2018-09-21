@@ -47,7 +47,8 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
         if (datasetRepository.countByRepository(getName()) == 0) {
             crawlRemoteRepository();
         }
-        jdbcTemplate.execute(Queries.METAMODEL_VIEW);
+        jdbcTemplate.execute(String.format(Queries.METAMODEL_VIEW, "raw", "raw"));
+        jdbcTemplate.execute(String.format(Queries.METAMODEL_VIEW, "basic", "basic"));
         jdbcTemplate.execute(Queries.RAW_INDEX);
         jdbcTemplate.execute(Queries.BASIC_INDEX);
     }
@@ -196,12 +197,12 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     /**
      * {@inheritDoc}
      */
-    @Cacheable(value = "metamodel-tree", key = "#root.targetClass + #root.methodName")
+    @Cacheable(value = "metamodel-tree", key = "#root.targetClass + #root.methodName + #root.args[0]")
     @Override
     @SuppressWarnings("unchecked")
-    public Map<String, Object> getMetamodelTree() {
+    public Map<String, Object> getMetamodelTree(boolean advanced) {
         Map<String, Object> result = new HashMap<>();
-        Multimap<String, String> metamodelFlat = getMetamodelFlat();
+        Multimap<String, String> metamodelFlat = getMetamodelFlat(advanced);
         for (Map.Entry<String, Collection<String>> entry : metamodelFlat.asMap().entrySet()) {
             String attribute = entry.getKey();
             if (getAttributesToHide().contains(attribute)) {
@@ -222,12 +223,12 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     /**
      * {@inheritDoc}
      */
-    @Cacheable(value = "metamodel-flat", key = "#root.targetClass + #root.methodName")
+    @Cacheable(value = "metamodel-flat", key = "#root.targetClass + #root.methodName + #root.args[0]")
     @Override
-    public Multimap<String, String> getMetamodelFlat() {
+    public Multimap<String, String> getMetamodelFlat(boolean advanced) {
         Multimap<String, String> metamodel = HashMultimap.create();
         List<Map<String, Object>> attributeValuePairs = jdbcTemplate.queryForList(
-                "SELECT attribute, value FROM metamodel WHERE repository = ? AND version = ?"
+                "SELECT attribute, value FROM " + (advanced ? "raw" : "basic") + "_metamodel WHERE repository = ? AND version = ?"
                 , getName(), getCurrentVersion());
         for (Map attributeValuePair : attributeValuePairs) {
             String attribute = String.valueOf(attributeValuePair.get("attribute"));

@@ -2,14 +2,14 @@ package no.uio.ifi.trackfind.backend.dao;
 
 public interface Queries {
 
-    String METAMODEL_VIEW = "CREATE OR REPLACE VIEW metamodel AS\n" +
+    String METAMODEL_VIEW = "CREATE OR REPLACE VIEW %s_metamodel AS\n" +
             "  WITH RECURSIVE collect_metadata AS (SELECT datasets.repository,\n" +
             "                                             datasets.version,\n" +
             "                                             first_level.key,\n" +
             "                                             first_level.value,\n" +
             "                                             jsonb_typeof(first_level.value) AS type\n" +
             "                                      FROM datasets,\n" +
-            "                                           jsonb_each(datasets.raw_dataset) first_level\n" +
+            "                                           jsonb_each(datasets.%s_dataset) first_level\n" +
             "\n" +
             "                                      UNION ALL\n" +
             "\n" +

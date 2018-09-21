@@ -66,7 +66,7 @@ public class DataProviderTests {
     @SuppressWarnings("unchecked")
     @Test
     public void getMetamodelTree() {
-        Map<String, Object> metamodelTree = dataProvider.getMetamodelTree();
+        Map<String, Object> metamodelTree = dataProvider.getMetamodelTree(true);
         assertThat(metamodelTree).hasSize(1);
         assertThat(metamodelTree).containsOnlyKeys("level1");
         assertThat(metamodelTree.get("level1")).isInstanceOf(Map.class);
@@ -81,7 +81,7 @@ public class DataProviderTests {
 
     @Test
     public void getMetamodelFlat() {
-        Multimap<String, String> metamodelFlat = dataProvider.getMetamodelFlat();
+        Multimap<String, String> metamodelFlat = dataProvider.getMetamodelFlat(true);
         assertThat(metamodelFlat.asMap()).hasSize(1);
         assertThat(metamodelFlat.asMap()).containsOnlyKeys("level1>level2");
         assertThat(metamodelFlat.asMap().get("level1>level2")).hasSize(2);

@@ -57,14 +57,14 @@ public class DatasetsToGSuiteConverter implements Function<Collection<Dataset>, 
         if (dataTypesObject instanceof Collection) {
             dataTypes = (Collection<String>) dataTypesObject;
         } else {
-            dataTypes = Collections.singleton(String.valueOf(dataTypesObject));
+            dataTypes = Collections.singleton(dataTypesObject == null ? "." : dataTypesObject.toString());
         }
         Object urisObject = basicMap.get(properties.getUriAttribute());
         Collection<String> uris;
         if (urisObject instanceof Collection) {
             uris = (Collection<String>) urisObject;
         } else {
-            uris = Collections.singleton(String.valueOf(urisObject));
+            uris = Collections.singleton(urisObject == null ? "." : urisObject.toString());
         }
         Assert.isTrue(CollectionUtils.size(dataTypes) == CollectionUtils.size(uris), "DataTypes and URIs mismatch!");
         Collection<Map<String, Object>> result = new HashSet<>();

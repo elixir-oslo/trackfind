@@ -35,8 +35,10 @@ public class MetamodelController {
     @GetMapping(path = "/{provider}/metamodel-tree", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Map<String, Object>> getMetamodelTree(
             @ApiParam(value = "Data provider name.", required = true, example = "IHEC")
-            @PathVariable String provider) {
-        return ResponseEntity.ok(trackFindService.getDataProvider(provider).getMetamodelTree());
+            @PathVariable String provider,
+            @ApiParam(value = "Advanced or Basic metamodel", required = false, defaultValue = "false")
+            @RequestParam(required = false, defaultValue = "false") boolean advanced) {
+        return ResponseEntity.ok(trackFindService.getDataProvider(provider).getMetamodelTree(advanced));
     }
 
     /**
@@ -49,8 +51,10 @@ public class MetamodelController {
     @GetMapping(path = "/{provider}/metamodel-flat", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Map<String, Collection<String>>> getMetamodelFlat(
             @ApiParam(value = "Data provider name.", required = true, example = "IHEC")
-            @PathVariable String provider) {
-        return ResponseEntity.ok(trackFindService.getDataProvider(provider).getMetamodelFlat().asMap());
+            @PathVariable String provider,
+            @ApiParam(value = "Advanced or Basic metamodel", required = false, defaultValue = "false")
+            @RequestParam(required = false, defaultValue = "false") boolean advanced) {
+        return ResponseEntity.ok(trackFindService.getDataProvider(provider).getMetamodelFlat(advanced).asMap());
     }
 
     /**
@@ -65,8 +69,10 @@ public class MetamodelController {
     public ResponseEntity<Collection<String>> getAttributes(@ApiParam(value = "Data provider name.", required = true, example = "IHEC")
                                                             @PathVariable String provider,
                                                             @ApiParam(value = "Text mask to use as a filter.", required = false, defaultValue = "", example = "data")
-                                                            @RequestParam(required = false, defaultValue = "") String filter) {
-        Set<String> attributes = trackFindService.getDataProvider(provider).getMetamodelFlat().asMap().keySet();
+                                                            @RequestParam(required = false, defaultValue = "") String filter,
+                                                            @ApiParam(value = "Advanced or Basic metamodel", required = false, defaultValue = "false")
+                                                            @RequestParam(required = false, defaultValue = "false") boolean advanced) {
+        Set<String> attributes = trackFindService.getDataProvider(provider).getMetamodelFlat(advanced).asMap().keySet();
         return ResponseEntity.ok(attributes.parallelStream().filter(a -> a.contains(filter)).collect(Collectors.toSet()));
     }
 
@@ -85,8 +91,10 @@ public class MetamodelController {
                                                         @ApiParam(value = "Attribute name.", required = true, example = "Advanced>sample_id")
                                                         @PathVariable String attribute,
                                                         @ApiParam(value = "Text mask to use as a filter.", required = false, defaultValue = "", example = "MS")
-                                                        @RequestParam(required = false, defaultValue = "") String filter) {
-        Collection<String> values = trackFindService.getDataProvider(provider).getMetamodelFlat().get(attribute);
+                                                        @RequestParam(required = false, defaultValue = "") String filter,
+                                                        @ApiParam(value = "Advanced or Basic metamodel", required = false, defaultValue = "false")
+                                                        @RequestParam(required = false, defaultValue = "false") boolean advanced) {
+        Collection<String> values = trackFindService.getDataProvider(provider).getMetamodelFlat(advanced).get(attribute);
         return ResponseEntity.ok(values.parallelStream().filter(a -> a.contains(filter)).collect(Collectors.toSet()));
     }
 

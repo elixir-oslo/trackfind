@@ -11,6 +11,11 @@ import no.uio.ifi.trackfind.frontend.components.TrackFindTree;
 import no.uio.ifi.trackfind.frontend.data.TreeNode;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 /**
  * Main Vaadin UI of the application.
  * Capable of displaying metadata for repositories, constructing and executing search queries along with exporting the results.
@@ -26,6 +31,8 @@ public abstract class AbstractUI extends UI {
     protected TrackFindService trackFindService;
 
     protected TabSheet tabSheet;
+
+    protected Map<TreeDataProvider, DataProvider> dataProviders = new HashMap<>();
 
     @SuppressWarnings("unchecked")
     public TrackFindTree<TreeNode> getCurrentTree() {
@@ -68,6 +75,20 @@ public abstract class AbstractUI extends UI {
         headerLayout.setSizeFull();
         headerLayout.setComponentAlignment(headerLabel, Alignment.TOP_CENTER);
         return headerLayout;
+    }
+
+    @SuppressWarnings("unchecked")
+    protected void refreshTrees(boolean advanced) {
+        for (Map.Entry<TreeDataProvider, DataProvider> entry : dataProviders.entrySet()) {
+            TreeDataProvider treeDataProvider = entry.getKey();
+            DataProvider dataProvider = entry.getValue();
+            TreeData treeData = treeDataProvider.getTreeData().clear();
+            TreeNode root = new TreeNode(dataProvider.getMetamodelTree(advanced));
+            Collection<TreeNode> children = root.getChildren().parallelStream().collect(Collectors.toSet());
+            treeData.addRootItems(children);
+            children.forEach(c -> fillTreeData(treeData, c));
+            treeDataProvider.refreshAll();
+        }
     }
 
     protected void fillTreeData(TreeData<TreeNode> treeData, TreeNode treeNode) {
