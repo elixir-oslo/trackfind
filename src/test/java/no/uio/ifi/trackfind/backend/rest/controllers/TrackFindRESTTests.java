@@ -139,13 +139,13 @@ public class TrackFindRESTTests {
         metamodelFlat.put("level1>level2_1", "value1");
         metamodelFlat.put("level1>level2_1", "value2");
         metamodelFlat.put("level1>level2_2", "value3");
-        when(dataProvider.getMetamodelFlat(true)).thenReturn(metamodelFlat);
+        when(dataProvider.getMetamodelFlat(false)).thenReturn(metamodelFlat);
         Map<String, Object> metamodelTree = new HashMap<>();
         Map<String, Object> metamodelTreeInner = new HashMap<>();
         metamodelTreeInner.put("level2_1", Arrays.asList("value1", "value2"));
         metamodelTreeInner.put("level2_2", Collections.singleton("value3"));
         metamodelTree.put("level1", metamodelTreeInner);
-        when(dataProvider.getMetamodelTree(true)).thenReturn(metamodelTree);
+        when(dataProvider.getMetamodelTree(false)).thenReturn(metamodelTree);
         dataset = new Dataset();
         dataset.setId(BigInteger.ZERO);
         when(dataProvider.search(anyString(), anyInt())).thenReturn(Collections.singleton(dataset));
