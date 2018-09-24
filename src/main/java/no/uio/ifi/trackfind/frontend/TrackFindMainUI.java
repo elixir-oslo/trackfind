@@ -1,5 +1,7 @@
 package no.uio.ifi.trackfind.frontend;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Title;
 import com.vaadin.annotations.Widgetset;
@@ -19,6 +21,7 @@ import com.vaadin.spring.annotation.SpringUI;
 import com.vaadin.ui.*;
 import com.vaadin.ui.components.grid.TreeGridDragSource;
 import com.vaadin.ui.dnd.DropTargetExtension;
+import com.vaadin.util.FileTypeResolver;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.converters.DatasetsToGSuiteConverter;
 import no.uio.ifi.trackfind.backend.dao.Dataset;
@@ -55,6 +58,7 @@ import java.util.Collection;
 @Slf4j
 public class TrackFindMainUI extends AbstractUI {
 
+    private ObjectMapper mapper;
     private DatasetsToGSuiteConverter datasetsToGSuiteConverter;
 
     private int numberOfResults;
@@ -62,10 +66,8 @@ public class TrackFindMainUI extends AbstractUI {
     private TextArea queryTextArea;
     private TextField limitTextField;
     private TextArea resultsTextArea;
-    private FileDownloader gSuiteFileDownloader;
-    private FileDownloader jsonFileDownloader;
-    private Button exportGSuiteButton;
-    private Button exportJSONButton;
+    private String jsonResult;
+    private String gSuiteResult;
 
     @Override
     protected void init(VaadinRequest vaadinRequest) {
@@ -148,6 +150,48 @@ public class TrackFindMainUI extends AbstractUI {
     }
 
     private VerticalLayout buildResultsLayout() {
+        Button exportGSuiteButton = new Button("Export as GSuite file");
+        exportGSuiteButton.setEnabled(false);
+        exportGSuiteButton.setWidth(100, Unit.PERCENTAGE);
+        Button exportJSONButton = new Button("Export as JSON file");
+        exportJSONButton.setEnabled(false);
+        exportJSONButton.setWidth(100, Unit.PERCENTAGE);
+        Resource gSuiteResource = new StreamResource(null, null) {
+            @Override
+            public StreamSource getStreamSource() {
+                return (StreamResource.StreamSource) () -> new ByteArrayInputStream(gSuiteResult.getBytes(Charset.defaultCharset()));
+            }
+
+            @Override
+            public String getFilename() {
+                return Calendar.getInstance().getTime().toString() + ".gsuite";
+            }
+
+            @Override
+            public String getMIMEType() {
+                return FileTypeResolver.getMIMEType(getFilename());
+            }
+        };
+        FileDownloader gSuiteFileDownloader = new FileDownloader(gSuiteResource);
+        gSuiteFileDownloader.extend(exportGSuiteButton);
+        Resource jsonResource = new StreamResource(null, null) {
+            @Override
+            public StreamSource getStreamSource() {
+                return (StreamResource.StreamSource) () -> new ByteArrayInputStream(jsonResult.getBytes(Charset.defaultCharset()));
+            }
+
+            @Override
+            public String getFilename() {
+                return Calendar.getInstance().getTime().toString() + ".json";
+            }
+
+            @Override
+            public String getMIMEType() {
+                return FileTypeResolver.getMIMEType(getFilename());
+            }
+        };
+        FileDownloader jsonFileDownloader = new FileDownloader(jsonResource);
+        jsonFileDownloader.extend(exportJSONButton);
         resultsTextArea = new TextArea();
         resultsTextArea.setSizeFull();
         resultsTextArea.setReadOnly(true);
@@ -167,12 +211,6 @@ public class TrackFindMainUI extends AbstractUI {
         });
         Panel resultsPanel = new Panel("Data", resultsTextArea);
         resultsPanel.setSizeFull();
-        exportGSuiteButton = new Button("Export as GSuite file");
-        exportGSuiteButton.setEnabled(false);
-        exportGSuiteButton.setWidth(100, Unit.PERCENTAGE);
-        exportJSONButton = new Button("Export as JSON file");
-        exportJSONButton.setEnabled(false);
-        exportJSONButton.setWidth(100, Unit.PERCENTAGE);
         VerticalLayout resultsLayout = new VerticalLayout(resultsPanel, exportGSuiteButton, exportJSONButton);
         resultsLayout.setSizeFull();
         resultsLayout.setExpandRatio(resultsPanel, 1f);
@@ -256,7 +294,6 @@ public class TrackFindMainUI extends AbstractUI {
     @SuppressWarnings("unchecked")
     private void executeQuery(String query) {
         DataProvider currentDataProvider = getCurrentDataProvider();
-
         String limit = limitTextField.getValue();
         limit = StringUtils.isEmpty(limit) ? "0" : limit;
         Collection<Dataset> results = currentDataProvider.search(query, Integer.parseInt(limit));
@@ -266,33 +303,22 @@ public class TrackFindMainUI extends AbstractUI {
             return;
         }
         numberOfResults = results.size();
-        StringBuilder jsonResult = new StringBuilder();
-        for (Dataset dataset : results) {
-            jsonResult.append(dataset.getRawDataset()).append("\n");
+        try {
+            jsonResult = mapper.writeValueAsString(results);
+        } catch (JsonProcessingException e) {
+            log.error(e.getMessage(), e);
         }
-        resultsTextArea.setValue(jsonResult.toString());
-
-        String gSuiteResult = datasetsToGSuiteConverter.apply(results);
-
-        if (gSuiteFileDownloader != null) {
-            exportGSuiteButton.removeExtension(gSuiteFileDownloader);
-        }
-        if (jsonFileDownloader != null) {
-            exportJSONButton.removeExtension(jsonFileDownloader);
-        }
-        Resource gSuiteResource = new StreamResource((StreamResource.StreamSource) () -> new ByteArrayInputStream(gSuiteResult.getBytes(Charset.defaultCharset())),
-                Calendar.getInstance().getTime().toString() + ".gsuite");
-        gSuiteFileDownloader = new FileDownloader(gSuiteResource);
-        gSuiteFileDownloader.extend(exportGSuiteButton);
-
-        Resource jsonResource = new StreamResource((StreamResource.StreamSource) () -> new ByteArrayInputStream(jsonResult.toString().getBytes(Charset.defaultCharset())),
-                Calendar.getInstance().getTime().toString() + ".json");
-        jsonFileDownloader = new FileDownloader(jsonResource);
-        jsonFileDownloader.extend(exportJSONButton);
+        gSuiteResult = datasetsToGSuiteConverter.apply(results);
+        resultsTextArea.setValue(jsonResult);
     }
 
     public TextArea getQueryTextArea() {
         return queryTextArea;
+    }
+
+    @Autowired
+    public void setMapper(ObjectMapper mapper) {
+        this.mapper = mapper;
     }
 
     @Autowired
