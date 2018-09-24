@@ -83,9 +83,9 @@ public class DataProviderTests {
     public void getMetamodelFlat() {
         Multimap<String, String> metamodelFlat = dataProvider.getMetamodelFlat(true);
         assertThat(metamodelFlat.asMap()).hasSize(1);
-        assertThat(metamodelFlat.asMap()).containsOnlyKeys("level1>level2");
-        assertThat(metamodelFlat.asMap().get("level1>level2")).hasSize(2);
-        assertThat(metamodelFlat.asMap().get("level1>level2")).containsExactlyInAnyOrder("value1", "value2");
+        assertThat(metamodelFlat.asMap()).containsOnlyKeys("level1->level2");
+        assertThat(metamodelFlat.asMap().get("level1->level2")).hasSize(2);
+        assertThat(metamodelFlat.asMap().get("level1->level2")).containsExactlyInAnyOrder("value1", "value2");
     }
 
     @Test
@@ -111,7 +111,7 @@ public class DataProviderTests {
         when(trackFindProperties.getLevelsSeparator()).thenReturn("->");
 
         Mapping mapping = new Mapping();
-        mapping.setFrom("analysis_attributes>alignment_software");
+        mapping.setFrom("analysis_attributes->alignment_software");
         mapping.setTo("software");
         mapping.setStaticMapping(true);
 
@@ -123,10 +123,10 @@ public class DataProviderTests {
         when(jdbcTemplate.queryForObject(anyString(), eq(Long.TYPE))).thenReturn(0L);
         when(jdbcTemplate.queryForList(anyString(), eq(Long.TYPE), anyLong(), anyString(), anyString(), anyInt())).thenReturn(Collections.singletonList(0L));
         HashMap<String, Object> attributeValueMap1 = new HashMap<>();
-        attributeValueMap1.put("attribute", "level1>level2");
+        attributeValueMap1.put("attribute", "level1->level2");
         attributeValueMap1.put("value", "value1");
         HashMap<String, Object> attributeValueMap2 = new HashMap<>();
-        attributeValueMap2.put("attribute", "level1>level2");
+        attributeValueMap2.put("attribute", "level1->level2");
         attributeValueMap2.put("value", "value2");
         when(jdbcTemplate.queryForList(anyString(), anyString(), anyLong())).thenReturn(Arrays.asList(attributeValueMap1, attributeValueMap2));
         originalDataset.setId(BigInteger.ZERO);
