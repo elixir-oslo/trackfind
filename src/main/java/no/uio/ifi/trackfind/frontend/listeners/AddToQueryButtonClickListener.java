@@ -15,9 +15,11 @@ public class AddToQueryButtonClickListener extends MoveAttributeValueHandler imp
     /**
      * Constructor with binding to TrackFindMainUI.
      *
-     * @param ui TrackFind UI.
+     * @param ui              TrackFind UI.
+     * @param levelsSeparator Levels separator.
      */
-    public AddToQueryButtonClickListener(TrackFindMainUI ui) {
+    public AddToQueryButtonClickListener(TrackFindMainUI ui, String levelsSeparator) {
+        super(levelsSeparator);
         this.ui = ui;
     }
 

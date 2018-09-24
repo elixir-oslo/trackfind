@@ -23,8 +23,10 @@ public class TextAreaDropListener extends MoveAttributeValueHandler implements D
      * Constructor with binding to TextArea.
      *
      * @param textArea TextArea to handle drops for.
+     * @param levelsSeparator Levels separator.
      */
-    public TextAreaDropListener(TextArea textArea) {
+    public TextAreaDropListener(TextArea textArea, String levelsSeparator) {
+        super(levelsSeparator);
         this.textArea = textArea;
     }
 

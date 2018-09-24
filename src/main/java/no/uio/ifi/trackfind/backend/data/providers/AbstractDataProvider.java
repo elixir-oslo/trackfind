@@ -47,8 +47,8 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
         if (datasetRepository.countByRepository(getName()) == 0) {
             crawlRemoteRepository();
         }
-        jdbcTemplate.execute(String.format(Queries.METAMODEL_VIEW, "raw", "raw"));
-        jdbcTemplate.execute(String.format(Queries.METAMODEL_VIEW, "basic", "basic"));
+        jdbcTemplate.execute(String.format(Queries.METAMODEL_VIEW, "raw", "raw", properties.getLevelsSeparator(), properties.getLevelsSeparator()));
+        jdbcTemplate.execute(String.format(Queries.METAMODEL_VIEW, "basic", "basic", properties.getLevelsSeparator(), properties.getLevelsSeparator()));
         jdbcTemplate.execute(Queries.RAW_INDEX);
         jdbcTemplate.execute(Queries.BASIC_INDEX);
     }

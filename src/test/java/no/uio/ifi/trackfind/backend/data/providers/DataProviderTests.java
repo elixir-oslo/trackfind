@@ -108,7 +108,7 @@ public class DataProviderTests {
     public void setUp() {
         dataProvider.setGson(gson);
 
-        when(trackFindProperties.getLevelsSeparator()).thenReturn(">");
+        when(trackFindProperties.getLevelsSeparator()).thenReturn("->");
 
         Mapping mapping = new Mapping();
         mapping.setFrom("analysis_attributes>alignment_software");

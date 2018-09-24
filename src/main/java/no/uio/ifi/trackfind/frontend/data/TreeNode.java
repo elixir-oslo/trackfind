@@ -20,6 +20,7 @@ public class TreeNode implements Comparable<TreeNode> {
     private int level = 0;
     private TreeNode parent;
     private Map.Entry<String, Object> node;
+    private String levelsSeparator;
 
     private String path;
     private HierarchicalQuery<TreeNode, SerializablePredicate<TreeNode>> query;
@@ -31,8 +32,9 @@ public class TreeNode implements Comparable<TreeNode> {
      *
      * @param root Root element of the metadata hierarchy.
      */
-    public TreeNode(Map<String, Object> root) {
+    public TreeNode(Map<String, Object> root, String levelsSeparator) {
         this.node = new AbstractMap.SimpleEntry<>(null, root);
+        this.levelsSeparator = levelsSeparator;
     }
 
     /**
@@ -41,10 +43,11 @@ public class TreeNode implements Comparable<TreeNode> {
      * @param parent Parent TreeNode for this child element.
      * @param node   Child element.
      */
-    private TreeNode(TreeNode parent, Map.Entry<String, Object> node) {
+    private TreeNode(TreeNode parent, Map.Entry<String, Object> node, String levelsSeparator) {
         this.level = parent.getLevel() + 1;
         this.parent = parent;
         this.node = node;
+        this.levelsSeparator = levelsSeparator;
     }
 
     /**
@@ -115,9 +118,9 @@ public class TreeNode implements Comparable<TreeNode> {
     private Collection<TreeNode> getChildrenInternally() {
         Object value = node.getValue();
         if (value instanceof Map) {
-            return ((Map<String, Object>) value).entrySet().parallelStream().map(e -> new TreeNode(this, e)).collect(Collectors.toSet());
+            return ((Map<String, Object>) value).entrySet().parallelStream().map(e -> new TreeNode(this, e, levelsSeparator)).collect(Collectors.toSet());
         } else if (value instanceof Collection) {
-            return ((Collection<String>) value).parallelStream().map(s -> new AbstractMap.SimpleEntry<>(s, null)).map(e -> new TreeNode(this, e)).collect(Collectors.toSet());
+            return ((Collection<String>) value).parallelStream().map(s -> new AbstractMap.SimpleEntry<>(s, null)).map(e -> new TreeNode(this, e, levelsSeparator)).collect(Collectors.toSet());
         } else {
             return Collections.emptySet();
         }
@@ -148,7 +151,7 @@ public class TreeNode implements Comparable<TreeNode> {
         StringBuilder path = new StringBuilder(toString());
         TreeNode parent = getParent();
         while (parent.toString() != null) {
-            path.insert(0, parent.toString() + ">");
+            path.insert(0, parent.toString() + levelsSeparator);
             parent = parent.getParent();
         }
         return path.toString();

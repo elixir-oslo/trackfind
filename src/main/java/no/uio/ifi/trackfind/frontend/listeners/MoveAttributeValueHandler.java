@@ -25,6 +25,12 @@ public abstract class MoveAttributeValueHandler {
 
     private static String INVERSION = "NOT ";
 
+    private String levelsSeparator;
+
+    public MoveAttributeValueHandler(String levelsSeparator) {
+        this.levelsSeparator = levelsSeparator;
+    }
+
     /**
      * Fetches mouse click details and processes single or multiple drop.
      *
@@ -62,7 +68,7 @@ public abstract class MoveAttributeValueHandler {
         }
         TreeNode firstItem = items.iterator().next();
         String path = firstItem.getPath();
-        String queryTerm = path.substring(0, path.lastIndexOf(">"));
+        String queryTerm = path.substring(0, path.lastIndexOf(levelsSeparator));
         String attribute = queryTerm.split(":")[0];
         query.append(attribute).append(": (");
         for (TreeNode item : items) {
@@ -91,7 +97,7 @@ public abstract class MoveAttributeValueHandler {
         }
         String path = item.getPath();
         if (item.isValue()) {
-            query += path.substring(0, path.lastIndexOf(">")) + ": " + item.toString();
+            query += path.substring(0, path.lastIndexOf(levelsSeparator)) + ": " + item.toString();
         } else {
             query += path + ": ";
         }

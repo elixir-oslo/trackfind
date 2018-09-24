@@ -19,7 +19,7 @@ public interface Queries {
             "                                      )\n" +
             "                                      SELECT prev_level.repository,\n" +
             "                                             prev_level.version,\n" +
-            "                                             concat(prev_level.key, '>', current_level.key),\n" +
+            "                                             concat(prev_level.key, '%s', current_level.key),\n" +
             "                                             current_level.value,\n" +
             "                                             jsonb_typeof(current_level.value) AS type\n" +
             "                                      FROM prev_level,\n" +
@@ -30,7 +30,7 @@ public interface Queries {
             "\n" +
             "                                      SELECT prev_level.repository,\n" +
             "                                             prev_level.version,\n" +
-            "                                             concat(prev_level.key, '>', current_level.key),\n" +
+            "                                             concat(prev_level.key, '%s', current_level.key),\n" +
             "                                             current_level.value,\n" +
             "                                             jsonb_typeof(current_level.value) AS type\n" +
             "                                      FROM prev_level,\n" +

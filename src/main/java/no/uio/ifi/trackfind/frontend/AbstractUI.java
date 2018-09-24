@@ -83,7 +83,7 @@ public abstract class AbstractUI extends UI {
             TreeDataProvider treeDataProvider = entry.getKey();
             DataProvider dataProvider = entry.getValue();
             TreeData treeData = treeDataProvider.getTreeData().clear();
-            TreeNode root = new TreeNode(dataProvider.getMetamodelTree(advanced));
+            TreeNode root = new TreeNode(dataProvider.getMetamodelTree(advanced), properties.getLevelsSeparator());
             Collection<TreeNode> children = root.getChildren().parallelStream().collect(Collectors.toSet());
             treeData.addRootItems(children);
             children.forEach(c -> fillTreeData(treeData, c));

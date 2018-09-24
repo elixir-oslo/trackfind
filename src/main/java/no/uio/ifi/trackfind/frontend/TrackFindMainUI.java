@@ -113,7 +113,7 @@ public class TrackFindMainUI extends AbstractUI {
         valuesFilterTextField.setValueChangeMode(ValueChangeMode.EAGER);
         valuesFilterTextField.setWidth(100, Sizeable.Unit.PERCENTAGE);
 
-        Button addToQueryButton = new Button("Add to query ➚", new AddToQueryButtonClickListener(this));
+        Button addToQueryButton = new Button("Add to query ➚", new AddToQueryButtonClickListener(this, properties.getLevelsSeparator()));
         addToQueryButton.setWidth(100, Unit.PERCENTAGE);
 
         VerticalLayout treeLayout = new VerticalLayout(treePanel, checkBox, attributesFilterTextField, valuesFilterTextField, addToQueryButton);
@@ -240,7 +240,7 @@ public class TrackFindMainUI extends AbstractUI {
         queryTextArea.addStyleName("scrollable-text-area");
         DropTargetExtension<TextArea> dropTarget = new DropTargetExtension<>(queryTextArea);
         dropTarget.setDropEffect(DropEffect.COPY);
-        dropTarget.addDropListener(new TextAreaDropListener(queryTextArea));
+        dropTarget.addDropListener(new TextAreaDropListener(queryTextArea, properties.getLevelsSeparator()));
         Panel queryPanel = new Panel("Search query", queryTextArea);
         queryPanel.setSizeFull();
 
