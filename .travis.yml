@@ -15,10 +15,10 @@ deploy:
     tags: true
 
 after_success:
-  - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
+  - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
     if [[ "$TRAVIS_BRANCH" == "master" && "$TRAVIS_PULL_REQUEST" == "false" ]]; then
-      docker push nels/trackfind:latest
-    fi
+      docker push nels/trackfind:latest;
+    fi;
     if [ -n "$TRAVIS_TAG" ]; then
-      docker push nels/trackfind:$TRAVIS_TAG
+      docker push nels/trackfind:$TRAVIS_TAG;
     fi
