@@ -20,5 +20,6 @@ after_success:
       docker push nels/trackfind:latest;
     fi;
     if [ -n "$TRAVIS_TAG" ]; then
+      docker tag nels/trackfind:latest nels/trackfind:$TRAVIS_TAG;
       docker push nels/trackfind:$TRAVIS_TAG;
     fi
