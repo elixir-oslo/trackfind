@@ -24,6 +24,7 @@ services:
         max_attempts: 3
         window: 120s
     environment:
+    - SERVER_PORT=80
     - DB_INSTANCE=db
     - POSTGRES_DB=trackfind
     - POSTGRES_USER
