@@ -148,10 +148,10 @@ public class TreeNode implements Comparable<TreeNode> {
      * @return Sequence of attributes separated by some delimiter ("&gt;" by default).
      */
     private String getPathInternally() {
-        StringBuilder path = new StringBuilder(toString());
+        StringBuilder path = new StringBuilder("'" + toString() + "'");
         TreeNode parent = getParent();
         while (parent.toString() != null) {
-            path.insert(0, parent.toString() + levelsSeparator);
+            path.insert(0, "'" + parent.toString() + "'" + levelsSeparator);
             parent = parent.getParent();
         }
         return path.toString();

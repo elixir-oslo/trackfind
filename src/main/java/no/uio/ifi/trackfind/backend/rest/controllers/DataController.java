@@ -37,7 +37,8 @@ public class DataController {
     public ResponseEntity<Collection<Dataset>> search(
             @ApiParam(value = "Data provider name.", required = true, example = "IHEC")
             @PathVariable String provider,
-            @ApiParam(value = "Search query to execute.", required = true, example = "Advanced>analysis_attributes>alignment_software: Bowtie")
+            @ApiParam(value = "Search query to execute.", required = true,
+                    example = "raw_dataset->'analysis_attributes'->>'alignment_software' = 'BISMARK' AND raw_dataset->'analysis_attributes'->>'analysis_software_version' IN ('v0.14.4', 'v0.14.5')")
             @RequestParam String query,
             @ApiParam(value = "Max number of results to return. Unlimited by default.", required = false, defaultValue = "0", example = "10")
             @RequestParam(required = false, defaultValue = "0") int limit) {

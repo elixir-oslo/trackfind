@@ -12,6 +12,7 @@ import no.uio.ifi.trackfind.backend.dao.Queries;
 import no.uio.ifi.trackfind.backend.repositories.DatasetRepository;
 import no.uio.ifi.trackfind.backend.repositories.MappingRepository;
 import no.uio.ifi.trackfind.backend.scripting.ScriptingEngine;
+import no.uio.ifi.trackfind.backend.services.QueryValidator;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
@@ -38,6 +39,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     protected JdbcTemplate jdbcTemplate;
     protected DatasetRepository datasetRepository;
     protected MappingRepository mappingRepository;
+    protected QueryValidator queryValidator;
     protected ExecutorService executorService;
     protected Gson gson;
     protected Collection<ScriptingEngine> scriptingEngines;
@@ -246,15 +248,19 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      */
     @Override
     public Collection<Dataset> search(String query, int limit) {
-        limit = limit == 0 ? Integer.MAX_VALUE : limit;
-        List<BigInteger> ids = jdbcTemplate.queryForList(
-                "SELECT id " +
-                        "FROM datasets " +
-                        "WHERE version = ? " +
-                        "AND (raw_dataset @> ? OR basic_dataset @> ?)" +
-                        "ORDER BY id ASC LIMIT ?"
-                , BigInteger.class, getCurrentVersion(), query, query, limit);
-        return datasetRepository.findByIdIn(ids);
+        try {
+            limit = limit == 0 ? Integer.MAX_VALUE : limit;
+            String rawQuery = String.format("SELECT id " +
+                    "FROM datasets " +
+                    "WHERE repository = '%s' AND version = %s " +
+                    "AND (%s) " +
+                    "ORDER BY id ASC LIMIT %s", getName(), getCurrentVersion(), query, limit);
+            List<BigInteger> ids = jdbcTemplate.queryForList(queryValidator.validate(rawQuery), BigInteger.class);
+            return datasetRepository.findByIdIn(ids);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return Collections.emptySet();
+        }
     }
 
     /**
@@ -300,6 +306,11 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     @Autowired
     public void setMappingRepository(MappingRepository mappingRepository) {
         this.mappingRepository = mappingRepository;
+    }
+
+    @Autowired
+    public void setQueryValidator(QueryValidator queryValidator) {
+        this.queryValidator = queryValidator;
     }
 
     @Autowired

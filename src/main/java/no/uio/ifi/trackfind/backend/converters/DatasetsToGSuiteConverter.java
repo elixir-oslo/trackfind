@@ -52,6 +52,9 @@ public class DatasetsToGSuiteConverter implements Function<Collection<Dataset>, 
     @SuppressWarnings("unchecked")
     private Collection<Map<String, Object>> getBasicMaps(Dataset dataset) {
         Map basicMap = gson.fromJson(dataset.getBasicDataset(), Map.class);
+        if (basicMap == null) {
+            return Collections.emptySet();
+        }
         Object dataTypesObject = basicMap.get(properties.getDataTypeAttribute());
         Collection<String> dataTypes;
         if (dataTypesObject instanceof Collection) {

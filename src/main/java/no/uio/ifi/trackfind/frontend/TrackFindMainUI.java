@@ -63,6 +63,8 @@ public class TrackFindMainUI extends AbstractUI {
 
     private int numberOfResults;
 
+    private TextAreaDropListener textAreaDropListener;
+    private AddToQueryButtonClickListener addToQueryButtonClickListener;
     private TextArea queryTextArea;
     private TextField limitTextField;
     private TextArea resultsTextArea;
@@ -95,7 +97,10 @@ public class TrackFindMainUI extends AbstractUI {
         treePanel.setSizeFull();
 
         CheckBox checkBox = new CheckBox("Advanced metamodel");
-        checkBox.addValueChangeListener((HasValue.ValueChangeListener<Boolean>) event -> refreshTrees(event.getValue()));
+        checkBox.addValueChangeListener((HasValue.ValueChangeListener<Boolean>) event -> {
+            textAreaDropListener.setDatasetPrefix(event.getValue() ? "raw_dataset" : "basic_dataset");
+            refreshTrees(event.getValue());
+        });
 
         TextField attributesFilterTextField = new TextField("Filter attributes", (HasValue.ValueChangeListener<String>) event -> {
             TreeDataProvider<TreeNode> dataProvider = getCurrentTreeDataProvider();
@@ -113,7 +118,8 @@ public class TrackFindMainUI extends AbstractUI {
         valuesFilterTextField.setValueChangeMode(ValueChangeMode.EAGER);
         valuesFilterTextField.setWidth(100, Sizeable.Unit.PERCENTAGE);
 
-        Button addToQueryButton = new Button("Add to query ➚", new AddToQueryButtonClickListener(this, properties.getLevelsSeparator()));
+        addToQueryButtonClickListener = new AddToQueryButtonClickListener(this, properties.getLevelsSeparator());
+        Button addToQueryButton = new Button("Add to query ➚", addToQueryButtonClickListener);
         addToQueryButton.setWidth(100, Unit.PERCENTAGE);
 
         VerticalLayout treeLayout = new VerticalLayout(treePanel, checkBox, attributesFilterTextField, valuesFilterTextField, addToQueryButton);
@@ -240,7 +246,8 @@ public class TrackFindMainUI extends AbstractUI {
         queryTextArea.addStyleName("scrollable-text-area");
         DropTargetExtension<TextArea> dropTarget = new DropTargetExtension<>(queryTextArea);
         dropTarget.setDropEffect(DropEffect.COPY);
-        dropTarget.addDropListener(new TextAreaDropListener(queryTextArea, properties.getLevelsSeparator()));
+        textAreaDropListener = new TextAreaDropListener(queryTextArea, properties.getLevelsSeparator());
+        dropTarget.addDropListener(textAreaDropListener);
         Panel queryPanel = new Panel("Search query", queryTextArea);
         queryPanel.setSizeFull();
 
@@ -280,8 +287,8 @@ public class TrackFindMainUI extends AbstractUI {
         instructions.add(new Label("1. Navigate through metamodel tree using browser on the left."));
         instructions.add(new Label("2. Filter attributes or values using text-fields in the bottom if needed."));
         instructions.add(new Label("3. Select attribute or value(s) you want to use in the search query. Multiple values can be selected using <i>Shift</i> or <i>Ctrl</i> / <i>Command</i>.", ContentMode.HTML));
-        instructions.add(new Label("4. Drag and drop attribute name or value to the query area or simply use <i>Add to query</i> button."));
-        instructions.add(new Label("5. Correct query manually if necessary (some special characters should be escaped using backslash)."));
+        instructions.add(new Label("4. Drag and drop attribute name or value to the query area or simply press <i>Add to query</i> button."));
+        instructions.add(new Label("5. Correct query manually if necessary."));
         instructions.add(new Label("6. Press <i>Ctrl+Shift</i> or <i>Command+Shift</i> or click <i>Search</i> button to execute the query.", ContentMode.HTML));
         instructions.add(new Label("<b>Hotkeys:<b> ", ContentMode.HTML));
         instructions.add(new Label("Use <i>Ctrl</i> or <i>Command</i> to select multiple values in tree.", ContentMode.HTML));

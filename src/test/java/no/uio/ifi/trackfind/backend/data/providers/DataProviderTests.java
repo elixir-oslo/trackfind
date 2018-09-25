@@ -2,12 +2,14 @@ package no.uio.ifi.trackfind.backend.data.providers;
 
 import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
+import net.sf.jsqlparser.JSQLParserException;
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
 import no.uio.ifi.trackfind.backend.dao.Dataset;
 import no.uio.ifi.trackfind.backend.dao.Mapping;
 import no.uio.ifi.trackfind.backend.data.providers.ihec.IHECDataProvider;
 import no.uio.ifi.trackfind.backend.repositories.DatasetRepository;
 import no.uio.ifi.trackfind.backend.repositories.MappingRepository;
+import no.uio.ifi.trackfind.backend.services.QueryValidator;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,6 +38,9 @@ public class DataProviderTests {
 
     @Mock
     private TrackFindProperties trackFindProperties;
+
+    @Mock
+    private QueryValidator queryValidator;
 
     @Mock
     private JdbcTemplate jdbcTemplate;
@@ -105,7 +110,7 @@ public class DataProviderTests {
     }
 
     @Before
-    public void setUp() {
+    public void setUp() throws JSQLParserException {
         dataProvider.setGson(gson);
 
         when(trackFindProperties.getLevelsSeparator()).thenReturn("->");
@@ -120,6 +125,7 @@ public class DataProviderTests {
         when(datasetRepository.findByRepositoryAndVersion(anyString(), anyLong())).thenReturn(Collections.singleton(originalDataset));
         when(datasetRepository.findByIdAndVersion(any(), anyLong())).thenReturn(originalDataset);
         when(datasetRepository.findByIdIn(any())).thenReturn(Collections.singleton(originalDataset));
+        when(queryValidator.validate(anyString())).thenReturn("");
         when(jdbcTemplate.queryForObject(anyString(), eq(Long.TYPE))).thenReturn(0L);
         when(jdbcTemplate.queryForList(anyString(), eq(Long.TYPE), anyLong(), anyString(), anyString(), anyInt())).thenReturn(Collections.singletonList(0L));
         HashMap<String, Object> attributeValueMap1 = new HashMap<>();

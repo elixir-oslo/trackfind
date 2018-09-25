@@ -18,13 +18,17 @@ import java.util.Set;
 @SuppressWarnings("PMD.NonStaticInitializer")
 public abstract class MoveAttributeValueHandler {
 
-    private static Map<Boolean, String> OPERATORS = new HashMap<Boolean, String>() {{
+    private static Map<Boolean, String> CONDITIONS = new HashMap<Boolean, String>() {{
         put(true, "AND ");
         put(false, "OR ");
     }};
 
-    private static String INVERSION = "NOT ";
+    private static Map<Boolean, String> OPERATORS = new HashMap<Boolean, String>() {{
+        put(true, " <> ");
+        put(false, " = ");
+    }};
 
+    private String datasetPrefix;
     private String levelsSeparator;
 
     public MoveAttributeValueHandler(String levelsSeparator) {
@@ -58,24 +62,22 @@ public abstract class MoveAttributeValueHandler {
      * @param items            Items to drop (always values).
      */
     private void processDragAndDropMultiple(TextArea textArea, boolean logicalOperation, boolean inversion, Set<TreeNode> items) {
-        String operator = OPERATORS.get(logicalOperation);
+        String condition = CONDITIONS.get(logicalOperation);
         StringBuilder query = new StringBuilder(textArea.getValue());
         if (StringUtils.isNoneEmpty(query.toString())) {
-            query.append(operator);
+            query.append(condition);
         }
-        if (inversion) {
-            query.append(INVERSION);
-        }
+        query.append(datasetPrefix).append(levelsSeparator);
         TreeNode firstItem = items.iterator().next();
         String path = firstItem.getPath();
         String queryTerm = path.substring(0, path.lastIndexOf(levelsSeparator));
-        String attribute = queryTerm.split(":")[0];
-        query.append(attribute).append(": (");
+        query.append(queryTerm).append(inversion ? " NOT IN (" : " IN (");
         for (TreeNode item : items) {
-            query.append(item.toString()).append(" OR ");
+            String value = getValue(item);
+            query.append(value).append(", ");
         }
-        query = new StringBuilder(query.subSequence(0, query.length() - 4) + ")\n");
-        textArea.setValue(query.toString());
+        query = new StringBuilder(query.subSequence(0, query.length() - 2) + ")\n");
+        textArea.setValue(replaceLast(query.toString(), levelsSeparator, "->>"));
     }
 
     /**
@@ -87,22 +89,39 @@ public abstract class MoveAttributeValueHandler {
      * @param item             Item to drop (either attribute or value).
      */
     private void processDragAndDropSingle(TextArea textArea, boolean logicalOperation, boolean inversion, TreeNode item) {
-        String operator = OPERATORS.get(logicalOperation);
+        String condition = CONDITIONS.get(logicalOperation);
         String query = textArea.getValue();
         if (StringUtils.isNoneEmpty(query)) {
-            query += operator;
+            query += condition;
         }
-        if (inversion) {
-            query += INVERSION;
-        }
+        String operator = OPERATORS.get(inversion);
+        query += datasetPrefix + levelsSeparator;
         String path = item.getPath();
         if (item.isValue()) {
-            query += path.substring(0, path.lastIndexOf(levelsSeparator)) + ": " + item.toString();
+            String value = getValue(item);
+            query += path.substring(0, path.lastIndexOf(levelsSeparator)) + operator + value;
         } else {
-            query += path + ": ";
+            query += path + operator;
         }
         query += "\n";
-        textArea.setValue(query);
+        textArea.setValue(replaceLast(query, levelsSeparator, "->>"));
+    }
+
+    protected String getValue(TreeNode item) {
+        return "'" + item.toString() + "'";
+    }
+
+    protected String replaceLast(String string, String what, String with) {
+        int start = string.lastIndexOf(what);
+        StringBuilder builder = new StringBuilder();
+        builder.append(string, 0, start);
+        builder.append(with);
+        builder.append(string.substring(start + what.length()));
+        return builder.toString();
+    }
+
+    public void setDatasetPrefix(String datasetPrefix) {
+        this.datasetPrefix = datasetPrefix;
     }
 
 }
