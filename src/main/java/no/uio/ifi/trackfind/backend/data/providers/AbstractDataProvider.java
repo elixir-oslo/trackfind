@@ -275,8 +275,8 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
 
     protected long getCurrentVersion() {
         Long version = jdbcTemplate.queryForObject(
-                "SELECT MAX(version) FROM datasets"
-                , Long.TYPE);
+                "SELECT MAX(version) FROM datasets WHERE repository = ?"
+                , Long.TYPE, getName());
         return version == null ? 0 : version;
     }
 

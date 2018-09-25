@@ -99,6 +99,7 @@ public class TrackFindMainUI extends AbstractUI {
         CheckBox checkBox = new CheckBox("Advanced metamodel");
         checkBox.addValueChangeListener((HasValue.ValueChangeListener<Boolean>) event -> {
             textAreaDropListener.setDatasetPrefix(event.getValue() ? "raw_dataset" : "basic_dataset");
+            addToQueryButtonClickListener.setDatasetPrefix(event.getValue() ? "raw_dataset" : "basic_dataset");
             refreshTrees(event.getValue());
         });
 
@@ -119,6 +120,7 @@ public class TrackFindMainUI extends AbstractUI {
         valuesFilterTextField.setWidth(100, Sizeable.Unit.PERCENTAGE);
 
         addToQueryButtonClickListener = new AddToQueryButtonClickListener(this, properties.getLevelsSeparator());
+        addToQueryButtonClickListener.setDatasetPrefix("basic_dataset");
         Button addToQueryButton = new Button("Add to query ➚", addToQueryButtonClickListener);
         addToQueryButton.setWidth(100, Unit.PERCENTAGE);
 
@@ -247,6 +249,7 @@ public class TrackFindMainUI extends AbstractUI {
         DropTargetExtension<TextArea> dropTarget = new DropTargetExtension<>(queryTextArea);
         dropTarget.setDropEffect(DropEffect.COPY);
         textAreaDropListener = new TextAreaDropListener(queryTextArea, properties.getLevelsSeparator());
+        textAreaDropListener.setDatasetPrefix("basic_dataset");
         dropTarget.addDropListener(textAreaDropListener);
         Panel queryPanel = new Panel("Search query", queryTextArea);
         queryPanel.setSizeFull();
