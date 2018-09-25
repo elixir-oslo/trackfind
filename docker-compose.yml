@@ -4,8 +4,6 @@ services:
 
   db:
     image: postgres:10.5
-    ports:
-    - "5432:5432"
     environment:
     - POSTGRES_DB=trackfind
     - POSTGRES_USER
@@ -25,6 +23,11 @@ services:
         delay: 10s
         max_attempts: 3
         window: 120s
+    environment:
+    - DB_INSTANCE=db
+    - POSTGRES_DB=trackfind
+    - POSTGRES_USER
+    - POSTGRES_PASSWORD
 
 volumes:
   db:
