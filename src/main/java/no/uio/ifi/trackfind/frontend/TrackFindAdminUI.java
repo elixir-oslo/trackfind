@@ -98,7 +98,7 @@ public class TrackFindAdminUI extends AbstractUI {
         addStaticMappingButton.addClickListener((Button.ClickListener) event -> {
             Set<TreeNode> selectedItems = getCurrentTree().getSelectedItems();
             String sourceAttribute = CollectionUtils.isEmpty(selectedItems) ? "" : selectedItems.iterator().next().getPath();
-            addStaticMappingPair("", sourceAttribute);
+            addStaticMappingPair("", sourceAttribute.replaceAll("'", ""));
         });
 
         addDynamicMappingButton = new Button("Add dynamic mapping");
