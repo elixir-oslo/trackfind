@@ -6,11 +6,11 @@ import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
-import no.uio.ifi.trackfind.backend.dao.Dataset;
-import no.uio.ifi.trackfind.backend.dao.Mapping;
-import no.uio.ifi.trackfind.backend.dao.Queries;
+import no.uio.ifi.trackfind.backend.dao.*;
 import no.uio.ifi.trackfind.backend.repositories.DatasetRepository;
 import no.uio.ifi.trackfind.backend.repositories.MappingRepository;
+import no.uio.ifi.trackfind.backend.repositories.SourceRepository;
+import no.uio.ifi.trackfind.backend.repositories.StandardRepository;
 import no.uio.ifi.trackfind.backend.scripting.ScriptingEngine;
 import no.uio.ifi.trackfind.backend.services.QueryValidator;
 import org.apache.commons.collections4.CollectionUtils;
@@ -37,6 +37,8 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
 
     protected TrackFindProperties properties;
     protected JdbcTemplate jdbcTemplate;
+    protected SourceRepository sourceRepository;
+    protected StandardRepository standardRepository;
     protected DatasetRepository datasetRepository;
     protected MappingRepository mappingRepository;
     protected QueryValidator queryValidator;
@@ -49,10 +51,8 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
         if (datasetRepository.countByRepository(getName()) == 0) {
             crawlRemoteRepository();
         }
-        jdbcTemplate.execute(String.format(Queries.METAMODEL_VIEW, "raw", "raw", properties.getLevelsSeparator(), properties.getLevelsSeparator()));
-        jdbcTemplate.execute(String.format(Queries.METAMODEL_VIEW, "basic", "basic", properties.getLevelsSeparator(), properties.getLevelsSeparator()));
-        jdbcTemplate.execute(Queries.RAW_INDEX);
-        jdbcTemplate.execute(Queries.BASIC_INDEX);
+        jdbcTemplate.execute(String.format(Queries.METAMODEL_VIEW, "source", "curated", properties.getLevelsSeparator(), properties.getLevelsSeparator()));
+        jdbcTemplate.execute(String.format(Queries.METAMODEL_VIEW, "standard", "standard", properties.getLevelsSeparator(), properties.getLevelsSeparator()));
     }
 
     /**
@@ -138,12 +138,13 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      * @param datasets Datasets to save.
      */
     protected void save(Collection<Map> datasets) {
-        datasetRepository.saveAll(datasets.parallelStream().map(this::postprocessDataset).map(map -> {
-            Dataset dataset = new Dataset();
-            dataset.setRepository(getName());
-            dataset.setVersion(getCurrentVersion());
-            dataset.setRawDataset(gson.toJson(map));
-            return dataset;
+        sourceRepository.saveAll(datasets.parallelStream().map(this::postprocessDataset).map(map -> {
+            Source source = new Source();
+            source.setRepository(getName());
+            source.setContent(gson.toJson(map));
+            source.setRawVersion(0L);           // TODO: set proper version
+            source.setCuratedVersion(0L);       // TODO: set proper version
+            return source;
         }).collect(Collectors.toList()));
     }
 
@@ -157,11 +158,11 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     public synchronized void applyMappings() {
         log.info("Applying mappings for " + getName());
         Collection<Mapping> mappings = mappingRepository.findByRepository(getName());
-        Collection<Dataset> datasets = datasetRepository.findByRepositoryAndVersion(getName(), getCurrentVersion());
+        Collection<Source> sources = sourceRepository.findByRepositoryLatest(getName());
         try {
-            for (Dataset dataset : datasets) {
-                Map<String, Object> rawMap = gson.fromJson(dataset.getRawDataset(), Map.class);
-                Map<String, Object> basicMap = new HashMap<>();
+            for (Source source : sources) {
+                Map<String, Object> rawMap = gson.fromJson(source.getContent(), Map.class);
+                Map<String, Object> standardMap = new HashMap<>();
                 for (Mapping mapping : mappings) {
                     String script = mapping.getFrom();
                     Collection<String> values;
@@ -181,14 +182,17 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
                         values = scriptingEngine.execute(script, rawMap);
                     }
                     if (CollectionUtils.size(values) == 1) {
-                        basicMap.put(mapping.getTo(), values.iterator().next());
+                        standardMap.put(mapping.getTo(), values.iterator().next());
                     } else {
-                        basicMap.put(mapping.getTo(), values);
+                        standardMap.put(mapping.getTo(), values);
                     }
                 }
-                dataset.setBasicDataset(gson.toJson(basicMap));
+                Standard standard = new Standard();
+                standard.setId(source.getId());
+                standard.setContent(gson.toJson(standardMap));
+                standard.setVersion(0L);                       // TODO: set proper version
+                standardRepository.save(standard);
             }
-            datasetRepository.saveAll(datasets);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return;
@@ -230,8 +234,8 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     public Multimap<String, String> getMetamodelFlat(boolean advanced) {
         Multimap<String, String> metamodel = HashMultimap.create();
         List<Map<String, Object>> attributeValuePairs = jdbcTemplate.queryForList(
-                "SELECT attribute, value FROM " + (advanced ? "raw" : "basic") + "_metamodel WHERE repository = ? AND version = ?"
-                , getName(), getCurrentVersion());
+                "SELECT attribute, value FROM " + (advanced ? "source" : "standard") + "_metamodel WHERE repository = ?",
+                getName());
         for (Map attributeValuePair : attributeValuePairs) {
             String attribute = String.valueOf(attributeValuePair.get("attribute"));
             if (getAttributesToHide().contains(attribute)) {
@@ -250,11 +254,15 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     public Collection<Dataset> search(String query, int limit) {
         try {
             limit = limit == 0 ? Integer.MAX_VALUE : limit;
-            String rawQuery = String.format("SELECT id " +
-                    "FROM datasets " +
-                    "WHERE repository = '%s' AND version = %s " +
-                    "AND (%s) " +
-                    "ORDER BY id ASC LIMIT %s", getName(), getCurrentVersion(), query, limit);
+            String rawQuery = String.format("SELECT id\n" +
+                    "FROM datasets\n" +
+                    "WHERE repository = '%s'\n" +
+                    "AND (%s)\n" +
+                    "GROUP BY id, raw_version, curated_version, standard_version\n" +
+                    "HAVING raw_version = MAX(raw_version)\n" +
+                    "   AND curated_version = MAX(curated_version)\n" +
+                    "   AND standard_version = MAX(standard_version)\n" +
+                    "ORDER BY id ASC LIMIT %s", getName(), query, limit);
             List<BigInteger> ids = jdbcTemplate.queryForList(queryValidator.validate(rawQuery), BigInteger.class);
             return datasetRepository.findByIdIn(ids);
         } catch (Exception e) {
@@ -269,15 +277,9 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     @SuppressWarnings("unchecked")
     @Override
     public Dataset fetch(String datasetId, String version) {
-        long longVersion = version == null ? getCurrentVersion() : Long.parseLong(version);
-        return datasetRepository.findByIdAndVersion(new BigInteger(datasetId), longVersion);
-    }
-
-    protected long getCurrentVersion() {
-        Long version = jdbcTemplate.queryForObject(
-                "SELECT MAX(version) FROM datasets WHERE repository = ?"
-                , Long.TYPE, getName());
-        return version == null ? 0 : version;
+        return version == null ?
+                datasetRepository.findByIdLatest(new BigInteger(datasetId)) :
+                datasetRepository.findByIdAndVersion(new BigInteger(datasetId), version);
     }
 
     /**
@@ -296,6 +298,16 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     @Autowired
     public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
+    }
+
+    @Autowired
+    public void setSourceRepository(SourceRepository sourceRepository) {
+        this.sourceRepository = sourceRepository;
+    }
+
+    @Autowired
+    public void setStandardRepository(StandardRepository standardRepository) {
+        this.standardRepository = standardRepository;
     }
 
     @Autowired

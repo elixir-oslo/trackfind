@@ -35,7 +35,7 @@ public class DatasetsToGSuiteConverterTest {
     public void apply() {
         String gSuite = datasetsToGSuiteConverter.apply(Collections.singleton(dataset));
         assertEquals("###uri\tdata_type\tattribute\tid\tversion\n" +
-                "uri\tdata_type\tvalue\t1\t2\n", gSuite);
+                "uri\tdata_type\tvalue\t1\t0:0:0\n", gSuite);
     }
 
     @Before
@@ -46,18 +46,18 @@ public class DatasetsToGSuiteConverterTest {
         properties.setVersionAttribute("version");
         properties.setUriAttribute("uri");
         properties.setDataTypeAttribute("data_type");
-        properties.setBasicAttributes(Arrays.asList("uri", "data_type", "attribute"));
+        properties.setStandardAttributes(Arrays.asList("uri", "data_type", "attribute"));
 
         dataset = new Dataset();
         dataset.setId(BigInteger.ONE);
         dataset.setRepository("test");
-        dataset.setVersion(2L);
+        dataset.setVersion("0:0:0");
 
         Map<String, String> basicDataset = new HashMap<>();
         basicDataset.put("data_type", "data_type");
         basicDataset.put("uri", "uri");
         basicDataset.put("attribute", "value");
-        dataset.setBasicDataset(gson.toJson(basicDataset));
+        dataset.setStandardContent(gson.toJson(basicDataset));
     }
 
 }

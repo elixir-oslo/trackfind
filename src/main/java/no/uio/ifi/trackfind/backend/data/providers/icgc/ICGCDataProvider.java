@@ -3,7 +3,6 @@ package no.uio.ifi.trackfind.backend.data.providers.icgc;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.dao.Dataset;
 import no.uio.ifi.trackfind.backend.data.providers.PaginationAwareDataProvider;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -61,7 +60,7 @@ public class ICGCDataProvider extends PaginationAwareDataProvider { // TODO: Fet
     public Collection<Dataset> search(String query, int limit) {
         Collection<Dataset> result = super.search(query, limit);
         for (Dataset dataset : result) {
-            Map map = gson.fromJson(dataset.getRawDataset(), Map.class);
+            Map map = gson.fromJson(dataset.getCuratedContent(), Map.class);
             Map<String, String> browser = (Map<String, String>) map.get("browser");
             for (String dataType : browser.keySet()) {
                 String submitURL = browser.get(dataType);
@@ -73,7 +72,7 @@ public class ICGCDataProvider extends PaginationAwareDataProvider { // TODO: Fet
                     log.error(e.getMessage(), e);
                 }
             }
-            dataset.setRawDataset(gson.toJson(map));
+            dataset.setCuratedContent(gson.toJson(map));
         }
         return result;
     }

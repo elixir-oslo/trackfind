@@ -33,14 +33,14 @@ public class DatasetsToGSuiteConverter implements Function<Collection<Dataset>, 
     @Override
     public String apply(Collection<Dataset> datasets) {
         StringBuilder result = new StringBuilder("###");
-        properties.getBasicAttributes().forEach(a -> result.append(a).append("\t"));
+        properties.getStandardAttributes().forEach(a -> result.append(a).append("\t"));
         result.append(properties.getIdAttribute()).append("\t").append(properties.getVersionAttribute()).append("\n");
-        long version = datasets.iterator().next().getVersion();
+        String version = datasets.iterator().next().getVersion();
         for (Dataset dataset : datasets) {
-            Collection<Map<String, Object>> basicMaps = getBasicMaps(dataset);
-            for (Map<String, Object> basicMap : basicMaps) {
-                for (String basicAttribute : properties.getBasicAttributes()) {
-                    String value = MapUtils.getString(basicMap, basicAttribute, ".");
+            Collection<Map<String, Object>> standardMaps = getStandardMaps(dataset);
+            for (Map<String, Object> standardMap : standardMaps) {
+                for (String standardAttribute : properties.getStandardAttributes()) {
+                    String value = MapUtils.getString(standardMap, standardAttribute, ".");
                     result.append(value).append("\t");
                 }
                 result.append(dataset.getId()).append("\t").append(version).append("\n");
@@ -50,19 +50,19 @@ public class DatasetsToGSuiteConverter implements Function<Collection<Dataset>, 
     }
 
     @SuppressWarnings("unchecked")
-    private Collection<Map<String, Object>> getBasicMaps(Dataset dataset) {
-        Map basicMap = gson.fromJson(dataset.getBasicDataset(), Map.class);
-        if (basicMap == null) {
+    private Collection<Map<String, Object>> getStandardMaps(Dataset dataset) {
+        Map standardMap = gson.fromJson(dataset.getStandardContent(), Map.class);
+        if (standardMap == null) {
             return Collections.emptySet();
         }
-        Object dataTypesObject = basicMap.get(properties.getDataTypeAttribute());
+        Object dataTypesObject = standardMap.get(properties.getDataTypeAttribute());
         Collection<String> dataTypes;
         if (dataTypesObject instanceof Collection) {
             dataTypes = (Collection<String>) dataTypesObject;
         } else {
             dataTypes = Collections.singleton(dataTypesObject == null ? "." : dataTypesObject.toString());
         }
-        Object urisObject = basicMap.get(properties.getUriAttribute());
+        Object urisObject = standardMap.get(properties.getUriAttribute());
         Collection<String> uris;
         if (urisObject instanceof Collection) {
             uris = (Collection<String>) urisObject;
@@ -74,7 +74,7 @@ public class DatasetsToGSuiteConverter implements Function<Collection<Dataset>, 
         Iterator<String> iterator = uris.iterator();
         for (String dataType : dataTypes) {
             String uri = iterator.next();
-            Map<String, Object> clone = clone(basicMap);
+            Map<String, Object> clone = clone(standardMap);
             clone.put(properties.getDataTypeAttribute(), dataType);
             clone.put(properties.getUriAttribute(), uri);
             result.add(clone);

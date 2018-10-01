@@ -250,7 +250,7 @@ public class TrackFindAdminUI extends AbstractUI {
     }
 
     private ComboBox<String> buildBasicAttributesComboBox(String targetAttribute) {
-        ComboBox<String> targetAttributeName = new ComboBox<>("Target attribute name", properties.getBasicAttributes());
+        ComboBox<String> targetAttributeName = new ComboBox<>("Target attribute name", properties.getStandardAttributes());
         targetAttributeName.setSelectedItem(targetAttribute);
         return targetAttributeName;
     }

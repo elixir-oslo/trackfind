@@ -98,8 +98,8 @@ public class TrackFindMainUI extends AbstractUI {
 
         CheckBox checkBox = new CheckBox("Advanced metamodel");
         checkBox.addValueChangeListener((HasValue.ValueChangeListener<Boolean>) event -> {
-            textAreaDropListener.setDatasetPrefix(event.getValue() ? "raw_dataset" : "basic_dataset");
-            addToQueryButtonClickListener.setDatasetPrefix(event.getValue() ? "raw_dataset" : "basic_dataset");
+            textAreaDropListener.setDatasetPrefix(event.getValue() ? "curated_content" : "standard_content");
+            addToQueryButtonClickListener.setDatasetPrefix(event.getValue() ? "curated_content" : "standard_content");
             refreshTrees(event.getValue());
         });
 

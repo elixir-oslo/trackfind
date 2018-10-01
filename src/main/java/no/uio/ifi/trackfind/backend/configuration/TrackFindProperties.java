@@ -29,7 +29,7 @@ public class TrackFindProperties {
     private @NotBlank String uriAttribute;
     private @NotBlank String dataTypeAttribute;
 
-    private List<String> basicAttributes;
+    private List<String> standardAttributes;
 
     private boolean demoMode;
 
