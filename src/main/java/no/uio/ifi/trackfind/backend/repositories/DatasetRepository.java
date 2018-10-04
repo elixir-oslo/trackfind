@@ -3,6 +3,7 @@ package no.uio.ifi.trackfind.backend.repositories;
 import no.uio.ifi.trackfind.backend.dao.Dataset;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigInteger;
@@ -25,6 +26,6 @@ public interface DatasetRepository extends JpaRepository<Dataset, BigInteger> {
             "   AND curated_version = MAX(curated_version)\n" +
             "   AND standard_version = MAX(standard_version)",
             nativeQuery = true)
-    Dataset findByIdLatest(BigInteger id);
+    Dataset findByIdLatest(@Param("id") BigInteger id);
 
 }

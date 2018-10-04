@@ -64,57 +64,11 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     }
 
     /**
-     * Gets attributes to skip during indexing.
-     *
-     * @return Collection of unneeded attributes.
-     */
-    protected Collection<String> getAttributesToSkip() {
-        return Collections.emptySet();
-    }
-
-    /**
-     * Gets attributes to hide in the tree.
-     *
-     * @return Collection of hidden attributes.
-     */
-    protected Collection<String> getAttributesToHide() {
-        return Collections.emptySet();
-    }
-
-    /**
      * Fetches data from the repository.
      *
      * @throws Exception in case of some problems.
      */
     protected abstract void fetchData() throws Exception;
-
-    /**
-     * Postprocess Dataset.
-     *
-     * @param dataset Dataset to split.
-     * @return Postprocessed dataset.
-     */
-    @SuppressWarnings("unchecked")
-    protected Map postprocessDataset(Map dataset) {
-        clearAttributesToSkip(dataset);
-        return dataset;
-    }
-
-    /**
-     * Removes attributes which should be skipped.
-     *
-     * @param dataset Dataset to clear.
-     */
-    private void clearAttributesToSkip(Map dataset) {
-        for (String attributeToSkip : getAttributesToSkip()) {
-            Dynamic value = Dynamic.from(dataset).get(attributeToSkip, properties.getLevelsSeparator());
-            if (value.isList()) {
-                value.asList().clear();
-            } else if (value.isMap()) {
-                value.asMap().clear();
-            }
-        }
-    }
 
     /**
      * {@inheritDoc}
@@ -138,7 +92,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      * @param datasets Datasets to save.
      */
     protected void save(Collection<Map> datasets) {
-        sourceRepository.saveAll(datasets.parallelStream().map(this::postprocessDataset).map(map -> {
+        sourceRepository.saveAll(datasets.parallelStream().map(map -> {
             Source source = new Source();
             source.setRepository(getName());
             source.setContent(gson.toJson(map));
@@ -211,9 +165,6 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
         Multimap<String, String> metamodelFlat = getMetamodelFlat(advanced);
         for (Map.Entry<String, Collection<String>> entry : metamodelFlat.asMap().entrySet()) {
             String attribute = entry.getKey();
-            if (getAttributesToHide().contains(attribute)) {
-                continue;
-            }
             Map<String, Object> metamodel = result;
             String[] path = attribute.split(properties.getLevelsSeparator());
             for (int i = 0; i < path.length - 1; i++) {
@@ -238,9 +189,6 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
                 getName());
         for (Map attributeValuePair : attributeValuePairs) {
             String attribute = String.valueOf(attributeValuePair.get("attribute"));
-            if (getAttributesToHide().contains(attribute)) {
-                continue;
-            }
             String value = String.valueOf(attributeValuePair.get("value"));
             metamodel.put(attribute, value);
         }
