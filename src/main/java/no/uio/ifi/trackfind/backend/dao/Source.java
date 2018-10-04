@@ -16,7 +16,7 @@ public class Source {
     @Id
     @Column(name = "id", nullable = false)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "source_ids_generator")
-    @SequenceGenerator(name = "source_ids_generator", sequenceName = "source_ids_sequence")
+    @SequenceGenerator(name = "source_ids_generator", sequenceName = "source_ids_sequence", allocationSize = 1)
     private BigInteger id;
 
     @Column(name = "repository", nullable = false)
