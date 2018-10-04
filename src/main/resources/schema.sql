@@ -1,3 +1,6 @@
+CREATE SEQUENCE IF NOT EXISTS source_ids_sequence
+  START 1;
+
 CREATE TABLE IF NOT EXISTS source
 (
   id              BIGINT PRIMARY KEY,
