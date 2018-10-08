@@ -78,12 +78,12 @@ public abstract class AbstractUI extends UI {
     }
 
     @SuppressWarnings("unchecked")
-    protected void refreshTrees(boolean advanced) {
+    protected void refreshTrees(boolean raw) {
         for (Map.Entry<TreeDataProvider, DataProvider> entry : dataProviders.entrySet()) {
             TreeDataProvider treeDataProvider = entry.getKey();
             DataProvider dataProvider = entry.getValue();
             TreeData treeData = treeDataProvider.getTreeData().clear();
-            TreeNode root = new TreeNode(dataProvider.getMetamodelTree(advanced), properties.getLevelsSeparator());
+            TreeNode root = new TreeNode(dataProvider.getMetamodelTree(raw), properties.getLevelsSeparator());
             Collection<TreeNode> children = root.getChildren().parallelStream().collect(Collectors.toSet());
             treeData.addRootItems(children);
             children.forEach(c -> fillTreeData(treeData, c));

@@ -160,9 +160,9 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     @Cacheable(value = "metamodel-tree", key = "#root.targetClass + #root.methodName + #root.args[0]")
     @Override
     @SuppressWarnings("unchecked")
-    public Map<String, Object> getMetamodelTree(boolean advanced) {
+    public Map<String, Object> getMetamodelTree(boolean raw) {
         Map<String, Object> result = new HashMap<>();
-        Multimap<String, String> metamodelFlat = getMetamodelFlat(advanced);
+        Multimap<String, String> metamodelFlat = getMetamodelFlat(raw);
         for (Map.Entry<String, Collection<String>> entry : metamodelFlat.asMap().entrySet()) {
             String attribute = entry.getKey();
             Map<String, Object> metamodel = result;
@@ -182,10 +182,10 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      */
     @Cacheable(value = "metamodel-flat", key = "#root.targetClass + #root.methodName + #root.args[0]")
     @Override
-    public Multimap<String, String> getMetamodelFlat(boolean advanced) {
+    public Multimap<String, String> getMetamodelFlat(boolean raw) {
         Multimap<String, String> metamodel = HashMultimap.create();
         List<Map<String, Object>> attributeValuePairs = jdbcTemplate.queryForList(
-                "SELECT attribute, value FROM " + (advanced ? "source" : "standard") + "_metamodel WHERE repository = ?",
+                "SELECT attribute, value FROM " + (raw ? "source" : "standard") + "_metamodel WHERE repository = ?",
                 getName());
         for (Map attributeValuePair : attributeValuePairs) {
             String attribute = String.valueOf(attributeValuePair.get("attribute"));

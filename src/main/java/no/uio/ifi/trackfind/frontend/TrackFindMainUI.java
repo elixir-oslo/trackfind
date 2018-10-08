@@ -96,7 +96,7 @@ public class TrackFindMainUI extends AbstractUI {
         Panel treePanel = new Panel("Model browser", tabSheet);
         treePanel.setSizeFull();
 
-        CheckBox checkBox = new CheckBox("Advanced metamodel");
+        CheckBox checkBox = new CheckBox("Raw metamodel");
         checkBox.addValueChangeListener((HasValue.ValueChangeListener<Boolean>) event -> {
             textAreaDropListener.setDatasetPrefix(event.getValue() ? "curated_content" : "standard_content");
             addToQueryButtonClickListener.setDatasetPrefix(event.getValue() ? "curated_content" : "standard_content");

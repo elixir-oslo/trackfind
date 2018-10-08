@@ -35,14 +35,14 @@ public interface DataProvider {
      *
      * @return Tree metamodel.
      */
-    Map<String, Object> getMetamodelTree(boolean advanced);
+    Map<String, Object> getMetamodelTree(boolean raw);
 
     /**
      * Gets metamodel of the repository in "flat-from" (non-nested).
      *
      * @return Flat metamodel.
      */
-    Multimap<String, String> getMetamodelFlat(boolean advanced);
+    Multimap<String, String> getMetamodelFlat(boolean raw);
 
     /**
      * Performs search over the repository limiting the number of results.
