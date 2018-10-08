@@ -83,6 +83,7 @@ public class MetamodelController {
     }
 
     // TODO: add unit-tests for this endpoint
+
     /**
      * Gets the list of sub-attributes under a specified attribute.
      *
@@ -102,11 +103,12 @@ public class MetamodelController {
                                                                @ApiParam(value = "Raw or Standardized metamodel", required = false, defaultValue = "false")
                                                                @RequestParam(required = false, defaultValue = "false") boolean raw) {
         Set<String> attributes = trackFindService.getDataProvider(provider).getMetamodelFlat(raw).asMap().keySet();
+        String separator = trackFindProperties.getLevelsSeparator();
         return ResponseEntity.ok(attributes
                 .parallelStream()
                 .filter(a -> a.startsWith(attribute))
-                .map(a -> a.replace(attribute + trackFindProperties.getLevelsSeparator(), ""))
-                .map(a -> a.substring(0, a.indexOf(trackFindProperties.getLevelsSeparator())))
+                .map(a -> a.replace(attribute + separator, ""))
+                .map(a -> (a.contains(separator) ? a.substring(0, a.indexOf(separator)) : a))
                 .filter(a -> a.contains(filter))
                 .collect(Collectors.toSet()));
     }
