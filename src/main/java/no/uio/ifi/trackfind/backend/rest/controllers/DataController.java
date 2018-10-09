@@ -1,8 +1,8 @@
 package no.uio.ifi.trackfind.backend.rest.controllers;
 
 import io.swagger.annotations.*;
-import no.uio.ifi.trackfind.backend.converters.DatasetsToGSuiteConverter;
 import no.uio.ifi.trackfind.backend.dao.Dataset;
+import no.uio.ifi.trackfind.backend.services.GSuiteService;
 import no.uio.ifi.trackfind.backend.services.TrackFindService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -24,7 +24,7 @@ import java.util.Collections;
 public class DataController {
 
     private TrackFindService trackFindService;
-    private DatasetsToGSuiteConverter datasetsToGSuiteConverter;
+    private GSuiteService gSuiteService;
 
     /**
      * Performs search over the Directory of specified DataProvider.
@@ -68,7 +68,7 @@ public class DataController {
             @ApiParam(value = "Max number of results to return. Unlimited by default.", required = false, defaultValue = "0", example = "10")
             @RequestParam(required = false, defaultValue = "0") int limit) {
         Collection<Dataset> datasets = trackFindService.getDataProvider(provider).search(query, limit);
-        return ResponseEntity.ok(datasetsToGSuiteConverter.apply(datasets));
+        return ResponseEntity.ok(gSuiteService.apply(datasets));
     }
 
     /**
@@ -109,7 +109,7 @@ public class DataController {
             @ApiParam(value = "Version of the dataset to return.", required = false)
             @RequestParam(required = false) String version) {
         Dataset dataset = trackFindService.getDataProvider(provider).fetch(id, version);
-        return ResponseEntity.ok(datasetsToGSuiteConverter.apply(Collections.singleton(dataset)));
+        return ResponseEntity.ok(gSuiteService.apply(Collections.singleton(dataset)));
     }
 
     @Autowired
@@ -118,8 +118,8 @@ public class DataController {
     }
 
     @Autowired
-    public void setDatasetsToGSuiteConverter(DatasetsToGSuiteConverter datasetsToGSuiteConverter) {
-        this.datasetsToGSuiteConverter = datasetsToGSuiteConverter;
+    public void setgSuiteService(GSuiteService gSuiteService) {
+        this.gSuiteService = gSuiteService;
     }
 
 }

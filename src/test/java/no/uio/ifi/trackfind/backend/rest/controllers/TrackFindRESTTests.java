@@ -3,14 +3,13 @@ package no.uio.ifi.trackfind.backend.rest.controllers;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
-import no.uio.ifi.trackfind.backend.converters.DatasetsToGSuiteConverter;
 import no.uio.ifi.trackfind.backend.dao.Dataset;
 import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
+import no.uio.ifi.trackfind.backend.services.GSuiteService;
 import no.uio.ifi.trackfind.backend.services.TrackFindService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -52,7 +51,7 @@ public class TrackFindRESTTests {
     private TrackFindProperties trackFindProperties;
 
     @MockBean
-    private DatasetsToGSuiteConverter datasetsToGSuiteConverter;
+    private GSuiteService gSuiteService;
 
     private Dataset dataset;
 

@@ -17,6 +17,7 @@ import java.util.function.Function;
  *
  * @author Dmytro Titov
  */
+@Deprecated
 @Component
 public class DatasetsToGSuiteConverter implements Function<Collection<Dataset>, String> {
 
