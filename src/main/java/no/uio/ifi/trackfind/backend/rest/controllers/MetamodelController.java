@@ -82,8 +82,6 @@ public class MetamodelController {
         return ResponseEntity.ok(attributes.parallelStream().filter(a -> a.contains(filter)).collect(Collectors.toSet()));
     }
 
-    // TODO: add unit-tests for this endpoint
-
     /**
      * Gets the list of sub-attributes under a specified attribute.
      *

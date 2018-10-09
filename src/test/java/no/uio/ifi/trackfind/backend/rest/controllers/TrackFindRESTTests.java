@@ -76,9 +76,9 @@ public class TrackFindRESTTests {
         mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/metamodel-flat"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
-                .andExpect(jsonPath("$.level1>level2_1", hasSize(2)))
-                .andExpect(jsonPath("$.level1>level2_1", containsInAnyOrder("value1", "value2")))
-                .andExpect(jsonPath("$.level1>level2_2", contains("value3")));
+                .andExpect(jsonPath("$.level1->level2_1", hasSize(2)))
+                .andExpect(jsonPath("$.level1->level2_1", containsInAnyOrder("value1", "value2")))
+                .andExpect(jsonPath("$.level1->level2_2", contains("value3")));
     }
 
     @Test
@@ -87,12 +87,31 @@ public class TrackFindRESTTests {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$.[0]", is("level1>level2_2")));
+                .andExpect(jsonPath("$.[0]", is("level1->level2_2")));
+    }
+
+    @Test
+    public void getTopAttributesTest() throws Exception {
+        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/attributes").param("top", "true"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$.[0]", is("level1")));
+    }
+
+    @Test
+    public void getSubAttributesTest() throws Exception {
+        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/level1/subattributes"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$.[0]", is("level2_2")))
+                .andExpect(jsonPath("$.[1]", is("level2_1")));
     }
 
     @Test
     public void getValuesSingleTest() throws Exception {
-        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/level1>level2_2/values"))
+        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/level1->level2_2/values"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andExpect(jsonPath("$", hasSize(1)))
@@ -101,7 +120,7 @@ public class TrackFindRESTTests {
 
     @Test
     public void getValuesMultipleTest() throws Exception {
-        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/level1>level2_1/values"))
+        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/level1->level2_1/values"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andExpect(jsonPath("$", hasSize(2)))
@@ -110,7 +129,7 @@ public class TrackFindRESTTests {
 
     @Test
     public void getValuesWithFilterTest() throws Exception {
-        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/level1>level2_1/values").param("filter", "lue2"))
+        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/level1->level2_1/values").param("filter", "lue2"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andExpect(jsonPath("$", hasSize(1)))
@@ -142,9 +161,9 @@ public class TrackFindRESTTests {
         when(trackFindService.getDataProvider(anyString())).thenReturn(dataProvider);
         when(dataProvider.getName()).thenReturn(TEST_DATA_PROVIDER);
         Multimap<String, String> metamodelFlat = HashMultimap.create();
-        metamodelFlat.put("level1>level2_1", "value1");
-        metamodelFlat.put("level1>level2_1", "value2");
-        metamodelFlat.put("level1>level2_2", "value3");
+        metamodelFlat.put("level1->level2_1", "value1");
+        metamodelFlat.put("level1->level2_1", "value2");
+        metamodelFlat.put("level1->level2_2", "value3");
         when(dataProvider.getMetamodelFlat(false)).thenReturn(metamodelFlat);
         Map<String, Object> metamodelTree = new HashMap<>();
         Map<String, Object> metamodelTreeInner = new HashMap<>();
