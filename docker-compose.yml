@@ -11,6 +11,15 @@ services:
     volumes:
     - db:/var/lib/postgresql/data
 
+  gsuite:
+    image: nels/rest_gsuite:latest
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 3
+        window: 120s
+
   trackfind:
     image: nels/trackfind:latest
     ports:
