@@ -3,6 +3,7 @@ package no.uio.ifi.trackfind.backend.rest.controllers;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
+import no.uio.ifi.trackfind.backend.converters.DatasetsToGSuiteConverter;
 import no.uio.ifi.trackfind.backend.dao.Dataset;
 import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
 import no.uio.ifi.trackfind.backend.services.TrackFindService;
@@ -49,6 +50,9 @@ public class TrackFindRESTTests {
 
     @MockBean
     private TrackFindProperties trackFindProperties;
+
+    @MockBean
+    private DatasetsToGSuiteConverter datasetsToGSuiteConverter;
 
     private Dataset dataset;
 

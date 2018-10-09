@@ -1,6 +1,7 @@
 package no.uio.ifi.trackfind.backend.rest.controllers;
 
 import io.swagger.annotations.*;
+import no.uio.ifi.trackfind.backend.converters.DatasetsToGSuiteConverter;
 import no.uio.ifi.trackfind.backend.dao.Dataset;
 import no.uio.ifi.trackfind.backend.services.TrackFindService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collection;
+import java.util.Collections;
 
 /**
  * Data REST controller.
@@ -22,6 +24,7 @@ import java.util.Collection;
 public class DataController {
 
     private TrackFindService trackFindService;
+    private DatasetsToGSuiteConverter datasetsToGSuiteConverter;
 
     /**
      * Performs search over the Directory of specified DataProvider.
@@ -34,7 +37,7 @@ public class DataController {
     @SuppressWarnings("unchecked")
     @ApiOperation(value = "Performs search in the database.", responseContainer = "Set")
     @GetMapping(path = "/{provider}/search", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<Collection<Dataset>> search(
+    public ResponseEntity<Collection<Dataset>> searchJSON(
             @ApiParam(value = "Data provider name.", required = true, example = "IHEC")
             @PathVariable String provider,
             @ApiParam(value = "Search query to execute.", required = true,
@@ -43,6 +46,29 @@ public class DataController {
             @ApiParam(value = "Max number of results to return. Unlimited by default.", required = false, defaultValue = "0", example = "10")
             @RequestParam(required = false, defaultValue = "0") int limit) {
         return ResponseEntity.ok(trackFindService.getDataProvider(provider).search(query, limit));
+    }
+
+    /**
+     * Performs search over the Directory of specified DataProvider.
+     *
+     * @param provider DataProvider name.
+     * @param query    Search query.
+     * @param limit    Max number of entries to return.
+     * @return Search results by version.
+     */
+    @SuppressWarnings("unchecked")
+    @ApiOperation(value = "Performs search in the database.", responseContainer = "Set")
+    @GetMapping(path = "/{provider}/search", produces = MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity<String> searchGSuite(
+            @ApiParam(value = "Data provider name.", required = true, example = "IHEC")
+            @PathVariable String provider,
+            @ApiParam(value = "Search query to execute.", required = true,
+                    example = "curated_content->'analysis_attributes'->>'alignment_software' = 'BISMARK' AND curated_content->'analysis_attributes'->>'analysis_software_version' IN ('v0.14.4', 'v0.14.5')")
+            @RequestParam String query,
+            @ApiParam(value = "Max number of results to return. Unlimited by default.", required = false, defaultValue = "0", example = "10")
+            @RequestParam(required = false, defaultValue = "0") int limit) {
+        Collection<Dataset> datasets = trackFindService.getDataProvider(provider).search(query, limit);
+        return ResponseEntity.ok(datasetsToGSuiteConverter.apply(datasets));
     }
 
     /**
@@ -55,7 +81,7 @@ public class DataController {
      */
     @ApiOperation(value = "Fetches raw (JSON) data by DatasetID.")
     @GetMapping(path = "/{provider}/fetch", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<Dataset> fetch(
+    public ResponseEntity<Dataset> fetchJSON(
             @ApiParam(value = "Data provider name.", required = true, example = "IHEC")
             @PathVariable String provider,
             @ApiParam(value = "ID of the dataset to return.", required = true)
@@ -65,9 +91,35 @@ public class DataController {
         return ResponseEntity.ok(trackFindService.getDataProvider(provider).fetch(id, version));
     }
 
+    /**
+     * Fetches raw data by ID.
+     *
+     * @param provider DataProvider name.
+     * @param id       Dataset ID.
+     * @param version  Version of the dataset.
+     * @return Raw (JSON) data.
+     */
+    @ApiOperation(value = "Fetches raw (JSON) data by DatasetID.")
+    @GetMapping(path = "/{provider}/fetch", produces = MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity<String> fetchGSuite(
+            @ApiParam(value = "Data provider name.", required = true, example = "IHEC")
+            @PathVariable String provider,
+            @ApiParam(value = "ID of the dataset to return.", required = true)
+            @RequestParam String id,
+            @ApiParam(value = "Version of the dataset to return.", required = false)
+            @RequestParam(required = false) String version) {
+        Dataset dataset = trackFindService.getDataProvider(provider).fetch(id, version);
+        return ResponseEntity.ok(datasetsToGSuiteConverter.apply(Collections.singleton(dataset)));
+    }
+
     @Autowired
     public void setTrackFindService(TrackFindService trackFindService) {
         this.trackFindService = trackFindService;
+    }
+
+    @Autowired
+    public void setDatasetsToGSuiteConverter(DatasetsToGSuiteConverter datasetsToGSuiteConverter) {
+        this.datasetsToGSuiteConverter = datasetsToGSuiteConverter;
     }
 
 }

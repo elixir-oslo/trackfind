@@ -31,6 +31,7 @@ public class MetamodelController {
      * Gets DataProvider's metamodel in tree form.
      *
      * @param provider DataProvider name.
+     * @param raw      Raw or Standardized metamodel.
      * @return Metamodel in tree form.
      */
     @ApiOperation(value = "Gets the metamodel of the specified provider in the hierarchical form.")
@@ -47,6 +48,7 @@ public class MetamodelController {
      * Gets DataProvider's metamodel in flat form.
      *
      * @param provider DataProvider name.
+     * @param raw      Raw or Standardized metamodel.
      * @return Metamodel in flat form.
      */
     @ApiOperation(value = "Gets the metamodel of the specified provider in the flat form.")
@@ -64,6 +66,8 @@ public class MetamodelController {
      *
      * @param provider DataProvider name.
      * @param filter   Mask to filter attributes (by 'contains' rule).
+     * @param raw      Raw or Standardized metamodel.
+     * @param top      <code>true</code> for returning only top attributes.
      * @return List of attributes.
      */
     @ApiOperation(value = "Gets full set of attributes for specified data provider.")
@@ -88,6 +92,7 @@ public class MetamodelController {
      * @param provider  DataProvider name.
      * @param attribute Attribute name.
      * @param filter    Mask to filter attributes (by 'contains' rule).
+     * @param raw       Raw or Standardized metamodel.
      * @return List of attributes.
      */
     @ApiOperation(value = "Gets set of sub-attributes for specified attribute and data provider.")
