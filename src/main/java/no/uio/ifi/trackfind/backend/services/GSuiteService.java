@@ -15,7 +15,7 @@ public class GSuiteService implements Function<Collection<Dataset>, String> {
     private RestTemplate restTemplate;
 
     /**
-     * Convert datasets from to GSuite.
+     * Convert datasets to GSuite.
      *
      * @param datasets Datasets to convert.
      * @return GSuite string.
