@@ -3,6 +3,7 @@ package no.uio.ifi.trackfind.backend.rest.controllers;
 import io.swagger.annotations.*;
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
 import no.uio.ifi.trackfind.backend.services.TrackFindService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -110,9 +111,11 @@ public class MetamodelController {
         return ResponseEntity.ok(attributes
                 .parallelStream()
                 .filter(a -> a.startsWith(attribute))
-                .map(a -> a.replace(attribute + separator, ""))
+                .map(a -> a.replace(attribute, ""))
+                .map(a -> (a.contains(separator) ? a.substring(separator.length()) : a))
                 .map(a -> (a.contains(separator) ? a.substring(0, a.indexOf(separator)) : a))
                 .filter(a -> a.contains(filter))
+                .filter(StringUtils::isNotEmpty)
                 .collect(Collectors.toSet()));
     }
 
