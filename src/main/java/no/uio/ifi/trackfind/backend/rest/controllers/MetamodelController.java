@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -107,14 +108,17 @@ public class MetamodelController {
                                                                @ApiParam(value = "Raw or Standardized metamodel", required = false, defaultValue = "false")
                                                                @RequestParam(required = false, defaultValue = "false") boolean raw) {
         Set<String> attributes = trackFindService.getDataProvider(provider).getMetamodelFlat(raw).asMap().keySet();
+        Set<String> filteredAttributes = attributes.stream().filter(a -> a.contains(filter)).collect(Collectors.toSet());
         String separator = trackFindProperties.getLevelsSeparator();
-        return ResponseEntity.ok(attributes
+        if (filteredAttributes.contains(attribute)) {
+            return ResponseEntity.ok(Collections.emptySet());
+        }
+        return ResponseEntity.ok(filteredAttributes
                 .parallelStream()
                 .filter(a -> a.startsWith(attribute))
                 .map(a -> a.replace(attribute, ""))
                 .map(a -> (a.contains(separator) ? a.substring(separator.length()) : a))
                 .map(a -> (a.contains(separator) ? a.substring(0, a.indexOf(separator)) : a))
-                .filter(a -> a.contains(filter))
                 .filter(StringUtils::isNotEmpty)
                 .collect(Collectors.toSet()));
     }
