@@ -17,7 +17,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -145,7 +144,7 @@ public class TrackFindRESTTests {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$.[0].id", is(0)));
+                .andExpect(jsonPath("$.[0].fair.id", is(0)));
     }
 
     @SuppressWarnings("unchecked")
@@ -154,7 +153,7 @@ public class TrackFindRESTTests {
         mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/fetch").param("id", "0"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
-                .andExpect(jsonPath("$.id", is(0)));
+                .andExpect(jsonPath("$.fair.id", is(0)));
     }
 
     @Before
@@ -175,7 +174,7 @@ public class TrackFindRESTTests {
         metamodelTree.put("level1", metamodelTreeInner);
         when(dataProvider.getMetamodelTree(false)).thenReturn(metamodelTree);
         dataset = new Dataset();
-        dataset.setId(BigInteger.ZERO);
+        dataset.setFairContent("{'fair':{'id':0}}");
         when(dataProvider.search(anyString(), anyInt())).thenReturn(Collections.singleton(dataset));
         when(dataProvider.fetch(anyString(), Mockito.any())).thenReturn(dataset);
     }
