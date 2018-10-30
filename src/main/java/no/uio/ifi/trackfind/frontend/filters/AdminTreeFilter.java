@@ -7,6 +7,7 @@ import lombok.Data;
 import no.uio.ifi.trackfind.frontend.data.TreeNode;
 import org.apache.commons.lang3.StringUtils;
 
+@Deprecated
 @AllArgsConstructor
 @Data
 public class AdminTreeFilter implements SerializablePredicate<TreeNode> {

@@ -241,7 +241,7 @@ public class TrackFindMainUI extends AbstractUI {
                 executeQuery(queryTextArea.getValue());
             }
         });
-        Button searchButton = new Button("Search", (Button.ClickListener) clickEvent -> executeQuery(queryTextArea.getValue()));
+        Button searchButton = new Button("Search ➚", (Button.ClickListener) clickEvent -> executeQuery(queryTextArea.getValue()));
         queryTextArea.addValueChangeListener((HasValue.ValueChangeListener<String>) event -> {
             searchButton.setEnabled(StringUtils.isNotEmpty(queryTextArea.getValue()));
         });
