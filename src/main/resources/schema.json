@@ -130,6 +130,26 @@
             "data_source"
           ],
           "pattern": "^(.*)$"
+        },
+        "nested_prop": {
+          "$id": "#/properties/fair/properties/nested_prop",
+          "type": "object",
+          "title": "The Nested_prop Schema",
+          "required": [
+            "someField"
+          ],
+          "properties": {
+            "someField": {
+              "$id": "#/properties/fair/properties/nested_prop/properties/someField",
+              "type": "string",
+              "title": "The Somefield Schema",
+              "default": "",
+              "examples": [
+                "someValue"
+              ],
+              "pattern": "^(.*)$"
+            }
+          }
         }
       }
     }

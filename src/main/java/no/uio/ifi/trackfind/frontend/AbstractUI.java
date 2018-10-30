@@ -6,6 +6,7 @@ import com.vaadin.ui.*;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
 import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
+import no.uio.ifi.trackfind.backend.services.SchemaService;
 import no.uio.ifi.trackfind.backend.services.TrackFindService;
 import no.uio.ifi.trackfind.frontend.components.TrackFindTree;
 import no.uio.ifi.trackfind.frontend.data.TreeNode;
@@ -27,6 +28,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public abstract class AbstractUI extends UI {
 
+    protected SchemaService schemaService;
     protected TrackFindProperties properties;
     protected TrackFindService trackFindService;
 
@@ -96,6 +98,11 @@ public abstract class AbstractUI extends UI {
         for (TreeNode child : treeNode.getChildren()) {
             fillTreeData(treeData, child);
         }
+    }
+
+    @Autowired
+    public void setSchemaService(SchemaService schemaService) {
+        this.schemaService = schemaService;
     }
 
     @Autowired

@@ -19,14 +19,11 @@ import java.util.List;
 @Data
 public class TrackFindProperties {
 
+    private @NotBlank String fairFieldName;
+    private @NotBlank String levelsSeparator;
     private @NotBlank String scriptingLanguage;
     private @NotBlank String scriptingDatasetVariableName;
     private @NotBlank String scriptingResultVariableName;
-
-    private @NotBlank String levelsSeparator;
-
-    private List<String> standardAttributes;
-
     private boolean demoMode;
 
 }

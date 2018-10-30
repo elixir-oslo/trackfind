@@ -135,10 +135,15 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
                         ScriptingEngine scriptingEngine = scriptingEngines.stream().filter(se -> properties.getScriptingLanguage().equals(se.getLanguage())).findAny().orElseThrow(RuntimeException::new);
                         values = scriptingEngine.execute(script, rawMap);
                     }
+                    String[] path = mapping.getTo().split(properties.getLevelsSeparator());
+                    Map<String, Object> nestedMap = standardMap;
+                    for (int i = 0; i < path.length - 1; i++) {
+                        nestedMap = (Map<String, Object>) nestedMap.computeIfAbsent(path[i], k -> new HashMap<String, Object>());
+                    }
                     if (CollectionUtils.size(values) == 1) {
-                        standardMap.put(mapping.getTo(), values.iterator().next());
+                        nestedMap.put(path[path.length - 1], values.iterator().next());
                     } else {
-                        standardMap.put(mapping.getTo(), values);
+                        nestedMap.put(path[path.length - 1], values);
                     }
                 }
                 Standard standard = new Standard();
