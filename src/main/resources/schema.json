@@ -1,0 +1,137 @@
+{
+  "definitions": {},
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "http://example.com/root.json",
+  "type": "object",
+  "title": "The Root Schema",
+  "required": [
+    "files"
+  ],
+  "properties": {
+    "files": {
+      "$id": "#/properties/files",
+      "type": "array",
+      "title": "The Files Schema",
+      "items": {
+        "$id": "#/properties/files/items",
+        "type": "object",
+        "title": "The Items Schema",
+        "required": [
+          "uri"
+        ],
+        "properties": {
+          "uri": {
+            "$id": "#/properties/files/items/properties/uri",
+            "type": "string",
+            "title": "The Uri Schema",
+            "default": "",
+            "examples": [
+              "uri"
+            ],
+            "pattern": "^(.*)$"
+          },
+          "title": {
+            "$id": "#/properties/files/items/properties/title",
+            "type": "string",
+            "title": "The Title Schema",
+            "default": "",
+            "examples": [
+              "title"
+            ],
+            "pattern": "^(.*)$"
+          },
+          "data_type": {
+            "$id": "#/properties/files/items/properties/data_type",
+            "type": "string",
+            "title": "The Data_type Schema",
+            "default": "",
+            "examples": [
+              "data_type"
+            ],
+            "pattern": "^(.*)$"
+          },
+          "file_suffix": {
+            "$id": "#/properties/files/items/properties/file_suffix",
+            "type": "string",
+            "title": "The File_suffix Schema",
+            "default": "",
+            "examples": [
+              "file_suffix"
+            ],
+            "pattern": "^(.*)$"
+          },
+          "checksum": {
+            "$id": "#/properties/files/items/properties/checksum",
+            "type": "string",
+            "title": "The Checksum Schema",
+            "default": "",
+            "examples": [
+              "checksum"
+            ],
+            "pattern": "^(.*)$"
+          }
+        }
+      }
+    },
+    "genome_build": {
+      "$id": "#/properties/genome_build",
+      "type": "string",
+      "title": "The Genome_build Schema",
+      "default": "",
+      "examples": [
+        "genome_build"
+      ],
+      "pattern": "^(.*)$"
+    },
+    "tissue_type": {
+      "$id": "#/properties/tissue_type",
+      "type": "string",
+      "title": "The Tissue_type Schema",
+      "default": "",
+      "examples": [
+        "tissue_type"
+      ],
+      "pattern": "^(.*)$"
+    },
+    "cell_type": {
+      "$id": "#/properties/cell_type",
+      "type": "string",
+      "title": "The Cell_type Schema",
+      "default": "",
+      "examples": [
+        "cell_type"
+      ],
+      "pattern": "^(.*)$"
+    },
+    "target": {
+      "$id": "#/properties/target",
+      "type": "string",
+      "title": "The Target Schema",
+      "default": "",
+      "examples": [
+        "target"
+      ],
+      "pattern": "^(.*)$"
+    },
+    "experiment_type": {
+      "$id": "#/properties/experiment_type",
+      "type": "string",
+      "title": "The Experiment_type Schema",
+      "default": "",
+      "examples": [
+        "experiment_type"
+      ],
+      "pattern": "^(.*)$"
+    },
+    "data_source": {
+      "$id": "#/properties/data_source",
+      "type": "string",
+      "title": "The Data_source Schema",
+      "default": "",
+      "examples": [
+        "data_source"
+      ],
+      "pattern": "^(.*)$"
+    }
+  }
+}

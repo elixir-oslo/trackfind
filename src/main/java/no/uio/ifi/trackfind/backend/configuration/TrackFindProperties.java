@@ -24,10 +24,6 @@ public class TrackFindProperties {
     private @NotBlank String scriptingResultVariableName;
 
     private @NotBlank String levelsSeparator;
-    private @NotBlank String idAttribute;
-    private @NotBlank String versionAttribute;
-    private @NotBlank String uriAttribute;
-    private @NotBlank String dataTypeAttribute;
 
     private List<String> standardAttributes;
 
