@@ -1,6 +1,7 @@
 package no.uio.ifi.trackfind.backend.dao;
 
 import com.fasterxml.jackson.annotation.JsonRawValue;
+import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.hibernate.annotations.Immutable;
@@ -32,6 +33,11 @@ public class Dataset {
     @JsonRawValue
     @Column(name = "standard_content", columnDefinition = "jsonb")
     private String standardContent;
+
+    @JsonValue
+    @JsonRawValue
+    @Column(name = "fair_content", nullable = false, columnDefinition = "jsonb")
+    private String fairContent;
 
     @Column(name = "version", nullable = false)
     private String version;

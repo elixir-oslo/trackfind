@@ -28,14 +28,16 @@ CREATE INDEX IF NOT EXISTS standard_content_index
   USING gin (content);
 
 CREATE OR REPLACE VIEW datasets AS
-  SELECT source.id                                                                                   AS id,
-         source.repository                                                                           AS repository,
-         source.content                                                                              AS curated_content,
-         standard.content                                                                            AS standard_content,
-         source.raw_version                                                                          AS raw_version,
-         source.curated_version                                                                      AS curated_version,
-         COALESCE(standard.version, 0)                                                               AS standard_version,
-         CONCAT(source.raw_version, ':', source.curated_version, ':', COALESCE(standard.version, 0)) AS version
+  SELECT source.id                                                                                                    AS id,
+         source.repository                                                                                            AS repository,
+         source.content                                                                                               AS curated_content,
+         standard.content                                                                                             AS standard_content,
+         source.content ||
+         JSONB_BUILD_OBJECT('fair', JSONB_SET(COALESCE(standard.content, '{}'::jsonb), '{id}', TO_JSONB(source.id)))  AS fair_content,
+         source.raw_version                                                                                           AS raw_version,
+         source.curated_version                                                                                       AS curated_version,
+         COALESCE(standard.version, 0)                                                                                AS standard_version,
+         CONCAT(source.raw_version, ':', source.curated_version, ':', COALESCE(standard.version, 0))                  AS version
   FROM source
          LEFT JOIN standard on source.id = standard.id;
 
