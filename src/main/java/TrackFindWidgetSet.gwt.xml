@@ -6,4 +6,6 @@
     <set-configuration-property name="devModeRedirectEnabled" value="true" />
 
     <source path="no/uio/ifi/trackfind/frontend/components/client"></source>
+
+    <inherits name="org.vaadin.aceeditor.AceEditorWidgetSet" />
 </module>

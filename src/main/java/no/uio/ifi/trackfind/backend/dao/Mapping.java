@@ -3,24 +3,27 @@ package no.uio.ifi.trackfind.backend.dao;
 import lombok.Data;
 
 import javax.persistence.*;
+import java.math.BigInteger;
 
 @Entity
 @Table(name = "mappings")
-@IdClass(MappingId.class)
 @Data
 public class Mapping {
 
     @Id
+    @Column(name = "id", nullable = false)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private BigInteger id;
+
     @Column(name = "repository", nullable = false)
     private String repository;
 
     @Column(name = "static", nullable = false)
-    private Boolean staticMapping;
+    private boolean staticMapping;
 
     @Column(name = "map_from", nullable = false)
     private String from;
 
-    @Id
     @Column(name = "map_to", nullable = false)
     private String to;
 

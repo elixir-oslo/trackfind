@@ -120,7 +120,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
                 for (Mapping mapping : mappings) {
                     String script = mapping.getFrom();
                     Collection<String> values;
-                    if (mapping.getStaticMapping()) {
+                    if (mapping.isStaticMapping()) {
                         Dynamic dynamicValues = Dynamic.from(rawMap).get(mapping.getFrom(), properties.getLevelsSeparator());
                         if (dynamicValues.isPresent()) {
                             if (dynamicValues.isList()) {

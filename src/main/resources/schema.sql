@@ -29,6 +29,7 @@ CREATE INDEX IF NOT EXISTS standard_content_index
 
 CREATE OR REPLACE VIEW datasets AS
   SELECT
+         sub_query.id,
          sub_query.repository,
          sub_query.curated_content,
          sub_query.standard_content,
@@ -52,9 +53,10 @@ CREATE OR REPLACE VIEW datasets AS
 
 CREATE TABLE IF NOT EXISTS mappings
 (
+  id         BIGSERIAL PRIMARY KEY,
   repository VARCHAR(255) NOT NULl,
-  map_to     VARCHAR(255) NOT NULl,
-  map_from   VARCHAR(255) NOT NULl,
+  map_to     VARCHAR,
+  map_from   VARCHAR      NOT NULl,
   static     BOOLEAN      NOT NULl,
-  PRIMARY KEY (repository, map_to)
+  UNIQUE (repository, map_to, map_from, static)
 );

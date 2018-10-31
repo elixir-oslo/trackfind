@@ -1,14 +1,14 @@
 package no.uio.ifi.trackfind.backend.repositories;
 
 import no.uio.ifi.trackfind.backend.dao.Mapping;
-import no.uio.ifi.trackfind.backend.dao.MappingId;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigInteger;
 import java.util.Collection;
 
 @Repository
-public interface MappingRepository extends JpaRepository<Mapping, MappingId> {
+public interface MappingRepository extends JpaRepository<Mapping, BigInteger> {
 
     Collection<Mapping> findByRepository(String repository);
 
