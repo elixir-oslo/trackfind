@@ -85,7 +85,7 @@ public class DataController {
             @ApiParam(value = "Data provider name.", required = true, example = "IHEC")
             @PathVariable String provider,
             @ApiParam(value = "ID of the dataset to return.", required = true)
-            @RequestParam String id,
+            @RequestParam Long id,
             @ApiParam(value = "Version of the dataset to return.", required = false)
             @RequestParam(required = false) String version) {
         return ResponseEntity.ok(trackFindService.getDataProvider(provider).fetch(id, version));
@@ -105,7 +105,7 @@ public class DataController {
             @ApiParam(value = "Data provider name.", required = true, example = "IHEC")
             @PathVariable String provider,
             @ApiParam(value = "ID of the dataset to return.", required = true)
-            @RequestParam String id,
+            @RequestParam Long id,
             @ApiParam(value = "Version of the dataset to return.", required = false)
             @RequestParam(required = false) String version) {
         Dataset dataset = trackFindService.getDataProvider(provider).fetch(id, version);

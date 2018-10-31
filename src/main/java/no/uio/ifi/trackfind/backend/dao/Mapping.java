@@ -13,7 +13,7 @@ public class Mapping {
     @Id
     @Column(name = "id", nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private BigInteger id;
+    private Long id;
 
     @Column(name = "repository", nullable = false)
     private String repository;

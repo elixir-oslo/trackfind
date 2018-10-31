@@ -60,6 +60,6 @@ public interface DataProvider {
      * @param version   Version.
      * @return Dataset.
      */
-    Dataset fetch(String datasetId, String version);
+    Dataset fetch(Long datasetId, String version);
 
 }

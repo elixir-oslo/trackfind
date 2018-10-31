@@ -4,27 +4,33 @@ import com.fasterxml.jackson.annotation.JsonRawValue;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
-import java.math.BigInteger;
+import javax.persistence.*;
 
 @Entity
 @Table(name = "standard")
+@IdClass(StandardId.class)
 @Data
-@EqualsAndHashCode(of = {"id", "version"})
+@EqualsAndHashCode(of = {"id", "rawVersion", "curatedVersion", "standardVersion"})
 public class Standard {
 
     @Id
     @Column(name = "id", nullable = false)
-    private BigInteger id;
+    private Long id;
 
     @JsonRawValue
     @Column(name = "content", nullable = false, columnDefinition = "jsonb")
     private String content;
 
-    @Column(name = "version", nullable = false)
-    private Long version;
+    @Id
+    @Column(name = "raw_version", nullable = false)
+    private Long rawVersion;
+
+    @Id
+    @Column(name = "curated_version", nullable = false)
+    private Long curatedVersion;
+
+    @Id
+    @Column(name = "standard_version", nullable = false)
+    private Long standardVersion;
 
 }

@@ -3,12 +3,12 @@ CREATE SEQUENCE IF NOT EXISTS source_ids_sequence
 
 CREATE TABLE IF NOT EXISTS source
 (
-  id              BIGINT PRIMARY KEY,
+  id              BIGINT       NOT NULl,
   repository      VARCHAR(255) NOT NULl,
   content         JSONB        NOT NULl,
   raw_version     BIGINT       NOT NULl,
   curated_version BIGINT       NOT NULl,
-  UNIQUE (id, raw_version, curated_version)
+  PRIMARY KEY (id, raw_version, curated_version)
 );
 
 CREATE INDEX IF NOT EXISTS source_content_index
@@ -17,10 +17,13 @@ CREATE INDEX IF NOT EXISTS source_content_index
 
 CREATE TABLE IF NOT EXISTS standard
 (
-  id      BIGINT PRIMARY KEY REFERENCES source (id),
-  content JSONB  NOT NULl,
-  version BIGINT NOT NULl,
-  UNIQUE (id, version)
+  id               BIGINT NOT NULl,
+  content          JSONB  NOT NULl,
+  raw_version      BIGINT NOT NULl,
+  curated_version  BIGINT NOT NULl,
+  standard_version BIGINT NOT NULl,
+  PRIMARY KEY (id, standard_version),
+  FOREIGN KEY (id, raw_version, curated_version) REFERENCES source (id, raw_version, curated_version)
 );
 
 CREATE INDEX IF NOT EXISTS standard_content_index
@@ -46,8 +49,8 @@ CREATE OR REPLACE VIEW datasets AS
                source.content || JSONB_BUILD_OBJECT('fair', COALESCE(standard.content, '{}'::jsonb))                        AS fair_content,
                source.raw_version                                                                                           AS raw_version,
                source.curated_version                                                                                       AS curated_version,
-               COALESCE(standard.version, 0)                                                                                AS standard_version,
-               CONCAT(source.raw_version, ':', source.curated_version, ':', COALESCE(standard.version, 0))                  AS version
+               COALESCE(standard.standard_version, 0)                                                                       AS standard_version,
+               CONCAT(source.raw_version, ':', source.curated_version, ':', COALESCE(standard.standard_version, 0))         AS version
         FROM source
                LEFT JOIN standard on source.id = standard.id) AS sub_query;
 

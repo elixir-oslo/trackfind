@@ -234,8 +234,6 @@ public class TrackFindAdminUI extends AbstractUI {
     private void loadConfiguration() {
         String repository = getCurrentDataProvider().getName();
         Collection<Mapping> mappings = mappingRepository.findByRepository(repository);
-        mappings = mappings == null ? Collections.emptySet() : mappings;
-        System.out.println("mappings = " + mappings);
         Collection<Mapping> staticMappings = mappings.stream().filter(Mapping::isStaticMapping).collect(Collectors.toSet());
         attributesStaticMapping.clear();
         attributesMappingLayout.removeAllComponents();

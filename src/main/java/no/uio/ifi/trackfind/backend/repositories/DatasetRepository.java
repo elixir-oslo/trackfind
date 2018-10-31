@@ -10,13 +10,13 @@ import java.math.BigInteger;
 import java.util.Collection;
 
 @Repository
-public interface DatasetRepository extends JpaRepository<Dataset, BigInteger> {
+public interface DatasetRepository extends JpaRepository<Dataset, Long> {
 
     long countByRepository(String repository);
 
-    Collection<Dataset> findByIdIn(Collection<BigInteger> ids);
+    Collection<Dataset> findByIdIn(Collection<Long> ids);
 
-    Dataset findByIdAndVersion(BigInteger id, String version);
+    Dataset findByIdAndVersion(Long id, String version);
 
     @Query(value = "SELECT *\n" +
             "FROM datasets\n" +
@@ -26,6 +26,6 @@ public interface DatasetRepository extends JpaRepository<Dataset, BigInteger> {
             "   AND curated_version = MAX(curated_version)\n" +
             "   AND standard_version = MAX(standard_version)",
             nativeQuery = true)
-    Dataset findByIdLatest(@Param("id") BigInteger id);
+    Dataset findByIdLatest(@Param("id") Long id);
 
 }

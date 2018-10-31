@@ -22,9 +22,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.*;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -176,7 +176,7 @@ public class TrackFindRESTTests {
         dataset = new Dataset();
         dataset.setFairContent("{'fair':{'id':0}}");
         when(dataProvider.search(anyString(), anyInt())).thenReturn(Collections.singleton(dataset));
-        when(dataProvider.fetch(anyString(), Mockito.any())).thenReturn(dataset);
+        when(dataProvider.fetch(anyLong(), Mockito.any())).thenReturn(dataset);
     }
 
 }

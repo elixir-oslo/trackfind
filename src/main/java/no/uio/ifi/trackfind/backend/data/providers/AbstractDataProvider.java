@@ -21,7 +21,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.annotation.PostConstruct;
 import javax.transaction.Transactional;
-import java.math.BigInteger;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
@@ -149,7 +148,10 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
                 Standard standard = new Standard();
                 standard.setId(source.getId());
                 standard.setContent(gson.toJson(standardMap));
-                standard.setVersion(0L);                       // TODO: set proper version
+                standard.setRawVersion(source.getRawVersion());
+                standard.setCuratedVersion(source.getCuratedVersion());
+                standard.setStandardVersion(0L);
+                standardRepository.findByIdLatest(standard.getId()).ifPresent(s -> standard.setStandardVersion(s.getStandardVersion() + 1));
                 standardRepository.save(standard);
             }
         } catch (Exception e) {
@@ -207,17 +209,25 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     public Collection<Dataset> search(String query, int limit) {
         try {
             limit = limit == 0 ? Integer.MAX_VALUE : limit;
-            String rawQuery = String.format("SELECT id\n" +
+            String rawQuery = String.format("SELECT *\n" +
                     "FROM datasets\n" +
                     "WHERE repository = '%s'\n" +
                     "AND (%s)\n" +
-                    "GROUP BY id, raw_version, curated_version, standard_version\n" +
+                    "GROUP BY id, repository, curated_content, standard_content, fair_content, raw_version, curated_version, standard_version, version\n" +
                     "HAVING raw_version = MAX(raw_version)\n" +
                     "   AND curated_version = MAX(curated_version)\n" +
                     "   AND standard_version = MAX(standard_version)\n" +
                     "ORDER BY id ASC LIMIT %s", getName(), query, limit);
-            List<BigInteger> ids = jdbcTemplate.queryForList(queryValidator.validate(rawQuery), BigInteger.class);
-            return datasetRepository.findByIdIn(ids);
+            return jdbcTemplate.query(queryValidator.validate(rawQuery), (resultSet, i) -> {
+                Dataset dataset = new Dataset();
+                dataset.setId(resultSet.getLong("id"));
+                dataset.setRepository(resultSet.getString("repository"));
+                dataset.setCuratedContent(resultSet.getString("curated_content"));
+                dataset.setStandardContent(resultSet.getString("standard_content"));
+                dataset.setFairContent(resultSet.getString("fair_content"));
+                dataset.setVersion(resultSet.getString("version"));
+                return dataset;
+            });
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return Collections.emptySet();
@@ -229,10 +239,8 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      */
     @SuppressWarnings("unchecked")
     @Override
-    public Dataset fetch(String datasetId, String version) {
-        return version == null ?
-                datasetRepository.findByIdLatest(new BigInteger(datasetId)) :
-                datasetRepository.findByIdAndVersion(new BigInteger(datasetId), version);
+    public Dataset fetch(Long datasetId, String version) {
+        return version == null ? datasetRepository.findByIdLatest(datasetId) : datasetRepository.findByIdAndVersion(datasetId, version);
     }
 
     /**

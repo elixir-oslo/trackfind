@@ -21,7 +21,7 @@ public class Dataset {
 
     @Id
     @Column(name = "id", nullable = false)
-    private BigInteger id;
+    private Long id;
 
     @Column(name = "repository", nullable = false)
     private String repository;
