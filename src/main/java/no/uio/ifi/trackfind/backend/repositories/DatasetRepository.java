@@ -14,8 +14,6 @@ public interface DatasetRepository extends JpaRepository<Dataset, Long> {
 
     long countByRepository(String repository);
 
-    Collection<Dataset> findByIdIn(Collection<Long> ids);
-
     Dataset findByIdAndVersion(Long id, String version);
 
     @Query(value = "SELECT *\n" +

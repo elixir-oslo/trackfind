@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.dao.Dataset;
 import no.uio.ifi.trackfind.backend.data.providers.AbstractDataProvider;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.io.IOUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -12,10 +13,7 @@ import javax.transaction.Transactional;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
@@ -29,8 +27,8 @@ import java.util.stream.Collectors;
 @Component
 public class IHECDataProvider extends AbstractDataProvider {
 
-    private static final String RELEASES_URL = "http://epigenomesportal.ca/cgi-bin/api/getReleases.py";
-    private static final String FETCH_URL = "http://epigenomesportal.ca/cgi-bin/api/getDataHub.py?data_release_id=";
+    private static final String RELEASES_URL = "https://epigenomesportal.ca/cgi-bin/api/getReleases.py";
+    private static final String FETCH_URL = "https://epigenomesportal.ca/cgi-bin/api/getDataHub.py?data_release_id=";
 
     /**
      * {@inheritDoc}
