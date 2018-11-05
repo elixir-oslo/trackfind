@@ -19,10 +19,8 @@ public interface DatasetRepository extends JpaRepository<Dataset, Long> {
     @Query(value = "SELECT *\n" +
             "FROM datasets\n" +
             "WHERE id = :id\n" +
-            "GROUP BY id, repository, curated_content, standard_content, raw_version, curated_version, standard_version, version\n" +
-            "HAVING raw_version = MAX(raw_version)\n" +
-            "   AND curated_version = MAX(curated_version)\n" +
-            "   AND standard_version = MAX(standard_version)",
+            "ORDER BY raw_version DESC, curated_version DESC, standard_version DESC\n" +
+            "LIMIT 1",
             nativeQuery = true)
     Dataset findByIdLatest(@Param("id") Long id);
 
