@@ -1,8 +1,5 @@
 package no.uio.ifi.trackfind.backend.scripting;
 
-import java.util.Collection;
-import java.util.Map;
-
 /**
  * Scripting Engine for performing dynamic attribute mappings.
  *
@@ -21,10 +18,10 @@ public interface ScriptingEngine {
      * Execute script.
      *
      * @param script  Mappings script.
-     * @param dataset Dataset to process.
-     * @return Mapped values.
+     * @param content Dataset's content to process.
+     * @return Content with mapped values.
      * @throws Exception When script can't be interpreted/executed.
      */
-    Collection<String> execute(String script, Map dataset) throws Exception;
+    String execute(String script, String content) throws Exception;
 
 }

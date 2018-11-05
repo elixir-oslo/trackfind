@@ -4,15 +4,19 @@ services:
 
   db:
     image: postgres:10.5
+    ports:
+    - "5432:5432"
     environment:
     - POSTGRES_DB=trackfind
-    - POSTGRES_USER
-    - POSTGRES_PASSWORD
+    - POSTGRES_USER=test
+    - POSTGRES_PASSWORD=test
     volumes:
     - db:/var/lib/postgresql/data
 
   gsuite:
     image: nels/rest_gsuite:latest
+    ports:
+    - "5000:5000"
     deploy:
       restart_policy:
         condition: on-failure
@@ -20,23 +24,23 @@ services:
         max_attempts: 3
         window: 120s
 
-  trackfind:
-    image: nels/trackfind:latest
-    ports:
-    - "80:8888"
-    depends_on:
-    - db
-    deploy:
-      restart_policy:
-        condition: on-failure
-        delay: 10s
-        max_attempts: 3
-        window: 120s
-    environment:
-    - DB_INSTANCE=db
-    - POSTGRES_DB=trackfind
-    - POSTGRES_USER
-    - POSTGRES_PASSWORD
+#  trackfind:
+#    image: nels/trackfind:latest
+#    ports:
+#    - "80:8888"
+#    depends_on:
+#    - db
+#    deploy:
+#      restart_policy:
+#        condition: on-failure
+#        delay: 10s
+#        max_attempts: 3
+#        window: 120s
+#    environment:
+#    - DB_INSTANCE=db
+#    - POSTGRES_DB=trackfind
+#    - POSTGRES_USER
+#    - POSTGRES_PASSWORD
 
 volumes:
   db:

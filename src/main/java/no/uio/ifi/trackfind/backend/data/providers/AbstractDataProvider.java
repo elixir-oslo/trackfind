@@ -111,28 +111,29 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     public synchronized void applyMappings() {
         log.info("Applying mappings for " + getName());
         Collection<Mapping> mappings = mappingRepository.findByRepository(getName());
+        Collection<Mapping> staticMappings = mappings.stream().filter(Mapping::isStaticMapping).collect(Collectors.toSet());
+        Optional<Mapping> dynamicMappingOptional = mappings.stream().filter(m -> !m.isStaticMapping()).findAny();
         Collection<Source> sources = sourceRepository.findByRepositoryLatest(getName());
+        ScriptingEngine scriptingEngine = scriptingEngines.stream().filter(se -> properties.getScriptingLanguage().equals(se.getLanguage())).findAny().orElseThrow(RuntimeException::new);
         try {
             for (Source source : sources) {
                 Map<String, Object> rawMap = gson.fromJson(source.getContent(), Map.class);
                 Map<String, Object> standardMap = new HashMap<>();
-                for (Mapping mapping : mappings) {
-                    String script = mapping.getFrom();
+                if (dynamicMappingOptional.isPresent()) {
+                    Mapping mapping = dynamicMappingOptional.get();
+                    standardMap = gson.fromJson(scriptingEngine.execute(mapping.getFrom(), source.getContent()), Map.class);
+                }
+                for (Mapping mapping : staticMappings) {
                     Collection<String> values;
-                    if (mapping.isStaticMapping()) {
-                        Dynamic dynamicValues = Dynamic.from(rawMap).get(mapping.getFrom(), properties.getLevelsSeparator());
-                        if (dynamicValues.isPresent()) {
-                            if (dynamicValues.isList()) {
-                                values = dynamicValues.asList();
-                            } else {
-                                values = Collections.singletonList(dynamicValues.asString());
-                            }
+                    Dynamic dynamicValues = Dynamic.from(rawMap).get(mapping.getFrom(), properties.getLevelsSeparator());
+                    if (dynamicValues.isPresent()) {
+                        if (dynamicValues.isList()) {
+                            values = dynamicValues.asList();
                         } else {
-                            values = Collections.emptyList();
+                            values = Collections.singletonList(dynamicValues.asString());
                         }
                     } else {
-                        ScriptingEngine scriptingEngine = scriptingEngines.stream().filter(se -> properties.getScriptingLanguage().equals(se.getLanguage())).findAny().orElseThrow(RuntimeException::new);
-                        values = scriptingEngine.execute(script, rawMap);
+                        values = Collections.emptyList();
                     }
                     String[] path = mapping.getTo().split(properties.getLevelsSeparator());
                     Map<String, Object> nestedMap = standardMap;
