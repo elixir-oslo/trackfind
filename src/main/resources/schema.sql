@@ -11,6 +11,9 @@ CREATE TABLE IF NOT EXISTS source
   PRIMARY KEY (id, raw_version, curated_version)
 );
 
+CREATE INDEX IF NOT EXISTS source_index
+  ON source(id, repository, raw_version, curated_version);
+
 CREATE INDEX IF NOT EXISTS source_content_index
   ON source
   USING gin (content);
@@ -26,11 +29,14 @@ CREATE TABLE IF NOT EXISTS standard
   FOREIGN KEY (id, raw_version, curated_version) REFERENCES source (id, raw_version, curated_version)
 );
 
+CREATE INDEX IF NOT EXISTS standard_index
+  ON standard(id, raw_version, curated_version, standard_version);
+
 CREATE INDEX IF NOT EXISTS standard_content_index
   ON standard
   USING gin (content);
 
-CREATE OR REPLACE VIEW datasets AS
+CREATE MATERIALIZED VIEW IF NOT EXISTS datasets AS
   SELECT
          sub_query.id,
          sub_query.repository,
@@ -52,9 +58,13 @@ CREATE OR REPLACE VIEW datasets AS
                COALESCE(standard.standard_version, 0)                                                                       AS standard_version,
                CONCAT(source.raw_version, ':', source.curated_version, ':', COALESCE(standard.standard_version, 0))         AS version
         FROM source
-               LEFT JOIN standard on source.id = standard.id) AS sub_query;
+               LEFT JOIN standard on source.id = standard.id) AS sub_query
+WITH DATA;
 
-CREATE OR REPLACE VIEW latest_datasets AS
+CREATE INDEX IF NOT EXISTS datasets_index
+  ON datasets(id, repository, raw_version, curated_version, standard_version, version);
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS latest_datasets AS
   SELECT d1.*
   FROM datasets AS d1
          LEFT JOIN datasets d2 ON d1.id = d2.id
@@ -65,6 +75,9 @@ CREATE OR REPLACE VIEW latest_datasets AS
   HAVING d1.raw_version = MAX(d2.raw_version)
      AND d1.curated_version = MAX(d3.curated_version)
      AND d1.standard_version = MAX(d4.standard_version);
+
+CREATE INDEX IF NOT EXISTS latest_datasets_index
+  ON latest_datasets(id, repository, raw_version, curated_version, standard_version, version);
 
 CREATE TABLE IF NOT EXISTS mappings
 (

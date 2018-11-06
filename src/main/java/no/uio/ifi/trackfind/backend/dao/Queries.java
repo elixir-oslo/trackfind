@@ -3,16 +3,12 @@ package no.uio.ifi.trackfind.backend.dao;
 public interface Queries {
 
     String METAMODEL_VIEW = "CREATE OR REPLACE VIEW %s_metamodel AS\n" +
-            "  WITH RECURSIVE collect_metadata AS (SELECT datasets.repository,\n" +
+            "  WITH RECURSIVE collect_metadata AS (SELECT latest_datasets.repository,\n" +
             "                                             first_level.key,\n" +
             "                                             first_level.value,\n" +
             "                                             jsonb_typeof(first_level.value) AS type\n" +
-            "                                      FROM datasets,\n" +
-            "                                           jsonb_each(datasets.%s_content) first_level\n" +
-            "                                      GROUP BY datasets.repository, first_level.key, first_level.value, raw_version, curated_version, standard_version\n" +
-            "                                      HAVING raw_version = MAX(raw_version)\n" +
-            "                                         AND curated_version = MAX(curated_version)\n" +
-            "                                         AND standard_version = MAX(standard_version)\n" +
+            "                                      FROM latest_datasets,\n" +
+            "                                           jsonb_each(latest_datasets.%s_content) first_level\n" +
             "\n" +
             "                                      UNION ALL\n" +
             "\n" +
@@ -53,5 +49,9 @@ public interface Queries {
             "  SELECT DISTINCT repository, key AS attribute, array_to_json(ARRAY[collect_metadata.value])->>0 AS value, type\n" +
             "  FROM collect_metadata\n" +
             "  WHERE collect_metadata.type NOT IN ('object', 'array')";
+
+    String REFRESH_DATASETS_VIEW = "REFRESH MATERIALIZED VIEW datasets";
+
+    String REFRESH_LATEST_DATASETS_VIEW = "REFRESH MATERIALIZED VIEW latest_datasets";
 
 }

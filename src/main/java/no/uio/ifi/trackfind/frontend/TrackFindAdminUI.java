@@ -169,7 +169,7 @@ public class TrackFindAdminUI extends AbstractUI {
         crawlButton.setSizeFull();
         crawlButton.addClickListener((Button.ClickListener) event -> ConfirmDialog.show(getUI(),
                 "Are you sure? " +
-                        "Crawling is time-consuming process and will lead to changing the metadata of in the database.",
+                        "Crawling is VERY time-consuming process and will lead to changing the data in the database.",
                 (ConfirmDialog.Listener) dialog -> {
                     if (dialog.isConfirmed()) {
                         getCurrentDataProvider().crawlRemoteRepository();
@@ -179,7 +179,7 @@ public class TrackFindAdminUI extends AbstractUI {
         applyMappingsButton.setSizeFull();
         applyMappingsButton.addClickListener((Button.ClickListener) event -> ConfirmDialog.show(getUI(),
                 "Are you sure? " +
-                        "Applying attribute mappings will change the metadata structure in the database.",
+                        "Applying attribute mappings is VERY time-consuming process and will lead to changing the data in the database.",
                 (ConfirmDialog.Listener) dialog -> {
                     if (dialog.isConfirmed()) {
                         getCurrentDataProvider().applyMappings();

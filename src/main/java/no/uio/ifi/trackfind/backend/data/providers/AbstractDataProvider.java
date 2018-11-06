@@ -47,10 +47,10 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
 
     @PostConstruct
     protected void init() {
-        if (datasetRepository.countByRepository(getName()) == 0) {
-            crawlRemoteRepository();
-        }
         try {
+            if (datasetRepository.countByRepository(getName()) == 0) {
+                crawlRemoteRepository();
+            }
             jdbcTemplate.execute(String.format(Queries.METAMODEL_VIEW, "source", "curated", properties.getLevelsSeparator(), properties.getLevelsSeparator()));
             jdbcTemplate.execute(String.format(Queries.METAMODEL_VIEW, "standard", "standard", properties.getLevelsSeparator(), properties.getLevelsSeparator()));
         } catch (Exception e) {
@@ -83,6 +83,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
         log.info("Fetching data using " + getName());
         try {
             fetchData();
+            resetCaches();
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return;
@@ -119,6 +120,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
         Collection<Mapping> staticMappings = mappings.stream().filter(Mapping::isStaticMapping).collect(Collectors.toSet());
         Optional<Mapping> dynamicMappingOptional = mappings.stream().filter(m -> !m.isStaticMapping()).findAny();
         Collection<Source> sources = sourceRepository.findByRepositoryLatest(getName());
+        Collection<Standard> standards = new HashSet<>();
         ScriptingEngine scriptingEngine = scriptingEngines.stream().filter(se -> properties.getScriptingLanguage().equals(se.getLanguage())).findAny().orElseThrow(RuntimeException::new);
         try {
             for (Source source : sources) {
@@ -158,13 +160,22 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
                 standard.setCuratedVersion(source.getCuratedVersion());
                 standard.setStandardVersion(0L);
                 standardRepository.findByIdLatest(standard.getId()).ifPresent(s -> standard.setStandardVersion(s.getStandardVersion() + 1));
-                standardRepository.save(standard);
+                standards.add(standard);
             }
+            standardRepository.saveAll(standards);
+            resetCaches();
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return;
         }
         log.info("Success!");
+    }
+
+    /**
+     * Refreshes materialized views in the database.
+     */
+    private void resetCaches() {
+        jdbcTemplate.execute(Queries.REFRESH_DATASETS_VIEW);
     }
 
     /**
