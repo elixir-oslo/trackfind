@@ -176,6 +176,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      */
     private void resetCaches() {
         jdbcTemplate.execute(Queries.REFRESH_DATASETS_VIEW);
+        jdbcTemplate.execute(Queries.REFRESH_LATEST_DATASETS_VIEW);
     }
 
     /**

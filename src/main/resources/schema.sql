@@ -65,16 +65,23 @@ CREATE INDEX IF NOT EXISTS datasets_index
   ON datasets(id, repository, raw_version, curated_version, standard_version, version);
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS latest_datasets AS
-  SELECT d1.*
-  FROM datasets AS d1
-         LEFT JOIN datasets d2 ON d1.id = d2.id
-         LEFT JOIN datasets d3 ON d1.id = d3.id
-         LEFT JOIN datasets d4 ON d1.id = d4.id
-  GROUP BY d1.id, d1.repository, d1.curated_content, d1.standard_content, d1.fair_content, d1.raw_version,
-           d1.curated_version, d1.standard_version, d1.version
-  HAVING d1.raw_version = MAX(d2.raw_version)
-     AND d1.curated_version = MAX(d3.curated_version)
-     AND d1.standard_version = MAX(d4.standard_version);
+  WITH max_raw_versions AS (SELECT id as id, MAX(raw_version) as max_version FROM datasets GROUP BY id),
+      filtered_by_raw AS (SELECT datasets.*
+                          FROM datasets
+                                 INNER JOIN max_raw_versions
+                                   ON datasets.id = max_raw_versions.id AND datasets.raw_version = max_raw_versions.max_version),
+      max_curated_versions AS (SELECT id as id, MAX(curated_version) as max_version FROM filtered_by_raw GROUP BY id),
+      filtered_by_curated AS (SELECT filtered_by_raw.*
+                              FROM filtered_by_raw
+                                     INNER JOIN max_curated_versions
+                                       ON filtered_by_raw.id = max_curated_versions.id AND filtered_by_raw.curated_version = max_curated_versions.max_version),
+      max_standard_versions AS (SELECT id as id, MAX(standard_version) as max_version FROM filtered_by_curated GROUP BY id),
+      filtered_by_standard AS (SELECT filtered_by_curated.*
+                               FROM filtered_by_curated
+                                      INNER JOIN max_standard_versions
+                                        ON filtered_by_curated.id = max_standard_versions.id AND filtered_by_curated.standard_version = max_standard_versions.max_version)
+  SELECT *
+  FROM filtered_by_standard;
 
 CREATE INDEX IF NOT EXISTS latest_datasets_index
   ON latest_datasets(id, repository, raw_version, curated_version, standard_version, version);
