@@ -210,19 +210,12 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     public Collection<Dataset> search(String query, int limit) {
         try {
             limit = limit == 0 ? Integer.MAX_VALUE : limit;
-            String rawQuery = String.format("SELECT d1.*\n" +
-                    "FROM (SELECT * FROM datasets WHERE repository = '%s'\n" +
-                    "                               AND (%s)) AS d1\n" +
-                    "       LEFT JOIN datasets d2 ON d1.id = d2.id\n" +
-                    "       LEFT JOIN datasets d3 ON d1.id = d3.id\n" +
-                    "       LEFT JOIN datasets d4 ON d1.id = d4.id\n" +
-                    "GROUP BY d1.id, d1.repository, d1.curated_content, d1.standard_content, d1.fair_content, d1.raw_version,\n" +
-                    "         d1.curated_version, d1.standard_version, d1.version\n" +
-                    "HAVING d1.raw_version = MAX(d2.raw_version)\n" +
-                    "   AND d1.curated_version = MAX(d3.curated_version)\n" +
-                    "   AND d1.standard_version = MAX(d4.standard_version)\n" +
-                    "ORDER BY d1.id ASC\n" +
-                    " LIMIT %s", getName(), query, limit);
+            String rawQuery = String.format("SELECT *\n" +
+                    "FROM latest_datasets\n" +
+                    "WHERE repository = '%s'\n" +
+                    "  AND (%s)\n" +
+                    "ORDER BY id ASC\n" +
+                    "LIMIT %s", getName(), query, limit);
             return jdbcTemplate.query(queryValidator.validate(rawQuery), (resultSet, i) -> {
                 Dataset dataset = new Dataset();
                 dataset.setId(resultSet.getLong("id"));

@@ -54,6 +54,18 @@ CREATE OR REPLACE VIEW datasets AS
         FROM source
                LEFT JOIN standard on source.id = standard.id) AS sub_query;
 
+CREATE OR REPLACE VIEW latest_datasets AS
+  SELECT d1.*
+  FROM datasets AS d1
+         LEFT JOIN datasets d2 ON d1.id = d2.id
+         LEFT JOIN datasets d3 ON d1.id = d3.id
+         LEFT JOIN datasets d4 ON d1.id = d4.id
+  GROUP BY d1.id, d1.repository, d1.curated_content, d1.standard_content, d1.fair_content, d1.raw_version,
+           d1.curated_version, d1.standard_version, d1.version
+  HAVING d1.raw_version = MAX(d2.raw_version)
+     AND d1.curated_version = MAX(d3.curated_version)
+     AND d1.standard_version = MAX(d4.standard_version);
+
 CREATE TABLE IF NOT EXISTS mappings
 (
   id         BIGSERIAL PRIMARY KEY,
