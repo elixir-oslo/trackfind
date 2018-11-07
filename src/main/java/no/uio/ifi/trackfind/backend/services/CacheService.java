@@ -19,10 +19,10 @@ public class CacheService {
      */
     @TransactionalEventListener(classes = DataReloadEvent.class)
     public void resetCaches(DataReloadEvent dataReloadEvent) {
-        log.info("Event {} received", dataReloadEvent.getSource());
+        log.info("Event {} received.", dataReloadEvent.getSource());
         jdbcTemplate.execute(Queries.REFRESH_DATASETS_VIEW);
         jdbcTemplate.execute(Queries.REFRESH_LATEST_DATASETS_VIEW);
-        log.info("Materialized views refreshed");
+        log.info("Materialized views refreshed.");
     }
 
     @Autowired
