@@ -14,6 +14,7 @@ import no.uio.ifi.trackfind.backend.repositories.MappingRepository;
 import no.uio.ifi.trackfind.backend.repositories.SourceRepository;
 import no.uio.ifi.trackfind.backend.repositories.StandardRepository;
 import no.uio.ifi.trackfind.backend.scripting.ScriptingEngine;
+import no.uio.ifi.trackfind.backend.services.CacheService;
 import no.uio.ifi.trackfind.backend.services.QueryValidator;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +40,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
 
     protected TrackFindProperties properties;
     protected ApplicationEventPublisher applicationEventPublisher;
+    protected CacheService cacheService;
     protected JdbcTemplate jdbcTemplate;
     protected SourceRepository sourceRepository;
     protected StandardRepository standardRepository;
@@ -87,7 +89,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
         log.info("Fetching data using " + getName());
         try {
             fetchData();
-            applicationEventPublisher.publishEvent(new DataReloadEvent(Operation.CRAWLING));
+            cacheService.resetCaches(new DataReloadEvent(Operation.CRAWLING));
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return;
@@ -270,6 +272,11 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     @Autowired
     public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
         this.applicationEventPublisher = applicationEventPublisher;
+    }
+
+    @Autowired
+    public void setCacheService(CacheService cacheService) {
+        this.cacheService = cacheService;
     }
 
     @Autowired
