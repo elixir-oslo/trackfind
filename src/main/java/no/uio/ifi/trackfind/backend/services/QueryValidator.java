@@ -4,6 +4,9 @@ import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import org.springframework.stereotype.Service;
 
+/**
+ * Service for validating SQL query for it's safety.
+ */
 @Service
 public class QueryValidator {
 

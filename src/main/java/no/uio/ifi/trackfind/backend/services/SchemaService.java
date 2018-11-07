@@ -13,6 +13,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.*;
 
+/**
+ * Service for loading JSON schema and for validating JSON objects.
+ */
 @Service
 public class SchemaService {
 
@@ -55,10 +58,20 @@ public class SchemaService {
         }
     }
 
+    /**
+     * Returns attributes from JSON schema.
+     *
+     * @return Collection of attributes.
+     */
     public Collection<String> getAttributes() {
         return attributes;
     }
 
+    /**
+     * Validates JSON object against the schema. Throws the exception if the object is invalid.
+     *
+     * @param object Object to validate.
+     */
     public void validate(Object object) {
         this.schema.validate(object);
     }

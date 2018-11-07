@@ -7,6 +7,8 @@ import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
 import no.uio.ifi.trackfind.backend.dao.*;
+import no.uio.ifi.trackfind.backend.events.DataReloadEvent;
+import no.uio.ifi.trackfind.backend.operations.Operation;
 import no.uio.ifi.trackfind.backend.repositories.DatasetRepository;
 import no.uio.ifi.trackfind.backend.repositories.MappingRepository;
 import no.uio.ifi.trackfind.backend.repositories.SourceRepository;
@@ -17,6 +19,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.annotation.PostConstruct;
@@ -35,6 +38,7 @@ import java.util.stream.Collectors;
 public abstract class AbstractDataProvider implements DataProvider, Comparable<DataProvider> {
 
     protected TrackFindProperties properties;
+    protected ApplicationEventPublisher applicationEventPublisher;
     protected JdbcTemplate jdbcTemplate;
     protected SourceRepository sourceRepository;
     protected StandardRepository standardRepository;
@@ -83,7 +87,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
         log.info("Fetching data using " + getName());
         try {
             fetchData();
-            resetCaches();
+            applicationEventPublisher.publishEvent(new DataReloadEvent(Operation.CRAWLING));
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return;
@@ -163,20 +167,12 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
                 standards.add(standard);
             }
             standardRepository.saveAll(standards);
-            resetCaches();
+            applicationEventPublisher.publishEvent(new DataReloadEvent(Operation.MAPPING));
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return;
         }
         log.info("Success!");
-    }
-
-    /**
-     * Refreshes materialized views in the database.
-     */
-    private void resetCaches() {
-        jdbcTemplate.execute(Queries.REFRESH_DATASETS_VIEW);
-        jdbcTemplate.execute(Queries.REFRESH_LATEST_DATASETS_VIEW);
     }
 
     /**
@@ -269,6 +265,11 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     @Autowired
     public void setProperties(TrackFindProperties properties) {
         this.properties = properties;
+    }
+
+    @Autowired
+    public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+        this.applicationEventPublisher = applicationEventPublisher;
     }
 
     @Autowired
