@@ -9,10 +9,14 @@ import org.apache.commons.io.IOUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
+import javax.net.ssl.*;
 import javax.transaction.Transactional;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
@@ -30,6 +34,31 @@ public class IHECDataProvider extends AbstractDataProvider {
     private static final String RELEASES_URL = "https://epigenomesportal.ca/cgi-bin/api/getReleases.py";
     private static final String FETCH_URL = "https://epigenomesportal.ca/cgi-bin/api/getDataHub.py?data_release_id=";
 
+    // Temp hack for IHEC
+    private void disableSSL() throws KeyManagementException, NoSuchAlgorithmException {
+        TrustManager[] trustAllCerts = new TrustManager[] {new X509TrustManager() {
+            public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                return null;
+            }
+            public void checkClientTrusted(X509Certificate[] certs, String authType) {
+            }
+            public void checkServerTrusted(X509Certificate[] certs, String authType) {
+            }
+        }
+        };
+
+        // Install the all-trusting trust manager
+        SSLContext sc = SSLContext.getInstance("SSL");
+        sc.init(null, trustAllCerts, new java.security.SecureRandom());
+        HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+
+        // Create all-trusting host name verifier
+        HostnameVerifier allHostsValid = (hostname, session) -> true;
+
+        // Install the all-trusting host verifier
+        HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -37,6 +66,7 @@ public class IHECDataProvider extends AbstractDataProvider {
     @Transactional
     @Override
     protected void fetchData() throws Exception {
+        disableSSL();
         log.info("Collecting releases...");
         Collection<Release> releases;
         try (InputStream inputStream = new URL(RELEASES_URL).openStream();
