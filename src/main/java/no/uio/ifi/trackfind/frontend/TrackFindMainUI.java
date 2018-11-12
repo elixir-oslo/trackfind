@@ -68,6 +68,7 @@ public class TrackFindMainUI extends AbstractUI {
     private TextArea queryTextArea;
     private TextField limitTextField;
     private TextArea resultsTextArea;
+    private Collection<Dataset> results;
     private String jsonResult;
     private String gSuiteResult;
 
@@ -158,7 +159,7 @@ public class TrackFindMainUI extends AbstractUI {
     }
 
     private VerticalLayout buildResultsLayout() {
-        Button exportGSuiteButton = new Button("Export as GSuite file");
+        Button exportGSuiteButton = new Button("Export as GSuite file", (Button.ClickListener) event -> gSuiteResult = gSuiteService.apply(results));
         exportGSuiteButton.setEnabled(false);
         exportGSuiteButton.setWidth(100, Unit.PERCENTAGE);
         Button exportJSONButton = new Button("Export as JSON file");
@@ -242,9 +243,7 @@ public class TrackFindMainUI extends AbstractUI {
             }
         });
         Button searchButton = new Button("Search ➚", (Button.ClickListener) clickEvent -> executeQuery(queryTextArea.getValue()));
-        queryTextArea.addValueChangeListener((HasValue.ValueChangeListener<String>) event -> {
-            searchButton.setEnabled(StringUtils.isNotEmpty(queryTextArea.getValue()));
-        });
+        queryTextArea.addValueChangeListener((HasValue.ValueChangeListener<String>) event -> searchButton.setEnabled(StringUtils.isNotEmpty(queryTextArea.getValue())));
         queryTextArea.addStyleName("scrollable-text-area");
         DropTargetExtension<TextArea> dropTarget = new DropTargetExtension<>(queryTextArea);
         dropTarget.setDropEffect(DropEffect.COPY);
@@ -306,7 +305,7 @@ public class TrackFindMainUI extends AbstractUI {
         DataProvider currentDataProvider = getCurrentDataProvider();
         String limit = limitTextField.getValue();
         limit = StringUtils.isEmpty(limit) ? "0" : limit;
-        Collection<Dataset> results = currentDataProvider.search(query, Integer.parseInt(limit));
+        results = currentDataProvider.search(query, Integer.parseInt(limit));
         if (results.isEmpty()) {
             resultsTextArea.setValue("");
             Notification.show("Nothing found for such request");
@@ -318,7 +317,6 @@ public class TrackFindMainUI extends AbstractUI {
         } catch (JsonProcessingException e) {
             log.error(e.getMessage(), e);
         }
-        gSuiteResult = gSuiteService.apply(results);
         resultsTextArea.setValue(jsonResult);
     }
 
