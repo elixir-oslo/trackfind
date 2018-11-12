@@ -4,61 +4,14 @@
 [![Build Status](https://travis-ci.org/elixir-no-nels/trackfind.svg?branch=master)](https://travis-ci.org/elixir-no-nels/trackfind)
 [![Docker Pulls](https://img.shields.io/docker/pulls/nels/trackfind.svg)](https://hub.docker.com/r/nels/trackfind/)
 
-## Requirements
-There are no any special requirements for deploying application using [Docker](#docker), but if you prefer to run it [natively](#java), then you will need these parts to be installed on the host system:
-- **JRE 8**
-- **Git** + **Git LFS**
-
-(also you will need **Maven 3** and **JDK 8** instead of **JRE 8** for building and running from [sources](#sources)).
+## Development
+TrackFind is written in **Java 8** and uses **Maven 3** as a build-tool.
 
 ## Deployment
-### Docker
-```bash
-docker run -d \
-  -it \
-  -v /absolute/path/to/indices/directory:/trackfind/indices \
-  -v /absolute/path/to/trackfind.properties:/trackfind/trackfind.properties \
-  -p 8888:8888 \
-  --name trackfind \
-  nels/trackfind:1.1.0
-```
-*Note: specifying volumes to mount is optional: first one will init application with pre-populated indices and the second one will override default application properties.*
+### Docker Compose
+Simply execute `docker-compose up` and it will sping up the setup with PostgreSQL database, GSuite converter microservice and TrackFind microservice itself.
 
-Logs are available at `docker logs -f trackfind`
-
-Next you can stop container using command `docker stop trackfind`, start container using command `docker start trackfind` and update container using next sequence:
-```bash
-docker stop trackfind && \
-docker rm trackfind && \
-docker rmi nels/trackfind:1.1.0 && \
-```
-...and the first step.
-
-### Java
-```bash
-wget https://github.com/elixir-no-nels/trackfind/releases/download/1.1.0/trackfind-1.1.0.jar && \
-nohup java -jar trackfind-1.1.0.jar &
-```
-Logs are available at `tail -f console.log`
-
-App can be stopped by executing `kill -9 $!` as `$!` is the PID of the last launched process (alternatively you can find it using `ps auxw | grep trackfind`.
-
-### Sources
-#### Checkout via Git
-```bash
-git clone https://github.com/elixir-no-nels/trackfind.git && \
-cd trackfind && \
-nohup mvn spring-boot:run &
-```
-#### Download as tar.gz
-```bash
-wget https://github.com/elixir-no-nels/trackfind/archive/1.1.0.tar.gz && \
-tar -zxvf 1.1.0.tar.gz && \
-cd trackfind-1.1.0 && \
-nohup mvn spring-boot:run &
-```
-
-App can be stopped by executing `kill -9 $!` as `$!` is the PID of the last launched process (alternatively you can find it using `ps auxw | grep trackfind`.
+To use custom `trackfind.properties` mount corresponding file to `/trackfind/trackfind.properties` within the TrackFind container.
 
 # Acknowledgments
 
