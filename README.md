@@ -9,7 +9,7 @@ TrackFind is written in **Java 8** and uses **Maven 3** as a build-tool.
 
 ## Deployment
 ### Docker Compose
-Simply execute `docker-compose up` and it will sping up the setup with PostgreSQL database, GSuite converter microservice and TrackFind microservice itself.
+Simply execute `docker-compose up` and it will spin up the setup with PostgreSQL database, GSuite converter microservice and TrackFind microservice itself.
 
 To use custom `trackfind.properties` mount corresponding file to `/trackfind/trackfind.properties` within the TrackFind container.
 
