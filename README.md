@@ -13,6 +13,6 @@ Simply execute `docker-compose up` and it will spin up the setup with PostgreSQL
 
 To use custom `trackfind.properties` mount corresponding file to `/trackfind/trackfind.properties` within the TrackFind container.
 
-# Acknowledgments
+## Acknowledgments
 
 [![jProfiler](https://www.ej-technologies.com/images/product_banners/jprofiler_large.png)](https://www.ej-technologies.com/products/jprofiler/overview.html)
