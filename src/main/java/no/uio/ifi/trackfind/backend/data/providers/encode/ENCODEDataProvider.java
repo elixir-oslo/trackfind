@@ -12,7 +12,7 @@ import java.util.Collection;
 import java.util.Map;
 
 /**
- * Draft of Data Provider for TrackHub
+ * Data Provider for ENCODE.
  *
  * @author Dmytro Titov
  */
