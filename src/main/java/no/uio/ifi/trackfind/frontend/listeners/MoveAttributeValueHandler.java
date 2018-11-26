@@ -18,15 +18,12 @@ import java.util.Set;
 @SuppressWarnings("PMD.NonStaticInitializer")
 public abstract class MoveAttributeValueHandler {
 
-    private static Map<Boolean, String> CONDITIONS = new HashMap<Boolean, String>() {{
+    private static final Map<Boolean, String> CONDITIONS = new HashMap<Boolean, String>() {{
         put(true, "AND ");
         put(false, "OR ");
     }};
 
-    private static Map<Boolean, String> OPERATORS = new HashMap<Boolean, String>() {{
-        put(true, " <> ");
-        put(false, " = ");
-    }};
+    private static final String EQUALITY_OPERATOR = " ? ";
 
     private String datasetPrefix;
     private String levelsSeparator;
@@ -77,7 +74,7 @@ public abstract class MoveAttributeValueHandler {
             query.append(value).append(", ");
         }
         query = new StringBuilder(query.subSequence(0, query.length() - 2) + ")\n");
-        textArea.setValue(replaceLast(query.toString(), levelsSeparator, "->>"));
+        textArea.setValue(query.toString());
     }
 
     /**
@@ -94,30 +91,23 @@ public abstract class MoveAttributeValueHandler {
         if (StringUtils.isNoneEmpty(query)) {
             query += condition;
         }
-        String operator = OPERATORS.get(inversion);
+        if (inversion) {
+            query += "NOT ";
+        }
         query += datasetPrefix + levelsSeparator;
         String path = item.getPath();
         if (item.isValue()) {
             String value = getValue(item);
-            query += path.substring(0, path.lastIndexOf(levelsSeparator)) + operator + value;
+            query += path.substring(0, path.lastIndexOf(levelsSeparator)) + EQUALITY_OPERATOR + value;
         } else {
-            query += path + operator;
+            query += path + EQUALITY_OPERATOR;
         }
         query += "\n";
-        textArea.setValue(replaceLast(query, levelsSeparator, "->>"));
+        textArea.setValue(query);
     }
 
     protected String getValue(TreeNode item) {
         return "'" + item.toString() + "'";
-    }
-
-    protected String replaceLast(String string, String what, String with) {
-        int start = string.lastIndexOf(what);
-        StringBuilder builder = new StringBuilder();
-        builder.append(string, 0, start);
-        builder.append(with);
-        builder.append(string.substring(start + what.length()));
-        return builder.toString();
     }
 
     public void setDatasetPrefix(String datasetPrefix) {

@@ -242,6 +242,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
                     "  AND (%s)\n" +
                     "ORDER BY id ASC\n" +
                     "LIMIT %s", getName(), query, limit);
+            rawQuery = rawQuery.replaceAll("\\?", "\\?\\?");
             PreparedStatement preparedStatement = connection.prepareStatement(rawQuery);
             ResultSet resultSet = preparedStatement.executeQuery();
             Collection<Dataset> result = new ArrayList<>();
