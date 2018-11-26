@@ -15,9 +15,9 @@ import no.uio.ifi.trackfind.backend.repositories.SourceRepository;
 import no.uio.ifi.trackfind.backend.repositories.StandardRepository;
 import no.uio.ifi.trackfind.backend.scripting.ScriptingEngine;
 import no.uio.ifi.trackfind.backend.services.CacheService;
-import no.uio.ifi.trackfind.backend.services.QueryValidator;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
@@ -25,6 +25,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.annotation.PostConstruct;
 import javax.transaction.Transactional;
+import java.sql.*;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
@@ -38,6 +39,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public abstract class AbstractDataProvider implements DataProvider, Comparable<DataProvider> {
 
+    protected String jdbcUrl;
+
     protected TrackFindProperties properties;
     protected ApplicationEventPublisher applicationEventPublisher;
     protected CacheService cacheService;
@@ -46,19 +49,27 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     protected StandardRepository standardRepository;
     protected DatasetRepository datasetRepository;
     protected MappingRepository mappingRepository;
-    protected QueryValidator queryValidator;
     protected ExecutorService executorService;
     protected Gson gson;
     protected Collection<ScriptingEngine> scriptingEngines;
 
+    protected Connection connection;
+
     @PostConstruct
-    protected void init() {
+    protected void init() throws SQLException {
         try {
             if (datasetRepository.countByRepository(getName()) == 0) {
                 crawlRemoteRepository();
             }
             jdbcTemplate.execute(String.format(Queries.METAMODEL_VIEW, "source", "curated", properties.getLevelsSeparator(), properties.getLevelsSeparator()));
             jdbcTemplate.execute(String.format(Queries.METAMODEL_VIEW, "standard", "standard", properties.getLevelsSeparator(), properties.getLevelsSeparator()));
+
+            Integer count = jdbcTemplate.queryForObject(Queries.CHECK_SEARCH_USER_EXISTS, Integer.TYPE);
+            if (count == 0) {
+                jdbcTemplate.execute(Queries.CREATE_SEARCH_USER);
+            }
+
+            connection = DriverManager.getConnection(jdbcUrl, "search", "search");
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             throw e;
@@ -231,7 +242,10 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
                     "  AND (%s)\n" +
                     "ORDER BY id ASC\n" +
                     "LIMIT %s", getName(), query, limit);
-            return jdbcTemplate.query(queryValidator.validate(rawQuery), (resultSet, i) -> {
+            PreparedStatement preparedStatement = connection.prepareStatement(rawQuery);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            Collection<Dataset> result = new ArrayList<>();
+            while (resultSet.next()) {
                 Dataset dataset = new Dataset();
                 dataset.setId(resultSet.getLong("id"));
                 dataset.setRepository(resultSet.getString("repository"));
@@ -239,8 +253,9 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
                 dataset.setStandardContent(resultSet.getString("standard_content"));
                 dataset.setFairContent(resultSet.getString("fair_content"));
                 dataset.setVersion(resultSet.getString("version"));
-                return dataset;
-            });
+                result.add(dataset);
+            }
+            return result;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return Collections.emptySet();
@@ -262,6 +277,11 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     @Override
     public int compareTo(DataProvider that) {
         return this.getName().compareTo(that.getName());
+    }
+
+    @Value("${spring.datasource.url}")
+    public void setJdbcUrl(String jdbcUrl) {
+        this.jdbcUrl = jdbcUrl;
     }
 
     @Autowired
@@ -305,11 +325,6 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     }
 
     @Autowired
-    public void setQueryValidator(QueryValidator queryValidator) {
-        this.queryValidator = queryValidator;
-    }
-
-    @Autowired
     public void setExecutorService(ExecutorService workStealingPool) {
         this.executorService = workStealingPool;
     }
@@ -322,6 +337,10 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     @Autowired
     public void setScriptingEngines(Collection<ScriptingEngine> scriptingEngines) {
         this.scriptingEngines = scriptingEngines;
+    }
+
+    public void setConnection(Connection connection) {
+        this.connection = connection;
     }
 
 }

@@ -2,7 +2,6 @@ package no.uio.ifi.trackfind.backend.data.providers;
 
 import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
-import net.sf.jsqlparser.JSQLParserException;
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
 import no.uio.ifi.trackfind.backend.dao.Dataset;
 import no.uio.ifi.trackfind.backend.dao.Mapping;
@@ -10,7 +9,6 @@ import no.uio.ifi.trackfind.backend.data.providers.ihec.IHECDataProvider;
 import no.uio.ifi.trackfind.backend.repositories.DatasetRepository;
 import no.uio.ifi.trackfind.backend.repositories.MappingRepository;
 import no.uio.ifi.trackfind.backend.repositories.SourceRepository;
-import no.uio.ifi.trackfind.backend.services.QueryValidator;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,9 +37,6 @@ public class DataProviderTests {
 
     @Mock
     private TrackFindProperties trackFindProperties;
-
-    @Mock
-    private QueryValidator queryValidator;
 
     @Mock
     private JdbcTemplate jdbcTemplate;
@@ -93,13 +88,6 @@ public class DataProviderTests {
     }
 
     @Test
-    public void search() {
-        Collection<Dataset> result = dataProvider.search("", 0);
-        assertThat(result).hasSize(1);
-        assertThat(result.iterator().next()).isEqualTo(originalDataset);
-    }
-
-    @Test
     public void fetch() {
         Dataset dataset = dataProvider.fetch(0L, "0");
         assertThat(dataset).isNotNull();
@@ -110,7 +98,7 @@ public class DataProviderTests {
 
     @SuppressWarnings("unchecked")
     @Before
-    public void setUp() throws JSQLParserException {
+    public void setUp() {
         dataProvider.setGson(gson);
 
         when(trackFindProperties.getLevelsSeparator()).thenReturn("->");
@@ -124,7 +112,6 @@ public class DataProviderTests {
         when(mappingRepository.findByRepository(anyString())).thenReturn(Collections.singleton(mapping));
         when(datasetRepository.findById(eq(0L))).thenReturn(Optional.of(originalDataset));
         when(datasetRepository.findByIdAndVersion(any(), anyString())).thenReturn(originalDataset);
-        when(queryValidator.validate(anyString())).thenReturn("");
         when(jdbcTemplate.queryForObject(anyString(), eq(Long.TYPE))).thenReturn(0L);
         when(jdbcTemplate.queryForList(anyString(), eq(Long.TYPE), anyLong(), anyString(), anyString(), anyInt())).thenReturn(Collections.singletonList(0L));
         HashMap<String, Object> attributeValueMap1 = new HashMap<>();
