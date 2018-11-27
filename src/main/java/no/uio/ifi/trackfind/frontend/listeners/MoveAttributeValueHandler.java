@@ -64,16 +64,19 @@ public abstract class MoveAttributeValueHandler {
         if (StringUtils.isNoneEmpty(query.toString())) {
             query.append(condition);
         }
+        if (inversion) {
+            query.append("NOT ");
+        }
         query.append(datasetPrefix).append(levelsSeparator);
         TreeNode firstItem = items.iterator().next();
         String path = firstItem.getPath();
         String queryTerm = path.substring(0, path.lastIndexOf(levelsSeparator));
-        query.append(queryTerm).append(inversion ? " NOT IN (" : " IN (");
+        query.append(queryTerm).append(" ?| array[");
         for (TreeNode item : items) {
             String value = getValue(item);
             query.append(value).append(", ");
         }
-        query = new StringBuilder(query.subSequence(0, query.length() - 2) + ")\n");
+        query = new StringBuilder(query.subSequence(0, query.length() - 2) + "]\n");
         textArea.setValue(query.toString());
     }
 
