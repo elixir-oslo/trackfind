@@ -5,7 +5,6 @@ import no.uio.ifi.trackfind.backend.data.providers.AbstractDataProvider;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Component;
 
-import javax.transaction.Transactional;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
@@ -28,7 +27,6 @@ public class TrackHubDataProvider extends AbstractDataProvider {
      * {@inheritDoc}
      */
     @SuppressWarnings("unchecked")
-    @Transactional
     @Override
     protected void fetchData() {
         try (InputStream inputStream = new URL(FETCH_URL).openStream();

@@ -1,7 +1,7 @@
 package no.uio.ifi.trackfind.frontend.listeners;
 
 import com.vaadin.ui.Tree;
-import no.uio.ifi.trackfind.frontend.data.TreeNode;
+import no.uio.ifi.trackfind.backend.data.TreeNode;
 
 /**
  * Vaadin Tree click listener for implementing collapse/expand on double-click.

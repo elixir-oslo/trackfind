@@ -1,18 +1,20 @@
 package no.uio.ifi.trackfind.frontend.listeners;
 
+import com.vaadin.data.provider.HierarchicalQuery;
 import com.vaadin.event.selection.MultiSelectionEvent;
 import com.vaadin.event.selection.SelectionEvent;
 import com.vaadin.event.selection.SelectionListener;
 import com.vaadin.event.selection.SingleSelectionEvent;
 import com.vaadin.ui.Tree;
+import no.uio.ifi.trackfind.backend.data.TreeNode;
 import no.uio.ifi.trackfind.frontend.components.KeyboardInterceptorExtension;
-import no.uio.ifi.trackfind.frontend.data.TreeNode;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.util.CollectionUtils;
 
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Vaadin Tree click listener for implementing multiple selection and some other rules.
@@ -54,15 +56,15 @@ public class TreeSelectionListener implements SelectionListener<TreeNode> {
             return;
         }
         TreeNode current = addedSelection.iterator().next();
-        if (!current.isFinalAttribute() && !current.isValue()) {
+        if (!current.isFin() && current.isAttribute()) {
             tree.deselect(current);
             return;
         }
-        if (current.isFinalAttribute()) {
+        if (current.isFin()) {
             selectedItems.stream().filter(tn -> !tn.equals(current)).forEach(tree::deselect);
             return;
         }
-        selectedItems.stream().filter(TreeNode::isFinalAttribute).forEach(tree::deselect);
+        selectedItems.stream().filter(TreeNode::isFin).forEach(tree::deselect);
         selectedItems.stream().filter(tn -> tn.getLevel() != current.getLevel() || tn.getParent() != current.getParent()).forEach(tree::deselect);
         if (!keyboardInterceptorExtension.isControlKeyDown() &&
                 !keyboardInterceptorExtension.isMetaKeyDown() &&
@@ -76,15 +78,15 @@ public class TreeSelectionListener implements SelectionListener<TreeNode> {
             TreeNode first = oldSelection.get(0);
             TreeNode last = oldSelection.get(oldSelection.size() - 1);
             final int[] index = {0};
-            Map<TreeNode, Integer> indexedSiblings =
-                    current.getParent().getChildren().stream().sorted().collect(Collectors.toMap(Function.identity(), tn -> index[0]++));
+            Stream<TreeNode> children = tree.getDataProvider().fetchChildren(new HierarchicalQuery<>(null, current.getParent()));
+            Map<TreeNode, Integer> indexedSiblings = children.collect(Collectors.toMap(Function.identity(), tn -> index[0]++));
             int firstIndex = indexedSiblings.get(first);
             int lastIndex = indexedSiblings.get(last);
             int currentIndex = indexedSiblings.get(current);
             List<Integer> indices = Arrays.asList(firstIndex, lastIndex, currentIndex);
             Optional<Integer> optionalMin = indices.stream().min(Integer::compareTo);
             Optional<Integer> optionalMax = indices.stream().max(Integer::compareTo);
-            if (!optionalMin.isPresent() || !optionalMax.isPresent()) {
+            if (!optionalMin.isPresent()) {
                 return;
             }
             int min = optionalMin.get();

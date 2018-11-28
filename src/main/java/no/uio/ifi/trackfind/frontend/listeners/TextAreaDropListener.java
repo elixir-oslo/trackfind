@@ -5,7 +5,7 @@ import com.vaadin.ui.TextArea;
 import com.vaadin.ui.TreeGrid;
 import com.vaadin.ui.dnd.event.DropEvent;
 import com.vaadin.ui.dnd.event.DropListener;
-import no.uio.ifi.trackfind.frontend.data.TreeNode;
+import no.uio.ifi.trackfind.backend.data.TreeNode;
 
 import java.util.Optional;
 import java.util.Set;

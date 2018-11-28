@@ -2,7 +2,7 @@ package no.uio.ifi.trackfind.frontend.listeners;
 
 import com.vaadin.shared.MouseEventDetails;
 import com.vaadin.ui.TextArea;
-import no.uio.ifi.trackfind.frontend.data.TreeNode;
+import no.uio.ifi.trackfind.backend.data.TreeNode;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -69,7 +69,7 @@ public abstract class MoveAttributeValueHandler {
         }
         query.append(datasetPrefix).append(levelsSeparator);
         TreeNode firstItem = items.iterator().next();
-        String path = firstItem.getPath();
+        String path = firstItem.getSQLPath();
         String queryTerm = path.substring(0, path.lastIndexOf(levelsSeparator));
         query.append(queryTerm).append(" ?| array[");
         for (TreeNode item : items) {
@@ -98,8 +98,8 @@ public abstract class MoveAttributeValueHandler {
             query += "NOT ";
         }
         query += datasetPrefix + levelsSeparator;
-        String path = item.getPath();
-        if (item.isValue()) {
+        String path = item.getSQLPath();
+        if (!item.isAttribute()) {
             String value = getValue(item);
             query += path.substring(0, path.lastIndexOf(levelsSeparator)) + EQUALITY_OPERATOR + value;
         } else {

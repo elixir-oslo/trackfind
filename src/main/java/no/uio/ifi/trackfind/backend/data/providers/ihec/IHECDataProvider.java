@@ -2,22 +2,22 @@ package no.uio.ifi.trackfind.backend.data.providers.ihec;
 
 import com.google.gson.reflect.TypeToken;
 import lombok.extern.slf4j.Slf4j;
-import no.uio.ifi.trackfind.backend.dao.Dataset;
 import no.uio.ifi.trackfind.backend.data.providers.AbstractDataProvider;
 import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.io.IOUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import javax.net.ssl.*;
-import javax.transaction.Transactional;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
@@ -36,12 +36,14 @@ public class IHECDataProvider extends AbstractDataProvider {
 
     // Temp hack for IHEC
     private void disableSSL() throws KeyManagementException, NoSuchAlgorithmException {
-        TrustManager[] trustAllCerts = new TrustManager[] {new X509TrustManager() {
+        TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager() {
             public java.security.cert.X509Certificate[] getAcceptedIssuers() {
                 return null;
             }
+
             public void checkClientTrusted(X509Certificate[] certs, String authType) {
             }
+
             public void checkServerTrusted(X509Certificate[] certs, String authType) {
             }
         }
@@ -63,7 +65,6 @@ public class IHECDataProvider extends AbstractDataProvider {
      * {@inheritDoc}
      */
     @SuppressWarnings("unchecked")
-    @Transactional
     @Override
     protected void fetchData() throws Exception {
         disableSSL();

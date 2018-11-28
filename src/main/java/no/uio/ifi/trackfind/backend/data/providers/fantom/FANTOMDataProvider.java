@@ -10,7 +10,6 @@ import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.transaction.Transactional;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -34,7 +33,6 @@ public class FANTOMDataProvider extends AbstractDataProvider {
     /**
      * {@inheritDoc}
      */
-    @Transactional
     @Override
     protected void fetchData() throws Exception {
         log.info("Collecting directories...");

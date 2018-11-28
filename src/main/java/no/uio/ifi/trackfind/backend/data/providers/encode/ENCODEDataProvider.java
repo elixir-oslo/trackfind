@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.data.providers.AbstractDataProvider;
 import org.springframework.stereotype.Component;
 
-import javax.transaction.Transactional;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
@@ -26,7 +25,6 @@ public class ENCODEDataProvider extends AbstractDataProvider {
      * {@inheritDoc}
      */
     @SuppressWarnings("unchecked")
-    @Transactional
     @Override
     protected void fetchData() {
         try (InputStream inputStream = new URL(FETCH_URL).openStream();

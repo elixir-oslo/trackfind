@@ -1,19 +1,21 @@
 package no.uio.ifi.trackfind.frontend;
 
 import com.vaadin.data.TreeData;
+import com.vaadin.data.provider.HierarchicalDataProvider;
 import com.vaadin.data.provider.TreeDataProvider;
 import com.vaadin.ui.*;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
+import no.uio.ifi.trackfind.backend.data.TreeNode;
+import no.uio.ifi.trackfind.backend.data.providers.AbstractDataProvider;
 import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
 import no.uio.ifi.trackfind.backend.services.SchemaService;
 import no.uio.ifi.trackfind.backend.services.TrackFindService;
 import no.uio.ifi.trackfind.frontend.components.TrackFindTree;
-import no.uio.ifi.trackfind.frontend.data.TreeNode;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -34,7 +36,7 @@ public abstract class AbstractUI extends UI {
 
     protected TabSheet tabSheet;
 
-    protected Map<TreeDataProvider, DataProvider> dataProviders = new HashMap<>();
+    protected Collection<AbstractDataProvider> dataProviders = new ArrayList<>();
 
     @SuppressWarnings("unchecked")
     public TrackFindTree<TreeNode> getCurrentTree() {
@@ -42,14 +44,8 @@ public abstract class AbstractUI extends UI {
     }
 
     @SuppressWarnings("unchecked")
-    protected DataProvider getCurrentDataProvider() {
-        TrackFindTree<TreeNode> tree = (TrackFindTree<TreeNode>) tabSheet.getSelectedTab();
-        return tree.getBackEndDataProvider();
-    }
-
-    @SuppressWarnings("unchecked")
-    protected TreeDataProvider<TreeNode> getCurrentTreeDataProvider() {
-        return (TreeDataProvider<TreeNode>) getCurrentTree().getDataProvider();
+    protected AbstractDataProvider getCurrentDataProvider() {
+        return (AbstractDataProvider) getCurrentTree().getDataProvider();
     }
 
     protected VerticalLayout buildOuterLayout(HorizontalLayout headerLayout, HorizontalLayout mainLayout, HorizontalLayout footerLayout) {
@@ -81,23 +77,15 @@ public abstract class AbstractUI extends UI {
 
     @SuppressWarnings("unchecked")
     protected void refreshTrees(boolean raw) {
-        for (Map.Entry<TreeDataProvider, DataProvider> entry : dataProviders.entrySet()) {
-            TreeDataProvider treeDataProvider = entry.getKey();
-            DataProvider dataProvider = entry.getValue();
-            TreeData treeData = treeDataProvider.getTreeData().clear();
-            TreeNode root = new TreeNode(dataProvider.getMetamodelTree(raw), properties.getLevelsSeparator());
-            Collection<TreeNode> children = root.getChildren().parallelStream().collect(Collectors.toSet());
-            treeData.addRootItems(children);
-            children.forEach(c -> fillTreeData(treeData, c));
-            treeDataProvider.refreshAll();
-        }
-    }
-
-    protected void fillTreeData(TreeData<TreeNode> treeData, TreeNode treeNode) {
-        treeData.addItems(treeNode, treeNode.getChildren());
-        for (TreeNode child : treeNode.getChildren()) {
-            fillTreeData(treeData, child);
-        }
+//        for (AbstractDataProvider dataProvider : dataProviders) {
+//            TreeDataProvider treeDataProvider = entry.getKey();
+//            TreeData treeData = treeDataProvider.getTreeData().clear();
+//            TreeNode root = new TreeNode(dataProvider.getMetamodelTree(raw), properties.getLevelsSeparator());
+//            Collection<TreeNode> children = root.getChildren().parallelStream().collect(Collectors.toSet());
+//            treeData.addRootItems(children);
+//            children.forEach(c -> fillTreeData(treeData, c));
+//            treeDataProvider.refreshAll();
+//        }
     }
 
     @Autowired

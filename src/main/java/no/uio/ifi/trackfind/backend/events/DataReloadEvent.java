@@ -8,11 +8,18 @@ import org.springframework.context.ApplicationEvent;
  */
 public class DataReloadEvent extends ApplicationEvent {
 
+    private String dataProviderName;
+
     /**
      * {@inheritDoc}
      */
-    public DataReloadEvent(Operation source) {
+    public DataReloadEvent(String dataProviderName, Operation source) {
         super(source);
+        this.dataProviderName = dataProviderName;
+    }
+
+    public String getDataProviderName() {
+        return dataProviderName;
     }
 
 }

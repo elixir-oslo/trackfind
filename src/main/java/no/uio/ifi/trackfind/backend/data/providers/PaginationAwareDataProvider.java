@@ -2,7 +2,6 @@ package no.uio.ifi.trackfind.backend.data.providers;
 
 import lombok.extern.slf4j.Slf4j;
 
-import javax.transaction.Transactional;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -57,7 +56,6 @@ public abstract class PaginationAwareDataProvider extends AbstractDataProvider {
      * @param <T>               Implements {@link Page} interface.
      * @throws Exception In case if something goes wrong.
      */
-    @Transactional
     protected <T extends Page> void fetchPages(String urlWithPagination, String urlWithPage, Class<T> pageClass) throws Exception {
         int pagesTotal = getPagesTotal(urlWithPagination, pageClass);
         if (pagesTotal == 0) {

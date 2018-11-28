@@ -3,17 +3,13 @@ package no.uio.ifi.trackfind.backend.rest.controllers;
 import io.swagger.annotations.*;
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
 import no.uio.ifi.trackfind.backend.services.TrackFindService;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Meta-model REST controller.
@@ -82,10 +78,7 @@ public class MetamodelController {
                                                             @RequestParam(required = false, defaultValue = "false") boolean raw,
                                                             @ApiParam(value = "Return only top-level attributes", required = false, defaultValue = "false")
                                                             @RequestParam(required = false, defaultValue = "false") boolean top) {
-        Set<String> attributes = top ?
-                trackFindService.getDataProvider(provider).getMetamodelTree(raw).keySet() :
-                trackFindService.getDataProvider(provider).getMetamodelFlat(raw).asMap().keySet();
-        return ResponseEntity.ok(attributes.parallelStream().filter(a -> a.contains(filter)).collect(Collectors.toSet()));
+        return ResponseEntity.ok(trackFindService.getDataProvider(provider).getAttributes(filter, raw, top));
     }
 
     /**
@@ -107,20 +100,7 @@ public class MetamodelController {
                                                                @RequestParam(required = false, defaultValue = "") String filter,
                                                                @ApiParam(value = "Raw or Standardized metamodel", required = false, defaultValue = "false")
                                                                @RequestParam(required = false, defaultValue = "false") boolean raw) {
-        Set<String> attributes = trackFindService.getDataProvider(provider).getMetamodelFlat(raw).asMap().keySet();
-        Set<String> filteredAttributes = attributes.stream().filter(a -> a.contains(filter)).collect(Collectors.toSet());
-        String separator = trackFindProperties.getLevelsSeparator();
-        if (filteredAttributes.contains(attribute)) {
-            return ResponseEntity.ok(Collections.emptySet());
-        }
-        return ResponseEntity.ok(filteredAttributes
-                .parallelStream()
-                .filter(a -> a.startsWith(attribute))
-                .map(a -> a.replace(attribute, ""))
-                .map(a -> (a.contains(separator) ? a.substring(separator.length()) : a))
-                .map(a -> (a.contains(separator) ? a.substring(0, a.indexOf(separator)) : a))
-                .filter(StringUtils::isNotEmpty)
-                .collect(Collectors.toSet()));
+        return ResponseEntity.ok(trackFindService.getDataProvider(provider).getSubAttributes(attribute, filter, raw));
     }
 
     /**
@@ -141,8 +121,7 @@ public class MetamodelController {
                                                         @RequestParam(required = false, defaultValue = "") String filter,
                                                         @ApiParam(value = "Raw or Standardized metamodel", required = false, defaultValue = "false")
                                                         @RequestParam(required = false, defaultValue = "false") boolean raw) {
-        Collection<String> values = trackFindService.getDataProvider(provider).getMetamodelFlat(raw).get(attribute);
-        return ResponseEntity.ok(values.parallelStream().filter(a -> a.contains(filter)).collect(Collectors.toSet()));
+        return ResponseEntity.ok(trackFindService.getDataProvider(provider).getValues(attribute, filter, raw));
     }
 
     @Autowired

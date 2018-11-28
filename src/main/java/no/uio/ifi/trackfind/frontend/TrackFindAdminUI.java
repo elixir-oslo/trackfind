@@ -4,23 +4,19 @@ import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Title;
 import com.vaadin.annotations.Widgetset;
 import com.vaadin.data.HasValue;
-import com.vaadin.data.TreeData;
-import com.vaadin.data.ValueProvider;
-import com.vaadin.data.provider.TreeDataProvider;
 import com.vaadin.event.selection.SelectionListener;
 import com.vaadin.server.Sizeable;
 import com.vaadin.server.VaadinRequest;
-import com.vaadin.shared.data.sort.SortDirection;
 import com.vaadin.shared.ui.ValueChangeMode;
 import com.vaadin.spring.annotation.SpringUI;
 import com.vaadin.ui.*;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.dao.Mapping;
+import no.uio.ifi.trackfind.backend.data.TreeNode;
+import no.uio.ifi.trackfind.backend.data.providers.AbstractDataProvider;
 import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
 import no.uio.ifi.trackfind.backend.repositories.MappingRepository;
 import no.uio.ifi.trackfind.frontend.components.TrackFindTree;
-import no.uio.ifi.trackfind.frontend.data.TreeNode;
-import no.uio.ifi.trackfind.frontend.filters.MainTreeFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 import org.vaadin.aceeditor.AceEditor;
@@ -71,7 +67,7 @@ public class TrackFindAdminUI extends AbstractUI {
         tabSheet.setSizeFull();
 
         for (DataProvider dataProvider : trackFindService.getDataProviders()) {
-            TrackFindTree<TreeNode> tree = buildTree(dataProvider);
+            TrackFindTree<TreeNode> tree = buildTree((AbstractDataProvider) dataProvider);
             refreshTrees(true);
             tabSheet.addTab(tree, dataProvider.getName());
         }
@@ -82,17 +78,17 @@ public class TrackFindAdminUI extends AbstractUI {
         treePanel.setSizeFull();
 
         TextField attributesFilterTextField = new TextField("Filter attributes", (HasValue.ValueChangeListener<String>) event -> {
-            TreeDataProvider<TreeNode> dataProvider = getCurrentTreeDataProvider();
-            ((MainTreeFilter) dataProvider.getFilter()).setAttributesFilter(event.getValue());
-            dataProvider.refreshAll();
+//            TreeDataProvider<TreeNode> dataProvider = getCurrentTreeDataProvider();
+//            ((TreeFilter) dataProvider.getFilter()).setAttributesFilter(event.getValue());
+//            dataProvider.refreshAll();
         });
         attributesFilterTextField.setValueChangeMode(ValueChangeMode.EAGER);
         attributesFilterTextField.setWidth(100, Sizeable.Unit.PERCENTAGE);
 
         TextField valuesFilterTextField = new TextField("Filter values", (HasValue.ValueChangeListener<String>) event -> {
-            TreeDataProvider<TreeNode> dataProvider = getCurrentTreeDataProvider();
-            ((MainTreeFilter) dataProvider.getFilter()).setValuesFilter(event.getValue());
-            dataProvider.refreshAll();
+//            TreeDataProvider<TreeNode> dataProvider = getCurrentTreeDataProvider();
+//            ((TreeFilter) dataProvider.getFilter()).setValuesFilter(event.getValue());
+//            dataProvider.refreshAll();
         });
         valuesFilterTextField.setValueChangeMode(ValueChangeMode.EAGER);
         valuesFilterTextField.setWidth(100, Sizeable.Unit.PERCENTAGE);
@@ -103,7 +99,7 @@ public class TrackFindAdminUI extends AbstractUI {
         addStaticMappingButton.addClickListener((Button.ClickListener) event -> {
             Set<TreeNode> selectedItems = getCurrentTree().getSelectedItems();
             String sourceAttribute = CollectionUtils.isEmpty(selectedItems) ? "" : selectedItems.iterator().next().getPath();
-            addStaticMappingPair("", sourceAttribute.replaceAll("'", ""));
+            addStaticMappingPair("", sourceAttribute);
         });
 
         HorizontalLayout mappingButtons = new HorizontalLayout(addStaticMappingButton);
@@ -115,18 +111,15 @@ public class TrackFindAdminUI extends AbstractUI {
     }
 
     @SuppressWarnings("unchecked")
-    protected TrackFindTree<TreeNode> buildTree(DataProvider dataProvider) {
-        TreeDataProvider treeDataProvider = new TreeDataProvider(new TreeData());
-        treeDataProvider.setFilter(new MainTreeFilter(treeDataProvider, "", ""));
-        treeDataProvider.setSortOrder((ValueProvider<TreeNode, String>) TreeNode::toString, SortDirection.ASCENDING);
-        dataProviders.put(treeDataProvider, dataProvider);
+    protected TrackFindTree<TreeNode> buildTree(AbstractDataProvider dataProvider) {
+        dataProviders.add(dataProvider);
 
-        TrackFindTree<TreeNode> tree = new TrackFindTree<>(dataProvider);
+        TrackFindTree<TreeNode> tree = new TrackFindTree<>();
+        tree.setDataProvider(dataProvider);
         tree.setSelectionMode(Grid.SelectionMode.SINGLE);
-        tree.addSelectionListener((SelectionListener<TreeNode>) event -> addStaticMappingButton.setEnabled(!CollectionUtils.isEmpty(event.getAllSelectedItems()) && !event.getFirstSelectedItem().get().isValue()));
-        tree.setDataProvider(treeDataProvider);
+        tree.addSelectionListener((SelectionListener<TreeNode>) event -> addStaticMappingButton.setEnabled(!CollectionUtils.isEmpty(event.getAllSelectedItems()) && event.getFirstSelectedItem().get().isAttribute()));
         tree.setSizeFull();
-        tree.setStyleGenerator((StyleGenerator<TreeNode>) item -> item.isValue() ? "value-tree-node" : null);
+        tree.setStyleGenerator((StyleGenerator<TreeNode>) item -> item.isAttribute() ? null : "value-tree-node");
 
         return tree;
     }

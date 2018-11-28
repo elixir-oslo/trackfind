@@ -6,7 +6,7 @@ import com.vaadin.ui.TextField;
 import com.vaadin.ui.TreeGrid;
 import com.vaadin.ui.dnd.event.DropEvent;
 import com.vaadin.ui.dnd.event.DropListener;
-import no.uio.ifi.trackfind.frontend.data.TreeNode;
+import no.uio.ifi.trackfind.backend.data.TreeNode;
 import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.Optional;
@@ -46,7 +46,7 @@ public class TextFieldDropListener implements DropListener<TextField> {
             int size = CollectionUtils.size(selectedItems);
             if (size == 1) {
                 TreeNode item = selectedItems.iterator().next();
-                textField.setValue(item.getPath());
+                textField.setValue(item.getSQLPath());
             } else if (size > 1) {
                 Notification.show("Please, drag only one attribute in there.");
             }

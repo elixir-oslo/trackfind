@@ -6,13 +6,9 @@ import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Title;
 import com.vaadin.annotations.Widgetset;
 import com.vaadin.data.HasValue;
-import com.vaadin.data.TreeData;
-import com.vaadin.data.ValueProvider;
-import com.vaadin.data.provider.TreeDataProvider;
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.event.ShortcutListener;
 import com.vaadin.server.*;
-import com.vaadin.shared.data.sort.SortDirection;
 import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.shared.ui.ValueChangeMode;
 import com.vaadin.shared.ui.dnd.DropEffect;
@@ -24,12 +20,12 @@ import com.vaadin.ui.dnd.DropTargetExtension;
 import com.vaadin.util.FileTypeResolver;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.dao.Dataset;
+import no.uio.ifi.trackfind.backend.data.TreeNode;
+import no.uio.ifi.trackfind.backend.data.providers.AbstractDataProvider;
 import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
 import no.uio.ifi.trackfind.backend.services.GSuiteService;
 import no.uio.ifi.trackfind.frontend.components.KeyboardInterceptorExtension;
 import no.uio.ifi.trackfind.frontend.components.TrackFindTree;
-import no.uio.ifi.trackfind.frontend.data.TreeNode;
-import no.uio.ifi.trackfind.frontend.filters.MainTreeFilter;
 import no.uio.ifi.trackfind.frontend.listeners.AddToQueryButtonClickListener;
 import no.uio.ifi.trackfind.frontend.listeners.TextAreaDropListener;
 import no.uio.ifi.trackfind.frontend.listeners.TreeItemClickListener;
@@ -89,7 +85,7 @@ public class TrackFindMainUI extends AbstractUI {
         tabSheet.setSizeFull();
 
         for (DataProvider dataProvider : trackFindService.getDataProviders()) {
-            TrackFindTree<TreeNode> tree = buildTree(dataProvider);
+            TrackFindTree<TreeNode> tree = buildTree((AbstractDataProvider) dataProvider);
             refreshTrees(false);
             tabSheet.addTab(tree, dataProvider.getName());
         }
@@ -105,17 +101,17 @@ public class TrackFindMainUI extends AbstractUI {
         });
 
         TextField attributesFilterTextField = new TextField("Filter attributes", (HasValue.ValueChangeListener<String>) event -> {
-            TreeDataProvider<TreeNode> dataProvider = getCurrentTreeDataProvider();
-            ((MainTreeFilter) dataProvider.getFilter()).setAttributesFilter(event.getValue());
-            dataProvider.refreshAll();
+//            TreeDataProvider<TreeNode> dataProvider = getCurrentTreeDataProvider();
+//            ((TreeFilter) dataProvider.getFilter()).setAttributesFilter(event.getValue());
+//            dataProvider.refreshAll();
         });
         attributesFilterTextField.setValueChangeMode(ValueChangeMode.EAGER);
         attributesFilterTextField.setWidth(100, Sizeable.Unit.PERCENTAGE);
 
         TextField valuesFilterTextField = new TextField("Filter values", (HasValue.ValueChangeListener<String>) event -> {
-            TreeDataProvider<TreeNode> dataProvider = getCurrentTreeDataProvider();
-            ((MainTreeFilter) dataProvider.getFilter()).setValuesFilter(event.getValue());
-            dataProvider.refreshAll();
+//            TreeDataProvider<TreeNode> dataProvider = getCurrentTreeDataProvider();
+//            ((TreeFilter) dataProvider.getFilter()).setValuesFilter(event.getValue());
+//            dataProvider.refreshAll();
         });
         valuesFilterTextField.setValueChangeMode(ValueChangeMode.EAGER);
         valuesFilterTextField.setWidth(100, Sizeable.Unit.PERCENTAGE);
@@ -132,19 +128,16 @@ public class TrackFindMainUI extends AbstractUI {
     }
 
     @SuppressWarnings("unchecked")
-    protected TrackFindTree<TreeNode> buildTree(DataProvider dataProvider) {
-        TreeDataProvider treeDataProvider = new TreeDataProvider(new TreeData<>());
-        treeDataProvider.setFilter(new MainTreeFilter(treeDataProvider, "", ""));
-        treeDataProvider.setSortOrder((ValueProvider<TreeNode, String>) TreeNode::toString, SortDirection.ASCENDING);
-        dataProviders.put(treeDataProvider, dataProvider);
+    protected TrackFindTree<TreeNode> buildTree(AbstractDataProvider dataProvider) {
+        dataProviders.add(dataProvider);
 
-        TrackFindTree<TreeNode> tree = new TrackFindTree<>(dataProvider);
+        TrackFindTree<TreeNode> tree = new TrackFindTree<>();
+        tree.setDataProvider(dataProvider);
         tree.setSelectionMode(Grid.SelectionMode.MULTI);
         tree.addItemClickListener(new TreeItemClickListener(tree));
         tree.addSelectionListener(new TreeSelectionListener(tree, new KeyboardInterceptorExtension(tree)));
-        tree.setDataProvider(treeDataProvider);
         tree.setSizeFull();
-        tree.setStyleGenerator((StyleGenerator<TreeNode>) item -> item.isValue() ? "value-tree-node" : null);
+        tree.setStyleGenerator((StyleGenerator<TreeNode>) item -> item.isAttribute() ? null : "value-tree-node");
 
         TreeGridDragSource<TreeNode> dragSource = new TreeGridDragSource<>((TreeGrid<TreeNode>) tree.getCompositionRoot());
         dragSource.setEffectAllowed(EffectAllowed.COPY);
