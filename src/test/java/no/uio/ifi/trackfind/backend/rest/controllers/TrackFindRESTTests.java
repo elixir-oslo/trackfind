@@ -31,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SuppressWarnings("PMD.JUnitTestsShouldIncludeAssert")
 @RunWith(SpringRunner.class)
-@WebMvcTest
+@WebMvcTest // TODO: fix tests
 public class TrackFindRESTTests {
 
     private static final String TEST_DATA_PROVIDER = "TEST";
