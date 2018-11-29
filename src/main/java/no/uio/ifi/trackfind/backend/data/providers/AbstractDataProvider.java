@@ -21,10 +21,11 @@ import no.uio.ifi.trackfind.backend.repositories.SourceRepository;
 import no.uio.ifi.trackfind.backend.repositories.StandardRepository;
 import no.uio.ifi.trackfind.backend.scripting.ScriptingEngine;
 import no.uio.ifi.trackfind.backend.services.CacheService;
+import no.uio.ifi.trackfind.backend.services.MetamodelService;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -58,6 +59,7 @@ public abstract class AbstractDataProvider
     protected DatasetRepository datasetRepository;
     protected MappingRepository mappingRepository;
     protected ExecutorService executorService;
+    protected MetamodelService metamodelService;
     protected Gson gson;
     protected Collection<ScriptingEngine> scriptingEngines;
 
@@ -134,6 +136,11 @@ public abstract class AbstractDataProvider
     /**
      * {@inheritDoc}
      */
+    @CacheEvict(cacheNames = {
+            "metamodel-attributes",
+            "metamodel-subattributes",
+            "metamodel-values"
+    }, allEntries = true)
     @Transactional
     @Override
     public synchronized void crawlRemoteRepository() {
@@ -168,6 +175,11 @@ public abstract class AbstractDataProvider
      * {@inheritDoc}
      */
     @SuppressWarnings("unchecked")
+    @CacheEvict(cacheNames = {
+            "metamodel-attributes",
+            "metamodel-subattributes",
+            "metamodel-values"
+    }, allEntries = true)
     @Transactional
     @Override
     public synchronized void applyMappings() {
@@ -253,35 +265,6 @@ public abstract class AbstractDataProvider
         return flatMetamodelCache.get(raw);
     }
 
-    @Override
-    public Collection<String> getAttributes(String filter, boolean raw, boolean top) {
-        Set<String> attributes = top ? getMetamodelTree(raw).keySet() : getMetamodelFlat(raw).asMap().keySet();
-        return attributes.parallelStream().filter(a -> a.contains(filter)).collect(Collectors.toSet());
-    }
-
-    @Override
-    public Collection<String> getSubAttributes(String attribute, String filter, boolean raw) {
-        Set<String> attributes = getMetamodelFlat(raw).asMap().keySet();
-        Set<String> filteredAttributes = attributes.stream().filter(a -> a.contains(filter)).collect(Collectors.toSet());
-        String separator = properties.getLevelsSeparator();
-        if (filteredAttributes.contains(attribute)) {
-            return Collections.emptySet();
-        }
-        return filteredAttributes
-                .parallelStream()
-                .filter(a -> a.startsWith(attribute))
-                .map(a -> a.replace(attribute, ""))
-                .map(a -> (a.contains(separator) ? a.substring(separator.length()) : a))
-                .map(a -> (a.contains(separator) ? a.substring(0, a.indexOf(separator)) : a))
-                .filter(StringUtils::isNotEmpty)
-                .collect(Collectors.toSet());
-    }
-
-    @Override
-    public Collection<String> getValues(String attribute, String filter, boolean raw) {
-        return getMetamodelFlat(raw).get(attribute).parallelStream().filter(a -> a.contains(filter)).collect(Collectors.toSet());
-    }
-
     /**
      * {@inheritDoc}
      */
@@ -332,7 +315,7 @@ public abstract class AbstractDataProvider
         Optional<TreeNode> parentOptional = query.getParentOptional();
         Optional<SerializablePredicate<TreeNode>> filter = query.getFilter();
         if (!parentOptional.isPresent()) {
-            return metamodelTree.keySet().stream().map(c -> {
+            Stream<TreeNode> treeNodeStream = metamodelTree.keySet().stream().map(c -> {
                 TreeNode treeNode = new TreeNode();
                 treeNode.setValue(c);
                 treeNode.setParent(null);
@@ -340,20 +323,21 @@ public abstract class AbstractDataProvider
                 treeNode.setSeparator(properties.getLevelsSeparator());
                 treeNode.setLevel(0);
                 treeNode.setChildren(treeNode.isFin()
-                        ? getValues(treeNode.getPath(), "", true)
-                        : getSubAttributes(treeNode.getPath(), "", true));
+                        ? metamodelService.getValues(getName(), treeNode.getPath(), "", true)
+                        : metamodelService.getSubAttributes(getName(), treeNode.getPath(), "", true));
                 treeNode.setAttribute(true);
                 return treeNode;
             });
+            return filter.isPresent() ? treeNodeStream.filter(filter.get()) : treeNodeStream;
         } else {
             TreeNode parent = parentOptional.get();
             if (!parent.isAttribute()) {
                 return Stream.empty();
             }
             Collection<String> children = parent.isFin()
-                    ? getValues(parent.getPath(), "", true)
-                    : getSubAttributes(parent.getPath(), "", true);
-            return children.stream().map(c -> {
+                    ? metamodelService.getValues(getName(), parent.getPath(), "", true)
+                    : metamodelService.getSubAttributes(getName(), parent.getPath(), "", true);
+            Stream<TreeNode> treeNodeStream = children.stream().map(c -> {
                 TreeNode treeNode = new TreeNode();
                 treeNode.setValue(c);
                 treeNode.setParent(parent);
@@ -361,11 +345,12 @@ public abstract class AbstractDataProvider
                 treeNode.setSeparator(properties.getLevelsSeparator());
                 treeNode.setLevel(parent.getLevel() + 1);
                 treeNode.setChildren(treeNode.isFin()
-                        ? getValues(treeNode.getPath(), "", true)
-                        : getSubAttributes(treeNode.getPath(), "", true));
+                        ? metamodelService.getValues(getName(), treeNode.getPath(), "", true)
+                        : metamodelService.getSubAttributes(getName(), treeNode.getPath(), "", true));
                 treeNode.setAttribute(CollectionUtils.isNotEmpty(treeNode.getChildren()));
                 return treeNode;
             });
+            return filter.isPresent() ? treeNodeStream.filter(filter.get()) : treeNodeStream;
         }
     }
 
@@ -435,6 +420,11 @@ public abstract class AbstractDataProvider
     @Autowired
     public void setExecutorService(ExecutorService workStealingPool) {
         this.executorService = workStealingPool;
+    }
+
+    @Autowired
+    public void setMetamodelService(MetamodelService metamodelService) {
+        this.metamodelService = metamodelService;
     }
 
     @Autowired

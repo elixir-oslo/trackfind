@@ -26,6 +26,7 @@ import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
 import no.uio.ifi.trackfind.backend.services.GSuiteService;
 import no.uio.ifi.trackfind.frontend.components.KeyboardInterceptorExtension;
 import no.uio.ifi.trackfind.frontend.components.TrackFindTree;
+import no.uio.ifi.trackfind.frontend.filters.TreeFilter;
 import no.uio.ifi.trackfind.frontend.listeners.AddToQueryButtonClickListener;
 import no.uio.ifi.trackfind.frontend.listeners.TextAreaDropListener;
 import no.uio.ifi.trackfind.frontend.listeners.TreeItemClickListener;
@@ -101,17 +102,19 @@ public class TrackFindMainUI extends AbstractUI {
         });
 
         TextField attributesFilterTextField = new TextField("Filter attributes", (HasValue.ValueChangeListener<String>) event -> {
-//            TreeDataProvider<TreeNode> dataProvider = getCurrentTreeDataProvider();
-//            ((TreeFilter) dataProvider.getFilter()).setAttributesFilter(event.getValue());
-//            dataProvider.refreshAll();
+            TrackFindTree<TreeNode> currentTree = getCurrentTree();
+            TreeFilter filter = (TreeFilter) ((TreeGrid<TreeNode>) currentTree.getCompositionRoot()).getFilter();
+            filter.setAttributesFilter(event.getValue());
+            currentTree.getDataProvider().refreshAll();
         });
         attributesFilterTextField.setValueChangeMode(ValueChangeMode.EAGER);
         attributesFilterTextField.setWidth(100, Sizeable.Unit.PERCENTAGE);
 
         TextField valuesFilterTextField = new TextField("Filter values", (HasValue.ValueChangeListener<String>) event -> {
-//            TreeDataProvider<TreeNode> dataProvider = getCurrentTreeDataProvider();
-//            ((TreeFilter) dataProvider.getFilter()).setValuesFilter(event.getValue());
-//            dataProvider.refreshAll();
+            TrackFindTree<TreeNode> currentTree = getCurrentTree();
+            TreeFilter filter = (TreeFilter) ((TreeGrid<TreeNode>) currentTree.getCompositionRoot()).getFilter();
+            filter.setValuesFilter(event.getValue());
+            currentTree.getDataProvider().refreshAll();
         });
         valuesFilterTextField.setValueChangeMode(ValueChangeMode.EAGER);
         valuesFilterTextField.setWidth(100, Sizeable.Unit.PERCENTAGE);
@@ -139,7 +142,9 @@ public class TrackFindMainUI extends AbstractUI {
         tree.setSizeFull();
         tree.setStyleGenerator((StyleGenerator<TreeNode>) item -> item.isAttribute() ? null : "value-tree-node");
 
-        TreeGridDragSource<TreeNode> dragSource = new TreeGridDragSource<>((TreeGrid<TreeNode>) tree.getCompositionRoot());
+        TreeGrid<TreeNode> treeGrid = (TreeGrid<TreeNode>) tree.getCompositionRoot();
+        treeGrid.setFilter(new TreeFilter("", ""));
+        TreeGridDragSource<TreeNode> dragSource = new TreeGridDragSource<>(treeGrid);
         dragSource.setEffectAllowed(EffectAllowed.COPY);
 
         return tree;

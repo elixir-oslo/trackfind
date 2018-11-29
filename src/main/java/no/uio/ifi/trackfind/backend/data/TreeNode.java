@@ -1,7 +1,6 @@
 package no.uio.ifi.trackfind.backend.data;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 
 import java.util.Collection;
 
@@ -22,7 +21,52 @@ public class TreeNode implements Comparable<TreeNode> {
     private TreeNode parent;
     private Collection<String> children;
 
+    @Setter(AccessLevel.NONE)
+    @Getter(AccessLevel.NONE)
+    private String path;
+    @Setter(AccessLevel.NONE)
+    @Getter(AccessLevel.NONE)
+    private String sqlPath;
+
+    /**
+     * Gets path from the root node to current node.
+     *
+     * @return Sequence of attributes separated by some delimiter.
+     */
+    @EqualsAndHashCode.Include
     public String getPath() {
+        if (path == null) { // double checked synchronization
+            synchronized (this) {
+                if (path == null) {
+                    path = getPathInternally();
+                }
+            }
+        }
+        return path;
+    }
+
+    /**
+     * Gets SQL path from the root node to current node.
+     *
+     * @return Sequence of attributes separated by some delimiter.
+     */
+    public String getSQLPath() {
+        if (sqlPath == null) { // double checked synchronization
+            synchronized (this) {
+                if (sqlPath == null) {
+                    sqlPath = getSQLPathInternally();
+                }
+            }
+        }
+        return sqlPath;
+    }
+
+    /**
+     * Gets path from the root node to current node.
+     *
+     * @return Sequence of attributes separated by some delimiter.
+     */
+    private String getPathInternally() {
         StringBuilder path = new StringBuilder(toString());
         TreeNode parent = getParent();
         while (parent != null) {
@@ -32,12 +76,17 @@ public class TreeNode implements Comparable<TreeNode> {
         return path.toString();
     }
 
-    @EqualsAndHashCode.Include
-    public String getSQLPath() {
+    /**
+     * Gets SQL path from the root node to current node.
+     *
+     * @return Sequence of attributes separated by some delimiter.
+     */
+    private String getSQLPathInternally() {
         StringBuilder path = new StringBuilder("'" + toString() + "'");
-        TreeNode parent;
-        while ((parent = getParent()) != null) {
+        TreeNode parent = getParent();
+        while (parent != null) {
             path.insert(0, "'" + parent.toString() + "'" + separator);
+            parent = parent.getParent();
         }
         return path.toString();
     }

@@ -35,12 +35,6 @@ public interface DataProvider {
      */
     void resetCaches();
 
-    Collection<String> getAttributes(String filter, boolean raw, boolean top);
-
-    Collection<String> getSubAttributes(String attribute, String filter, boolean raw);
-
-    Collection<String> getValues(String attribute, String filter, boolean raw);
-
     /**
      * Gets metamodel of the repository in "tree-from" (with nesting).
      *

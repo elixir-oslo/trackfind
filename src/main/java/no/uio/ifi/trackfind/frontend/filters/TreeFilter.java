@@ -1,18 +1,16 @@
-package no.uio.ifi.trackfind.backend.data.filters;
+package no.uio.ifi.trackfind.frontend.filters;
 
-import com.vaadin.data.provider.HierarchicalQuery;
-import com.vaadin.data.provider.TreeDataProvider;
 import com.vaadin.server.SerializablePredicate;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import no.uio.ifi.trackfind.backend.data.TreeNode;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.util.CollectionUtils;
 
 @AllArgsConstructor
 @Data
 public class TreeFilter implements SerializablePredicate<TreeNode> {
 
-    private TreeDataProvider<TreeNode> dataProvider;
     private String valuesFilter;
     private String attributesFilter;
 
@@ -23,7 +21,7 @@ public class TreeFilter implements SerializablePredicate<TreeNode> {
             return false;
         } else if (treeNode.isFin() && !StringUtils.containsIgnoreCase(attributeOrValue, attributesFilter)) {
             return false;
-        } else if (treeNode.isAttribute() && dataProvider.getChildCount(new HierarchicalQuery<>(null, treeNode)) == 0) {
+        } else if (treeNode.isAttribute() && CollectionUtils.isEmpty(treeNode.getChildren())) {
             return false;
         }
         return true;

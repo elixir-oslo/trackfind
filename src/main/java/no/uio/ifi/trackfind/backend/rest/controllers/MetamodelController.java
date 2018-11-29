@@ -1,7 +1,7 @@
 package no.uio.ifi.trackfind.backend.rest.controllers;
 
 import io.swagger.annotations.*;
-import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
+import no.uio.ifi.trackfind.backend.services.MetamodelService;
 import no.uio.ifi.trackfind.backend.services.TrackFindService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -23,7 +23,7 @@ import java.util.Map;
 public class MetamodelController {
 
     private TrackFindService trackFindService;
-    private TrackFindProperties trackFindProperties;
+    private MetamodelService metamodelService;
 
     /**
      * Gets DataProvider's metamodel in tree form.
@@ -78,7 +78,7 @@ public class MetamodelController {
                                                             @RequestParam(required = false, defaultValue = "false") boolean raw,
                                                             @ApiParam(value = "Return only top-level attributes", required = false, defaultValue = "false")
                                                             @RequestParam(required = false, defaultValue = "false") boolean top) {
-        return ResponseEntity.ok(trackFindService.getDataProvider(provider).getAttributes(filter, raw, top));
+        return ResponseEntity.ok(metamodelService.getAttributes(provider, filter, raw, top));
     }
 
     /**
@@ -100,7 +100,7 @@ public class MetamodelController {
                                                                @RequestParam(required = false, defaultValue = "") String filter,
                                                                @ApiParam(value = "Raw or Standardized metamodel", required = false, defaultValue = "false")
                                                                @RequestParam(required = false, defaultValue = "false") boolean raw) {
-        return ResponseEntity.ok(trackFindService.getDataProvider(provider).getSubAttributes(attribute, filter, raw));
+        return ResponseEntity.ok(metamodelService.getSubAttributes(provider, attribute, filter, raw));
     }
 
     /**
@@ -121,7 +121,7 @@ public class MetamodelController {
                                                         @RequestParam(required = false, defaultValue = "") String filter,
                                                         @ApiParam(value = "Raw or Standardized metamodel", required = false, defaultValue = "false")
                                                         @RequestParam(required = false, defaultValue = "false") boolean raw) {
-        return ResponseEntity.ok(trackFindService.getDataProvider(provider).getValues(attribute, filter, raw));
+        return ResponseEntity.ok(metamodelService.getValues(provider, attribute, filter, raw));
     }
 
     @Autowired
@@ -130,8 +130,8 @@ public class MetamodelController {
     }
 
     @Autowired
-    public void setTrackFindProperties(TrackFindProperties trackFindProperties) {
-        this.trackFindProperties = trackFindProperties;
+    public void setMetamodelService(MetamodelService metamodelService) {
+        this.metamodelService = metamodelService;
     }
 
 }

@@ -17,6 +17,7 @@ import no.uio.ifi.trackfind.backend.data.providers.AbstractDataProvider;
 import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
 import no.uio.ifi.trackfind.backend.repositories.MappingRepository;
 import no.uio.ifi.trackfind.frontend.components.TrackFindTree;
+import no.uio.ifi.trackfind.frontend.filters.TreeFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 import org.vaadin.aceeditor.AceEditor;
@@ -78,17 +79,19 @@ public class TrackFindAdminUI extends AbstractUI {
         treePanel.setSizeFull();
 
         TextField attributesFilterTextField = new TextField("Filter attributes", (HasValue.ValueChangeListener<String>) event -> {
-//            TreeDataProvider<TreeNode> dataProvider = getCurrentTreeDataProvider();
-//            ((TreeFilter) dataProvider.getFilter()).setAttributesFilter(event.getValue());
-//            dataProvider.refreshAll();
+            TrackFindTree<TreeNode> currentTree = getCurrentTree();
+            TreeFilter filter = (TreeFilter) ((TreeGrid<TreeNode>) currentTree.getCompositionRoot()).getFilter();
+            filter.setAttributesFilter(event.getValue());
+            currentTree.getDataProvider().refreshAll();
         });
         attributesFilterTextField.setValueChangeMode(ValueChangeMode.EAGER);
         attributesFilterTextField.setWidth(100, Sizeable.Unit.PERCENTAGE);
 
         TextField valuesFilterTextField = new TextField("Filter values", (HasValue.ValueChangeListener<String>) event -> {
-//            TreeDataProvider<TreeNode> dataProvider = getCurrentTreeDataProvider();
-//            ((TreeFilter) dataProvider.getFilter()).setValuesFilter(event.getValue());
-//            dataProvider.refreshAll();
+            TrackFindTree<TreeNode> currentTree = getCurrentTree();
+            TreeFilter filter = (TreeFilter) ((TreeGrid<TreeNode>) currentTree.getCompositionRoot()).getFilter();
+            filter.setValuesFilter(event.getValue());
+            currentTree.getDataProvider().refreshAll();
         });
         valuesFilterTextField.setValueChangeMode(ValueChangeMode.EAGER);
         valuesFilterTextField.setWidth(100, Sizeable.Unit.PERCENTAGE);
