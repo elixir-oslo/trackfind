@@ -1,23 +1,21 @@
 package no.uio.ifi.trackfind.frontend;
 
-import com.vaadin.data.TreeData;
-import com.vaadin.data.provider.HierarchicalDataProvider;
-import com.vaadin.data.provider.TreeDataProvider;
+import com.vaadin.data.HasValue;
+import com.vaadin.shared.ui.ValueChangeMode;
 import com.vaadin.ui.*;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
 import no.uio.ifi.trackfind.backend.data.TreeNode;
 import no.uio.ifi.trackfind.backend.data.providers.AbstractDataProvider;
-import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
 import no.uio.ifi.trackfind.backend.services.SchemaService;
 import no.uio.ifi.trackfind.backend.services.TrackFindService;
 import no.uio.ifi.trackfind.frontend.components.TrackFindTree;
+import no.uio.ifi.trackfind.frontend.filters.TreeFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Iterator;
 
 /**
  * Main Vaadin UI of the application.
@@ -76,16 +74,31 @@ public abstract class AbstractUI extends UI {
     }
 
     @SuppressWarnings("unchecked")
+    protected TextField createFilter(boolean attributes) {
+        TextField attributesFilterTextField = new TextField("Filter attributes", (HasValue.ValueChangeListener<String>) event -> {
+            TrackFindTree<TreeNode> currentTree = getCurrentTree();
+            TreeFilter filter = (TreeFilter) ((TreeGrid<TreeNode>) currentTree.getCompositionRoot()).getFilter();
+            if (attributes) {
+                filter.setAttributesFilter(event.getValue());
+            } else {
+                filter.setValuesFilter(event.getValue());
+            }
+            currentTree.getDataProvider().refreshAll();
+        });
+        attributesFilterTextField.setValueChangeMode(ValueChangeMode.EAGER);
+        attributesFilterTextField.setWidth(100, Unit.PERCENTAGE);
+        return attributesFilterTextField;
+    }
+
+    @SuppressWarnings("unchecked")
     protected void refreshTrees(boolean raw) {
-//        for (AbstractDataProvider dataProvider : dataProviders) {
-//            TreeDataProvider treeDataProvider = entry.getKey();
-//            TreeData treeData = treeDataProvider.getTreeData().clear();
-//            TreeNode root = new TreeNode(dataProvider.getMetamodelTree(raw), properties.getLevelsSeparator());
-//            Collection<TreeNode> children = root.getChildren().parallelStream().collect(Collectors.toSet());
-//            treeData.addRootItems(children);
-//            children.forEach(c -> fillTreeData(treeData, c));
-//            treeDataProvider.refreshAll();
-//        }
+        Iterator<Component> iterator = tabSheet.iterator();
+        while (iterator.hasNext()) {
+            TrackFindTree<TreeNode> currentTree = (TrackFindTree<TreeNode>) iterator.next();
+            TreeFilter filter = (TreeFilter) ((TreeGrid<TreeNode>) currentTree.getCompositionRoot()).getFilter();
+            filter.setRaw(raw);
+            currentTree.getDataProvider().refreshAll();
+        }
     }
 
     @Autowired

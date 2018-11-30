@@ -6,6 +6,7 @@ import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
 import no.uio.ifi.trackfind.backend.dao.Dataset;
 import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
 import no.uio.ifi.trackfind.backend.services.GSuiteService;
+import no.uio.ifi.trackfind.backend.services.MetamodelService;
 import no.uio.ifi.trackfind.backend.services.TrackFindService;
 import org.junit.Before;
 import org.junit.Test;
@@ -31,7 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SuppressWarnings("PMD.JUnitTestsShouldIncludeAssert")
 @RunWith(SpringRunner.class)
-@WebMvcTest // TODO: fix tests
+@WebMvcTest
 public class TrackFindRESTTests {
 
     private static final String TEST_DATA_PROVIDER = "TEST";
@@ -51,6 +52,9 @@ public class TrackFindRESTTests {
 
     @MockBean
     private GSuiteService gSuiteService;
+
+    @MockBean
+    private MetamodelService metamodelService;
 
     private Dataset dataset;
 
@@ -177,6 +181,12 @@ public class TrackFindRESTTests {
         dataset.setFairContent("{'fair':{'id':0}}");
         when(dataProvider.search(anyString(), anyInt())).thenReturn(Collections.singleton(dataset));
         when(dataProvider.fetch(anyLong(), Mockito.any())).thenReturn(dataset);
+        when(metamodelService.getAttributes(anyString(), anyString(), anyBoolean(), eq(true))).thenReturn(Collections.singleton("level1"));
+        when(metamodelService.getValues(anyString(), eq("level1->level2_2"), anyString(), anyBoolean())).thenReturn(Collections.singleton("value3"));
+        when(metamodelService.getValues(anyString(), eq("level1->level2_1"), anyString(), anyBoolean())).thenReturn(Arrays.asList("value1", "value2"));
+        when(metamodelService.getAttributes(anyString(), eq("vel2_2"), eq(false), eq(false))).thenReturn(Collections.singleton("level1->level2_2"));
+        when(metamodelService.getValues(anyString(), eq("level1->level2_1"), eq("lue2"), anyBoolean())).thenReturn(Collections.singleton("value2"));
+        when(metamodelService.getSubAttributes(anyString(), eq("level1"), anyString(), eq(false))).thenReturn(Arrays.asList("level2_2", "level2_1"));
     }
 
 }

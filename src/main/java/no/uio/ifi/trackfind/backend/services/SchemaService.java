@@ -16,6 +16,7 @@ import java.util.*;
 /**
  * Service for loading JSON schema and for validating JSON objects.
  */
+// TODO: cover with tests
 @Service
 public class SchemaService {
 

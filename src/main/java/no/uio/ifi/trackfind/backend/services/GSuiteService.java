@@ -14,6 +14,7 @@ import java.util.function.Function;
 /**
  * Service for querying remote GSuite service for performing JSON to GSuite conversion.
  */
+// TODO: cover with tests
 @Service
 public class GSuiteService implements Function<Collection<Dataset>, String> {
 

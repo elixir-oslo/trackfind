@@ -12,6 +12,10 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Service for getting metamodel information: attibutes, subattributes, values, etc.
+ */
+// TODO: cover with tests
 @Service
 public class MetamodelService {
 

@@ -87,7 +87,6 @@ public class TrackFindMainUI extends AbstractUI {
 
         for (DataProvider dataProvider : trackFindService.getDataProviders()) {
             TrackFindTree<TreeNode> tree = buildTree((AbstractDataProvider) dataProvider);
-            refreshTrees(false);
             tabSheet.addTab(tree, dataProvider.getName());
         }
 
@@ -101,23 +100,8 @@ public class TrackFindMainUI extends AbstractUI {
             refreshTrees(event.getValue());
         });
 
-        TextField attributesFilterTextField = new TextField("Filter attributes", (HasValue.ValueChangeListener<String>) event -> {
-            TrackFindTree<TreeNode> currentTree = getCurrentTree();
-            TreeFilter filter = (TreeFilter) ((TreeGrid<TreeNode>) currentTree.getCompositionRoot()).getFilter();
-            filter.setAttributesFilter(event.getValue());
-            currentTree.getDataProvider().refreshAll();
-        });
-        attributesFilterTextField.setValueChangeMode(ValueChangeMode.EAGER);
-        attributesFilterTextField.setWidth(100, Sizeable.Unit.PERCENTAGE);
-
-        TextField valuesFilterTextField = new TextField("Filter values", (HasValue.ValueChangeListener<String>) event -> {
-            TrackFindTree<TreeNode> currentTree = getCurrentTree();
-            TreeFilter filter = (TreeFilter) ((TreeGrid<TreeNode>) currentTree.getCompositionRoot()).getFilter();
-            filter.setValuesFilter(event.getValue());
-            currentTree.getDataProvider().refreshAll();
-        });
-        valuesFilterTextField.setValueChangeMode(ValueChangeMode.EAGER);
-        valuesFilterTextField.setWidth(100, Sizeable.Unit.PERCENTAGE);
+        TextField attributesFilterTextField = createFilter(true);
+        TextField valuesFilterTextField = createFilter(false);
 
         addToQueryButtonClickListener = new AddToQueryButtonClickListener(this, properties.getLevelsSeparator());
         addToQueryButtonClickListener.setDatasetPrefix("standard_content");
@@ -143,7 +127,7 @@ public class TrackFindMainUI extends AbstractUI {
         tree.setStyleGenerator((StyleGenerator<TreeNode>) item -> item.isAttribute() ? null : "value-tree-node");
 
         TreeGrid<TreeNode> treeGrid = (TreeGrid<TreeNode>) tree.getCompositionRoot();
-        treeGrid.setFilter(new TreeFilter("", ""));
+        treeGrid.setFilter(new TreeFilter(false, "", ""));
         TreeGridDragSource<TreeNode> dragSource = new TreeGridDragSource<>(treeGrid);
         dragSource.setEffectAllowed(EffectAllowed.COPY);
 

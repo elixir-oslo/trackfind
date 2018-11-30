@@ -7,10 +7,14 @@ import no.uio.ifi.trackfind.backend.data.TreeNode;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;
 
+/**
+ * Filter for the Vaadin tree.
+ */
 @AllArgsConstructor
 @Data
 public class TreeFilter implements SerializablePredicate<TreeNode> {
 
+    private boolean raw;
     private String valuesFilter;
     private String attributesFilter;
 

@@ -2,13 +2,16 @@ package no.uio.ifi.trackfind.backend.services;
 
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.dao.Queries;
-import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
 import no.uio.ifi.trackfind.backend.events.DataReloadEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+/**
+ * Service for resetting caches.
+ */
+// TODO: cover with tests
 @Slf4j
 @Service
 public class CacheService {

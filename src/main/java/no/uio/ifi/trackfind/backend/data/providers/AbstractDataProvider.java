@@ -22,6 +22,7 @@ import no.uio.ifi.trackfind.backend.repositories.StandardRepository;
 import no.uio.ifi.trackfind.backend.scripting.ScriptingEngine;
 import no.uio.ifi.trackfind.backend.services.CacheService;
 import no.uio.ifi.trackfind.backend.services.MetamodelService;
+import no.uio.ifi.trackfind.frontend.filters.TreeFilter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -310,12 +311,18 @@ public abstract class AbstractDataProvider
 
     @Override
     protected Stream<TreeNode> fetchChildrenFromBackEnd(HierarchicalQuery<TreeNode, SerializablePredicate<TreeNode>> query) {
-        Map<String, Object> metamodelTree = getMetamodelTree(true);
-        Multimap<String, String> metamodelFlat = getMetamodelFlat(true);
-        Optional<TreeNode> parentOptional = query.getParentOptional();
         Optional<SerializablePredicate<TreeNode>> filter = query.getFilter();
+        boolean raw = false;
+        if (filter.isPresent()) {
+            TreeFilter treeFilter = (TreeFilter) filter.get();
+            raw = treeFilter.isRaw();
+        }
+        Map<String, Object> metamodelTree = getMetamodelTree(raw);
+        Multimap<String, String> metamodelFlat = getMetamodelFlat(raw);
+        Optional<TreeNode> parentOptional = query.getParentOptional();
         if (!parentOptional.isPresent()) {
-            Stream<TreeNode> treeNodeStream = metamodelTree.keySet().stream().map(c -> {
+            boolean finalRaw1 = raw;
+            Stream<TreeNode> treeNodeStream = metamodelTree.keySet().parallelStream().map(c -> {
                 TreeNode treeNode = new TreeNode();
                 treeNode.setValue(c);
                 treeNode.setParent(null);
@@ -323,8 +330,8 @@ public abstract class AbstractDataProvider
                 treeNode.setSeparator(properties.getLevelsSeparator());
                 treeNode.setLevel(0);
                 treeNode.setChildren(treeNode.isFin()
-                        ? metamodelService.getValues(getName(), treeNode.getPath(), "", true)
-                        : metamodelService.getSubAttributes(getName(), treeNode.getPath(), "", true));
+                        ? metamodelService.getValues(getName(), treeNode.getPath(), "", finalRaw1)
+                        : metamodelService.getSubAttributes(getName(), treeNode.getPath(), "", finalRaw1));
                 treeNode.setAttribute(true);
                 return treeNode;
             });
@@ -335,9 +342,10 @@ public abstract class AbstractDataProvider
                 return Stream.empty();
             }
             Collection<String> children = parent.isFin()
-                    ? metamodelService.getValues(getName(), parent.getPath(), "", true)
-                    : metamodelService.getSubAttributes(getName(), parent.getPath(), "", true);
-            Stream<TreeNode> treeNodeStream = children.stream().map(c -> {
+                    ? metamodelService.getValues(getName(), parent.getPath(), "", raw)
+                    : metamodelService.getSubAttributes(getName(), parent.getPath(), "", raw);
+            boolean finalRaw2 = raw;
+            Stream<TreeNode> treeNodeStream = children.parallelStream().map(c -> {
                 TreeNode treeNode = new TreeNode();
                 treeNode.setValue(c);
                 treeNode.setParent(parent);
@@ -345,8 +353,8 @@ public abstract class AbstractDataProvider
                 treeNode.setSeparator(properties.getLevelsSeparator());
                 treeNode.setLevel(parent.getLevel() + 1);
                 treeNode.setChildren(treeNode.isFin()
-                        ? metamodelService.getValues(getName(), treeNode.getPath(), "", true)
-                        : metamodelService.getSubAttributes(getName(), treeNode.getPath(), "", true));
+                        ? metamodelService.getValues(getName(), treeNode.getPath(), "", finalRaw2)
+                        : metamodelService.getSubAttributes(getName(), treeNode.getPath(), "", finalRaw2));
                 treeNode.setAttribute(CollectionUtils.isNotEmpty(treeNode.getChildren()));
                 return treeNode;
             });
@@ -361,7 +369,7 @@ public abstract class AbstractDataProvider
 
     @Override
     public boolean hasChildren(TreeNode item) {
-        return getChildCount(new HierarchicalQuery<>(null, item)) != 0;
+        return item.isAttribute();
     }
 
     /**
