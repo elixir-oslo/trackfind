@@ -326,38 +326,40 @@ public abstract class AbstractDataProvider
                 TreeNode treeNode = new TreeNode();
                 treeNode.setValue(c);
                 treeNode.setParent(null);
-                treeNode.setFin(metamodelFlat.containsKey(treeNode.getPath()));
                 treeNode.setSeparator(properties.getLevelsSeparator());
                 treeNode.setLevel(0);
-                treeNode.setChildren(treeNode.isFin()
-                        ? metamodelService.getValues(getName(), treeNode.getPath(), "", finalRaw1)
-                        : metamodelService.getSubAttributes(getName(), treeNode.getPath(), "", finalRaw1));
+                treeNode.setHasValues(CollectionUtils.isNotEmpty(metamodelService.getValues(getName(), treeNode.getPath(), "", finalRaw1)));
+                Collection<String> grandChildren = new ArrayList<>();
+                grandChildren.addAll(metamodelService.getValues(getName(), treeNode.getPath(), "", finalRaw1));
+                grandChildren.addAll(metamodelService.getSubAttributes(getName(), treeNode.getPath(), "", finalRaw1));
+                treeNode.setChildren(grandChildren);
                 treeNode.setAttribute(true);
                 return treeNode;
-            });
+            }).sorted();
             return filter.isPresent() ? treeNodeStream.filter(filter.get()) : treeNodeStream;
         } else {
             TreeNode parent = parentOptional.get();
             if (!parent.isAttribute()) {
                 return Stream.empty();
             }
-            Collection<String> children = parent.isFin()
-                    ? metamodelService.getValues(getName(), parent.getPath(), "", raw)
-                    : metamodelService.getSubAttributes(getName(), parent.getPath(), "", raw);
+            Collection<String> children = new ArrayList<>();
+            children.addAll(metamodelService.getValues(getName(), parent.getPath(), "", raw));
+            children.addAll(metamodelService.getSubAttributes(getName(), parent.getPath(), "", raw));
             boolean finalRaw2 = raw;
             Stream<TreeNode> treeNodeStream = children.parallelStream().map(c -> {
                 TreeNode treeNode = new TreeNode();
                 treeNode.setValue(c);
                 treeNode.setParent(parent);
-                treeNode.setFin(metamodelFlat.containsKey(treeNode.getPath()));
                 treeNode.setSeparator(properties.getLevelsSeparator());
                 treeNode.setLevel(parent.getLevel() + 1);
-                treeNode.setChildren(treeNode.isFin()
-                        ? metamodelService.getValues(getName(), treeNode.getPath(), "", finalRaw2)
-                        : metamodelService.getSubAttributes(getName(), treeNode.getPath(), "", finalRaw2));
-                treeNode.setAttribute(CollectionUtils.isNotEmpty(treeNode.getChildren()));
+                treeNode.setHasValues(CollectionUtils.isNotEmpty(metamodelService.getValues(getName(), treeNode.getPath(), "", finalRaw2)));
+                Collection<String> grandChildren = new ArrayList<>();
+                grandChildren.addAll(metamodelService.getValues(getName(), treeNode.getPath(), "", finalRaw2));
+                grandChildren.addAll(metamodelService.getSubAttributes(getName(), treeNode.getPath(), "", finalRaw2));
+                treeNode.setChildren(grandChildren);
+                treeNode.setAttribute(CollectionUtils.isNotEmpty(grandChildren));
                 return treeNode;
-            });
+            }).sorted();
             return filter.isPresent() ? treeNodeStream.filter(filter.get()) : treeNodeStream;
         }
     }

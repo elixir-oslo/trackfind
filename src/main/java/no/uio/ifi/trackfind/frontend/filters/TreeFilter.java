@@ -23,7 +23,7 @@ public class TreeFilter implements SerializablePredicate<TreeNode> {
         String attributeOrValue = treeNode.toString().toLowerCase();
         if (!treeNode.isAttribute() && !StringUtils.containsIgnoreCase(attributeOrValue, valuesFilter)) {
             return false;
-        } else if (treeNode.isFin() && !StringUtils.containsIgnoreCase(attributeOrValue, attributesFilter)) {
+        } else if (treeNode.isHasValues() && !StringUtils.containsIgnoreCase(attributeOrValue, attributesFilter)) {
             return false;
         } else if (treeNode.isAttribute() && CollectionUtils.isEmpty(treeNode.getChildren())) {
             return false;

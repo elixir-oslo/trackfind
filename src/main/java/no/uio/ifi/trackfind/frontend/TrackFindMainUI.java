@@ -122,12 +122,13 @@ public class TrackFindMainUI extends AbstractUI {
         tree.setDataProvider(dataProvider);
         tree.setSelectionMode(Grid.SelectionMode.MULTI);
         tree.addItemClickListener(new TreeItemClickListener(tree));
-        tree.addSelectionListener(new TreeSelectionListener(tree, new KeyboardInterceptorExtension(tree)));
+        TreeGrid<TreeNode> treeGrid = (TreeGrid<TreeNode>) tree.getCompositionRoot();
+        TreeFilter filter = new TreeFilter(false, "", "");
+        treeGrid.setFilter(filter);
+        tree.addSelectionListener(new TreeSelectionListener(tree, filter, new KeyboardInterceptorExtension(tree)));
         tree.setSizeFull();
         tree.setStyleGenerator((StyleGenerator<TreeNode>) item -> item.isAttribute() ? null : "value-tree-node");
 
-        TreeGrid<TreeNode> treeGrid = (TreeGrid<TreeNode>) tree.getCompositionRoot();
-        treeGrid.setFilter(new TreeFilter(false, "", ""));
         TreeGridDragSource<TreeNode> dragSource = new TreeGridDragSource<>(treeGrid);
         dragSource.setEffectAllowed(EffectAllowed.COPY);
 

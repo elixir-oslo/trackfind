@@ -1,20 +1,21 @@
 package no.uio.ifi.trackfind.frontend.listeners;
 
+import com.vaadin.data.provider.HierarchicalDataProvider;
 import com.vaadin.data.provider.HierarchicalQuery;
 import com.vaadin.event.selection.MultiSelectionEvent;
 import com.vaadin.event.selection.SelectionEvent;
 import com.vaadin.event.selection.SelectionListener;
 import com.vaadin.event.selection.SingleSelectionEvent;
-import com.vaadin.ui.Tree;
+import com.vaadin.server.SerializablePredicate;
 import no.uio.ifi.trackfind.backend.data.TreeNode;
 import no.uio.ifi.trackfind.frontend.components.KeyboardInterceptorExtension;
-import org.apache.commons.collections4.MapUtils;
+import no.uio.ifi.trackfind.frontend.components.TrackFindTree;
+import no.uio.ifi.trackfind.frontend.filters.TreeFilter;
 import org.springframework.util.CollectionUtils;
 
-import java.util.*;
-import java.util.function.Function;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Vaadin Tree click listener for implementing multiple selection and some other rules.
@@ -23,7 +24,8 @@ import java.util.stream.Stream;
  */
 public class TreeSelectionListener implements SelectionListener<TreeNode> {
 
-    private Tree<TreeNode> tree;
+    private TrackFindTree<TreeNode> tree;
+    private TreeFilter filter;
     private KeyboardInterceptorExtension keyboardInterceptorExtension;
 
     /**
@@ -32,8 +34,9 @@ public class TreeSelectionListener implements SelectionListener<TreeNode> {
      * @param tree                         Vaadin Tree.
      * @param keyboardInterceptorExtension KeyboardInterceptorExtension.
      */
-    public TreeSelectionListener(Tree<TreeNode> tree, KeyboardInterceptorExtension keyboardInterceptorExtension) {
+    public TreeSelectionListener(TrackFindTree<TreeNode> tree, TreeFilter filter, KeyboardInterceptorExtension keyboardInterceptorExtension) {
         this.tree = tree;
+        this.filter = filter;
         this.keyboardInterceptorExtension = keyboardInterceptorExtension;
     }
 
@@ -56,44 +59,31 @@ public class TreeSelectionListener implements SelectionListener<TreeNode> {
             return;
         }
         TreeNode current = addedSelection.iterator().next();
-        if (!current.isFin() && current.isAttribute()) {
-            tree.deselect(current);
-            return;
-        }
-        if (current.isFin()) {
+        if (current.isHasValues()) {
             selectedItems.stream().filter(tn -> !tn.equals(current)).forEach(tree::deselect);
             return;
         }
-        selectedItems.stream().filter(TreeNode::isFin).forEach(tree::deselect);
+        selectedItems.stream().filter(TreeNode::isHasValues).forEach(tree::deselect);
         selectedItems.stream().filter(tn -> tn.getLevel() != current.getLevel() || tn.getParent() != current.getParent()).forEach(tree::deselect);
         if (!keyboardInterceptorExtension.isControlKeyDown() &&
                 !keyboardInterceptorExtension.isMetaKeyDown() &&
                 !keyboardInterceptorExtension.isShiftKeyDown()) {
             selectedItems.stream().filter(tn -> !tn.equals(current)).forEach(tree::deselect);
         } else if (keyboardInterceptorExtension.isShiftKeyDown()) {
-            List<TreeNode> oldSelection = multiSelectionEvent.getOldSelection().stream().sorted().collect(Collectors.toList());
-            if (oldSelection.stream().anyMatch(tn -> tn.getParent() != current.getParent())) {
+            TreeNode first = selectedItems.stream().sorted().findFirst().get();
+            TreeNode last = selectedItems.stream().sorted().reduce((f, s) -> s).get();
+            if (first.getLevel() != last.getLevel()) {
                 return;
             }
-            TreeNode first = oldSelection.get(0);
-            TreeNode last = oldSelection.get(oldSelection.size() - 1);
-            final int[] index = {0};
-            Stream<TreeNode> children = tree.getDataProvider().fetchChildren(new HierarchicalQuery<>(null, current.getParent()));
-            Map<TreeNode, Integer> indexedSiblings = children.collect(Collectors.toMap(Function.identity(), tn -> index[0]++));
-            int firstIndex = indexedSiblings.get(first);
-            int lastIndex = indexedSiblings.get(last);
-            int currentIndex = indexedSiblings.get(current);
-            List<Integer> indices = Arrays.asList(firstIndex, lastIndex, currentIndex);
-            Optional<Integer> optionalMin = indices.stream().min(Integer::compareTo);
-            Optional<Integer> optionalMax = indices.stream().max(Integer::compareTo);
-            if (!optionalMin.isPresent()) {
-                return;
-            }
-            int min = optionalMin.get();
-            int max = optionalMax.get();
-            Map<Integer, TreeNode> invertedMap = MapUtils.invertMap(indexedSiblings);
-            for (int i = min; i <= max; i++) {
-                tree.select(invertedMap.get(i));
+            HierarchicalQuery<TreeNode, SerializablePredicate<TreeNode>> treeNodeFHierarchicalQuery = new HierarchicalQuery<>(filter, current.getParent());
+            HierarchicalDataProvider<TreeNode, SerializablePredicate<TreeNode>> dataProvider = (HierarchicalDataProvider<TreeNode, SerializablePredicate<TreeNode>>) tree.getDataProvider();
+            List<TreeNode> siblings = dataProvider.fetchChildren(treeNodeFHierarchicalQuery).sorted().collect(Collectors.toList());
+            int firstIndex = Math.min(siblings.indexOf(first), siblings.indexOf(last));
+            int lastIndex = Math.max(siblings.indexOf(first), siblings.indexOf(last));
+            for (int i = 0; i < siblings.size(); i++) {
+                if (i >= firstIndex && i <= lastIndex) {
+                    tree.select(siblings.get(i));
+                }
             }
         }
     }
