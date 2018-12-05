@@ -69,6 +69,12 @@ public abstract class AbstractDataProvider
 
     protected Connection connection;
 
+    private LoadingCache<Boolean, Collection<String>> arrayOfObjectsAttributesCache = Caffeine.newBuilder()
+            .build(key -> jdbcTemplate.queryForList(
+                    "SELECT DISTINCT attribute FROM " + (key ? "source" : "standard") + "_array_of_objects WHERE repository = ?",
+                    String.class,
+                    getName()));
+
     private LoadingCache<Boolean, Multimap<String, String>> flatMetamodelCache = Caffeine.newBuilder()
             .build(key -> {
                 Multimap<String, String> metamodel = HashMultimap.create();
@@ -108,7 +114,9 @@ public abstract class AbstractDataProvider
                 crawlRemoteRepository();
             }
             jdbcTemplate.execute(String.format(Queries.METAMODEL_VIEW, "source", "curated", properties.getLevelsSeparator(), properties.getLevelsSeparator()));
+            jdbcTemplate.execute(String.format(Queries.ARRAY_OF_OBJECTS_VIEW, "source", "curated", properties.getLevelsSeparator(), properties.getLevelsSeparator()));
             jdbcTemplate.execute(String.format(Queries.METAMODEL_VIEW, "standard", "standard", properties.getLevelsSeparator(), properties.getLevelsSeparator()));
+            jdbcTemplate.execute(String.format(Queries.ARRAY_OF_OBJECTS_VIEW, "standard", "standard", properties.getLevelsSeparator(), properties.getLevelsSeparator()));
 
             Integer count = jdbcTemplate.queryForObject(Queries.CHECK_SEARCH_USER_EXISTS, Integer.TYPE);
             if (count == 0) {
@@ -248,6 +256,7 @@ public abstract class AbstractDataProvider
      */
     @Override
     public synchronized void resetCaches() {
+        arrayOfObjectsAttributesCache.invalidateAll();
         treeMetamodelCache.invalidateAll();
         flatMetamodelCache.invalidateAll();
     }
@@ -351,7 +360,6 @@ public abstract class AbstractDataProvider
             raw = treeFilter.isRaw();
         }
         Map<String, Object> metamodelTree = getMetamodelTree(raw);
-        Multimap<String, String> metamodelFlat = getMetamodelFlat(raw);
         Optional<TreeNode> parentOptional = query.getParentOptional();
         if (!parentOptional.isPresent()) {
             boolean finalRaw1 = raw;
