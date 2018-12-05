@@ -24,6 +24,7 @@ import no.uio.ifi.trackfind.backend.services.CacheService;
 import no.uio.ifi.trackfind.backend.services.MetamodelService;
 import no.uio.ifi.trackfind.frontend.filters.TreeFilter;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
@@ -35,6 +36,8 @@ import javax.transaction.Transactional;
 import java.sql.*;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -273,12 +276,21 @@ public abstract class AbstractDataProvider
     public Collection<Dataset> search(String query, int limit) {
         try {
             limit = limit == 0 ? Integer.MAX_VALUE : limit;
+            String separator = properties.getLevelsSeparator();
+            Map<String, String> joinTerms = getJoinTerms(query);
+            String joinTermsConcatenated = joinTerms.entrySet().stream().map(e -> String.format("jsonb_array_elements(%s) %s", e.getKey(), e.getValue())).collect(Collectors.joining(", "));
+            if (StringUtils.isNotEmpty(joinTermsConcatenated)) {
+                joinTermsConcatenated = ", " + joinTermsConcatenated;
+            }
+            for (Map.Entry<String, String> joinTerm : joinTerms.entrySet()) {
+                query = query.replaceAll(joinTerm.getKey() + separator + "\\*", joinTerm.getValue() + ".value");
+            }
             String rawQuery = String.format("SELECT *\n" +
-                    "FROM latest_datasets\n" +
+                    "FROM latest_datasets%s\n" +
                     "WHERE repository = '%s'\n" +
                     "  AND (%s)\n" +
                     "ORDER BY id ASC\n" +
-                    "LIMIT %s", getName(), query, limit);
+                    "LIMIT %s", joinTermsConcatenated, getName(), query, limit);
             rawQuery = rawQuery.replaceAll("\\?", "\\?\\?");
             PreparedStatement preparedStatement = connection.prepareStatement(rawQuery);
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -298,6 +310,27 @@ public abstract class AbstractDataProvider
             log.error(e.getMessage(), e);
             return Collections.emptySet();
         }
+    }
+
+    protected Map<String, String> getJoinTerms(String query) {
+        Collection<String> joinTerms = new HashSet<>();
+        String separator = properties.getLevelsSeparator();
+        for (String type : Arrays.asList("curated", "standard")) {
+            String start = type + "_content" + separator;
+            String end = separator + "*";
+            String regexString = Pattern.quote(start) + "(.*?)" + Pattern.quote(end);
+            Pattern pattern = Pattern.compile(regexString, Pattern.DOTALL);
+            Matcher matcher = pattern.matcher(query);
+            while (matcher.find()) {
+                joinTerms.add(start + matcher.group(1));
+            }
+        }
+        Map<String, String> substitution = new HashMap<>();
+        int i = 0;
+        for (String joinTerm : joinTerms) {
+            substitution.put(joinTerm, "joinTerm" + i++);
+        }
+        return substitution;
     }
 
     /**
