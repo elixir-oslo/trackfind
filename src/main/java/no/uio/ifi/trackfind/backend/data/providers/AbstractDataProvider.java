@@ -350,7 +350,7 @@ public abstract class AbstractDataProvider
                 "joinTerm\\d+.value" + separator
         )) {
             String regexString = start + "(.*?)" + Pattern.quote(end);
-            Pattern pattern = Pattern.compile(regexString, Pattern.DOTALL);
+            Pattern pattern = Pattern.compile(regexString);
             Matcher matcher = pattern.matcher(query);
             while (matcher.find()) {
                 joinTerms.add(matcher.group());
