@@ -285,14 +285,25 @@ public abstract class AbstractDataProvider
     public Collection<Dataset> search(String query, int limit) {
         try {
             limit = limit == 0 ? Integer.MAX_VALUE : limit;
-            String separator = properties.getLevelsSeparator();
-            Map<String, String> joinTerms = getJoinTerms(query);
-            String joinTermsConcatenated = joinTerms.entrySet().stream().map(e -> String.format("jsonb_array_elements(%s) %s", e.getKey(), e.getValue())).collect(Collectors.joining(", "));
+            Map<String, String> joinTerms = new HashMap<>();
+            int size = joinTerms.size();
+            while (true) {
+                query = processQuery(query, joinTerms);
+                if (size == joinTerms.size()) {
+                    break;
+                }
+                size = joinTerms.size();
+            }
+            String joinTermsConcatenated = joinTerms
+                    .entrySet()
+                    .stream()
+                    .map(e -> String.format("jsonb_array_elements(%s) %s",
+                            e.getKey().substring(0, e.getKey().length() - properties.getLevelsSeparator().length() - 1),
+                            e.getValue()
+                    ))
+                    .collect(Collectors.joining(", "));
             if (StringUtils.isNotEmpty(joinTermsConcatenated)) {
                 joinTermsConcatenated = ", " + joinTermsConcatenated;
-            }
-            for (Map.Entry<String, String> joinTerm : joinTerms.entrySet()) {
-                query = query.replaceAll(joinTerm.getKey() + separator + "\\*", joinTerm.getValue() + ".value");
             }
             String rawQuery = String.format("SELECT *\n" +
                     "FROM latest_datasets%s\n" +
@@ -321,26 +332,36 @@ public abstract class AbstractDataProvider
         }
     }
 
-    protected Map<String, String> getJoinTerms(String query) {
+    protected String processQuery(String query, Map<String, String> allJoinTerms) {
+        Map<String, String> joinTerms = getJoinTerms(query, allJoinTerms);
+        for (Map.Entry<String, String> joinTerm : joinTerms.entrySet()) {
+            query = query.replaceAll(Pattern.quote(joinTerm.getKey()), joinTerm.getValue() + ".value");
+        }
+        return query;
+    }
+
+    protected Map<String, String> getJoinTerms(String query, Map<String, String> allJoinTerms) {
         Collection<String> joinTerms = new HashSet<>();
         String separator = properties.getLevelsSeparator();
+        String end = separator + "*";
         for (String start : Arrays.asList(
                 "curated_content" + separator,
-                "standard_content" + separator
+                "standard_content" + separator,
+                "joinTerm\\d+.value" + separator
         )) {
-            String end = separator + "*";
-            String regexString = Pattern.quote(start) + "(.*?)" + Pattern.quote(end);
+            String regexString = start + "(.*?)" + Pattern.quote(end);
             Pattern pattern = Pattern.compile(regexString, Pattern.DOTALL);
             Matcher matcher = pattern.matcher(query);
             while (matcher.find()) {
-                joinTerms.add(start + matcher.group(1));
+                joinTerms.add(matcher.group());
             }
         }
         Map<String, String> substitution = new HashMap<>();
-        int i = 0;
+        int i = allJoinTerms.size();
         for (String joinTerm : joinTerms) {
             substitution.put(joinTerm, "joinTerm" + i++);
         }
+        allJoinTerms.putAll(substitution);
         return substitution;
     }
 
