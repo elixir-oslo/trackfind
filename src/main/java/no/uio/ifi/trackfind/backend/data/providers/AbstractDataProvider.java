@@ -324,8 +324,10 @@ public abstract class AbstractDataProvider
     protected Map<String, String> getJoinTerms(String query) {
         Collection<String> joinTerms = new HashSet<>();
         String separator = properties.getLevelsSeparator();
-        for (String type : Arrays.asList("curated", "standard")) {
-            String start = type + "_content" + separator;
+        for (String start : Arrays.asList(
+                "curated_content" + separator,
+                "standard_content" + separator
+        )) {
             String end = separator + "*";
             String regexString = Pattern.quote(start) + "(.*?)" + Pattern.quote(end);
             Pattern pattern = Pattern.compile(regexString, Pattern.DOTALL);
@@ -375,6 +377,7 @@ public abstract class AbstractDataProvider
                 grandChildren.addAll(metamodelService.getSubAttributes(getName(), treeNode.getPath(), "", finalRaw1));
                 treeNode.setChildren(grandChildren);
                 treeNode.setAttribute(true);
+                treeNode.setArray(arrayOfObjectsAttributesCache.get(finalRaw1).contains(treeNode.getPath()));
                 return treeNode;
             }).sorted();
             return filter.isPresent() ? treeNodeStream.filter(filter.get()) : treeNodeStream;
@@ -399,6 +402,7 @@ public abstract class AbstractDataProvider
                 grandChildren.addAll(metamodelService.getSubAttributes(getName(), treeNode.getPath(), "", finalRaw2));
                 treeNode.setChildren(grandChildren);
                 treeNode.setAttribute(CollectionUtils.isNotEmpty(grandChildren));
+                treeNode.setArray(arrayOfObjectsAttributesCache.get(finalRaw2).contains(treeNode.getPath()));
                 return treeNode;
             }).sorted();
             return filter.isPresent() ? treeNodeStream.filter(filter.get()) : treeNodeStream;

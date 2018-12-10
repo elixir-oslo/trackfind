@@ -5,9 +5,9 @@ public interface Queries {
     String ARRAY_OF_OBJECTS_VIEW = "CREATE OR REPLACE VIEW %s_array_of_objects AS\n" +
             "  WITH RECURSIVE collect_metadata AS (SELECT latest_datasets.repository,\n" +
             "                                             first_level.key,\n" +
+            "                                             NULL AS prev_key,\n" +
             "                                             first_level.value,\n" +
-            "                                             jsonb_typeof(first_level.value) AS type,\n" +
-            "                                             FALSE AS array_of_objects\n" +
+            "                                             jsonb_typeof(first_level.value) AS type\n" +
             "                                      FROM latest_datasets,\n" +
             "                                           jsonb_each(latest_datasets.%s_content) first_level\n" +
             "\n" +
@@ -19,9 +19,9 @@ public interface Queries {
             "                                      )\n" +
             "                                      SELECT prev_level.repository,\n" +
             "                                             concat(prev_level.key, '%s', current_level.key),\n" +
+            "                                             NULL AS prev_key,\n" +
             "                                             current_level.value,\n" +
-            "                                             jsonb_typeof(current_level.value) AS type,\n" +
-            "                                             FALSE AS array_of_objects\n" +
+            "                                             jsonb_typeof(current_level.value) AS type\n" +
             "                                      FROM prev_level,\n" +
             "                                           jsonb_each(prev_level.value) AS current_level\n" +
             "                                      WHERE prev_level.type = 'object'\n" +
@@ -30,9 +30,9 @@ public interface Queries {
             "\n" +
             "                                      SELECT prev_level.repository,\n" +
             "                                             concat(prev_level.key, '%s', current_level.key),\n" +
+            "                                             prev_level.key AS prev_key,\n" +
             "                                             current_level.value,\n" +
-            "                                             jsonb_typeof(current_level.value) AS type,\n" +
-            "                                             TRUE AS array_of_objects\n" +
+            "                                             jsonb_typeof(current_level.value) AS type\n" +
             "                                      FROM prev_level,\n" +
             "                                           jsonb_array_elements(prev_level.value) AS entry,\n" +
             "                                           jsonb_each(entry) AS current_level\n" +
@@ -43,16 +43,16 @@ public interface Queries {
             "\n" +
             "                                      SELECT prev_level.repository,\n" +
             "                                             prev_level.key,\n" +
+            "                                             NULL AS prev_key,\n" +
             "                                             entry,\n" +
-            "                                             jsonb_typeof(entry) AS type,\n" +
-            "                                             FALSE AS array_of_objects\n" +
+            "                                             jsonb_typeof(entry) AS type\n" +
             "                                      FROM prev_level,\n" +
             "                                           jsonb_array_elements(prev_level.value) AS entry\n" +
             "                                      WHERE prev_level.type = 'array'\n" +
             "                                        AND jsonb_typeof(entry) <> 'object'))\n" +
-            "  SELECT DISTINCT repository, key AS attribute\n" +
+            "  SELECT DISTINCT repository, prev_key AS attribute\n" +
             "  FROM collect_metadata\n" +
-            "  WHERE collect_metadata.array_of_objects = TRUE";
+            "  WHERE prev_key IS NOT NULL";
 
     String METAMODEL_VIEW = "CREATE OR REPLACE VIEW %s_metamodel AS\n" +
             "  WITH RECURSIVE collect_metadata AS (SELECT latest_datasets.repository,\n" +

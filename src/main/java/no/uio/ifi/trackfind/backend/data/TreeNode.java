@@ -15,6 +15,7 @@ public class TreeNode implements Comparable<TreeNode> {
 
     private String value;
     private boolean attribute;
+    private boolean array;
     private boolean hasValues;
     private int level;
     private String separator;
@@ -85,10 +86,10 @@ public class TreeNode implements Comparable<TreeNode> {
         StringBuilder path = new StringBuilder("'" + toString() + "'");
         TreeNode parent = getParent();
         while (parent != null) {
-            path.insert(0, "'" + parent.toString() + "'" + separator);
+            path.insert(0, "'" + parent.toString() + "'" + separator + (parent.isArray() ? "*->" : ""));
             parent = parent.getParent();
         }
-        return path.toString();
+        return path.toString() + (isArray() ? "*->" : "");
     }
 
     /**
