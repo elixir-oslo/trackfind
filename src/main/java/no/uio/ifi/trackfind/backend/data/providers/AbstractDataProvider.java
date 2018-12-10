@@ -374,6 +374,9 @@ public abstract class AbstractDataProvider
         return version == null ? datasetRepository.findByIdLatest(datasetId) : datasetRepository.findByIdAndVersion(datasetId, version);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected Stream<TreeNode> fetchChildrenFromBackEnd(HierarchicalQuery<TreeNode, SerializablePredicate<TreeNode>> query) {
         Optional<SerializablePredicate<TreeNode>> filter = query.getFilter();
