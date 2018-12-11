@@ -107,6 +107,20 @@ public abstract class AbstractDataProvider
                 return result;
             });
 
+    private LoadingCache<Boolean, Map<String, String>> attributeTypesCache = Caffeine.newBuilder()
+            .build(key -> {
+                Map<String, String> metamodel = new HashMap<>();
+                List<Map<String, Object>> attributeTypePairs = jdbcTemplate.queryForList(
+                        "SELECT DISTINCT attribute, type FROM " + (key ? "source" : "standard") + "_metamodel WHERE repository = ?",
+                        getName());
+                for (Map attributeTypePair : attributeTypePairs) {
+                    String attribute = String.valueOf(attributeTypePair.get("attribute"));
+                    String type = String.valueOf(attributeTypePair.get("type"));
+                    metamodel.put(attribute, type);
+                }
+                return metamodel;
+            });
+
     @PostConstruct
     protected void init() throws SQLException {
         try {
@@ -259,6 +273,7 @@ public abstract class AbstractDataProvider
         arrayOfObjectsAttributesCache.invalidateAll();
         treeMetamodelCache.invalidateAll();
         flatMetamodelCache.invalidateAll();
+        attributeTypesCache.invalidateAll();
     }
 
     /**
@@ -402,6 +417,7 @@ public abstract class AbstractDataProvider
                 treeNode.setChildren(grandChildren);
                 treeNode.setAttribute(true);
                 treeNode.setArray(arrayOfObjectsAttributesCache.get(finalRaw1).contains(treeNode.getPath()));
+                treeNode.setType(attributeTypesCache.get(finalRaw1).get(treeNode.getPath()));
                 return treeNode;
             }).sorted();
             return filter.isPresent() ? treeNodeStream.filter(filter.get()) : treeNodeStream;
@@ -427,6 +443,7 @@ public abstract class AbstractDataProvider
                 treeNode.setChildren(grandChildren);
                 treeNode.setAttribute(CollectionUtils.isNotEmpty(grandChildren));
                 treeNode.setArray(arrayOfObjectsAttributesCache.get(finalRaw2).contains(treeNode.getPath()));
+                treeNode.setType(attributeTypesCache.get(finalRaw2).get(treeNode.getPath()));
                 return treeNode;
             }).sorted();
             return filter.isPresent() ? treeNodeStream.filter(filter.get()) : treeNodeStream;

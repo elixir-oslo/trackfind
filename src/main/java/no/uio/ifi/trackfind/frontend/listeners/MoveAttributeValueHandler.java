@@ -23,7 +23,8 @@ public abstract class MoveAttributeValueHandler {
         put(false, "OR ");
     }};
 
-    private static final String EQUALITY_OPERATOR = " ? ";
+    private static final String TEXT_EQUALITY_OPERATOR = " ? ";
+    private static final String NUMBER_EQUALITY_OPERATOR = " = ";
 
     private String datasetPrefix;
     private String levelsSeparator;
@@ -101,9 +102,13 @@ public abstract class MoveAttributeValueHandler {
         String path = item.getSQLPath();
         if (!item.isAttribute()) {
             String value = getValue(item);
-            query += path.substring(0, path.lastIndexOf(levelsSeparator)) + EQUALITY_OPERATOR + value;
+            String operator = "string".equals(item.getParent().getType()) ? TEXT_EQUALITY_OPERATOR : NUMBER_EQUALITY_OPERATOR;
+            query += path.substring(0, path.lastIndexOf(levelsSeparator)) + operator + value;
         } else {
-            query += path + EQUALITY_OPERATOR;
+            query += path;
+            if (query.endsWith(levelsSeparator)) {
+                query = query.substring(0, query.length() - levelsSeparator.length() - 1);
+            }
         }
         query += "\n";
         textArea.setValue(query);

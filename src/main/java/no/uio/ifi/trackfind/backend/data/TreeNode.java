@@ -16,6 +16,7 @@ public class TreeNode implements Comparable<TreeNode> {
     private String value;
     private boolean attribute;
     private boolean array;
+    private String type;
     private boolean hasValues;
     private int level;
     private String separator;
