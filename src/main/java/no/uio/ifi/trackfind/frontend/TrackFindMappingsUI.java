@@ -30,18 +30,18 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Admin Vaadin UI of the application.
+ * Mappings Vaadin UI of the application.
  * Uses custom theme (VAADIN/themes/trackfind/trackfind.scss).
  * Uses custom WidgetSet (TrackFindWidgetSet.gwt.xml).
  *
  * @author Dmytro Titov
  */
-@SpringUI(path = "/admin")
+@SpringUI(path = "/mappings")
 @Widgetset("TrackFindWidgetSet")
-@Title("Dashboard")
+@Title("Mappings")
 @Theme("trackfind")
 @Slf4j
-public class TrackFindAdminUI extends AbstractUI {
+public class TrackFindMappingsUI extends AbstractUI {
 
     private MappingRepository mappingRepository;
 
