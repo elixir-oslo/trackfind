@@ -2,13 +2,11 @@ package no.uio.ifi.trackfind.backend.configuration;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.PropertySources;
 import org.springframework.stereotype.Component;
 
 import javax.validation.constraints.NotBlank;
-import java.util.List;
 
 @Component
 @PropertySources({

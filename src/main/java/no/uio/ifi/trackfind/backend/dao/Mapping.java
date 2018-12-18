@@ -3,7 +3,6 @@ package no.uio.ifi.trackfind.backend.dao;
 import lombok.Data;
 
 import javax.persistence.*;
-import java.math.BigInteger;
 
 @Entity
 @Table(name = "mappings")
