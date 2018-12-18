@@ -1,18 +1,10 @@
 package no.uio.ifi.trackfind.backend.data.providers;
 
 import alexh.weak.Dynamic;
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.LoadingCache;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
-import com.vaadin.data.provider.AbstractBackEndHierarchicalDataProvider;
-import com.vaadin.data.provider.HierarchicalQuery;
-import com.vaadin.server.SerializablePredicate;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
 import no.uio.ifi.trackfind.backend.dao.*;
-import no.uio.ifi.trackfind.backend.data.TreeNode;
 import no.uio.ifi.trackfind.backend.events.DataReloadEvent;
 import no.uio.ifi.trackfind.backend.operations.Operation;
 import no.uio.ifi.trackfind.backend.repositories.DatasetRepository;
@@ -21,8 +13,6 @@ import no.uio.ifi.trackfind.backend.repositories.SourceRepository;
 import no.uio.ifi.trackfind.backend.repositories.StandardRepository;
 import no.uio.ifi.trackfind.backend.scripting.ScriptingEngine;
 import no.uio.ifi.trackfind.backend.services.CacheService;
-import no.uio.ifi.trackfind.backend.services.MetamodelService;
-import no.uio.ifi.trackfind.frontend.filters.TreeFilter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +29,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Abstract class for all data providers.
@@ -48,9 +37,7 @@ import java.util.stream.Stream;
  * @author Dmytro Titov
  */
 @Slf4j
-public abstract class AbstractDataProvider
-        extends AbstractBackEndHierarchicalDataProvider<TreeNode, SerializablePredicate<TreeNode>>
-        implements DataProvider, Comparable<DataProvider> {
+public abstract class AbstractDataProvider implements DataProvider, Comparable<DataProvider> {
 
     protected String jdbcUrl;
 
@@ -63,63 +50,10 @@ public abstract class AbstractDataProvider
     protected DatasetRepository datasetRepository;
     protected MappingRepository mappingRepository;
     protected ExecutorService executorService;
-    protected MetamodelService metamodelService;
     protected Gson gson;
     protected Collection<ScriptingEngine> scriptingEngines;
 
     protected Connection connection;
-
-    private LoadingCache<Boolean, Collection<String>> arrayOfObjectsAttributesCache = Caffeine.newBuilder()
-            .build(key -> jdbcTemplate.queryForList(
-                    "SELECT DISTINCT attribute FROM " + (key ? "source" : "standard") + "_array_of_objects WHERE repository = ?",
-                    String.class,
-                    getName()));
-
-    private LoadingCache<Boolean, Multimap<String, String>> flatMetamodelCache = Caffeine.newBuilder()
-            .build(key -> {
-                Multimap<String, String> metamodel = HashMultimap.create();
-                List<Map<String, Object>> attributeValuePairs = jdbcTemplate.queryForList(
-                        "SELECT attribute, value FROM " + (key ? "source" : "standard") + "_metamodel WHERE repository = ?",
-                        getName());
-                for (Map attributeValuePair : attributeValuePairs) {
-                    String attribute = String.valueOf(attributeValuePair.get("attribute"));
-                    String value = String.valueOf(attributeValuePair.get("value"));
-                    metamodel.put(attribute, value);
-                }
-                return metamodel;
-            });
-
-    private LoadingCache<Boolean, Map<String, Object>> treeMetamodelCache = Caffeine.newBuilder()
-            .build(key -> {
-                Map<String, Object> result = new HashMap<>();
-                Multimap<String, String> metamodelFlat = getMetamodelFlat(key);
-                for (Map.Entry<String, Collection<String>> entry : metamodelFlat.asMap().entrySet()) {
-                    String attribute = entry.getKey();
-                    Map<String, Object> metamodel = result;
-                    String[] path = attribute.split(properties.getLevelsSeparator());
-                    for (int i = 0; i < path.length - 1; i++) {
-                        String part = path[i];
-                        metamodel = (Map<String, Object>) metamodel.computeIfAbsent(part, k -> new HashMap<String, Object>());
-                    }
-                    String valuesKey = path[path.length - 1];
-                    metamodel.put(valuesKey, entry.getValue());
-                }
-                return result;
-            });
-
-    private LoadingCache<Boolean, Map<String, String>> attributeTypesCache = Caffeine.newBuilder()
-            .build(key -> {
-                Map<String, String> metamodel = new HashMap<>();
-                List<Map<String, Object>> attributeTypePairs = jdbcTemplate.queryForList(
-                        "SELECT DISTINCT attribute, type FROM " + (key ? "source" : "standard") + "_metamodel WHERE repository = ?",
-                        getName());
-                for (Map attributeTypePair : attributeTypePairs) {
-                    String attribute = String.valueOf(attributeTypePair.get("attribute"));
-                    String type = String.valueOf(attributeTypePair.get("type"));
-                    metamodel.put(attribute, type);
-                }
-                return metamodel;
-            });
 
     @PostConstruct
     protected void init() throws SQLException {
@@ -127,16 +61,9 @@ public abstract class AbstractDataProvider
             if (datasetRepository.countByRepository(getName()) == 0) {
                 crawlRemoteRepository();
             }
-            jdbcTemplate.execute(String.format(Queries.METAMODEL_VIEW, "source", "curated", properties.getLevelsSeparator(), properties.getLevelsSeparator()));
-            jdbcTemplate.execute(String.format(Queries.ARRAY_OF_OBJECTS_VIEW, "source", "curated", properties.getLevelsSeparator(), properties.getLevelsSeparator()));
-            jdbcTemplate.execute(String.format(Queries.METAMODEL_VIEW, "standard", "standard", properties.getLevelsSeparator(), properties.getLevelsSeparator()));
-            jdbcTemplate.execute(String.format(Queries.ARRAY_OF_OBJECTS_VIEW, "standard", "standard", properties.getLevelsSeparator(), properties.getLevelsSeparator()));
-
-            Integer count = jdbcTemplate.queryForObject(Queries.CHECK_SEARCH_USER_EXISTS, Integer.TYPE);
-            if (count == 0) {
+            if (jdbcTemplate.queryForObject(Queries.CHECK_SEARCH_USER_EXISTS, Integer.TYPE) == 0) {
                 jdbcTemplate.execute(Queries.CREATE_SEARCH_USER);
             }
-
             connection = DriverManager.getConnection(jdbcUrl, "search", "search");
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -277,34 +204,6 @@ public abstract class AbstractDataProvider
      * {@inheritDoc}
      */
     @Override
-    public synchronized void resetCaches() {
-        arrayOfObjectsAttributesCache.invalidateAll();
-        treeMetamodelCache.invalidateAll();
-        flatMetamodelCache.invalidateAll();
-        attributeTypesCache.invalidateAll();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @SuppressWarnings("unchecked")
-    public Map<String, Object> getMetamodelTree(boolean raw) {
-        return treeMetamodelCache.get(raw);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Multimap<String, String> getMetamodelFlat(boolean raw) {
-        return flatMetamodelCache.get(raw);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public Collection<Dataset> search(String query, int limit) {
         try {
             limit = limit == 0 ? Integer.MAX_VALUE : limit;
@@ -401,77 +300,6 @@ public abstract class AbstractDataProvider
      * {@inheritDoc}
      */
     @Override
-    protected Stream<TreeNode> fetchChildrenFromBackEnd(HierarchicalQuery<TreeNode, SerializablePredicate<TreeNode>> query) {
-        Optional<SerializablePredicate<TreeNode>> filter = query.getFilter();
-        boolean raw = false;
-        if (filter.isPresent()) {
-            TreeFilter treeFilter = (TreeFilter) filter.get();
-            raw = treeFilter.isRaw();
-        }
-        Map<String, Object> metamodelTree = getMetamodelTree(raw);
-        Optional<TreeNode> parentOptional = query.getParentOptional();
-        if (!parentOptional.isPresent()) {
-            boolean finalRaw1 = raw;
-            Stream<TreeNode> treeNodeStream = metamodelTree.keySet().parallelStream().map(c -> {
-                TreeNode treeNode = new TreeNode();
-                treeNode.setValue(c);
-                treeNode.setParent(null);
-                treeNode.setSeparator(properties.getLevelsSeparator());
-                treeNode.setLevel(0);
-                treeNode.setHasValues(CollectionUtils.isNotEmpty(metamodelService.getValues(getName(), treeNode.getPath(), "", finalRaw1)));
-                Collection<String> grandChildren = new ArrayList<>();
-                grandChildren.addAll(metamodelService.getValues(getName(), treeNode.getPath(), "", finalRaw1));
-                grandChildren.addAll(metamodelService.getSubAttributes(getName(), treeNode.getPath(), "", finalRaw1));
-                treeNode.setChildren(grandChildren);
-                treeNode.setAttribute(true);
-                treeNode.setArray(arrayOfObjectsAttributesCache.get(finalRaw1).contains(treeNode.getPath()));
-                treeNode.setType(attributeTypesCache.get(finalRaw1).get(treeNode.getPath()));
-                return treeNode;
-            }).sorted();
-            return filter.isPresent() ? treeNodeStream.filter(filter.get()) : treeNodeStream;
-        } else {
-            TreeNode parent = parentOptional.get();
-            if (!parent.isAttribute()) {
-                return Stream.empty();
-            }
-            Collection<String> children = new ArrayList<>();
-            children.addAll(metamodelService.getValues(getName(), parent.getPath(), "", raw));
-            children.addAll(metamodelService.getSubAttributes(getName(), parent.getPath(), "", raw));
-            boolean finalRaw2 = raw;
-            Stream<TreeNode> treeNodeStream = children.parallelStream().map(c -> {
-                TreeNode treeNode = new TreeNode();
-                treeNode.setValue(c);
-                treeNode.setParent(parent);
-                treeNode.setSeparator(properties.getLevelsSeparator());
-                treeNode.setLevel(parent.getLevel() + 1);
-                treeNode.setHasValues(CollectionUtils.isNotEmpty(metamodelService.getValues(getName(), treeNode.getPath(), "", finalRaw2)));
-                Collection<String> grandChildren = new ArrayList<>();
-                grandChildren.addAll(metamodelService.getValues(getName(), treeNode.getPath(), "", finalRaw2));
-                grandChildren.addAll(metamodelService.getSubAttributes(getName(), treeNode.getPath(), "", finalRaw2));
-                treeNode.setChildren(grandChildren);
-                treeNode.setAttribute(CollectionUtils.isNotEmpty(grandChildren));
-                treeNode.setArray(arrayOfObjectsAttributesCache.get(finalRaw2).contains(treeNode.getPath()));
-                treeNode.setType(attributeTypesCache.get(finalRaw2).get(treeNode.getPath()));
-                return treeNode;
-            }).sorted();
-            return filter.isPresent() ? treeNodeStream.filter(filter.get()) : treeNodeStream;
-        }
-    }
-
-    @Override
-    public int getChildCount(HierarchicalQuery<TreeNode, SerializablePredicate<TreeNode>> query) {
-        return (int) fetchChildrenFromBackEnd(query).count();
-    }
-
-    @Override
-    public boolean hasChildren(TreeNode item) {
-        return item.isAttribute();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public int compareTo(DataProvider that) {
         return this.getName().compareTo(that.getName());
     }
@@ -524,11 +352,6 @@ public abstract class AbstractDataProvider
     @Autowired
     public void setExecutorService(ExecutorService workStealingPool) {
         this.executorService = workStealingPool;
-    }
-
-    @Autowired
-    public void setMetamodelService(MetamodelService metamodelService) {
-        this.metamodelService = metamodelService;
     }
 
     @Autowired

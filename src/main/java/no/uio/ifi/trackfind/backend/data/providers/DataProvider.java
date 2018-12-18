@@ -1,10 +1,8 @@
 package no.uio.ifi.trackfind.backend.data.providers;
 
-import com.google.common.collect.Multimap;
 import no.uio.ifi.trackfind.backend.dao.Dataset;
 
 import java.util.Collection;
-import java.util.Map;
 
 /**
  * Interface describing access point for some external data repositories.
@@ -36,25 +34,6 @@ public interface DataProvider {
      * Applies attributes mappings, rebuilds index.
      */
     void applyMappings();
-
-    /**
-     * Resets caches
-     */
-    void resetCaches();
-
-    /**
-     * Gets metamodel of the repository in "tree-from" (with nesting).
-     *
-     * @return Tree metamodel.
-     */
-    Map<String, Object> getMetamodelTree(boolean raw);
-
-    /**
-     * Gets metamodel of the repository in "flat-from" (non-nested).
-     *
-     * @return Flat metamodel.
-     */
-    Multimap<String, String> getMetamodelFlat(boolean raw);
 
     /**
      * Performs search over the repository limiting the number of results.

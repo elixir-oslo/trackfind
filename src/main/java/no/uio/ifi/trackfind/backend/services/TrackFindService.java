@@ -1,5 +1,7 @@
 package no.uio.ifi.trackfind.backend.services;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +28,22 @@ public class TrackFindService {
      */
     public Collection<DataProvider> getDataProviders() {
         return new TreeSet<>(dataProviders);
+    }
+
+    /**
+     * Gets all Track Hubs by DataProviders.
+     *
+     * @return Track Hubs by DataProviders.
+     */
+    public Multimap<String, String> getTrackHubs() {
+        Multimap<String, String> hubs = HashMultimap.create();
+        for (DataProvider dataProvider : getDataProviders()) {
+            Collection<String> trackHubs = dataProvider.getTrackHubs();
+            for (String trackHub : trackHubs) {
+                hubs.put(dataProvider.getName(), trackHub);
+            }
+        }
+        return hubs;
     }
 
     /**

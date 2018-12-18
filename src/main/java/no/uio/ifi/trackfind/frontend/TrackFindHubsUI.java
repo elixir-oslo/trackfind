@@ -1,5 +1,6 @@
 package no.uio.ifi.trackfind.frontend;
 
+import com.google.common.collect.Multimap;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Title;
 import com.vaadin.annotations.Widgetset;
@@ -10,12 +11,8 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.VerticalLayout;
 import lombok.extern.slf4j.Slf4j;
-import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Map;
 
 /**
  * Hubs Vaadin UI of the application.
@@ -44,17 +41,11 @@ public class TrackFindHubsUI extends AbstractUI {
 
     private VerticalLayout buildHubsLayout() {
         VerticalLayout hubsLayout = new VerticalLayout();
-        Collection<Pair<String, String>> hubs = new ArrayList<>();
-        for (DataProvider dataProvider : trackFindService.getDataProviders()) {
-            Collection<String> trackHubs = dataProvider.getTrackHubs();
-            for (String trackHub : trackHubs) {
-                hubs.add(new ImmutablePair<>(dataProvider.getName(), trackHub));
-            }
-        }
-        ComboBox<Pair<String, String>> comboBox = new ComboBox<>("Hubs");
+        Multimap<String, String> hubs = trackFindService.getTrackHubs();
+        ComboBox<Map.Entry<String, String>> comboBox = new ComboBox<>("Hubs");
         comboBox.setWidth(100, Unit.PERCENTAGE);
-        comboBox.setItems(hubs);
-        comboBox.setItemCaptionGenerator(Pair::getValue);
+        comboBox.setItems(hubs.entries());
+        comboBox.setItemCaptionGenerator(Map.Entry::getValue);
         Panel panel = new Panel("Hub selection", comboBox);
         hubsLayout.addComponentsAndExpand(panel);
 //        comboBox.addValueChangeListener(event -> {
