@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.dao.Hub;
 import no.uio.ifi.trackfind.backend.dao.Mapping;
 import no.uio.ifi.trackfind.backend.data.TreeNode;
+import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
 import no.uio.ifi.trackfind.backend.repositories.MappingRepository;
 import no.uio.ifi.trackfind.frontend.components.TrackFindTree;
 import no.uio.ifi.trackfind.frontend.filters.TreeFilter;
@@ -95,7 +96,7 @@ public class TrackFindMappingsUI extends AbstractUI {
 
     @SuppressWarnings("unchecked")
     protected TrackFindTree<TreeNode> buildTree(Hub hub) {
-        TrackFindTree<TreeNode> tree = new TrackFindTree<>();
+        TrackFindTree<TreeNode> tree = new TrackFindTree<>(hub);
         tree.setDataProvider(trackFindDataProvider);
         tree.setSelectionMode(Grid.SelectionMode.SINGLE);
         tree.addSelectionListener((SelectionListener<TreeNode>) event -> addStaticMappingButton.setEnabled(!CollectionUtils.isEmpty(event.getAllSelectedItems()) && event.getFirstSelectedItem().get().isAttribute()));
@@ -149,7 +150,9 @@ public class TrackFindMappingsUI extends AbstractUI {
                         "Crawling is time-consuming process and will lead to changing the data in the database.",
                 (ConfirmDialog.Listener) dialog -> {
                     if (dialog.isConfirmed()) {
-                        getCurrentDataProvider().crawlRemoteRepository();
+                        Hub currentHub = getCurrentHub();
+                        DataProvider dataProvider = trackFindService.getDataProvider(currentHub.getRepository());
+                        dataProvider.crawlRemoteRepository(currentHub.getHub());
                     }
                 }));
         Button applyMappingsButton = new Button("Apply mappings");
@@ -159,7 +162,9 @@ public class TrackFindMappingsUI extends AbstractUI {
                         "Applying attribute mappings is time-consuming process and will lead to changing the data in the database.",
                 (ConfirmDialog.Listener) dialog -> {
                     if (dialog.isConfirmed()) {
-                        getCurrentDataProvider().applyMappings();
+                        Hub currentHub = getCurrentHub();
+                        DataProvider dataProvider = trackFindService.getDataProvider(currentHub.getRepository());
+                        dataProvider.applyMappings(currentHub.getHub());
                     }
                 }));
         HorizontalLayout buttonsLayout = new HorizontalLayout(saveButton, crawlButton, applyMappingsButton);
@@ -209,8 +214,8 @@ public class TrackFindMappingsUI extends AbstractUI {
     }
 
     private void loadConfiguration() {
-        String repository = getCurrentDataProvider().getName();
-        Collection<Mapping> mappings = mappingRepository.findByRepository(repository);
+        String hub = getCurrentHub().getHub();
+        Collection<Mapping> mappings = mappingRepository.findByRepository(hub);
         Collection<Mapping> staticMappings = mappings.stream().filter(Mapping::isStaticMapping).collect(Collectors.toSet());
         attributesStaticMapping.clear();
         attributesMappingLayout.removeAllComponents();
@@ -227,13 +232,13 @@ public class TrackFindMappingsUI extends AbstractUI {
 
     @Transactional
     protected void saveConfiguration() {
-        String repository = getCurrentDataProvider().getName();
+        String hub = getCurrentHub().getHub();
         Collection<Mapping> mappings = new HashSet<>();
-        Collection<Mapping> existingMappings = mappingRepository.findByRepository(repository);
+        Collection<Mapping> existingMappings = mappingRepository.findByRepository(hub);
         mappingRepository.deleteInBatch(existingMappings);
         for (Map.Entry<ComboBox<String>, TextField> mappingPair : attributesStaticMapping.entrySet()) {
             Mapping mapping = new Mapping();
-            mapping.setRepository(repository);
+            mapping.setRepository(hub);
             mapping.setStaticMapping(true);
             mapping.setFrom(mappingPair.getValue().getValue());
             mapping.setTo(mappingPair.getKey().getValue());
@@ -241,7 +246,7 @@ public class TrackFindMappingsUI extends AbstractUI {
         }
         script.getOptionalValue().ifPresent(s -> {
             Mapping mapping = new Mapping();
-            mapping.setRepository(repository);
+            mapping.setRepository(hub);
             mapping.setStaticMapping(false);
             mapping.setFrom(s);
             mappings.add(mapping);

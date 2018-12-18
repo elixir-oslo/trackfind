@@ -34,9 +34,9 @@ public class GDCDataProvider extends PaginationAwareDataProvider {
      */
     @SuppressWarnings("unchecked")
     @Override
-    protected void fetchData() throws Exception {
+    protected void fetchData(String hubName) throws Exception {
         log.info("Fetching cases...");
-        fetchPages(CASES, CASES_EXPANDED, GDCPage.class);
+        fetchPages(hubName, CASES, CASES_EXPANDED, GDCPage.class);
     }
 
     /**

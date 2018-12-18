@@ -15,13 +15,13 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * Draft of Data Provider for TrackHub
+ * Draft of Data Provider for TrackHubRegistry.
  *
  * @author Dmytro Titov
  */
 @Slf4j
 @Component
-public class TrackHubDataProvider extends AbstractDataProvider {
+public class TrackHubRegistryDataProvider extends AbstractDataProvider {
 
     private static final String HUBS_URL = "https://www.trackhubregistry.org/api/info/trackhubs";
     private static final String FETCH_URL = "https://hyperbrowser.uio.no/hb/static/hyperbrowser/files/trackfind/blueprint_hub.json";
@@ -44,7 +44,7 @@ public class TrackHubDataProvider extends AbstractDataProvider {
      */
     @SuppressWarnings("unchecked")
     @Override
-    protected void fetchData() {
+    protected void fetchData(String hubName) {
         try (InputStream inputStream = new URL(FETCH_URL).openStream();
              InputStreamReader reader = new InputStreamReader(inputStream)) {
             Map document = gson.fromJson(reader, Map.class);
@@ -68,7 +68,7 @@ public class TrackHubDataProvider extends AbstractDataProvider {
                     datasets.add(dataset);
                 }
             }
-            save(datasets);
+            save(hubName, datasets);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }

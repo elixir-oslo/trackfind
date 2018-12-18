@@ -50,13 +50,14 @@ public abstract class PaginationAwareDataProvider extends AbstractDataProvider {
     /**
      * Fetches all pages.
      *
+     * @param hubName           Track Hub name.
      * @param urlWithPagination Paginated API endpoint.
      * @param urlWithPage       Paginated API endpoint with actual data.
      * @param pageClass         Implementation of {@link Page} interface.
      * @param <T>               Implements {@link Page} interface.
      * @throws Exception In case if something goes wrong.
      */
-    protected <T extends Page> void fetchPages(String urlWithPagination, String urlWithPage, Class<T> pageClass) throws Exception {
+    protected <T extends Page> void fetchPages(String hubName, String urlWithPagination, String urlWithPage, Class<T> pageClass) throws Exception {
         int pagesTotal = getPagesTotal(urlWithPagination, pageClass);
         if (pagesTotal == 0) {
             return;
@@ -80,7 +81,7 @@ public abstract class PaginationAwareDataProvider extends AbstractDataProvider {
             });
         }
         countDownLatch.await();
-        save(allDatasets);
+        save(hubName, allDatasets);
     }
 
     /**

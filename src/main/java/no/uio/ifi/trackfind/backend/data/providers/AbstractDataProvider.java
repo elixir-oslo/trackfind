@@ -4,27 +4,24 @@ import alexh.weak.Dynamic;
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
-import no.uio.ifi.trackfind.backend.dao.*;
+import no.uio.ifi.trackfind.backend.dao.Hub;
+import no.uio.ifi.trackfind.backend.dao.Mapping;
+import no.uio.ifi.trackfind.backend.dao.Source;
+import no.uio.ifi.trackfind.backend.dao.Standard;
 import no.uio.ifi.trackfind.backend.events.DataReloadEvent;
 import no.uio.ifi.trackfind.backend.operations.Operation;
 import no.uio.ifi.trackfind.backend.repositories.*;
 import no.uio.ifi.trackfind.backend.scripting.ScriptingEngine;
 import no.uio.ifi.trackfind.backend.services.CacheService;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import javax.annotation.PostConstruct;
 import javax.transaction.Transactional;
-import java.sql.*;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -34,9 +31,7 @@ import java.util.stream.Collectors;
  * @author Dmytro Titov
  */
 @Slf4j
-public abstract class AbstractDataProvider implements DataProvider, Comparable<DataProvider> {
-
-    protected String jdbcUrl;
+public abstract class AbstractDataProvider implements DataProvider {
 
     protected TrackFindProperties properties;
     protected ApplicationEventPublisher applicationEventPublisher;
@@ -50,24 +45,6 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     protected ExecutorService executorService;
     protected Gson gson;
     protected Collection<ScriptingEngine> scriptingEngines;
-
-    protected Connection connection;
-
-    @PostConstruct
-    protected void init() throws SQLException {
-        try {
-            if (datasetRepository.countByRepository(getName()) == 0) {
-                crawlRemoteRepository();
-            }
-            if (jdbcTemplate.queryForObject(Queries.CHECK_SEARCH_USER_EXISTS, Integer.TYPE) == 0) {
-                jdbcTemplate.execute(Queries.CREATE_SEARCH_USER);
-            }
-            connection = DriverManager.getConnection(jdbcUrl, "search", "search");
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-            throw e;
-        }
-    }
 
     /**
      * {@inheritDoc}
@@ -98,7 +75,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      *
      * @throws Exception in case of some problems.
      */
-    protected abstract void fetchData() throws Exception;
+    protected abstract void fetchData(String hubName) throws Exception;
 
     /**
      * {@inheritDoc}
@@ -114,10 +91,10 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     }, allEntries = true)
     @Transactional
     @Override
-    public synchronized void crawlRemoteRepository() {
-        log.info("Fetching data using " + getName());
+    public synchronized void crawlRemoteRepository(String hubName) {
+        log.info("Fetching data using for {}: {}", getName(), hubName);
         try {
-            fetchData();
+            fetchData(hubName);
             applicationEventPublisher.publishEvent(new DataReloadEvent(getName(), Operation.CRAWLING));
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -129,12 +106,13 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     /**
      * Saves datasets to the database.
      *
+     * @param hubName  Track Hub name.
      * @param datasets Datasets to save.
      */
-    protected void save(Collection<Map> datasets) {
+    protected void save(String hubName, Collection<Map> datasets) {
         sourceRepository.saveAll(datasets.parallelStream().map(map -> {
             Source source = new Source();
-            source.setRepository(getName());
+            source.setRepository(hubName);
             source.setContent(gson.toJson(map));
             source.setRawVersion(0L);           // TODO: set proper version
             source.setCuratedVersion(0L);       // TODO: set proper version
@@ -157,12 +135,12 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     }, allEntries = true)
     @Transactional
     @Override
-    public synchronized void applyMappings() {
-        log.info("Applying mappings for " + getName());
-        Collection<Mapping> mappings = mappingRepository.findByRepository(getName());
+    public synchronized void applyMappings(String hubName) {
+        log.info("Applying mappings for {}: {}", getName(), hubName);
+        Collection<Mapping> mappings = mappingRepository.findByRepository(hubName);
         Collection<Mapping> staticMappings = mappings.stream().filter(Mapping::isStaticMapping).collect(Collectors.toSet());
         Optional<Mapping> dynamicMappingOptional = mappings.stream().filter(m -> !m.isStaticMapping()).findAny();
-        Collection<Source> sources = sourceRepository.findByRepositoryLatest(getName());
+        Collection<Source> sources = sourceRepository.findByRepositoryLatest(hubName);
         Collection<Standard> standards = new HashSet<>();
         ScriptingEngine scriptingEngine = scriptingEngines.stream().filter(se -> properties.getScriptingLanguage().equals(se.getLanguage())).findAny().orElseThrow(RuntimeException::new);
         try {
@@ -206,121 +184,12 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
                 standards.add(standard);
             }
             standardRepository.saveAll(standards);
-            applicationEventPublisher.publishEvent(new DataReloadEvent(getName(), Operation.MAPPING));
+            applicationEventPublisher.publishEvent(new DataReloadEvent(hubName, Operation.MAPPING));
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return;
         }
         log.info("Success!");
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Collection<Dataset> search(String query, int limit) {
-        try {
-            limit = limit == 0 ? Integer.MAX_VALUE : limit;
-            Map<String, String> joinTerms = new HashMap<>();
-            int size = joinTerms.size();
-            while (true) {
-                query = processQuery(query, joinTerms);
-                if (size == joinTerms.size()) {
-                    break;
-                }
-                size = joinTerms.size();
-            }
-            String joinTermsConcatenated = joinTerms
-                    .entrySet()
-                    .stream()
-                    .map(e -> String.format("jsonb_array_elements(%s) %s",
-                            e.getKey().substring(0, e.getKey().length() - properties.getLevelsSeparator().length() - 1),
-                            e.getValue()
-                    ))
-                    .collect(Collectors.joining(", "));
-            if (StringUtils.isNotEmpty(joinTermsConcatenated)) {
-                joinTermsConcatenated = ", " + joinTermsConcatenated;
-            }
-            String rawQuery = String.format("SELECT *\n" +
-                    "FROM latest_datasets%s\n" +
-                    "WHERE repository = '%s'\n" +
-                    "  AND (%s)\n" +
-                    "ORDER BY id ASC\n" +
-                    "LIMIT %s", joinTermsConcatenated, getName(), query, limit);
-            rawQuery = rawQuery.replaceAll("\\?", "\\?\\?");
-            PreparedStatement preparedStatement = connection.prepareStatement(rawQuery);
-            ResultSet resultSet = preparedStatement.executeQuery();
-            Collection<Dataset> result = new ArrayList<>();
-            while (resultSet.next()) {
-                Dataset dataset = new Dataset();
-                dataset.setId(resultSet.getLong("id"));
-                dataset.setRepository(resultSet.getString("repository"));
-                dataset.setCuratedContent(resultSet.getString("curated_content"));
-                dataset.setStandardContent(resultSet.getString("standard_content"));
-                dataset.setFairContent(resultSet.getString("fair_content"));
-                dataset.setVersion(resultSet.getString("version"));
-                result.add(dataset);
-            }
-            return result;
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-            return Collections.emptySet();
-        }
-    }
-
-    protected String processQuery(String query, Map<String, String> allJoinTerms) {
-        Map<String, String> joinTerms = getJoinTerms(query, allJoinTerms);
-        for (Map.Entry<String, String> joinTerm : joinTerms.entrySet()) {
-            query = query.replaceAll(Pattern.quote(joinTerm.getKey()), joinTerm.getValue() + ".value");
-        }
-        return query;
-    }
-
-    protected Map<String, String> getJoinTerms(String query, Map<String, String> allJoinTerms) {
-        Collection<String> joinTerms = new HashSet<>();
-        String separator = properties.getLevelsSeparator();
-        String end = separator + "*";
-        for (String start : Arrays.asList(
-                "curated_content" + separator,
-                "standard_content" + separator,
-                "joinTerm\\d+.value" + separator
-        )) {
-            String regexString = start + "(.*?)" + Pattern.quote(end);
-            Pattern pattern = Pattern.compile(regexString);
-            Matcher matcher = pattern.matcher(query);
-            while (matcher.find()) {
-                joinTerms.add(matcher.group());
-            }
-        }
-        Map<String, String> substitution = new HashMap<>();
-        int i = allJoinTerms.size();
-        for (String joinTerm : joinTerms) {
-            substitution.put(joinTerm, "joinTerm" + i++);
-        }
-        allJoinTerms.putAll(substitution);
-        return substitution;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @SuppressWarnings("unchecked")
-    @Override
-    public Dataset fetch(Long datasetId, String version) {
-        return version == null ? datasetRepository.findByIdLatest(datasetId) : datasetRepository.findByIdAndVersion(datasetId, version);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public int compareTo(DataProvider that) {
-        return this.getName().compareTo(that.getName());
-    }
-
-    @Value("${spring.datasource.url}")
-    public void setJdbcUrl(String jdbcUrl) {
-        this.jdbcUrl = jdbcUrl;
     }
 
     @Autowired

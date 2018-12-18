@@ -66,7 +66,7 @@ public class IHECDataProvider extends AbstractDataProvider {
      */
     @SuppressWarnings("unchecked")
     @Override
-    protected void fetchData() throws Exception {
+    protected void fetchData(String hubName) throws Exception {
         disableSSL();
         log.info("Collecting releases...");
         Collection<Release> releases;
@@ -108,7 +108,7 @@ public class IHECDataProvider extends AbstractDataProvider {
             });
         }
         countDownLatch.await();
-        save(allDatasets);
+        save(hubName, allDatasets);
         log.info(size + " releases stored.");
     }
 

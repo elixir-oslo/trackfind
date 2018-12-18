@@ -34,7 +34,7 @@ public class FANTOMDataProvider extends AbstractDataProvider {
      * {@inheritDoc}
      */
     @Override
-    protected void fetchData() throws Exception {
+    protected void fetchData(String hubName) throws Exception {
         log.info("Collecting directories...");
         Document root = Jsoup.parse(new URL(METADATA_URL), 10000);
         Set<String> dirs = root.getElementsByTag("a").parallelStream().map(e -> e.attr("href")).filter(s -> s.contains(".") && s.endsWith("/")).collect(Collectors.toSet());
@@ -82,7 +82,7 @@ public class FANTOMDataProvider extends AbstractDataProvider {
             });
         }
         countDownLatch.await();
-        save(allDatasets);
+        save(hubName, allDatasets);
         log.info(size + " releases stored.");
     }
 

@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
-import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 /**
@@ -27,7 +26,7 @@ public class TrackFindService {
      * @return Collection of DataProviders.
      */
     public Collection<DataProvider> getDataProviders() {
-        return new TreeSet<>(dataProviders);
+        return dataProviders;
     }
 
     /**

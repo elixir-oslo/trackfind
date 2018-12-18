@@ -160,33 +160,33 @@ public class TrackFindRESTTests {
                 .andExpect(jsonPath("$.fair.id", is(0)));
     }
 
-    @Before
-    public void setUp() {
-        when(trackFindProperties.getLevelsSeparator()).thenReturn("->");
-        when(trackFindService.getDataProviders()).thenReturn(Collections.singleton(dataProvider));
-        when(trackFindService.getDataProvider(anyString())).thenReturn(dataProvider);
-        when(dataProvider.getName()).thenReturn(TEST_DATA_PROVIDER);
-        Multimap<String, String> metamodelFlat = HashMultimap.create();
-        metamodelFlat.put("level1->level2_1", "value1");
-        metamodelFlat.put("level1->level2_1", "value2");
-        metamodelFlat.put("level1->level2_2", "value3");
-        when(dataProvider.getMetamodelFlat(false)).thenReturn(metamodelFlat);
-        Map<String, Object> metamodelTree = new HashMap<>();
-        Map<String, Object> metamodelTreeInner = new HashMap<>();
-        metamodelTreeInner.put("level2_1", Arrays.asList("value1", "value2"));
-        metamodelTreeInner.put("level2_2", Collections.singleton("value3"));
-        metamodelTree.put("level1", metamodelTreeInner);
-        when(dataProvider.getMetamodelTree(false)).thenReturn(metamodelTree);
-        dataset = new Dataset();
-        dataset.setFairContent("{'fair':{'id':0}}");
-        when(dataProvider.search(anyString(), anyInt())).thenReturn(Collections.singleton(dataset));
-        when(dataProvider.fetch(anyLong(), Mockito.any())).thenReturn(dataset);
-        when(metamodelService.getAttributes(anyString(), anyString(), anyBoolean(), eq(true))).thenReturn(Collections.singleton("level1"));
-        when(metamodelService.getValues(anyString(), eq("level1->level2_2"), anyString(), anyBoolean())).thenReturn(Collections.singleton("value3"));
-        when(metamodelService.getValues(anyString(), eq("level1->level2_1"), anyString(), anyBoolean())).thenReturn(Arrays.asList("value1", "value2"));
-        when(metamodelService.getAttributes(anyString(), eq("vel2_2"), eq(false), eq(false))).thenReturn(Collections.singleton("level1->level2_2"));
-        when(metamodelService.getValues(anyString(), eq("level1->level2_1"), eq("lue2"), anyBoolean())).thenReturn(Collections.singleton("value2"));
-        when(metamodelService.getSubAttributes(anyString(), eq("level1"), anyString(), eq(false))).thenReturn(Arrays.asList("level2_2", "level2_1"));
-    }
+//    @Before
+//    public void setUp() {
+//        when(trackFindProperties.getLevelsSeparator()).thenReturn("->");
+//        when(trackFindService.getDataProviders()).thenReturn(Collections.singleton(dataProvider));
+//        when(trackFindService.getDataProvider(anyString())).thenReturn(dataProvider);
+//        when(dataProvider.getName()).thenReturn(TEST_DATA_PROVIDER);
+//        Multimap<String, String> metamodelFlat = HashMultimap.create();
+//        metamodelFlat.put("level1->level2_1", "value1");
+//        metamodelFlat.put("level1->level2_1", "value2");
+//        metamodelFlat.put("level1->level2_2", "value3");
+//        when(dataProvider.getMetamodelFlat(false)).thenReturn(metamodelFlat);
+//        Map<String, Object> metamodelTree = new HashMap<>();
+//        Map<String, Object> metamodelTreeInner = new HashMap<>();
+//        metamodelTreeInner.put("level2_1", Arrays.asList("value1", "value2"));
+//        metamodelTreeInner.put("level2_2", Collections.singleton("value3"));
+//        metamodelTree.put("level1", metamodelTreeInner);
+//        when(dataProvider.getMetamodelTree(false)).thenReturn(metamodelTree);
+//        dataset = new Dataset();
+//        dataset.setFairContent("{'fair':{'id':0}}");
+//        when(dataProvider.search(anyString(), anyInt())).thenReturn(Collections.singleton(dataset));
+//        when(dataProvider.fetch(anyLong(), Mockito.any())).thenReturn(dataset);
+//        when(metamodelService.getAttributes(anyString(), anyString(), anyBoolean(), eq(true))).thenReturn(Collections.singleton("level1"));
+//        when(metamodelService.getValues(anyString(), eq("level1->level2_2"), anyString(), anyBoolean())).thenReturn(Collections.singleton("value3"));
+//        when(metamodelService.getValues(anyString(), eq("level1->level2_1"), anyString(), anyBoolean())).thenReturn(Arrays.asList("value1", "value2"));
+//        when(metamodelService.getAttributes(anyString(), eq("vel2_2"), eq(false), eq(false))).thenReturn(Collections.singleton("level1->level2_2"));
+//        when(metamodelService.getValues(anyString(), eq("level1->level2_1"), eq("lue2"), anyBoolean())).thenReturn(Collections.singleton("value2"));
+//        when(metamodelService.getSubAttributes(anyString(), eq("level1"), anyString(), eq(false))).thenReturn(Arrays.asList("level2_2", "level2_1"));
+//    }
 
 }

@@ -22,8 +22,8 @@ import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.dao.Dataset;
 import no.uio.ifi.trackfind.backend.dao.Hub;
 import no.uio.ifi.trackfind.backend.data.TreeNode;
-import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
 import no.uio.ifi.trackfind.backend.services.GSuiteService;
+import no.uio.ifi.trackfind.backend.services.SearchService;
 import no.uio.ifi.trackfind.frontend.components.KeyboardInterceptorExtension;
 import no.uio.ifi.trackfind.frontend.components.TrackFindTree;
 import no.uio.ifi.trackfind.frontend.filters.TreeFilter;
@@ -57,6 +57,7 @@ public class TrackFindMainUI extends AbstractUI {
 
     private ObjectMapper mapper;
     private GSuiteService gSuiteService;
+    private SearchService searchService;
 
     private int numberOfResults;
 
@@ -116,7 +117,7 @@ public class TrackFindMainUI extends AbstractUI {
 
     @SuppressWarnings("unchecked")
     protected TrackFindTree<TreeNode> buildTree(Hub hub) {
-        TrackFindTree<TreeNode> tree = new TrackFindTree<>();
+        TrackFindTree<TreeNode> tree = new TrackFindTree<>(hub);
         tree.setDataProvider(trackFindDataProvider);
         tree.setSelectionMode(Grid.SelectionMode.MULTI);
         tree.addItemClickListener(new TreeItemClickListener(tree));
@@ -283,10 +284,10 @@ public class TrackFindMainUI extends AbstractUI {
 
     @SuppressWarnings("unchecked")
     private void executeQuery(String query) {
-        DataProvider currentDataProvider = getCurrentDataProvider();
+        Hub hub = getCurrentHub();
         String limit = limitTextField.getValue();
         limit = StringUtils.isEmpty(limit) ? "0" : limit;
-        results = currentDataProvider.search(query, Integer.parseInt(limit));
+        results = searchService.search(hub.getHub(), query, Integer.parseInt(limit));
         if (results.isEmpty()) {
             resultsTextArea.setValue("");
             Notification.show("Nothing found for such request");
@@ -313,6 +314,11 @@ public class TrackFindMainUI extends AbstractUI {
     @Autowired
     public void setGSuiteService(GSuiteService gSuiteService) {
         this.gSuiteService = gSuiteService;
+    }
+
+    @Autowired
+    public void setSearchService(SearchService searchService) {
+        this.searchService = searchService;
     }
 
 }

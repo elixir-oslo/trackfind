@@ -5,8 +5,8 @@ import com.vaadin.shared.ui.ValueChangeMode;
 import com.vaadin.ui.*;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
+import no.uio.ifi.trackfind.backend.dao.Hub;
 import no.uio.ifi.trackfind.backend.data.TreeNode;
-import no.uio.ifi.trackfind.backend.data.providers.AbstractDataProvider;
 import no.uio.ifi.trackfind.backend.services.SchemaService;
 import no.uio.ifi.trackfind.backend.services.TrackFindService;
 import no.uio.ifi.trackfind.frontend.components.TrackFindTree;
@@ -40,8 +40,8 @@ public abstract class AbstractUI extends UI {
     }
 
     @SuppressWarnings("unchecked")
-    protected AbstractDataProvider getCurrentDataProvider() {
-        return (AbstractDataProvider) getCurrentTree().getDataProvider();
+    protected Hub getCurrentHub() {
+        return getCurrentTree().getHub();
     }
 
     protected VerticalLayout buildOuterLayout(HorizontalLayout headerLayout, HorizontalLayout mainLayout, HorizontalLayout footerLayout) {
