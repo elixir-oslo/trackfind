@@ -7,10 +7,7 @@ import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
 import no.uio.ifi.trackfind.backend.dao.*;
 import no.uio.ifi.trackfind.backend.events.DataReloadEvent;
 import no.uio.ifi.trackfind.backend.operations.Operation;
-import no.uio.ifi.trackfind.backend.repositories.DatasetRepository;
-import no.uio.ifi.trackfind.backend.repositories.MappingRepository;
-import no.uio.ifi.trackfind.backend.repositories.SourceRepository;
-import no.uio.ifi.trackfind.backend.repositories.StandardRepository;
+import no.uio.ifi.trackfind.backend.repositories.*;
 import no.uio.ifi.trackfind.backend.scripting.ScriptingEngine;
 import no.uio.ifi.trackfind.backend.services.CacheService;
 import org.apache.commons.collections4.CollectionUtils;
@@ -45,6 +42,7 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     protected ApplicationEventPublisher applicationEventPublisher;
     protected CacheService cacheService;
     protected JdbcTemplate jdbcTemplate;
+    protected HubRepository hubRepository;
     protected SourceRepository sourceRepository;
     protected StandardRepository standardRepository;
     protected DatasetRepository datasetRepository;
@@ -83,8 +81,16 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      * {@inheritDoc}
      */
     @Override
-    public Collection<String> getTrackHubs() {
-        return Collections.singleton(getName());
+    public Collection<Hub> getAllTrackHubs() {
+        return Collections.singleton(new Hub(getName(), getName()));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Collection<Hub> getActiveTrackHubs() {
+        return hubRepository.findByRepository(getName());
     }
 
     /**
@@ -98,6 +104,10 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      * {@inheritDoc}
      */
     @CacheEvict(cacheNames = {
+            "metamodel-array-of-objects-attributes",
+            "metamodel-flat",
+            "metamodel-tree",
+            "metamodel-attribute-types",
             "metamodel-attributes",
             "metamodel-subattributes",
             "metamodel-values"
@@ -137,6 +147,10 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
      */
     @SuppressWarnings("unchecked")
     @CacheEvict(cacheNames = {
+            "metamodel-array-of-objects-attributes",
+            "metamodel-flat",
+            "metamodel-tree",
+            "metamodel-attribute-types",
             "metamodel-attributes",
             "metamodel-subattributes",
             "metamodel-values"
@@ -327,6 +341,11 @@ public abstract class AbstractDataProvider implements DataProvider, Comparable<D
     @Autowired
     public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
+    }
+
+    @Autowired
+    public void setHubRepository(HubRepository hubRepository) {
+        this.hubRepository = hubRepository;
     }
 
     @Autowired

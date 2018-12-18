@@ -11,10 +11,9 @@ import no.uio.ifi.trackfind.backend.services.SchemaService;
 import no.uio.ifi.trackfind.backend.services.TrackFindService;
 import no.uio.ifi.trackfind.frontend.components.TrackFindTree;
 import no.uio.ifi.trackfind.frontend.filters.TreeFilter;
+import no.uio.ifi.trackfind.frontend.providers.TrackFindDataProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Iterator;
 
 /**
@@ -31,10 +30,9 @@ public abstract class AbstractUI extends UI {
     protected SchemaService schemaService;
     protected TrackFindProperties properties;
     protected TrackFindService trackFindService;
+    protected TrackFindDataProvider trackFindDataProvider;
 
     protected TabSheet tabSheet;
-
-    protected Collection<AbstractDataProvider> dataProviders = new ArrayList<>();
 
     @SuppressWarnings("unchecked")
     public TrackFindTree<TreeNode> getCurrentTree() {
@@ -114,6 +112,11 @@ public abstract class AbstractUI extends UI {
     @Autowired
     public void setTrackFindService(TrackFindService trackFindService) {
         this.trackFindService = trackFindService;
+    }
+
+    @Autowired
+    public void setTrackFindDataProvider(TrackFindDataProvider trackFindDataProvider) {
+        this.trackFindDataProvider = trackFindDataProvider;
     }
 
 }

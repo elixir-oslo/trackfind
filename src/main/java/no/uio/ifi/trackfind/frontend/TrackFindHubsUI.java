@@ -1,6 +1,5 @@
 package no.uio.ifi.trackfind.frontend;
 
-import com.google.common.collect.Multimap;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Title;
 import com.vaadin.annotations.Widgetset;
@@ -11,8 +10,7 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.VerticalLayout;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.Map;
+import no.uio.ifi.trackfind.backend.dao.Hub;
 
 /**
  * Hubs Vaadin UI of the application.
@@ -41,11 +39,10 @@ public class TrackFindHubsUI extends AbstractUI {
 
     private VerticalLayout buildHubsLayout() {
         VerticalLayout hubsLayout = new VerticalLayout();
-        Multimap<String, String> hubs = trackFindService.getTrackHubs();
-        ComboBox<Map.Entry<String, String>> comboBox = new ComboBox<>("Hubs");
+        ComboBox<Hub> comboBox = new ComboBox<>("Hubs");
         comboBox.setWidth(100, Unit.PERCENTAGE);
-        comboBox.setItems(hubs.entries());
-        comboBox.setItemCaptionGenerator(Map.Entry::getValue);
+        comboBox.setItems(trackFindService.getAllTrackHubs());
+        comboBox.setItemCaptionGenerator(h -> h.getRepository() + ": " + h.getHub());
         Panel panel = new Panel("Hub selection", comboBox);
         hubsLayout.addComponentsAndExpand(panel);
 //        comboBox.addValueChangeListener(event -> {

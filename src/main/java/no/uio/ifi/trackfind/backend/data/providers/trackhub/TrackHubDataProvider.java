@@ -1,6 +1,7 @@
 package no.uio.ifi.trackfind.backend.data.providers.trackhub;
 
 import lombok.extern.slf4j.Slf4j;
+import no.uio.ifi.trackfind.backend.dao.Hub;
 import no.uio.ifi.trackfind.backend.data.providers.AbstractDataProvider;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Component;
@@ -27,15 +28,15 @@ public class TrackHubDataProvider extends AbstractDataProvider {
 
     @SuppressWarnings("unchecked")
     @Override
-    public Collection<String> getTrackHubs() {
+    public Collection<Hub> getAllTrackHubs() {
         try (InputStream inputStream = new URL(HUBS_URL).openStream();
              InputStreamReader reader = new InputStreamReader(inputStream)) {
             Collection<Map> hubs = gson.fromJson(reader, Collection.class);
-            return hubs.stream().map(h -> String.valueOf(h.get("name"))).collect(Collectors.toSet());
+            return hubs.stream().map(h -> new Hub(getName(), String.valueOf(h.get("name")))).collect(Collectors.toSet());
         } catch (Exception e) {
             log.error(e.getMessage(), e);
+            throw new RuntimeException(e.getMessage(), e);
         }
-        return super.getTrackHubs();
     }
 
     /**

@@ -3,18 +3,14 @@ package no.uio.ifi.trackfind.frontend;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Title;
 import com.vaadin.annotations.Widgetset;
-import com.vaadin.data.HasValue;
 import com.vaadin.event.selection.SelectionListener;
-import com.vaadin.server.Sizeable;
 import com.vaadin.server.VaadinRequest;
-import com.vaadin.shared.ui.ValueChangeMode;
 import com.vaadin.spring.annotation.SpringUI;
 import com.vaadin.ui.*;
 import lombok.extern.slf4j.Slf4j;
+import no.uio.ifi.trackfind.backend.dao.Hub;
 import no.uio.ifi.trackfind.backend.dao.Mapping;
 import no.uio.ifi.trackfind.backend.data.TreeNode;
-import no.uio.ifi.trackfind.backend.data.providers.AbstractDataProvider;
-import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
 import no.uio.ifi.trackfind.backend.repositories.MappingRepository;
 import no.uio.ifi.trackfind.frontend.components.TrackFindTree;
 import no.uio.ifi.trackfind.frontend.filters.TreeFilter;
@@ -67,9 +63,9 @@ public class TrackFindMappingsUI extends AbstractUI {
         tabSheet = new TabSheet();
         tabSheet.setSizeFull();
 
-        for (DataProvider dataProvider : trackFindService.getDataProviders()) {
-            TrackFindTree<TreeNode> tree = buildTree((AbstractDataProvider) dataProvider);
-            tabSheet.addTab(tree, dataProvider.getName());
+        for (Hub hub : trackFindService.getActiveTrackHubs()) {
+            TrackFindTree<TreeNode> tree = buildTree(hub);
+            tabSheet.addTab(tree, hub.getHub());
         }
 
         tabSheet.addSelectedTabChangeListener((TabSheet.SelectedTabChangeListener) event -> loadConfiguration());
@@ -98,18 +94,16 @@ public class TrackFindMappingsUI extends AbstractUI {
     }
 
     @SuppressWarnings("unchecked")
-    protected TrackFindTree<TreeNode> buildTree(AbstractDataProvider dataProvider) {
-        dataProviders.add(dataProvider);
-
+    protected TrackFindTree<TreeNode> buildTree(Hub hub) {
         TrackFindTree<TreeNode> tree = new TrackFindTree<>();
-        tree.setDataProvider(dataProvider);
+        tree.setDataProvider(trackFindDataProvider);
         tree.setSelectionMode(Grid.SelectionMode.SINGLE);
         tree.addSelectionListener((SelectionListener<TreeNode>) event -> addStaticMappingButton.setEnabled(!CollectionUtils.isEmpty(event.getAllSelectedItems()) && event.getFirstSelectedItem().get().isAttribute()));
         tree.setSizeFull();
         tree.setStyleGenerator((StyleGenerator<TreeNode>) item -> item.isAttribute() ? null : "value-tree-node");
 
         TreeGrid<TreeNode> treeGrid = (TreeGrid<TreeNode>) tree.getCompositionRoot();
-        treeGrid.setFilter(new TreeFilter(true, "", ""));
+        treeGrid.setFilter(new TreeFilter(hub.getHub(), true, "", ""));
 
         return tree;
     }

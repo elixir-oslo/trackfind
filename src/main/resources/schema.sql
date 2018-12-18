@@ -1,3 +1,10 @@
+CREATE TABLE IF NOT EXISTS hubs
+(
+  repository VARCHAR(255) NOT NULl,
+  hub        VARCHAR(255) NOT NULl,
+  PRIMARY KEY (repository, hub)
+);
+
 CREATE SEQUENCE IF NOT EXISTS source_ids_sequence
   START 1 INCREMENT 1;
 

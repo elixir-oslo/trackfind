@@ -1,15 +1,14 @@
 package no.uio.ifi.trackfind.backend.rest.controllers;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.SwaggerDefinition;
-import io.swagger.annotations.Tag;
+import io.swagger.annotations.*;
+import no.uio.ifi.trackfind.backend.dao.Hub;
 import no.uio.ifi.trackfind.backend.services.TrackFindService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collection;
@@ -32,10 +31,11 @@ public class TrackHubsController {
      *
      * @return Collection of Track Hubs available.
      */
-    @ApiOperation(value = "Gets full set of Track Hubs registered in the system.")
+    @ApiOperation(value = "Gets set of Track Hubs registered in the system.")
     @GetMapping(path = "/hubs", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<Collection<String>> getTrackHubs() {
-        return ResponseEntity.ok(trackFindService.getTrackHubs().values());
+    public ResponseEntity<Collection<Hub>> getTrackHubs(@ApiParam(value = "Only Active Track Hubs", required = false, defaultValue = "true")
+                                                        @RequestParam(required = false, defaultValue = "false") boolean active) {
+        return ResponseEntity.ok(active ? trackFindService.getActiveTrackHubs() : trackFindService.getAllTrackHubs());
     }
 
     @Autowired

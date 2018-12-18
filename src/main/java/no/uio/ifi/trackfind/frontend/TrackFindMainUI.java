@@ -20,8 +20,8 @@ import com.vaadin.ui.dnd.DropTargetExtension;
 import com.vaadin.util.FileTypeResolver;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.dao.Dataset;
+import no.uio.ifi.trackfind.backend.dao.Hub;
 import no.uio.ifi.trackfind.backend.data.TreeNode;
-import no.uio.ifi.trackfind.backend.data.providers.AbstractDataProvider;
 import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
 import no.uio.ifi.trackfind.backend.services.GSuiteService;
 import no.uio.ifi.trackfind.frontend.components.KeyboardInterceptorExtension;
@@ -85,9 +85,9 @@ public class TrackFindMainUI extends AbstractUI {
         tabSheet = new TabSheet();
         tabSheet.setSizeFull();
 
-        for (DataProvider dataProvider : trackFindService.getDataProviders()) {
-            TrackFindTree<TreeNode> tree = buildTree((AbstractDataProvider) dataProvider);
-            tabSheet.addTab(tree, dataProvider.getName());
+        for (Hub hub : trackFindService.getActiveTrackHubs()) {
+            TrackFindTree<TreeNode> tree = buildTree(hub);
+            tabSheet.addTab(tree, hub.getHub());
         }
 
         Panel treePanel = new Panel("Model browser", tabSheet);
@@ -115,15 +115,13 @@ public class TrackFindMainUI extends AbstractUI {
     }
 
     @SuppressWarnings("unchecked")
-    protected TrackFindTree<TreeNode> buildTree(AbstractDataProvider dataProvider) {
-        dataProviders.add(dataProvider);
-
+    protected TrackFindTree<TreeNode> buildTree(Hub hub) {
         TrackFindTree<TreeNode> tree = new TrackFindTree<>();
-        tree.setDataProvider(dataProvider);
+        tree.setDataProvider(trackFindDataProvider);
         tree.setSelectionMode(Grid.SelectionMode.MULTI);
         tree.addItemClickListener(new TreeItemClickListener(tree));
         TreeGrid<TreeNode> treeGrid = (TreeGrid<TreeNode>) tree.getCompositionRoot();
-        TreeFilter filter = new TreeFilter(false, "", "");
+        TreeFilter filter = new TreeFilter(hub.getHub(), false, "", "");
         treeGrid.setFilter(filter);
         tree.addSelectionListener(new TreeSelectionListener(tree, filter, new KeyboardInterceptorExtension(tree)));
         tree.setSizeFull();
@@ -313,7 +311,7 @@ public class TrackFindMainUI extends AbstractUI {
     }
 
     @Autowired
-    public void setgSuiteService(GSuiteService gSuiteService) {
+    public void setGSuiteService(GSuiteService gSuiteService) {
         this.gSuiteService = gSuiteService;
     }
 

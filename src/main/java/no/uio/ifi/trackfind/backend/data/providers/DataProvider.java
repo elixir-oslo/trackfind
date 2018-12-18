@@ -1,6 +1,7 @@
 package no.uio.ifi.trackfind.backend.data.providers;
 
 import no.uio.ifi.trackfind.backend.dao.Dataset;
+import no.uio.ifi.trackfind.backend.dao.Hub;
 
 import java.util.Collection;
 
@@ -19,11 +20,18 @@ public interface DataProvider {
     String getName();
 
     /**
-     * Gets the names of track hubs by this data provider.
+     * Gets the names of all Track Hubs by this data provider.
      *
-     * @return Track hubs list.
+     * @return All Track Hubs list.
      */
-    Collection<String> getTrackHubs();
+    Collection<Hub> getAllTrackHubs();
+
+    /**
+     * Gets the names of active Track hubs by this data provider.
+     *
+     * @return Active Track Hubs list.
+     */
+    Collection<Hub> getActiveTrackHubs();
 
     /**
      * Re-fetches data, rebuilds index.
