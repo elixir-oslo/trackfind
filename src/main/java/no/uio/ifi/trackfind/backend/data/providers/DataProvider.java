@@ -7,18 +7,25 @@ import java.util.Collection;
 import java.util.Map;
 
 /**
- * Interface describing access point for some external data repository.
+ * Interface describing access point for some external data repositories.
  *
  * @author Dmytro Titov
  */
 public interface DataProvider {
 
     /**
-     * Gets the name of the repository.
+     * Gets the name of the data provider.
      *
-     * @return Repository name.
+     * @return Data provider name.
      */
     String getName();
+
+    /**
+     * Gets the names of track hubs by this data provider.
+     *
+     * @return Track hubs list.
+     */
+    Collection<String> getTrackHubs();
 
     /**
      * Re-fetches data, rebuilds index.

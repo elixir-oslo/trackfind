@@ -153,6 +153,14 @@ public abstract class AbstractDataProvider
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Collection<String> getTrackHubs() {
+        return Collections.singleton(getName());
+    }
+
+    /**
      * Fetches data from the repository.
      *
      * @throws Exception in case of some problems.

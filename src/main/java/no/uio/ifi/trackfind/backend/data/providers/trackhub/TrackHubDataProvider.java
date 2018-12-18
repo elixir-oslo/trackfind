@@ -11,6 +11,7 @@ import java.net.URL;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Draft of Data Provider for TrackHub
@@ -21,7 +22,21 @@ import java.util.Map;
 @Component
 public class TrackHubDataProvider extends AbstractDataProvider {
 
+    private static final String HUBS_URL = "https://www.trackhubregistry.org/api/info/trackhubs";
     private static final String FETCH_URL = "https://hyperbrowser.uio.no/hb/static/hyperbrowser/files/trackfind/blueprint_hub.json";
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Collection<String> getTrackHubs() {
+        try (InputStream inputStream = new URL(HUBS_URL).openStream();
+             InputStreamReader reader = new InputStreamReader(inputStream)) {
+            Collection<Map> hubs = gson.fromJson(reader, Collection.class);
+            return hubs.stream().map(h -> String.valueOf(h.get("name"))).collect(Collectors.toSet());
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+        return super.getTrackHubs();
+    }
 
     /**
      * {@inheritDoc}
