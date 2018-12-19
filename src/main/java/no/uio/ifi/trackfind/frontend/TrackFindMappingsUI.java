@@ -153,6 +153,7 @@ public class TrackFindMappingsUI extends AbstractUI {
                         Hub currentHub = getCurrentHub();
                         DataProvider dataProvider = trackFindService.getDataProvider(currentHub.getRepository());
                         dataProvider.crawlRemoteRepository(currentHub.getHub());
+                        getCurrentTree().getDataProvider().refreshAll();
                     }
                 }));
         Button applyMappingsButton = new Button("Apply mappings");
