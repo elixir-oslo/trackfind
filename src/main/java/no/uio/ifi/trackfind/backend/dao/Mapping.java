@@ -17,6 +17,9 @@ public class Mapping {
     @Column(name = "repository", nullable = false)
     private String repository;
 
+    @Column(name = "hub", nullable = false)
+    private String hub;
+
     @Column(name = "static", nullable = false)
     private boolean staticMapping;
 

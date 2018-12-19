@@ -104,7 +104,7 @@ public class TrackFindMappingsUI extends AbstractUI {
         tree.setStyleGenerator((StyleGenerator<TreeNode>) item -> item.isAttribute() ? null : "value-tree-node");
 
         TreeGrid<TreeNode> treeGrid = (TreeGrid<TreeNode>) tree.getCompositionRoot();
-        treeGrid.setFilter(new TreeFilter(hub.getHub(), true, "", ""));
+        treeGrid.setFilter(new TreeFilter(hub, true, "", ""));
 
         return tree;
     }
@@ -214,8 +214,10 @@ public class TrackFindMappingsUI extends AbstractUI {
     }
 
     private void loadConfiguration() {
-        String hub = getCurrentHub().getHub();
-        Collection<Mapping> mappings = mappingRepository.findByRepository(hub);
+        Hub currentHub = getCurrentHub();
+        String repository = currentHub.getRepository();
+        String hub = currentHub.getHub();
+        Collection<Mapping> mappings = mappingRepository.findByRepositoryAndHub(repository, hub);
         Collection<Mapping> staticMappings = mappings.stream().filter(Mapping::isStaticMapping).collect(Collectors.toSet());
         attributesStaticMapping.clear();
         attributesMappingLayout.removeAllComponents();
@@ -232,13 +234,16 @@ public class TrackFindMappingsUI extends AbstractUI {
 
     @Transactional
     protected void saveConfiguration() {
-        String hub = getCurrentHub().getHub();
+        Hub currentHub = getCurrentHub();
+        String repository = currentHub.getRepository();
+        String hub = currentHub.getHub();
+        Collection<Mapping> existingMappings = mappingRepository.findByRepositoryAndHub(repository, hub);
         Collection<Mapping> mappings = new HashSet<>();
-        Collection<Mapping> existingMappings = mappingRepository.findByRepository(hub);
         mappingRepository.deleteInBatch(existingMappings);
         for (Map.Entry<ComboBox<String>, TextField> mappingPair : attributesStaticMapping.entrySet()) {
             Mapping mapping = new Mapping();
-            mapping.setRepository(hub);
+            mapping.setRepository(repository);
+            mapping.setHub(hub);
             mapping.setStaticMapping(true);
             mapping.setFrom(mappingPair.getValue().getValue());
             mapping.setTo(mappingPair.getKey().getValue());
@@ -246,7 +251,8 @@ public class TrackFindMappingsUI extends AbstractUI {
         }
         script.getOptionalValue().ifPresent(s -> {
             Mapping mapping = new Mapping();
-            mapping.setRepository(hub);
+            mapping.setRepository(repository);
+            mapping.setHub(hub);
             mapping.setStaticMapping(false);
             mapping.setFrom(s);
             mappings.add(mapping);

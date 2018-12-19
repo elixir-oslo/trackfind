@@ -2,6 +2,7 @@ package no.uio.ifi.trackfind.backend.rest.controllers;
 
 import io.swagger.annotations.*;
 import no.uio.ifi.trackfind.backend.dao.Dataset;
+import no.uio.ifi.trackfind.backend.dao.Hub;
 import no.uio.ifi.trackfind.backend.services.GSuiteService;
 import no.uio.ifi.trackfind.backend.services.SearchService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,15 +30,18 @@ public class DataController {
     /**
      * Performs search over the Directory of specified Track Hub.
      *
-     * @param hub   Track Hub name.
-     * @param query Search query.
-     * @param limit Max number of entries to return.
+     * @param repository Repository name.
+     * @param hub        Track Hub name.
+     * @param query      Search query.
+     * @param limit      Max number of entries to return.
      * @return Search results by version.
      */
     @SuppressWarnings("unchecked")
     @ApiOperation(value = "Performs search in the database.", responseContainer = "Set")
-    @GetMapping(path = "/{hub}/search", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping(path = "/{repository}/{hub}/search", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Collection<Dataset>> searchJSON(
+            @ApiParam(value = "Repository name.", required = true, example = "TrackHubRegistry")
+            @PathVariable String repository,
             @ApiParam(value = "Track Hub name.", required = true, example = "IHEC")
             @PathVariable String hub,
             @ApiParam(value = "Search query to execute.", required = true,
@@ -45,21 +49,24 @@ public class DataController {
             @RequestParam String query,
             @ApiParam(value = "Max number of results to return. Unlimited by default.", required = false, defaultValue = "0", example = "10")
             @RequestParam(required = false, defaultValue = "0") int limit) {
-        return ResponseEntity.ok(searchService.search(hub, query, limit));
+        return ResponseEntity.ok(searchService.search(new Hub(repository, hub), query, limit));
     }
 
     /**
      * Performs search over the Directory of specified Track Hub.
      *
-     * @param hub   Track Hub name.
-     * @param query Search query.
-     * @param limit Max number of entries to return.
+     * @param repository Repository name.
+     * @param hub        Track Hub name.
+     * @param query      Search query.
+     * @param limit      Max number of entries to return.
      * @return Search results by version.
      */
     @SuppressWarnings("unchecked")
     @ApiOperation(value = "Performs search in the database.", responseContainer = "Set")
-    @GetMapping(path = "/{hub}/search", produces = MediaType.TEXT_PLAIN_VALUE)
+    @GetMapping(path = "/{repository}/{hub}/search", produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> searchGSuite(
+            @ApiParam(value = "Repository name.", required = true, example = "TrackHubRegistry")
+            @PathVariable String repository,
             @ApiParam(value = "Track Hub name.", required = true, example = "IHEC")
             @PathVariable String hub,
             @ApiParam(value = "Search query to execute.", required = true,
@@ -67,7 +74,7 @@ public class DataController {
             @RequestParam String query,
             @ApiParam(value = "Max number of results to return. Unlimited by default.", required = false, defaultValue = "0", example = "10")
             @RequestParam(required = false, defaultValue = "0") int limit) {
-        Collection<Dataset> datasets = searchService.search(hub, query, limit);
+        Collection<Dataset> datasets = searchService.search(new Hub(repository, hub), query, limit);
         return ResponseEntity.ok(gSuiteService.apply(datasets));
     }
 

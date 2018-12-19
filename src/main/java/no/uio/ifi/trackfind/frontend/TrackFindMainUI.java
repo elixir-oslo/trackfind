@@ -122,7 +122,7 @@ public class TrackFindMainUI extends AbstractUI {
         tree.setSelectionMode(Grid.SelectionMode.MULTI);
         tree.addItemClickListener(new TreeItemClickListener(tree));
         TreeGrid<TreeNode> treeGrid = (TreeGrid<TreeNode>) tree.getCompositionRoot();
-        TreeFilter filter = new TreeFilter(hub.getHub(), false, "", "");
+        TreeFilter filter = new TreeFilter(hub, false, "", "");
         treeGrid.setFilter(filter);
         tree.addSelectionListener(new TreeSelectionListener(tree, filter, new KeyboardInterceptorExtension(tree)));
         tree.setSizeFull();
@@ -287,7 +287,7 @@ public class TrackFindMainUI extends AbstractUI {
         Hub hub = getCurrentHub();
         String limit = limitTextField.getValue();
         limit = StringUtils.isEmpty(limit) ? "0" : limit;
-        results = searchService.search(hub.getHub(), query, Integer.parseInt(limit));
+        results = searchService.search(hub, query, Integer.parseInt(limit));
         if (results.isEmpty()) {
             resultsTextArea.setValue("");
             Notification.show("Nothing found for such request");

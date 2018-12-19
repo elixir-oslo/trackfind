@@ -112,7 +112,8 @@ public abstract class AbstractDataProvider implements DataProvider {
     protected void save(String hubName, Collection<Map> datasets) {
         sourceRepository.saveAll(datasets.parallelStream().map(map -> {
             Source source = new Source();
-            source.setRepository(hubName);
+            source.setRepository(getName());
+            source.setHub(hubName);
             source.setContent(gson.toJson(map));
             source.setRawVersion(0L);           // TODO: set proper version
             source.setCuratedVersion(0L);       // TODO: set proper version
@@ -137,10 +138,10 @@ public abstract class AbstractDataProvider implements DataProvider {
     @Override
     public synchronized void applyMappings(String hubName) {
         log.info("Applying mappings for {}: {}", getName(), hubName);
-        Collection<Mapping> mappings = mappingRepository.findByRepository(hubName);
+        Collection<Mapping> mappings = mappingRepository.findByRepositoryAndHub(getName(), hubName);
         Collection<Mapping> staticMappings = mappings.stream().filter(Mapping::isStaticMapping).collect(Collectors.toSet());
         Optional<Mapping> dynamicMappingOptional = mappings.stream().filter(m -> !m.isStaticMapping()).findAny();
-        Collection<Source> sources = sourceRepository.findByRepositoryLatest(hubName);
+        Collection<Source> sources = sourceRepository.findByRepositoryAndHubLatest(getName(), hubName);
         Collection<Standard> standards = new HashSet<>();
         ScriptingEngine scriptingEngine = scriptingEngines.stream().filter(se -> properties.getScriptingLanguage().equals(se.getLanguage())).findAny().orElseThrow(RuntimeException::new);
         try {

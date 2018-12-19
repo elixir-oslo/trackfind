@@ -96,35 +96,35 @@ public class DataProviderTests {
 //        assertThat(dataset.getCuratedContent()).isEqualTo(SAMPLE_DATASET);
 //    }
 
-    @SuppressWarnings("unchecked")
-    @Before
-    public void setUp() {
-        dataProvider.setGson(gson);
-
-        when(trackFindProperties.getLevelsSeparator()).thenReturn("->");
-
-        Mapping mapping = new Mapping();
-        mapping.setFrom("analysis_attributes->alignment_software");
-        mapping.setTo("software");
-        mapping.setStaticMapping(true);
-
-        originalDataset = new Dataset();
-        when(mappingRepository.findByRepository(anyString())).thenReturn(Collections.singleton(mapping));
-        when(datasetRepository.findById(eq(0L))).thenReturn(Optional.of(originalDataset));
-        when(datasetRepository.findByIdAndVersion(any(), anyString())).thenReturn(originalDataset);
-        when(jdbcTemplate.queryForObject(anyString(), eq(Long.TYPE))).thenReturn(0L);
-        when(jdbcTemplate.queryForList(anyString(), eq(Long.TYPE), anyLong(), anyString(), anyString(), anyInt())).thenReturn(Collections.singletonList(0L));
-        HashMap<String, Object> attributeValueMap1 = new HashMap<>();
-        attributeValueMap1.put("attribute", "level1->level2");
-        attributeValueMap1.put("value", "value1");
-        HashMap<String, Object> attributeValueMap2 = new HashMap<>();
-        attributeValueMap2.put("attribute", "level1->level2");
-        attributeValueMap2.put("value", "value2");
-        when(jdbcTemplate.queryForList(anyString(), anyString())).thenReturn(Arrays.asList(attributeValueMap1, attributeValueMap2));
-        when(jdbcTemplate.query(anyString(), any(RowMapper.class))).thenReturn(Collections.singletonList(originalDataset));
-        originalDataset.setId(0L);
-        originalDataset.setVersion("0:0:0");
-        originalDataset.setCuratedContent(SAMPLE_DATASET);
-    }
+//    @SuppressWarnings("unchecked")
+//    @Before
+//    public void setUp() {
+//        dataProvider.setGson(gson);
+//
+//        when(trackFindProperties.getLevelsSeparator()).thenReturn("->");
+//
+//        Mapping mapping = new Mapping();
+//        mapping.setFrom("analysis_attributes->alignment_software");
+//        mapping.setTo("software");
+//        mapping.setStaticMapping(true);
+//
+//        originalDataset = new Dataset();
+//        when(mappingRepository.findByRepository(anyString())).thenReturn(Collections.singleton(mapping));
+//        when(datasetRepository.findById(eq(0L))).thenReturn(Optional.of(originalDataset));
+//        when(datasetRepository.findByIdAndVersion(any(), anyString())).thenReturn(originalDataset);
+//        when(jdbcTemplate.queryForObject(anyString(), eq(Long.TYPE))).thenReturn(0L);
+//        when(jdbcTemplate.queryForList(anyString(), eq(Long.TYPE), anyLong(), anyString(), anyString(), anyInt())).thenReturn(Collections.singletonList(0L));
+//        HashMap<String, Object> attributeValueMap1 = new HashMap<>();
+//        attributeValueMap1.put("attribute", "level1->level2");
+//        attributeValueMap1.put("value", "value1");
+//        HashMap<String, Object> attributeValueMap2 = new HashMap<>();
+//        attributeValueMap2.put("attribute", "level1->level2");
+//        attributeValueMap2.put("value", "value2");
+//        when(jdbcTemplate.queryForList(anyString(), anyString())).thenReturn(Arrays.asList(attributeValueMap1, attributeValueMap2));
+//        when(jdbcTemplate.query(anyString(), any(RowMapper.class))).thenReturn(Collections.singletonList(originalDataset));
+//        originalDataset.setId(0L);
+//        originalDataset.setVersion("0:0:0");
+//        originalDataset.setCuratedContent(SAMPLE_DATASET);
+//    }
 
 }

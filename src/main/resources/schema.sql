@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS source
 (
   id              BIGINT       NOT NULl,
   repository      VARCHAR(255) NOT NULl,
+  hub             VARCHAR(255) NOT NULl,
   content         JSONB        NOT NULl,
   raw_version     BIGINT       NOT NULl,
   curated_version BIGINT       NOT NULl,
@@ -19,7 +20,7 @@ CREATE TABLE IF NOT EXISTS source
 );
 
 CREATE INDEX IF NOT EXISTS source_index
-  ON source(id, repository, raw_version, curated_version);
+  ON source(id, repository, hub, raw_version, curated_version);
 
 CREATE INDEX IF NOT EXISTS source_content_index
   ON source
@@ -47,6 +48,7 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS datasets AS
   SELECT
          sub_query.id,
          sub_query.repository,
+         sub_query.hub,
          sub_query.curated_content,
          sub_query.standard_content,
          JSONB_SET(JSONB_SET(sub_query.fair_content, '{fair, id}', TO_JSONB(sub_query.id)), '{fair, version}', TO_JSONB(sub_query.version)) AS fair_content,
@@ -57,6 +59,7 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS datasets AS
   FROM (SELECT
                source.id                                                                                                    AS id,
                source.repository                                                                                            AS repository,
+               source.hub                                                                                                   AS hub,
                source.content                                                                                               AS curated_content,
                standard.content                                                                                             AS standard_content,
                source.content || JSONB_BUILD_OBJECT('fair', COALESCE(standard.content, '{}'::jsonb))                        AS fair_content,
@@ -69,7 +72,7 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS datasets AS
 WITH DATA;
 
 CREATE INDEX IF NOT EXISTS datasets_index
-  ON datasets(id, repository, raw_version, curated_version, standard_version, version);
+  ON datasets(id, repository, hub, raw_version, curated_version, standard_version, version);
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS latest_datasets AS
   WITH max_raw_versions AS (SELECT id as id, MAX(raw_version) as max_version FROM datasets GROUP BY id),
@@ -92,10 +95,11 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS latest_datasets AS
 WITH DATA;
 
 CREATE INDEX IF NOT EXISTS latest_datasets_index
-  ON latest_datasets(id, repository, raw_version, curated_version, standard_version, version);
+  ON latest_datasets(id, repository, hub, raw_version, curated_version, standard_version, version);
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS source_metamodel AS
   WITH RECURSIVE collect_metadata AS (SELECT latest_datasets.repository,
+                                             latest_datasets.hub,
                                              first_level.key,
                                              first_level.value,
                                              jsonb_typeof(first_level.value) AS type
@@ -109,6 +113,7 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS source_metamodel AS
                                           FROM collect_metadata
                                       )
                                       SELECT prev_level.repository,
+                                             prev_level.hub,
                                              concat(prev_level.key, '->', current_level.key),
                                              current_level.value,
                                              jsonb_typeof(current_level.value) AS type
@@ -119,6 +124,7 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS source_metamodel AS
                                       UNION ALL
 
                                       SELECT prev_level.repository,
+                                             prev_level.hub,
                                              concat(prev_level.key, '->', current_level.key),
                                              current_level.value,
                                              jsonb_typeof(current_level.value) AS type
@@ -131,6 +137,7 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS source_metamodel AS
                                       UNION ALL
 
                                       SELECT prev_level.repository,
+                                             prev_level.hub,
                                              prev_level.key,
                                              entry,
                                              jsonb_typeof(entry) AS type
@@ -138,13 +145,14 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS source_metamodel AS
                                            jsonb_array_elements(prev_level.value) AS entry
                                       WHERE prev_level.type = 'array'
                                         AND jsonb_typeof(entry) <> 'object'))
-  SELECT DISTINCT repository, key AS attribute, array_to_json(ARRAY[collect_metadata.value])->>0 AS value, type
+  SELECT DISTINCT repository, hub, key AS attribute, array_to_json(ARRAY[collect_metadata.value])->>0 AS value, type
   FROM collect_metadata
   WHERE collect_metadata.type NOT IN ('object', 'array')
 WITH DATA;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS standard_metamodel AS
   WITH RECURSIVE collect_metadata AS (SELECT latest_datasets.repository,
+                                             latest_datasets.hub,
                                              first_level.key,
                                              first_level.value,
                                              jsonb_typeof(first_level.value) AS type
@@ -158,6 +166,7 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS standard_metamodel AS
                                           FROM collect_metadata
                                       )
                                       SELECT prev_level.repository,
+                                             prev_level.hub,
                                              concat(prev_level.key, '->', current_level.key),
                                              current_level.value,
                                              jsonb_typeof(current_level.value) AS type
@@ -168,6 +177,7 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS standard_metamodel AS
                                       UNION ALL
 
                                       SELECT prev_level.repository,
+                                             prev_level.hub,
                                              concat(prev_level.key, '->', current_level.key),
                                              current_level.value,
                                              jsonb_typeof(current_level.value) AS type
@@ -180,6 +190,7 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS standard_metamodel AS
                                       UNION ALL
 
                                       SELECT prev_level.repository,
+                                             prev_level.hub,
                                              prev_level.key,
                                              entry,
                                              jsonb_typeof(entry) AS type
@@ -187,13 +198,14 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS standard_metamodel AS
                                            jsonb_array_elements(prev_level.value) AS entry
                                       WHERE prev_level.type = 'array'
                                         AND jsonb_typeof(entry) <> 'object'))
-  SELECT DISTINCT repository, key AS attribute, array_to_json(ARRAY[collect_metadata.value])->>0 AS value, type
+  SELECT DISTINCT repository, hub, key AS attribute, array_to_json(ARRAY[collect_metadata.value])->>0 AS value, type
   FROM collect_metadata
   WHERE collect_metadata.type NOT IN ('object', 'array')
 WITH DATA;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS source_array_of_objects AS
   WITH RECURSIVE collect_metadata AS (SELECT latest_datasets.repository,
+                                             latest_datasets.hub,
                                              first_level.key,
                                              NULL AS prev_key,
                                              first_level.value,
@@ -208,6 +220,7 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS source_array_of_objects AS
                                           FROM collect_metadata
                                       )
                                       SELECT prev_level.repository,
+                                             prev_level.hub,
                                              concat(prev_level.key, '->', current_level.key),
                                              NULL AS prev_key,
                                              current_level.value,
@@ -219,6 +232,7 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS source_array_of_objects AS
                                       UNION ALL
 
                                       SELECT prev_level.repository,
+                                             prev_level.hub,
                                              concat(prev_level.key, '->', current_level.key),
                                              prev_level.key AS prev_key,
                                              current_level.value,
@@ -232,6 +246,7 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS source_array_of_objects AS
                                       UNION ALL
 
                                       SELECT prev_level.repository,
+                                             prev_level.hub,
                                              prev_level.key,
                                              NULL AS prev_key,
                                              entry,
@@ -240,13 +255,14 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS source_array_of_objects AS
                                            jsonb_array_elements(prev_level.value) AS entry
                                       WHERE prev_level.type = 'array'
                                         AND jsonb_typeof(entry) <> 'object'))
-  SELECT DISTINCT repository, prev_key AS attribute
+  SELECT DISTINCT repository, hub, prev_key AS attribute
   FROM collect_metadata
   WHERE prev_key IS NOT NULL
 WITH DATA;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS standard_array_of_objects AS
   WITH RECURSIVE collect_metadata AS (SELECT latest_datasets.repository,
+                                             latest_datasets.hub,
                                              first_level.key,
                                              NULL AS prev_key,
                                              first_level.value,
@@ -261,6 +277,7 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS standard_array_of_objects AS
                                           FROM collect_metadata
                                       )
                                       SELECT prev_level.repository,
+                                             prev_level.hub,
                                              concat(prev_level.key, '->', current_level.key),
                                              NULL AS prev_key,
                                              current_level.value,
@@ -272,6 +289,7 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS standard_array_of_objects AS
                                       UNION ALL
 
                                       SELECT prev_level.repository,
+                                             prev_level.hub,
                                              concat(prev_level.key, '->', current_level.key),
                                              prev_level.key AS prev_key,
                                              current_level.value,
@@ -285,6 +303,7 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS standard_array_of_objects AS
                                       UNION ALL
 
                                       SELECT prev_level.repository,
+                                             prev_level.hub,
                                              prev_level.key,
                                              NULL AS prev_key,
                                              entry,
@@ -293,7 +312,7 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS standard_array_of_objects AS
                                            jsonb_array_elements(prev_level.value) AS entry
                                       WHERE prev_level.type = 'array'
                                         AND jsonb_typeof(entry) <> 'object'))
-  SELECT DISTINCT repository, prev_key AS attribute
+  SELECT DISTINCT repository, hub, prev_key AS attribute
   FROM collect_metadata
   WHERE prev_key IS NOT NULL
 WITH DATA;
@@ -302,6 +321,7 @@ CREATE TABLE IF NOT EXISTS mappings
 (
   id         BIGSERIAL PRIMARY KEY,
   repository VARCHAR(255) NOT NULl,
+  hub        VARCHAR(255) NOT NULl,
   map_to     VARCHAR,
   map_from   VARCHAR      NOT NULl,
   static     BOOLEAN      NOT NULl,

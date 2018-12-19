@@ -3,6 +3,7 @@ package no.uio.ifi.trackfind.backend.services;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
 import no.uio.ifi.trackfind.backend.dao.Dataset;
+import no.uio.ifi.trackfind.backend.dao.Hub;
 import no.uio.ifi.trackfind.backend.dao.Queries;
 import no.uio.ifi.trackfind.backend.repositories.DatasetRepository;
 import org.apache.commons.lang3.StringUtils;
@@ -38,8 +39,10 @@ public class SearchService {
         connection = DriverManager.getConnection(jdbcUrl, "search", "search");
     }
 
-    public Collection<Dataset> search(String hubName, String query, int limit) {
+    public Collection<Dataset> search(Hub hub, String query, int limit) {
         try {
+            String repositoryName = hub.getRepository();
+            String hubName = hub.getHub();
             limit = limit == 0 ? Integer.MAX_VALUE : limit;
             Map<String, String> joinTerms = new HashMap<>();
             int size = joinTerms.size();
@@ -63,10 +66,10 @@ public class SearchService {
             }
             String rawQuery = String.format("SELECT *\n" +
                     "FROM latest_datasets%s\n" +
-                    "WHERE repository = '%s'\n" +
+                    "WHERE repository = '%s' AND hub = '%s'\n" +
                     "  AND (%s)\n" +
                     "ORDER BY id ASC\n" +
-                    "LIMIT %s", joinTermsConcatenated, hubName, query, limit);
+                    "LIMIT %s", joinTermsConcatenated, repositoryName, hubName, query, limit);
             rawQuery = rawQuery.replaceAll("\\?", "\\?\\?");
             PreparedStatement preparedStatement = connection.prepareStatement(rawQuery);
             ResultSet resultSet = preparedStatement.executeQuery();

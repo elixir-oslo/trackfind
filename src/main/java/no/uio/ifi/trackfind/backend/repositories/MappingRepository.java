@@ -9,6 +9,6 @@ import java.util.Collection;
 @Repository
 public interface MappingRepository extends JpaRepository<Mapping, Long> {
 
-    Collection<Mapping> findByRepository(String repository);
+    Collection<Mapping> findByRepositoryAndHub(String repository, String hub);
 
 }

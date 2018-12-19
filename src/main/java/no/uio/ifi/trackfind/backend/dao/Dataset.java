@@ -25,6 +25,9 @@ public class Dataset {
     @Column(name = "repository", nullable = false)
     private String repository;
 
+    @Column(name = "hub", nullable = false)
+    private String hub;
+
     @JsonRawValue
     @Column(name = "curated_content", nullable = false, columnDefinition = "jsonb")
     private String curatedContent;

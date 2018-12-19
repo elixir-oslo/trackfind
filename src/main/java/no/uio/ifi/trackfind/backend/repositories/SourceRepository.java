@@ -17,10 +17,11 @@ public interface SourceRepository extends JpaRepository<Source, SourceId> {
             "       INNER JOIN source s2 ON s1.id = s2.id\n" +
             "       INNER JOIN source s3 ON s1.id = s3.id\n" +
             "WHERE s1.repository = :repository\n" +
+            "   AND s1.hub = :hub\n" +
             "GROUP BY s1.id, s1.raw_version, s1.curated_version\n" +
             "HAVING s1.raw_version = MAX(s2.raw_version)\n" +
             "   AND s1.curated_version = MAX(s3.curated_version)",
             nativeQuery = true)
-    Collection<Source> findByRepositoryLatest(@Param("repository") String repository);
+    Collection<Source> findByRepositoryAndHubLatest(@Param("repository") String repository, @Param("hub") String hub);
 
 }

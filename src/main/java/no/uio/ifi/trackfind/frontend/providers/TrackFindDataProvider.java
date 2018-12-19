@@ -4,6 +4,7 @@ import com.vaadin.data.provider.AbstractBackEndHierarchicalDataProvider;
 import com.vaadin.data.provider.HierarchicalQuery;
 import com.vaadin.server.SerializablePredicate;
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
+import no.uio.ifi.trackfind.backend.dao.Hub;
 import no.uio.ifi.trackfind.backend.data.TreeNode;
 import no.uio.ifi.trackfind.backend.services.MetamodelService;
 import no.uio.ifi.trackfind.frontend.filters.TreeFilter;
@@ -29,7 +30,7 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
     @Override
     protected Stream<TreeNode> fetchChildrenFromBackEnd(HierarchicalQuery<TreeNode, SerializablePredicate<TreeNode>> query) {
         TreeFilter treeFilter = (TreeFilter) query.getFilter().orElseThrow(RuntimeException::new);
-        String hub = treeFilter.getHub();
+        Hub hub = treeFilter.getHub();
         boolean raw = treeFilter.isRaw();
         Map<String, Object> metamodelTree = metamodelService.getMetamodelTree(hub, raw);
         Optional<TreeNode> parentOptional = query.getParentOptional();

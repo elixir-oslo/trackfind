@@ -22,6 +22,9 @@ public class Source {
     @Column(name = "repository", nullable = false)
     private String repository;
 
+    @Column(name = "hub", nullable = false)
+    private String hub;
+
     @JsonRawValue
     @Column(name = "content", nullable = false, columnDefinition = "jsonb")
     private String content;
