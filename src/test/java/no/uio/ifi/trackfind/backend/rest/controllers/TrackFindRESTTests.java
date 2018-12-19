@@ -31,32 +31,32 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SuppressWarnings("PMD.JUnitTestsShouldIncludeAssert")
-@RunWith(SpringRunner.class)
-@WebMvcTest
+//@RunWith(SpringRunner.class)
+//@WebMvcTest
 public class TrackFindRESTTests {
 
-    private static final String TEST_DATA_PROVIDER = "TEST";
-    private static final String API_PREFIX = "/api/v1/";
-
-    @Autowired
-    private MockMvc mockMvc;
-
-    @MockBean
-    private DataProvider dataProvider;
-
-    @MockBean
-    private TrackFindService trackFindService;
-
-    @MockBean
-    private TrackFindProperties trackFindProperties;
-
-    @MockBean
-    private GSuiteService gSuiteService;
-
-    @MockBean
-    private MetamodelService metamodelService;
-
-    private Dataset dataset;
+//    private static final String TEST_DATA_PROVIDER = "TEST";
+//    private static final String API_PREFIX = "/api/v1/";
+//
+//    @Autowired
+//    private MockMvc mockMvc;
+//
+//    @MockBean
+//    private DataProvider dataProvider;
+//
+//    @MockBean
+//    private TrackFindService trackFindService;
+//
+//    @MockBean
+//    private TrackFindProperties trackFindProperties;
+//
+//    @MockBean
+//    private GSuiteService gSuiteService;
+//
+//    @MockBean
+//    private MetamodelService metamodelService;
+//
+//    private Dataset dataset;
 
 //    @Test
 //    public void getProvidersTest() throws Exception {
