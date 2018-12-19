@@ -58,107 +58,107 @@ public class TrackFindRESTTests {
 
     private Dataset dataset;
 
-    @Test
-    public void getProvidersTest() throws Exception {
-        mockMvc.perform(get(API_PREFIX + "providers").param("published", "false"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType("application/json;charset=UTF-8"))
-                .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0]", is(TEST_DATA_PROVIDER)));
-    }
-
-    @Test
-    public void getMetamodelTreeTest() throws Exception {
-        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/metamodel-tree"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType("application/json;charset=UTF-8"))
-                .andExpect(jsonPath("$.level1.level2_1", hasSize(2)))
-                .andExpect(jsonPath("$.level1.level2_1", containsInAnyOrder("value1", "value2")))
-                .andExpect(jsonPath("$.level1.level2_2", contains("value3")));
-    }
-
-    @Test
-    public void getMetamodelFlatTest() throws Exception {
-        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/metamodel-flat"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType("application/json;charset=UTF-8"))
-                .andExpect(jsonPath("$.level1->level2_1", hasSize(2)))
-                .andExpect(jsonPath("$.level1->level2_1", containsInAnyOrder("value1", "value2")))
-                .andExpect(jsonPath("$.level1->level2_2", contains("value3")));
-    }
-
-    @Test
-    public void getAttributesWithFilterTest() throws Exception {
-        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/attributes").param("filter", "vel2_2"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType("application/json;charset=UTF-8"))
-                .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$.[0]", is("level1->level2_2")));
-    }
-
-    @Test
-    public void getTopAttributesTest() throws Exception {
-        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/attributes").param("top", "true"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType("application/json;charset=UTF-8"))
-                .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$.[0]", is("level1")));
-    }
-
-    @Test
-    public void getSubAttributesTest() throws Exception {
-        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/level1/subattributes"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType("application/json;charset=UTF-8"))
-                .andExpect(jsonPath("$", hasSize(2)))
-                .andExpect(jsonPath("$.[0]", is("level2_2")))
-                .andExpect(jsonPath("$.[1]", is("level2_1")));
-    }
-
-    @Test
-    public void getValuesSingleTest() throws Exception {
-        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/level1->level2_2/values"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType("application/json;charset=UTF-8"))
-                .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$.[0]", is("value3")));
-    }
-
-    @Test
-    public void getValuesMultipleTest() throws Exception {
-        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/level1->level2_1/values"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType("application/json;charset=UTF-8"))
-                .andExpect(jsonPath("$", hasSize(2)))
-                .andExpect(jsonPath("$", containsInAnyOrder("value1", "value2")));
-    }
-
-    @Test
-    public void getValuesWithFilterTest() throws Exception {
-        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/level1->level2_1/values").param("filter", "lue2"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType("application/json;charset=UTF-8"))
-                .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$.[0]", is("value2")));
-    }
-
-    @Test
-    public void searchTest() throws Exception {
-        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/search").param("query", "someQuery"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType("application/json;charset=UTF-8"))
-                .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$.[0].fair.id", is(0)));
-    }
-
-    @SuppressWarnings("unchecked")
-    @Test
-    public void fetchTest() throws Exception {
-        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/fetch").param("id", "0"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType("application/json;charset=UTF-8"))
-                .andExpect(jsonPath("$.fair.id", is(0)));
-    }
+//    @Test
+//    public void getProvidersTest() throws Exception {
+//        mockMvc.perform(get(API_PREFIX + "providers").param("published", "false"))
+//                .andExpect(status().isOk())
+//                .andExpect(content().contentType("application/json;charset=UTF-8"))
+//                .andExpect(jsonPath("$", hasSize(1)))
+//                .andExpect(jsonPath("$[0]", is(TEST_DATA_PROVIDER)));
+//    }
+//
+//    @Test
+//    public void getMetamodelTreeTest() throws Exception {
+//        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/metamodel-tree"))
+//                .andExpect(status().isOk())
+//                .andExpect(content().contentType("application/json;charset=UTF-8"))
+//                .andExpect(jsonPath("$.level1.level2_1", hasSize(2)))
+//                .andExpect(jsonPath("$.level1.level2_1", containsInAnyOrder("value1", "value2")))
+//                .andExpect(jsonPath("$.level1.level2_2", contains("value3")));
+//    }
+//
+//    @Test
+//    public void getMetamodelFlatTest() throws Exception {
+//        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/metamodel-flat"))
+//                .andExpect(status().isOk())
+//                .andExpect(content().contentType("application/json;charset=UTF-8"))
+//                .andExpect(jsonPath("$.level1->level2_1", hasSize(2)))
+//                .andExpect(jsonPath("$.level1->level2_1", containsInAnyOrder("value1", "value2")))
+//                .andExpect(jsonPath("$.level1->level2_2", contains("value3")));
+//    }
+//
+//    @Test
+//    public void getAttributesWithFilterTest() throws Exception {
+//        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/attributes").param("filter", "vel2_2"))
+//                .andExpect(status().isOk())
+//                .andExpect(content().contentType("application/json;charset=UTF-8"))
+//                .andExpect(jsonPath("$", hasSize(1)))
+//                .andExpect(jsonPath("$.[0]", is("level1->level2_2")));
+//    }
+//
+//    @Test
+//    public void getTopAttributesTest() throws Exception {
+//        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/attributes").param("top", "true"))
+//                .andExpect(status().isOk())
+//                .andExpect(content().contentType("application/json;charset=UTF-8"))
+//                .andExpect(jsonPath("$", hasSize(1)))
+//                .andExpect(jsonPath("$.[0]", is("level1")));
+//    }
+//
+//    @Test
+//    public void getSubAttributesTest() throws Exception {
+//        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/level1/subattributes"))
+//                .andExpect(status().isOk())
+//                .andExpect(content().contentType("application/json;charset=UTF-8"))
+//                .andExpect(jsonPath("$", hasSize(2)))
+//                .andExpect(jsonPath("$.[0]", is("level2_2")))
+//                .andExpect(jsonPath("$.[1]", is("level2_1")));
+//    }
+//
+//    @Test
+//    public void getValuesSingleTest() throws Exception {
+//        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/level1->level2_2/values"))
+//                .andExpect(status().isOk())
+//                .andExpect(content().contentType("application/json;charset=UTF-8"))
+//                .andExpect(jsonPath("$", hasSize(1)))
+//                .andExpect(jsonPath("$.[0]", is("value3")));
+//    }
+//
+//    @Test
+//    public void getValuesMultipleTest() throws Exception {
+//        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/level1->level2_1/values"))
+//                .andExpect(status().isOk())
+//                .andExpect(content().contentType("application/json;charset=UTF-8"))
+//                .andExpect(jsonPath("$", hasSize(2)))
+//                .andExpect(jsonPath("$", containsInAnyOrder("value1", "value2")));
+//    }
+//
+//    @Test
+//    public void getValuesWithFilterTest() throws Exception {
+//        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/level1->level2_1/values").param("filter", "lue2"))
+//                .andExpect(status().isOk())
+//                .andExpect(content().contentType("application/json;charset=UTF-8"))
+//                .andExpect(jsonPath("$", hasSize(1)))
+//                .andExpect(jsonPath("$.[0]", is("value2")));
+//    }
+//
+//    @Test
+//    public void searchTest() throws Exception {
+//        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/search").param("query", "someQuery"))
+//                .andExpect(status().isOk())
+//                .andExpect(content().contentType("application/json;charset=UTF-8"))
+//                .andExpect(jsonPath("$", hasSize(1)))
+//                .andExpect(jsonPath("$.[0].fair.id", is(0)));
+//    }
+//
+//    @SuppressWarnings("unchecked")
+//    @Test
+//    public void fetchTest() throws Exception {
+//        mockMvc.perform(get(API_PREFIX + TEST_DATA_PROVIDER + "/fetch").param("id", "0"))
+//                .andExpect(status().isOk())
+//                .andExpect(content().contentType("application/json;charset=UTF-8"))
+//                .andExpect(jsonPath("$.fair.id", is(0)));
+//    }
 
 //    @Before
 //    public void setUp() {
