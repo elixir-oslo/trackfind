@@ -1,9 +1,6 @@
 package no.uio.ifi.trackfind.backend.dao;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -14,15 +11,21 @@ import java.io.Serializable;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@RequiredArgsConstructor
 @EqualsAndHashCode(of = {"repository", "hub"})
 public class Hub implements Serializable {
 
+    @NonNull
     @Id
     @Column(name = "repository", nullable = false)
     private String repository;
 
+    @NonNull
     @Id
     @Column(name = "hub", nullable = false)
     private String hub;
+
+    @Column(name = "id_attribute", nullable = false)
+    private String idAttribute;
 
 }

@@ -3,7 +3,9 @@ package no.uio.ifi.trackfind.frontend;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Title;
 import com.vaadin.annotations.Widgetset;
+import com.vaadin.data.HasValue;
 import com.vaadin.data.provider.Query;
+import com.vaadin.event.selection.MultiSelectionListener;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.spring.annotation.SpringUI;
 import com.vaadin.ui.*;
@@ -31,6 +33,9 @@ public class TrackFindHubsUI extends AbstractUI {
 
     private ComboBox<Hub> comboBox;
     private ListSelect<Hub> listSelect;
+    private Button add;
+    private Button remove;
+    private TextField idAttribute;
 
     @Override
     protected void init(VaadinRequest vaadinRequest) {
@@ -45,6 +50,7 @@ public class TrackFindHubsUI extends AbstractUI {
 
     private VerticalLayout buildAvailableHubsLayout() {
         VerticalLayout hubsLayout = new VerticalLayout();
+        hubsLayout.setSizeFull();
         comboBox = new ComboBox<>("Available hubs");
         comboBox.setWidth(100, Unit.PERCENTAGE);
         Collection<Hub> allTrackHubs = trackFindService.getAllTrackHubs();
@@ -52,16 +58,24 @@ public class TrackFindHubsUI extends AbstractUI {
         allTrackHubs.removeAll(activeTrackHubs);
         comboBox.setItems(allTrackHubs);
         comboBox.setItemCaptionGenerator(h -> h.getRepository() + ": " + h.getHub());
+        comboBox.addValueChangeListener((HasValue.ValueChangeListener<Hub>) event -> add.setEnabled(!idAttribute.getValue().isEmpty() && comboBox.getSelectedItem().isPresent()));
+        idAttribute = new TextField("Internal ID attribute (mandatory)");
+        idAttribute.setWidth(100, Unit.PERCENTAGE);
+        idAttribute.addValueChangeListener((HasValue.ValueChangeListener<String>) event -> add.setEnabled(!idAttribute.getValue().isEmpty() && comboBox.getSelectedItem().isPresent()));
         Panel panel = new Panel("Hub selection", comboBox);
-        hubsLayout.addComponentsAndExpand(panel);
+        panel.setSizeFull();
+        hubsLayout.addComponents(panel, idAttribute);
+        hubsLayout.setExpandRatio(panel, 1f);
         return hubsLayout;
     }
 
     private VerticalLayout buildButtonsLayout() {
         VerticalLayout verticalLayout = new VerticalLayout();
-        Button add = new Button("Activate →");
+        add = new Button("Activate →");
+        add.setEnabled(false);
         add.setWidth(100, Unit.PERCENTAGE);
         add.addClickListener((Button.ClickListener) event -> comboBox.getSelectedItem().ifPresent(hub -> {
+            hub.setIdAttribute(idAttribute.getValue());
             trackFindService.activateHubs(Collections.singleton(hub));
             listSelect.setItems(trackFindService.getActiveTrackHubs());
             listSelect.getDataProvider().refreshAll();
@@ -71,7 +85,8 @@ public class TrackFindHubsUI extends AbstractUI {
             comboBox.setItems(availableHubs);
             comboBox.getDataProvider().refreshAll();
         }));
-        Button remove = new Button("Deactivate ←");
+        remove = new Button("Deactivate ←");
+        remove.setEnabled(false);
         remove.addClickListener((Button.ClickListener) event -> {
             Set<Hub> activeHubs = listSelect.getSelectedItems();
             trackFindService.deactivateHubs(activeHubs);
@@ -94,6 +109,7 @@ public class TrackFindHubsUI extends AbstractUI {
         listSelect.setHeight(100, Unit.PERCENTAGE);
         listSelect.setItems(trackFindService.getActiveTrackHubs());
         listSelect.setItemCaptionGenerator(h -> h.getRepository() + ": " + h.getHub());
+        listSelect.addSelectionListener((MultiSelectionListener<Hub>) event -> remove.setEnabled(!listSelect.getSelectedItems().isEmpty()));
         Panel panel = new Panel("Hub selection", listSelect);
         hubsLayout.addComponentsAndExpand(panel);
         return hubsLayout;
