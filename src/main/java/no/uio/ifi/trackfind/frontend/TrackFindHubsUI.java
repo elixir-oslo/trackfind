@@ -3,14 +3,17 @@ package no.uio.ifi.trackfind.frontend;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Title;
 import com.vaadin.annotations.Widgetset;
+import com.vaadin.data.provider.Query;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.spring.annotation.SpringUI;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Panel;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.*;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.dao.Hub;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Hubs Vaadin UI of the application.
@@ -26,39 +29,81 @@ import no.uio.ifi.trackfind.backend.dao.Hub;
 @Slf4j
 public class TrackFindHubsUI extends AbstractUI {
 
+    private ComboBox<Hub> comboBox;
+    private ListSelect<Hub> listSelect;
+
     @Override
     protected void init(VaadinRequest vaadinRequest) {
         HorizontalLayout headerLayout = buildHeaderLayout();
-        VerticalLayout treeLayout = buildHubsLayout();
-        VerticalLayout attributesMappingOuterLayout = new VerticalLayout();
-        HorizontalLayout mainLayout = buildMainLayout(treeLayout, attributesMappingOuterLayout);
+        VerticalLayout availableHubsLayout = buildAvailableHubsLayout();
+        VerticalLayout activeHubsLayout = buildActiveHubsLayout();
+        HorizontalLayout mainLayout = buildMainLayout(availableHubsLayout, buildButtonsLayout(), activeHubsLayout);
         HorizontalLayout footerLayout = buildFooterLayout();
         VerticalLayout outerLayout = buildOuterLayout(headerLayout, mainLayout, footerLayout);
         setContent(outerLayout);
     }
 
-    private VerticalLayout buildHubsLayout() {
+    private VerticalLayout buildAvailableHubsLayout() {
         VerticalLayout hubsLayout = new VerticalLayout();
-        ComboBox<Hub> comboBox = new ComboBox<>("Hubs");
+        comboBox = new ComboBox<>("Available hubs");
         comboBox.setWidth(100, Unit.PERCENTAGE);
-        comboBox.setItems(trackFindService.getAllTrackHubs());
+        Collection<Hub> allTrackHubs = trackFindService.getAllTrackHubs();
+        Collection<Hub> activeTrackHubs = trackFindService.getActiveTrackHubs();
+        allTrackHubs.removeAll(activeTrackHubs);
+        comboBox.setItems(allTrackHubs);
         comboBox.setItemCaptionGenerator(h -> h.getRepository() + ": " + h.getHub());
         Panel panel = new Panel("Hub selection", comboBox);
         hubsLayout.addComponentsAndExpand(panel);
-//        comboBox.addValueChangeListener(event -> {
-//            if (event.getSource().isEmpty()) {
-//                message.setText("No browser selected");
-//            } else {
-//                message.setText("Selected browser: " + event.getValue());
-//            }
-//        });
         return hubsLayout;
     }
 
-    private HorizontalLayout buildMainLayout(VerticalLayout leftLayout, VerticalLayout rightLayout) {
-        HorizontalLayout mainLayout = new HorizontalLayout(leftLayout, rightLayout);
+    private VerticalLayout buildButtonsLayout() {
+        VerticalLayout verticalLayout = new VerticalLayout();
+        Button add = new Button("Activate →");
+        add.setWidth(100, Unit.PERCENTAGE);
+        add.addClickListener((Button.ClickListener) event -> comboBox.getSelectedItem().ifPresent(hub -> {
+            trackFindService.activateHubs(Collections.singleton(hub));
+            listSelect.setItems(trackFindService.getActiveTrackHubs());
+            listSelect.getDataProvider().refreshAll();
+            Set<Hub> availableHubs = comboBox.getDataProvider().fetch(new Query<>()).collect(Collectors.toSet());
+            availableHubs.remove(hub);
+            comboBox.clear();
+            comboBox.setItems(availableHubs);
+            comboBox.getDataProvider().refreshAll();
+        }));
+        Button remove = new Button("Deactivate ←");
+        remove.addClickListener((Button.ClickListener) event -> {
+            Set<Hub> activeHubs = listSelect.getSelectedItems();
+            trackFindService.deactivateHubs(activeHubs);
+            listSelect.setItems(trackFindService.getActiveTrackHubs());
+            listSelect.getDataProvider().refreshAll();
+            Set<Hub> availableHubs = comboBox.getDataProvider().fetch(new Query<>()).collect(Collectors.toSet());
+            availableHubs.addAll(activeHubs);
+            comboBox.setItems(availableHubs);
+            comboBox.getDataProvider().refreshAll();
+        });
+        remove.setWidth(100, Unit.PERCENTAGE);
+        verticalLayout.addComponents(add, remove);
+        return verticalLayout;
+    }
+
+    private VerticalLayout buildActiveHubsLayout() {
+        VerticalLayout hubsLayout = new VerticalLayout();
+        listSelect = new ListSelect<>();
+        listSelect.setWidth(100, Unit.PERCENTAGE);
+        listSelect.setHeight(100, Unit.PERCENTAGE);
+        listSelect.setItems(trackFindService.getActiveTrackHubs());
+        listSelect.setItemCaptionGenerator(h -> h.getRepository() + ": " + h.getHub());
+        Panel panel = new Panel("Hub selection", listSelect);
+        hubsLayout.addComponentsAndExpand(panel);
+        return hubsLayout;
+    }
+
+    private HorizontalLayout buildMainLayout(VerticalLayout leftLayout, VerticalLayout middleLayout, VerticalLayout rightLayout) {
+        HorizontalLayout mainLayout = new HorizontalLayout(leftLayout, middleLayout, rightLayout);
         mainLayout.setExpandRatio(leftLayout, 0.33f);
-        mainLayout.setExpandRatio(rightLayout, 0.66f);
+        mainLayout.setExpandRatio(middleLayout, 0.33f);
+        mainLayout.setExpandRatio(rightLayout, 0.33f);
         mainLayout.setSizeFull();
         return mainLayout;
     }

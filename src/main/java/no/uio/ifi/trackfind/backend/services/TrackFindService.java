@@ -3,10 +3,13 @@ package no.uio.ifi.trackfind.backend.services;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.dao.Hub;
 import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
+import no.uio.ifi.trackfind.backend.repositories.HubRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.stream.Collectors;
 
 /**
@@ -19,6 +22,7 @@ import java.util.stream.Collectors;
 public class TrackFindService {
 
     private Collection<DataProvider> dataProviders;
+    private HubRepository hubRepository;
 
     /**
      * Get all registered DataProviders.
@@ -48,6 +52,24 @@ public class TrackFindService {
     }
 
     /**
+     * Activates hub.
+     *
+     * @param hubs Hubs to activate.
+     */
+    public void activateHubs(Collection<Hub> hubs) {
+        hubRepository.saveAll(hubs);
+    }
+
+    /**
+     * Deactivates hub.
+     *
+     * @param hubs Hubs to deactivate.
+     */
+    public void deactivateHubs(Collection<Hub> hubs) {
+        hubRepository.deleteAll(hubs);
+    }
+
+    /**
      * Gets DataProvider by name.
      *
      * @param dataProviderName DataProvider's name.
@@ -60,6 +82,11 @@ public class TrackFindService {
     @Autowired
     public void setDataProviders(Collection<DataProvider> dataProviders) {
         this.dataProviders = dataProviders;
+    }
+
+    @Autowired
+    public void setHubRepository(HubRepository hubRepository) {
+        this.hubRepository = hubRepository;
     }
 
 }
