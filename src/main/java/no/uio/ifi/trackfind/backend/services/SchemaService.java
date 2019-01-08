@@ -1,6 +1,7 @@
 package no.uio.ifi.trackfind.backend.services;
 
 import com.google.gson.Gson;
+import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
 import org.everit.json.schema.loader.SchemaLoader;
 import org.json.JSONObject;
@@ -17,32 +18,36 @@ import java.util.*;
  * Service for loading JSON schema and for validating JSON objects.
  */
 // TODO: cover with tests
+@Slf4j
 @Service
 public class SchemaService {
 
     private TrackFindProperties properties;
 
     private org.everit.json.schema.Schema schema;
-    private Map<String, Object> schemaMap;
     private Set<String> attributes;
 
     @Autowired
     @SuppressWarnings("unchecked")
-    public SchemaService(TrackFindProperties properties) throws IOException {
+    public SchemaService(TrackFindProperties properties) {
         this.properties = properties;
-        try (InputStreamReader inputStreamReader = new InputStreamReader(getClass().getResourceAsStream("/schema.json"))) {
-            this.schemaMap = new Gson().fromJson(inputStreamReader, Map.class);
-            attributes = new HashSet<>();
-            gatherAttributes((Map<String, Object>) ((Map) schemaMap.get("properties")).get(properties.getFairFieldName()));
+        try {
+            try (InputStreamReader inputStreamReader = new InputStreamReader(getClass().getResourceAsStream("/schema.json"))) {
+                Map<String, Object> schemaMap = new Gson().fromJson(inputStreamReader, Map.class);
+                attributes = new HashSet<>();
+                gatherAttributes((Map<String, Object>) ((Map) schemaMap.get("properties")).get(properties.getFairFieldName()));
+            }
+            try (InputStream inputStream = getClass().getResourceAsStream("/schema.json")) {
+                JSONObject rawSchema = new JSONObject(new JSONTokener(inputStream));
+                this.schema = SchemaLoader.load(rawSchema);
+            }
+            attributes = Collections.unmodifiableSet(attributes);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            throw new RuntimeException(e.getMessage(), e);
         }
-        try (InputStream inputStream = getClass().getResourceAsStream("/schema.json")) {
-            JSONObject rawSchema = new JSONObject(new JSONTokener(inputStream));
-            this.schema = SchemaLoader.load(rawSchema);
-        }
-        attributes = Collections.unmodifiableSet(attributes);
     }
 
-    @SuppressWarnings("unchecked")
     private void gatherAttributes(Map object) {
         String type = String.valueOf(object.get("type"));
         if ("object".equals(type)) {
