@@ -3,13 +3,13 @@ package no.uio.ifi.trackfind.backend.services;
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
+import org.apache.commons.collections.MapUtils;
 import org.everit.json.schema.loader.SchemaLoader;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.*;
@@ -34,8 +34,9 @@ public class SchemaService {
         try {
             try (InputStreamReader inputStreamReader = new InputStreamReader(getClass().getResourceAsStream("/schema.json"))) {
                 Map<String, Object> schemaMap = new Gson().fromJson(inputStreamReader, Map.class);
-                attributes = new HashSet<>();
-                gatherAttributes((Map<String, Object>) ((Map) schemaMap.get("properties")).get(properties.getFairFieldName()));
+                attributes = new TreeSet<>();
+                String fairFieldName = this.properties.getFairFieldName();
+                gatherAttributes(fairFieldName, MapUtils.getMap(MapUtils.getMap(schemaMap, "properties"), fairFieldName));
             }
             try (InputStream inputStream = getClass().getResourceAsStream("/schema.json")) {
                 JSONObject rawSchema = new JSONObject(new JSONTokener(inputStream));
@@ -48,19 +49,21 @@ public class SchemaService {
         }
     }
 
-    private void gatherAttributes(Map object) {
+    @SuppressWarnings("unchecked")
+    private void gatherAttributes(String path, Map object) {
         String type = String.valueOf(object.get("type"));
         if ("object".equals(type)) {
-            for (Object value : ((Map) object.get("properties")).values()) {
-                gatherAttributes((Map) value);
+            for (Object properties : MapUtils.getMap(object, "properties").entrySet()) {
+                Map.Entry<String, Map> entry = (Map.Entry<String, Map>) properties;
+                gatherAttributes(path + this.properties.getLevelsSeparator() + entry.getKey(), entry.getValue());
+            }
+        } else if ("array".equals(type)) {
+            for (Object properties : MapUtils.getMap(MapUtils.getMap(object, "items"), "properties").entrySet()) {
+                Map.Entry<String, Map> entry = (Map.Entry<String, Map>) properties;
+                gatherAttributes(path + this.properties.getLevelsSeparator() + entry.getKey(), entry.getValue());
             }
         } else {
-            String path = String.valueOf(object.get("$id"));
-            attributes.add(path
-                    .replace("#/", "")
-                    .replace("/", properties.getLevelsSeparator())
-                    .replace("properties" + properties.getLevelsSeparator(), "")
-                    .replace(properties.getFairFieldName() + properties.getLevelsSeparator(), ""));
+            attributes.add(path.replace(this.properties.getFairFieldName() + this.properties.getLevelsSeparator(), ""));
         }
     }
 
