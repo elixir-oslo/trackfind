@@ -3,7 +3,6 @@ package no.uio.ifi.trackfind.frontend.components;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Tree;
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import no.uio.ifi.trackfind.backend.dao.Hub;
 
 /**
@@ -12,11 +11,18 @@ import no.uio.ifi.trackfind.backend.dao.Hub;
  * @param <T> Type of Vaadin Tree entries.
  * @author Dmytro Titov
  */
-@Data
 @AllArgsConstructor
 public class TrackFindTree<T> extends Tree<T> {
 
     private Hub hub;
+
+    public Hub getHub() {
+        return hub;
+    }
+
+    public void setHub(Hub hub) {
+        this.hub = hub;
+    }
 
     /**
      * {@inheritDoc}
