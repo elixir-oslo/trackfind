@@ -203,7 +203,12 @@ public abstract class AbstractDataProvider implements DataProvider {
                 standard.setRawVersion(source.getRawVersion());
                 standard.setCuratedVersion(source.getCuratedVersion());
                 standard.setStandardVersion(0L);
-                standardRepository.findByIdLatest(standard.getId()).ifPresent(s -> standard.setStandardVersion(s.getStandardVersion() + 1));
+                Optional<Standard> standardLatest = standardRepository.findByIdLatest(standard.getId());
+                if (standardLatest.isPresent()) {
+                    standard.setStandardVersion(standardLatest.get().getStandardVersion() + 1);
+                } else {
+                    standard.setStandardVersion(1L);
+                }
                 standards.add(standard);
             }
             standardRepository.saveAll(standards);
