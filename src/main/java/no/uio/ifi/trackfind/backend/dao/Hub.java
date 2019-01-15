@@ -13,6 +13,7 @@ import java.io.Serializable;
 @NoArgsConstructor
 @RequiredArgsConstructor
 @EqualsAndHashCode(of = {"repository", "hub"})
+@ToString
 public class Hub implements Serializable {
 
     @NonNull

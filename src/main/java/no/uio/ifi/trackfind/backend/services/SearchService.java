@@ -19,6 +19,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+/**
+ * Service to perform JSONB-oriented search for datasets in the database.
+ */
 @Slf4j
 @Service
 public class SearchService {
@@ -39,6 +42,14 @@ public class SearchService {
         connection = DriverManager.getConnection(jdbcUrl, "search", "search");
     }
 
+    /**
+     * Searches for datasets using provided query.
+     *
+     * @param hub   Hub to search in.
+     * @param query Query.
+     * @param limit Limit. 0 for unlimited.
+     * @return Found datasets.
+     */
     public Collection<Dataset> search(Hub hub, String query, int limit) {
         try {
             String repositoryName = hub.getRepository();

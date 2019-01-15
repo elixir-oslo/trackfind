@@ -4,15 +4,13 @@ import alexh.weak.Dynamic;
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
-import no.uio.ifi.trackfind.backend.dao.Hub;
-import no.uio.ifi.trackfind.backend.dao.Mapping;
-import no.uio.ifi.trackfind.backend.dao.Source;
-import no.uio.ifi.trackfind.backend.dao.Standard;
+import no.uio.ifi.trackfind.backend.dao.*;
 import no.uio.ifi.trackfind.backend.events.DataReloadEvent;
 import no.uio.ifi.trackfind.backend.operations.Operation;
 import no.uio.ifi.trackfind.backend.repositories.*;
 import no.uio.ifi.trackfind.backend.scripting.ScriptingEngine;
 import no.uio.ifi.trackfind.backend.services.CacheService;
+import no.uio.ifi.trackfind.backend.services.SearchService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
@@ -36,6 +34,7 @@ public abstract class AbstractDataProvider implements DataProvider {
     protected TrackFindProperties properties;
     protected ApplicationEventPublisher applicationEventPublisher;
     protected CacheService cacheService;
+    protected SearchService searchService;
     protected JdbcTemplate jdbcTemplate;
     protected HubRepository hubRepository;
     protected SourceRepository sourceRepository;
@@ -110,15 +109,38 @@ public abstract class AbstractDataProvider implements DataProvider {
      * @param datasets Datasets to save.
      */
     protected void save(String hubName, Collection<Map> datasets) {
-        sourceRepository.saveAll(datasets.parallelStream().map(map -> {
-            Source source = new Source();
-            source.setRepository(getName());
-            source.setHub(hubName);
-            source.setContent(gson.toJson(map));
-            source.setRawVersion(0L);           // TODO: set proper version
-            source.setCuratedVersion(0L);       // TODO: set proper version
-            return source;
-        }).collect(Collectors.toList()));
+        Hub hub = hubRepository.getOne(new HubId(getName(), hubName));
+        String idAttribute = hub.getIdAttribute();
+        Collection<Source> sourcesToSave = new ArrayList<>();
+        for (Map dataset : datasets) {
+            Optional optionalId = Dynamic.from(dataset).get(idAttribute.replace("'", ""), properties.getLevelsSeparator()).asOptional();
+            if (optionalId.isPresent()) {
+                String id = String.valueOf(optionalId.get());
+                Collection<Dataset> foundDatasets = searchService.search(hub,
+                        String.format("curated_content%s%s ? '%s'", properties.getLevelsSeparator(), idAttribute, id), 0);
+                int size = CollectionUtils.size(foundDatasets);
+                if (size > 1) {
+                    log.error("Skipping dataset: found more than one latest dataset with ID {} by attribute {} for Hub {}", id, idAttribute, hub);
+                    continue;
+                }
+                Source source = new Source();
+                source.setRepository(getName());
+                source.setHub(hubName);
+                source.setContent(gson.toJson(dataset));
+                source.setRawVersion(0L);
+                source.setCuratedVersion(0L);
+                sourcesToSave.add(source);
+                if (size == 1) {
+                    Dataset foundDataset = foundDatasets.iterator().next();
+                    long rawVersion = Long.parseLong(foundDataset.getVersion().split(":")[0]);
+                    source.setId(foundDataset.getId());
+                    source.setRawVersion(rawVersion + 1);
+                }
+            } else {
+                log.error("Skipping dataset: ID field not found for Hub {} in entry {}", hub, dataset);
+            }
+        }
+        sourceRepository.saveAll(sourcesToSave);
     }
 
     /**
@@ -206,6 +228,11 @@ public abstract class AbstractDataProvider implements DataProvider {
     @Autowired
     public void setCacheService(CacheService cacheService) {
         this.cacheService = cacheService;
+    }
+
+    @Autowired
+    public void setSearchService(SearchService searchService) {
+        this.searchService = searchService;
     }
 
     @Autowired

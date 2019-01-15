@@ -25,3 +25,4 @@ indices
 target
 out
 *.gz
+*.tmp
