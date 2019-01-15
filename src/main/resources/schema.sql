@@ -57,27 +57,28 @@ SELECT sub_query.id,
        sub_query.curated_version,
        sub_query.standard_version,
        sub_query.version
-FROM (SELECT source.id                                                                                            AS id,
-             source.repository                                                                                    AS repository,
-             source.hub                                                                                           AS hub,
-             source.content                                                                                       AS curated_content,
-             standard.content                                                                                     AS standard_content,
+FROM (SELECT source.id                                                                     AS id,
+             source.repository                                                             AS repository,
+             source.hub                                                                    AS hub,
+             source.content                                                                AS curated_content,
+             standard.content                                                              AS standard_content,
              source.content || JSONB_BUILD_OBJECT('fair',
-                                                  COALESCE(standard.content, '{}'::jsonb))                        AS fair_content,
-             source.raw_version                                                                                   AS raw_version,
-             source.curated_version                                                                               AS curated_version,
-             COALESCE(standard.standard_version, 0)                                                               AS standard_version,
+                                                  COALESCE(standard.content, '{}'::jsonb)) AS fair_content,
+             source.raw_version                                                            AS raw_version,
+             source.curated_version                                                        AS curated_version,
+             COALESCE(standard.standard_version, 0)                                        AS standard_version,
              CONCAT(source.raw_version, ':', source.curated_version, ':',
-                    COALESCE(standard.standard_version, 0))                                                       AS version
+                    COALESCE(standard.standard_version, 0))                                AS version
       FROM source
-             LEFT JOIN standard on source.id = standard.id) AS sub_query
+             LEFT JOIN standard ON source.id = standard.id AND source.raw_version = standard.raw_version AND
+                                   source.curated_version = standard.curated_version) AS sub_query
   WITH DATA;
 
 CREATE INDEX IF NOT EXISTS datasets_index
   ON datasets (id, repository, hub, raw_version, curated_version, standard_version, version);
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS latest_datasets AS
-  WITH max_raw_versions AS (SELECT id as id, MAX(raw_version) as max_version
+  WITH max_raw_versions AS (SELECT id, MAX(raw_version) as max_version
                             FROM datasets
                             GROUP BY id),
     filtered_by_raw AS (SELECT datasets.*
@@ -85,7 +86,7 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS latest_datasets AS
                                INNER JOIN max_raw_versions
                                           ON datasets.id = max_raw_versions.id AND
                                              datasets.raw_version = max_raw_versions.max_version),
-    max_curated_versions AS (SELECT id as id, MAX(curated_version) as max_version
+    max_curated_versions AS (SELECT id, MAX(curated_version) as max_version
                              FROM filtered_by_raw
                              GROUP BY id),
     filtered_by_curated AS (SELECT filtered_by_raw.*
@@ -93,7 +94,7 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS latest_datasets AS
                                    INNER JOIN max_curated_versions
                                               ON filtered_by_raw.id = max_curated_versions.id AND
                                                  filtered_by_raw.curated_version = max_curated_versions.max_version),
-    max_standard_versions AS (SELECT id as id, MAX(standard_version) as max_version
+    max_standard_versions AS (SELECT id, MAX(standard_version) as max_version
                               FROM filtered_by_curated
                               GROUP BY id),
     filtered_by_standard AS (SELECT filtered_by_curated.*

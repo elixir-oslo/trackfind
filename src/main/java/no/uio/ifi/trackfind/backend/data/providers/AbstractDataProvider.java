@@ -127,7 +127,7 @@ public abstract class AbstractDataProvider implements DataProvider {
                 source.setRepository(getName());
                 source.setHub(hubName);
                 source.setContent(gson.toJson(dataset));
-                source.setRawVersion(0L);
+                source.setRawVersion(1L);
                 source.setCuratedVersion(0L);
                 sourcesToSave.add(source);
                 if (size == 1) {
@@ -203,7 +203,10 @@ public abstract class AbstractDataProvider implements DataProvider {
                 standard.setRawVersion(source.getRawVersion());
                 standard.setCuratedVersion(source.getCuratedVersion());
                 standard.setStandardVersion(0L);
-                Optional<Standard> standardLatest = standardRepository.findByIdLatest(standard.getId());
+                Optional<Standard> standardLatest =
+                        standardRepository.findByIdAndRawVersionAndCuratedVersionLatest(standard.getId(),
+                                standard.getRawVersion(),
+                                standard.getCuratedVersion());
                 if (standardLatest.isPresent()) {
                     standard.setStandardVersion(standardLatest.get().getStandardVersion() + 1);
                 } else {

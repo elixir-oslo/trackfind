@@ -14,10 +14,12 @@ public interface StandardRepository extends JpaRepository<Standard, StandardId> 
 
     @Query(value = "SELECT *\n" +
             "FROM standard\n" +
-            "WHERE id = :id\n" +
+            "WHERE id = :id AND raw_version = :raw_version AND curated_version = :curated_version\n" +
             "ORDER BY raw_version DESC, curated_version DESC, standard_version DESC\n" +
             "LIMIT 1",
             nativeQuery = true)
-    Optional<Standard> findByIdLatest(@Param("id") Long id);
+    Optional<Standard> findByIdAndRawVersionAndCuratedVersionLatest(@Param("id") Long id,
+                                                                    @Param("raw_version") Long rawVersion,
+                                                                    @Param("curated_version") Long curatedVersion);
 
 }
