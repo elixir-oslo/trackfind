@@ -113,6 +113,13 @@ public abstract class AbstractDataProvider implements DataProvider {
         String idAttribute = hub.getIdAttribute();
         Collection<Source> sourcesToSave = new ArrayList<>();
         for (Map dataset : datasets) {
+            Source source = new Source();
+            source.setRepository(getName());
+            source.setHub(hubName);
+            source.setContent(gson.toJson(dataset));
+            source.setRawVersion(1L);
+            source.setCuratedVersion(0L);
+            sourcesToSave.add(source);
             Optional optionalId = Dynamic.from(dataset).get(idAttribute.replace("'", ""), properties.getLevelsSeparator()).asOptional();
             if (optionalId.isPresent()) {
                 String id = String.valueOf(optionalId.get());
@@ -123,13 +130,6 @@ public abstract class AbstractDataProvider implements DataProvider {
                     log.error("Skipping dataset: found more than one latest dataset with ID {} by attribute {} for Hub {}", id, idAttribute, hub);
                     continue;
                 }
-                Source source = new Source();
-                source.setRepository(getName());
-                source.setHub(hubName);
-                source.setContent(gson.toJson(dataset));
-                source.setRawVersion(1L);
-                source.setCuratedVersion(0L);
-                sourcesToSave.add(source);
                 if (size == 1) {
                     Dataset foundDataset = foundDatasets.iterator().next();
                     long rawVersion = Long.parseLong(foundDataset.getVersion().split(":")[0]);
@@ -137,7 +137,7 @@ public abstract class AbstractDataProvider implements DataProvider {
                     source.setRawVersion(rawVersion + 1);
                 }
             } else {
-                log.error("Skipping dataset: ID field not found for Hub {} in entry {}", hub, dataset);
+                log.error("ID field not found for Hub {} in entry {}", hub, dataset);
             }
         }
         sourceRepository.saveAll(sourcesToSave);
