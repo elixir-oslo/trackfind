@@ -1,4 +1,4 @@
-version: "3"
+version: "3.7"
 
 services:
 
@@ -22,6 +22,7 @@ services:
 
   trackfind:
     image: nels/trackfind:latest
+    init: true
     ports:
     - "80:8888"
     depends_on:
