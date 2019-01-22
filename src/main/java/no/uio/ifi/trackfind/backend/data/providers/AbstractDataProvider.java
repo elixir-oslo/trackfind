@@ -120,24 +120,26 @@ public abstract class AbstractDataProvider implements DataProvider {
             source.setRawVersion(1L);
             source.setCuratedVersion(0L);
             sourcesToSave.add(source);
-            Optional optionalId = Dynamic.from(dataset).get(idAttribute.replace("'", ""), properties.getLevelsSeparator()).asOptional();
-            if (optionalId.isPresent()) {
-                String id = String.valueOf(optionalId.get());
-                Collection<Dataset> foundDatasets = searchService.search(hub,
-                        String.format("curated_content%s%s ? '%s'", properties.getLevelsSeparator(), idAttribute, id), 0);
-                int size = CollectionUtils.size(foundDatasets);
-                if (size > 1) {
-                    log.error("Skipping dataset: found more than one latest dataset with ID {} by attribute {} for Hub {}", id, idAttribute, hub);
-                    continue;
+            if (idAttribute != null) {
+                Optional optionalId = Dynamic.from(dataset).get(idAttribute.replace("'", ""), properties.getLevelsSeparator()).asOptional();
+                if (optionalId.isPresent()) {
+                    String id = String.valueOf(optionalId.get());
+                    Collection<Dataset> foundDatasets = searchService.search(hub,
+                            String.format("curated_content%s%s ? '%s'", properties.getLevelsSeparator(), idAttribute, id), 0);
+                    int size = CollectionUtils.size(foundDatasets);
+                    if (size > 1) {
+                        log.error("Skipping dataset: found more than one latest dataset with ID {} by attribute {} for Hub {}", id, idAttribute, hub);
+                        continue;
+                    }
+                    if (size == 1) {
+                        Dataset foundDataset = foundDatasets.iterator().next();
+                        long rawVersion = Long.parseLong(foundDataset.getVersion().split(":")[0]);
+                        source.setId(foundDataset.getId());
+                        source.setRawVersion(rawVersion + 1);
+                    }
+                } else {
+                    log.error("ID field not found for Hub {} in entry {}", hub, dataset);
                 }
-                if (size == 1) {
-                    Dataset foundDataset = foundDatasets.iterator().next();
-                    long rawVersion = Long.parseLong(foundDataset.getVersion().split(":")[0]);
-                    source.setId(foundDataset.getId());
-                    source.setRawVersion(rawVersion + 1);
-                }
-            } else {
-                log.error("ID field not found for Hub {} in entry {}", hub, dataset);
             }
         }
         sourceRepository.saveAll(sourcesToSave);
