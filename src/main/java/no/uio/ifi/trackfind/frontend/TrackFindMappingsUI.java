@@ -3,6 +3,7 @@ package no.uio.ifi.trackfind.frontend;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Title;
 import com.vaadin.annotations.Widgetset;
+import com.vaadin.data.HasValue;
 import com.vaadin.event.selection.SelectionListener;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.spring.annotation.SpringUI;
@@ -12,6 +13,7 @@ import no.uio.ifi.trackfind.backend.dao.Hub;
 import no.uio.ifi.trackfind.backend.dao.Mapping;
 import no.uio.ifi.trackfind.backend.data.TreeNode;
 import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
+import no.uio.ifi.trackfind.backend.repositories.HubRepository;
 import no.uio.ifi.trackfind.backend.repositories.MappingRepository;
 import no.uio.ifi.trackfind.frontend.components.TrackFindTree;
 import no.uio.ifi.trackfind.frontend.filters.TreeFilter;
@@ -41,12 +43,14 @@ import java.util.stream.Collectors;
 public class TrackFindMappingsUI extends AbstractUI {
 
     private MappingRepository mappingRepository;
+    private HubRepository hubRepository;
 
     private Button addStaticMappingButton;
     private VerticalLayout attributesMappingLayout;
 
     private Map<ComboBox<String>, TextField> attributesStaticMapping = new HashMap<>();
     private AceEditor script;
+    private TextField idAttribute;
 
     @Override
     protected void init(VaadinRequest vaadinRequest) {
@@ -168,10 +172,12 @@ public class TrackFindMappingsUI extends AbstractUI {
                         dataProvider.applyMappings(currentHub.getHub());
                     }
                 }));
+        idAttribute = new TextField("Internal ID attribute (mandatory)");
+        idAttribute.setWidth(100, Unit.PERCENTAGE);
         HorizontalLayout buttonsLayout = new HorizontalLayout(saveButton, crawlButton, applyMappingsButton);
         buttonsLayout.setWidth(100, Unit.PERCENTAGE);
         buttonsLayout.setEnabled(!properties.isDemoMode());
-        VerticalLayout attributesMappingOuterLayout = new VerticalLayout(attributesMappingPanel, buttonsLayout);
+        VerticalLayout attributesMappingOuterLayout = new VerticalLayout(attributesMappingPanel, idAttribute, buttonsLayout);
         attributesMappingOuterLayout.setSizeFull();
         attributesMappingOuterLayout.setExpandRatio(attributesMappingPanel, 0.8f);
         return attributesMappingOuterLayout;
@@ -227,6 +233,7 @@ public class TrackFindMappingsUI extends AbstractUI {
         }
         script.clear();
         mappings.stream().filter(m -> !m.isStaticMapping()).findAny().ifPresent(m -> script.setValue(m.getFrom()));
+        idAttribute.setValue(Optional.ofNullable(currentHub.getIdAttribute()).orElse(""));
     }
 
     private void addStaticMappingPair(String basicAttribute, String sourceAttribute) {
@@ -259,12 +266,19 @@ public class TrackFindMappingsUI extends AbstractUI {
             mappings.add(mapping);
         });
         mappingRepository.saveAll(mappings);
+        currentHub.setIdAttribute(idAttribute.getValue());
+        hubRepository.save(currentHub);
         Notification.show("Mappings saved. Press \"Apply\" for changes to take effect.");
     }
 
     @Autowired
     public void setMappingRepository(MappingRepository mappingRepository) {
         this.mappingRepository = mappingRepository;
+    }
+
+    @Autowired
+    public void setHubRepository(HubRepository hubRepository) {
+        this.hubRepository = hubRepository;
     }
 
 }

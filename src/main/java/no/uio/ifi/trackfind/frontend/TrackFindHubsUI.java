@@ -35,7 +35,6 @@ public class TrackFindHubsUI extends AbstractUI {
     private ListSelect<Hub> listSelect;
     private Button add;
     private Button remove;
-    private TextField idAttribute;
 
     @Override
     protected void init(VaadinRequest vaadinRequest) {
@@ -58,13 +57,10 @@ public class TrackFindHubsUI extends AbstractUI {
         allTrackHubs.removeAll(activeTrackHubs);
         comboBox.setItems(allTrackHubs);
         comboBox.setItemCaptionGenerator(h -> h.getRepository() + ": " + h.getHub());
-        comboBox.addValueChangeListener((HasValue.ValueChangeListener<Hub>) event -> add.setEnabled(!idAttribute.getValue().isEmpty() && comboBox.getSelectedItem().isPresent()));
-        idAttribute = new TextField("Internal ID attribute (mandatory)");
-        idAttribute.setWidth(100, Unit.PERCENTAGE);
-        idAttribute.addValueChangeListener((HasValue.ValueChangeListener<String>) event -> add.setEnabled(!idAttribute.getValue().isEmpty() && comboBox.getSelectedItem().isPresent()));
+        comboBox.addValueChangeListener((HasValue.ValueChangeListener<Hub>) event -> add.setEnabled(comboBox.getSelectedItem().isPresent()));
         Panel panel = new Panel("Hub selection", comboBox);
         panel.setSizeFull();
-        hubsLayout.addComponents(panel, idAttribute);
+        hubsLayout.addComponents(panel);
         hubsLayout.setExpandRatio(panel, 1f);
         return hubsLayout;
     }
@@ -75,7 +71,6 @@ public class TrackFindHubsUI extends AbstractUI {
         add.setEnabled(false);
         add.setWidth(100, Unit.PERCENTAGE);
         add.addClickListener((Button.ClickListener) event -> comboBox.getSelectedItem().ifPresent(hub -> {
-            hub.setIdAttribute(idAttribute.getValue());
             trackFindService.activateHubs(Collections.singleton(hub));
             listSelect.setItems(trackFindService.getActiveTrackHubs());
             listSelect.getDataProvider().refreshAll();

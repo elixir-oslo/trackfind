@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS hubs
 (
   repository   VARCHAR(255) NOT NULl,
   hub          VARCHAR(255) NOT NULl,
-  id_attribute VARCHAR(255) NOT NULl,
+  id_attribute VARCHAR(255),
   PRIMARY KEY (repository, hub)
 );
 
