@@ -73,7 +73,7 @@ public abstract class AbstractUI extends UI {
 
     @SuppressWarnings("unchecked")
     protected TextField createFilter(boolean attributes) {
-        TextField attributesFilterTextField = new TextField("Filter attributes", (HasValue.ValueChangeListener<String>) event -> {
+        TextField attributesFilterTextField = new TextField(attributes ? "Filter attributes" : "Filter values", (HasValue.ValueChangeListener<String>) event -> {
             TrackFindTree<TreeNode> currentTree = getCurrentTree();
             TreeFilter filter = (TreeFilter) ((TreeGrid<TreeNode>) currentTree.getCompositionRoot()).getFilter();
             if (attributes) {
