@@ -7,8 +7,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.function.Function;
 
 /**
@@ -19,7 +17,6 @@ import java.util.function.Function;
 public class GSuiteService implements Function<Collection<Dataset>, String> {
 
     private RestTemplate restTemplate;
-    private SchemaService schemaService;
 
     /**
      * Convert datasets to GSuite.
@@ -30,21 +27,13 @@ public class GSuiteService implements Function<Collection<Dataset>, String> {
     @SuppressWarnings("unchecked")
     @Override
     public String apply(Collection<Dataset> datasets) {
-        Map<String, Object> body = new HashMap<>();
-        body.put("attributes", schemaService.getAttributes());
-        body.put("datasets", datasets);
-        HttpEntity<Map<String, Object>> request = new HttpEntity<>(body);
+        HttpEntity<Collection<Dataset>> request = new HttpEntity<>(datasets);
         return restTemplate.postForObject("http://gsuite/togsuite", request, String.class);
     }
 
     @Autowired
     public void setRestTemplate(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
-    }
-
-    @Autowired
-    public void setSchemaService(SchemaService schemaService) {
-        this.schemaService = schemaService;
     }
 
 }
