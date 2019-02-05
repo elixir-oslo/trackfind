@@ -13,12 +13,8 @@ services:
 
   gsuite:
     image: nels/rest_gsuite:latest
-    deploy:
-      restart_policy:
-        condition: on-failure
-        delay: 10s
-        max_attempts: 3
-        window: 120s
+    ports:
+    - "8080:5000"    
 
   trackfind:
     image: nels/trackfind:latest
@@ -27,12 +23,6 @@ services:
     - "80:8888"
     depends_on:
     - db
-    deploy:
-      restart_policy:
-        condition: on-failure
-        delay: 10s
-        max_attempts: 3
-        window: 120s
     environment:
     - DB_INSTANCE=db
     - POSTGRES_DB=trackfind
