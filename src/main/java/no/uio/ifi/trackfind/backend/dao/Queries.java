@@ -7,8 +7,10 @@ public interface Queries {
             "REFRESH MATERIALIZED VIEW latest_datasets;" +
             "REFRESH MATERIALIZED VIEW source_metamodel;" +
             "REFRESH MATERIALIZED VIEW standard_metamodel;" +
+            "REFRESH MATERIALIZED VIEW fair_metamodel;" +
             "REFRESH MATERIALIZED VIEW source_array_of_objects;" +
             "REFRESH MATERIALIZED VIEW standard_array_of_objects;" +
+            "REFRESH MATERIALIZED VIEW fair_array_of_objects;" +
             "";
 
     String CHECK_SEARCH_USER_EXISTS = "SELECT count(*) FROM pg_catalog.pg_roles WHERE rolname = 'search'";

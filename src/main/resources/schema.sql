@@ -241,6 +241,63 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS standard_metamodel AS
     WHERE collect_metadata.type NOT IN ('object', 'array')
   WITH DATA;
 
+CREATE MATERIALIZED VIEW IF NOT EXISTS fair_metamodel AS
+  WITH RECURSIVE collect_metadata AS (SELECT latest_datasets.repository,
+                                             latest_datasets.hub,
+                                             first_level.key,
+                                             first_level.value,
+                                             jsonb_typeof(first_level.value) AS type
+                                      FROM latest_datasets,
+                                           jsonb_each(latest_datasets.fair_content) first_level
+
+                                      UNION ALL
+
+                                      (WITH prev_level AS (
+                                        SELECT *
+                                        FROM collect_metadata
+                                        )
+                                        SELECT prev_level.repository,
+                                               prev_level.hub,
+                                               concat(prev_level.key, '->', current_level.key),
+                                               current_level.value,
+                                               jsonb_typeof(current_level.value) AS type
+                                        FROM prev_level,
+                                             jsonb_each(prev_level.value) AS current_level
+                                        WHERE prev_level.type = 'object'
+
+                                        UNION ALL
+
+                                        SELECT prev_level.repository,
+                                               prev_level.hub,
+                                               concat(prev_level.key, '->', current_level.key),
+                                               current_level.value,
+                                               jsonb_typeof(current_level.value) AS type
+                                        FROM prev_level,
+                                             jsonb_array_elements(prev_level.value) AS entry,
+                                             jsonb_each(entry) AS current_level
+                                        WHERE prev_level.type = 'array'
+                                          AND jsonb_typeof(entry) = 'object'
+
+                                        UNION ALL
+
+                                        SELECT prev_level.repository,
+                                               prev_level.hub,
+                                               prev_level.key,
+                                               entry,
+                                               jsonb_typeof(entry) AS type
+                                        FROM prev_level,
+                                             jsonb_array_elements(prev_level.value) AS entry
+                                        WHERE prev_level.type = 'array'
+                                          AND jsonb_typeof(entry) <> 'object'))
+    SELECT DISTINCT repository,
+                    hub,
+                    key                                                 AS attribute,
+                    array_to_json(ARRAY [collect_metadata.value]) ->> 0 AS value,
+                    type
+    FROM collect_metadata
+    WHERE collect_metadata.type NOT IN ('object', 'array')
+  WITH DATA;
+
 CREATE MATERIALIZED VIEW IF NOT EXISTS source_array_of_objects AS
   WITH RECURSIVE collect_metadata AS (SELECT latest_datasets.repository,
                                              latest_datasets.hub,
@@ -307,6 +364,63 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS standard_array_of_objects AS
                                              jsonb_typeof(first_level.value) AS type
                                       FROM latest_datasets,
                                            jsonb_each(latest_datasets.standard_content) first_level
+
+                                      UNION ALL
+
+                                      (WITH prev_level AS (
+                                        SELECT *
+                                        FROM collect_metadata
+                                        )
+                                        SELECT prev_level.repository,
+                                               prev_level.hub,
+                                               concat(prev_level.key, '->', current_level.key),
+                                               NULL                              AS prev_key,
+                                               current_level.value,
+                                               jsonb_typeof(current_level.value) AS type
+                                        FROM prev_level,
+                                             jsonb_each(prev_level.value) AS current_level
+                                        WHERE prev_level.type = 'object'
+
+                                        UNION ALL
+
+                                        SELECT prev_level.repository,
+                                               prev_level.hub,
+                                               concat(prev_level.key, '->', current_level.key),
+                                               prev_level.key                    AS prev_key,
+                                               current_level.value,
+                                               jsonb_typeof(current_level.value) AS type
+                                        FROM prev_level,
+                                             jsonb_array_elements(prev_level.value) AS entry,
+                                             jsonb_each(entry) AS current_level
+                                        WHERE prev_level.type = 'array'
+                                          AND jsonb_typeof(entry) = 'object'
+
+                                        UNION ALL
+
+                                        SELECT prev_level.repository,
+                                               prev_level.hub,
+                                               prev_level.key,
+                                               NULL                AS prev_key,
+                                               entry,
+                                               jsonb_typeof(entry) AS type
+                                        FROM prev_level,
+                                             jsonb_array_elements(prev_level.value) AS entry
+                                        WHERE prev_level.type = 'array'
+                                          AND jsonb_typeof(entry) <> 'object'))
+    SELECT DISTINCT repository, hub, prev_key AS attribute
+    FROM collect_metadata
+    WHERE prev_key IS NOT NULL
+  WITH DATA;
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS fair_array_of_objects AS
+  WITH RECURSIVE collect_metadata AS (SELECT latest_datasets.repository,
+                                             latest_datasets.hub,
+                                             first_level.key,
+                                             NULL                            AS prev_key,
+                                             first_level.value,
+                                             jsonb_typeof(first_level.value) AS type
+                                      FROM latest_datasets,
+                                           jsonb_each(latest_datasets.fair_content) first_level
 
                                       UNION ALL
 
