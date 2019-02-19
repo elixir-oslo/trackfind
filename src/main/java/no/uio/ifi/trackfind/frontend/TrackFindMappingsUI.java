@@ -172,7 +172,7 @@ public class TrackFindMappingsUI extends AbstractUI {
                         dataProvider.applyMappings(currentHub.getHub());
                     }
                 }));
-        idAttribute = new TextField("Internal ID attribute (mandatory)");
+        idAttribute = new TextField("Internal ID attribute");
         idAttribute.setWidth(100, Unit.PERCENTAGE);
         HorizontalLayout buttonsLayout = new HorizontalLayout(saveButton, crawlButton, applyMappingsButton);
         buttonsLayout.setWidth(100, Unit.PERCENTAGE);
