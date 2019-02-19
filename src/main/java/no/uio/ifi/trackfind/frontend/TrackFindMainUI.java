@@ -94,22 +94,22 @@ public class TrackFindMainUI extends AbstractUI {
         Panel treePanel = new Panel("Model browser", tabSheet);
         treePanel.setSizeFull();
 
-        CheckBox checkBox = new CheckBox("Raw metamodel");
-        checkBox.addValueChangeListener((HasValue.ValueChangeListener<Boolean>) event -> {
-            textAreaDropListener.setDatasetPrefix(event.getValue() ? "curated_content" : "standard_content");
-            addToQueryButtonClickListener.setDatasetPrefix(event.getValue() ? "curated_content" : "standard_content");
-            refreshTrees(event.getValue());
-        });
+//        CheckBox checkBox = new CheckBox("Raw metamodel");
+//        checkBox.addValueChangeListener((HasValue.ValueChangeListener<Boolean>) event -> {
+//            textAreaDropListener.setDatasetPrefix(event.getValue() ? "curated_content" : "standard_content");
+//            addToQueryButtonClickListener.setDatasetPrefix(event.getValue() ? "curated_content" : "standard_content");
+//            refreshTrees(event.getValue());
+//        });
 
         TextField attributesFilterTextField = createFilter(true);
         TextField valuesFilterTextField = createFilter(false);
 
         addToQueryButtonClickListener = new AddToQueryButtonClickListener(this, properties.getLevelsSeparator());
-        addToQueryButtonClickListener.setDatasetPrefix("standard_content");
+        addToQueryButtonClickListener.setDatasetPrefix("fair_content");
         Button addToQueryButton = new Button("Add to query ➚", addToQueryButtonClickListener);
         addToQueryButton.setWidth(100, Unit.PERCENTAGE);
 
-        VerticalLayout treeLayout = new VerticalLayout(treePanel, checkBox, attributesFilterTextField, valuesFilterTextField, addToQueryButton);
+        VerticalLayout treeLayout = new VerticalLayout(treePanel, attributesFilterTextField, valuesFilterTextField, addToQueryButton);
         treeLayout.setSizeFull();
         treeLayout.setExpandRatio(treePanel, 1f);
         return treeLayout;
@@ -230,7 +230,7 @@ public class TrackFindMainUI extends AbstractUI {
         DropTargetExtension<TextArea> dropTarget = new DropTargetExtension<>(queryTextArea);
         dropTarget.setDropEffect(DropEffect.COPY);
         textAreaDropListener = new TextAreaDropListener(queryTextArea, properties.getLevelsSeparator());
-        textAreaDropListener.setDatasetPrefix("standard_content");
+        textAreaDropListener.setDatasetPrefix("fair_content");
         dropTarget.addDropListener(textAreaDropListener);
         Panel queryPanel = new Panel("Search query", queryTextArea);
         queryPanel.setSizeFull();

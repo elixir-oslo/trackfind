@@ -26,7 +26,7 @@ public class MetamodelService {
     @Cacheable("metamodel-array-of-objects-attributes")
     public Collection<String> getArrayOfObjectsAttributes(Hub hub, boolean raw) {
         return jdbcTemplate.queryForList(
-                "SELECT DISTINCT attribute FROM " + (raw ? "source" : "standard") + "_array_of_objects WHERE repository = ? AND hub = ?",
+                "SELECT DISTINCT attribute FROM " + (raw ? "source" : "fair") + "_array_of_objects WHERE repository = ? AND hub = ?",
                 String.class,
                 hub.getRepository(),
                 hub.getHub());
@@ -36,7 +36,7 @@ public class MetamodelService {
     public Multimap<String, String> getMetamodelFlat(Hub hub, boolean raw) {
         Multimap<String, String> metamodel = HashMultimap.create();
         List<Map<String, Object>> attributeValuePairs = jdbcTemplate.queryForList(
-                "SELECT attribute, value FROM " + (raw ? "source" : "standard") + "_metamodel WHERE repository = ? AND hub = ?",
+                "SELECT attribute, value FROM " + (raw ? "source" : "fair") + "_metamodel WHERE repository = ? AND hub = ?",
                 hub.getRepository(),
                 hub.getHub());
         for (Map attributeValuePair : attributeValuePairs) {
@@ -70,7 +70,7 @@ public class MetamodelService {
     public Map<String, String> getAttributeTypes(Hub hub, boolean raw) {
         Map<String, String> metamodel = new HashMap<>();
         List<Map<String, Object>> attributeTypePairs = jdbcTemplate.queryForList(
-                "SELECT DISTINCT attribute, type FROM " + (raw ? "source" : "standard") + "_metamodel WHERE repository = ? AND hub = ?",
+                "SELECT DISTINCT attribute, type FROM " + (raw ? "source" : "fair") + "_metamodel WHERE repository = ? AND hub = ?",
                 hub.getRepository(),
                 hub.getHub());
         for (Map attributeTypePair : attributeTypePairs) {

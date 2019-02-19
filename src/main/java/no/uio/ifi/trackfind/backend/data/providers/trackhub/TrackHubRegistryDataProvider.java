@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -35,7 +36,7 @@ public class TrackHubRegistryDataProvider extends AbstractDataProvider {
             return hubs.stream().map(h -> new Hub(getName(), String.valueOf(h.get("name")))).collect(Collectors.toSet());
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            throw new RuntimeException(e.getMessage(), e);
+            return Collections.emptyList();
         }
     }
 

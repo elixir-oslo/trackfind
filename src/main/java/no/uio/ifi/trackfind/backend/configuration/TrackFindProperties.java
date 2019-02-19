@@ -17,7 +17,6 @@ import javax.validation.constraints.NotBlank;
 @Data
 public class TrackFindProperties {
 
-    private @NotBlank String fairFieldName;
     private @NotBlank String levelsSeparator;
     private @NotBlank String scriptingLanguage;
     private @NotBlank String scriptingDatasetVariableName;

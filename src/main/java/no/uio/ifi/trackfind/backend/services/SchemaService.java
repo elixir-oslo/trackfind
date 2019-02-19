@@ -35,8 +35,7 @@ public class SchemaService {
             try (InputStreamReader inputStreamReader = new InputStreamReader(getClass().getResourceAsStream("/schema.json"))) {
                 Map<String, Object> schemaMap = new Gson().fromJson(inputStreamReader, Map.class);
                 attributes = new TreeSet<>();
-                String fairFieldName = this.properties.getFairFieldName();
-                gatherAttributes(fairFieldName, MapUtils.getMap(MapUtils.getMap(schemaMap, "properties"), fairFieldName));
+                gatherAttributes("", schemaMap);
             }
             try (InputStream inputStream = getClass().getResourceAsStream("/schema.json")) {
                 JSONObject rawSchema = new JSONObject(new JSONTokener(inputStream));
@@ -63,7 +62,7 @@ public class SchemaService {
                 gatherAttributes(path + this.properties.getLevelsSeparator() + entry.getKey(), entry.getValue());
             }
         } else {
-            attributes.add(path.replace(this.properties.getFairFieldName() + this.properties.getLevelsSeparator(), ""));
+            attributes.add(path.substring(this.properties.getLevelsSeparator().length()));
         }
     }
 
