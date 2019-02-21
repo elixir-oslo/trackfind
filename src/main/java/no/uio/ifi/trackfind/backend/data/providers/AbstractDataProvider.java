@@ -110,6 +110,7 @@ public abstract class AbstractDataProvider implements DataProvider {
      */
     protected void save(String hubName, Collection<Map> datasets) {
         Hub hub = hubRepository.getOne(new HubId(getName(), hubName));
+        Long maxRawVersion = jdbcTemplate.queryForObject("SELECT MAX(raw_version) FROM source WHERE repository = ? AND hub = ?", Long.class, hub.getRepository(), hub.getHub());
         String idAttribute = hub.getIdAttribute();
         Collection<Source> sourcesToSave = new ArrayList<>();
         for (Map dataset : datasets) {
@@ -117,7 +118,7 @@ public abstract class AbstractDataProvider implements DataProvider {
             source.setRepository(getName());
             source.setHub(hubName);
             source.setContent(gson.toJson(dataset));
-            source.setRawVersion(1L);
+            source.setRawVersion(maxRawVersion == null ? 1L : maxRawVersion + 1);
             source.setCuratedVersion(0L);
             sourcesToSave.add(source);
             if (idAttribute != null) {
@@ -125,17 +126,10 @@ public abstract class AbstractDataProvider implements DataProvider {
                 if (optionalId.isPresent()) {
                     String id = String.valueOf(optionalId.get());
                     Collection<Dataset> foundDatasets = searchService.search(hub,
-                            String.format("curated_content%s%s ? '%s'", properties.getLevelsSeparator(), idAttribute, id), 0);
-                    int size = CollectionUtils.size(foundDatasets);
-                    if (size > 1) {
-                        log.error("Skipping dataset: found more than one latest dataset with ID {} by attribute {} for Hub {}", id, idAttribute, hub);
-                        continue;
-                    }
-                    if (size == 1) {
+                            String.format("fair_content%s%s ? '%s'", properties.getLevelsSeparator(), idAttribute, id), 1);
+                    if (CollectionUtils.isNotEmpty(foundDatasets)) {
                         Dataset foundDataset = foundDatasets.iterator().next();
-                        long rawVersion = Long.parseLong(foundDataset.getVersion().split(":")[0]);
                         source.setId(foundDataset.getId());
-                        source.setRawVersion(rawVersion + 1);
                     }
                 } else {
                     log.error("ID field not found for Hub {} in entry {}", hub, dataset);
