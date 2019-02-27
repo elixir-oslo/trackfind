@@ -3,7 +3,6 @@ package no.uio.ifi.trackfind.frontend;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Title;
 import com.vaadin.annotations.Widgetset;
-import com.vaadin.data.HasValue;
 import com.vaadin.event.selection.SelectionListener;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.spring.annotation.SpringUI;
@@ -50,7 +49,9 @@ public class TrackFindMappingsUI extends AbstractUI {
 
     private Map<ComboBox<String>, TextField> attributesStaticMapping = new HashMap<>();
     private AceEditor script;
-    private TextField idAttribute;
+    private TextField internalIdAttribute;
+    private TextField idMappingAttribute;
+    private TextField versionMappingAttribute;
 
     @Override
     protected void init(VaadinRequest vaadinRequest) {
@@ -172,18 +173,22 @@ public class TrackFindMappingsUI extends AbstractUI {
                         dataProvider.applyMappings(currentHub.getHub());
                     }
                 }));
-        idAttribute = new TextField("Internal ID attribute");
-        idAttribute.setWidth(100, Unit.PERCENTAGE);
+        internalIdAttribute = new TextField("Internal ID attribute");
+        internalIdAttribute.setWidth(100, Unit.PERCENTAGE);
+        idMappingAttribute = new TextField("ID mapping attribute");
+        idMappingAttribute.setWidth(100, Unit.PERCENTAGE);
+        versionMappingAttribute = new TextField("Version mapping attribute");
+        versionMappingAttribute.setWidth(100, Unit.PERCENTAGE);
         HorizontalLayout buttonsLayout = new HorizontalLayout(saveButton, crawlButton, applyMappingsButton);
         buttonsLayout.setWidth(100, Unit.PERCENTAGE);
         buttonsLayout.setEnabled(!properties.isDemoMode());
-        VerticalLayout attributesMappingOuterLayout = new VerticalLayout(attributesMappingPanel, idAttribute, buttonsLayout);
+        VerticalLayout attributesMappingOuterLayout = new VerticalLayout(attributesMappingPanel, internalIdAttribute, idMappingAttribute, versionMappingAttribute, buttonsLayout);
         attributesMappingOuterLayout.setSizeFull();
         attributesMappingOuterLayout.setExpandRatio(attributesMappingPanel, 0.8f);
         return attributesMappingOuterLayout;
     }
 
-    private HorizontalLayout buildAttributeToAttributeLayout(String basicAttribute, String sourceAttribute) {
+    private HorizontalLayout buildAttributeToAttributeLayout(String standardAttribute, String sourceAttribute) {
         HorizontalLayout attributeToAttributeLayout = new HorizontalLayout();
         attributeToAttributeLayout.setWidth(100, Unit.PERCENTAGE);
 
@@ -191,7 +196,7 @@ public class TrackFindMappingsUI extends AbstractUI {
         sourceAttributeTextField.setWidth(100, Unit.PERCENTAGE);
         sourceAttributeTextField.setReadOnly(true);
 
-        ComboBox<String> targetAttributeComboBox = buildBasicAttributesComboBox(basicAttribute);
+        ComboBox<String> targetAttributeComboBox = buildStandardAttributesComboBox(standardAttribute);
         targetAttributeComboBox.setWidth(100, Unit.PERCENTAGE);
         attributesStaticMapping.put(targetAttributeComboBox, sourceAttributeTextField);
 
@@ -214,7 +219,7 @@ public class TrackFindMappingsUI extends AbstractUI {
         return attributeToAttributeLayout;
     }
 
-    private ComboBox<String> buildBasicAttributesComboBox(String targetAttribute) {
+    private ComboBox<String> buildStandardAttributesComboBox(String targetAttribute) {
         ComboBox<String> targetAttributeName = new ComboBox<>("Target attribute name", schemaService.getAttributes());
         targetAttributeName.setSelectedItem(targetAttribute);
         return targetAttributeName;
@@ -233,11 +238,13 @@ public class TrackFindMappingsUI extends AbstractUI {
         }
         script.clear();
         mappings.stream().filter(m -> !m.isStaticMapping()).findAny().ifPresent(m -> script.setValue(m.getFrom()));
-        idAttribute.setValue(Optional.ofNullable(currentHub.getIdAttribute()).orElse(""));
+        internalIdAttribute.setValue(Optional.ofNullable(currentHub.getIdAttribute()).orElse(""));
+        idMappingAttribute.setValue(Optional.ofNullable(currentHub.getIdMappingAttribute()).orElse(""));
+        versionMappingAttribute.setValue(Optional.ofNullable(currentHub.getVersionMappingAttribute()).orElse(""));
     }
 
-    private void addStaticMappingPair(String basicAttribute, String sourceAttribute) {
-        attributesMappingLayout.addComponent(buildAttributeToAttributeLayout(basicAttribute, sourceAttribute));
+    private void addStaticMappingPair(String standardAttribute, String sourceAttribute) {
+        attributesMappingLayout.addComponent(buildAttributeToAttributeLayout(standardAttribute, sourceAttribute));
     }
 
     @Transactional
@@ -266,7 +273,9 @@ public class TrackFindMappingsUI extends AbstractUI {
             mappings.add(mapping);
         });
         mappingRepository.saveAll(mappings);
-        currentHub.setIdAttribute(idAttribute.getValue());
+        currentHub.setIdAttribute(internalIdAttribute.getValue());
+        currentHub.setIdMappingAttribute(idMappingAttribute.getValue());
+        currentHub.setVersionMappingAttribute(versionMappingAttribute.getValue());
         hubRepository.save(currentHub);
         Notification.show("Mappings saved. Press \"Apply\" for changes to take effect.");
     }

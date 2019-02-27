@@ -29,4 +29,10 @@ public class Hub implements Serializable {
     @Column(name = "id_attribute", nullable = false)
     private String idAttribute;
 
+    @Column(name = "id_mapping_attribute", nullable = false)
+    private String idMappingAttribute;
+
+    @Column(name = "version_mapping_attribute", nullable = false)
+    private String versionMappingAttribute;
+
 }
