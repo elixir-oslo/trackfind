@@ -136,7 +136,7 @@ public abstract class AbstractDataProvider implements DataProvider {
                 }
             }
         }
-        sourceRepository.saveAll(sourcesToSave);
+        applyAutomaticMappings(hub, sourceRepository.saveAll(sourcesToSave));
     }
 
     @Transactional
@@ -151,8 +151,8 @@ public abstract class AbstractDataProvider implements DataProvider {
             standard.setCuratedVersion(source.getCuratedVersion());
             standard.setStandardVersion(1L);
             Map<String, Object> standardMap = new HashMap<>();
-            standardMap.put(idMappingAttribute.replace("'", ""), standard.getId());
-            standardMap.put(versionMappingAttribute.replace("'", ""), standard.getStandardVersion());
+            putValueByPath(standardMap, idMappingAttribute.replace("'", "").split(properties.getLevelsSeparator()), Collections.singleton(standard.getId().toString()));
+            putValueByPath(standardMap, versionMappingAttribute.replace("'", "").split(properties.getLevelsSeparator()), Collections.singleton(source.getRawVersion() + ".0.1"));
             standard.setContent(gson.toJson(standardMap));
             standardsToSave.add(standard);
         }
@@ -203,15 +203,7 @@ public abstract class AbstractDataProvider implements DataProvider {
                         values = Collections.emptyList();
                     }
                     String[] path = mapping.getTo().split(properties.getLevelsSeparator());
-                    Map<String, Object> nestedMap = standardMap;
-                    for (int i = 0; i < path.length - 1; i++) {
-                        nestedMap = (Map<String, Object>) nestedMap.computeIfAbsent(path[i], k -> new HashMap<String, Object>());
-                    }
-                    if (CollectionUtils.size(values) == 1) {
-                        nestedMap.put(path[path.length - 1], values.iterator().next());
-                    } else {
-                        nestedMap.put(path[path.length - 1], values);
-                    }
+                    putValueByPath(standardMap, path, values);
                 }
                 Standard standard = new Standard();
                 standard.setId(source.getId());
@@ -237,6 +229,19 @@ public abstract class AbstractDataProvider implements DataProvider {
             return;
         }
         log.info("Success!");
+    }
+
+    @SuppressWarnings("unchecked")
+    private void putValueByPath(Map<String, Object> standardMap, String[] path, Collection<String> values) {
+        Map<String, Object> nestedMap = standardMap;
+        for (int i = 0; i < path.length - 1; i++) {
+            nestedMap = (Map<String, Object>) nestedMap.computeIfAbsent(path[i], k -> new HashMap<String, Object>());
+        }
+        if (CollectionUtils.size(values) == 1) {
+            nestedMap.put(path[path.length - 1], values.iterator().next());
+        } else {
+            nestedMap.put(path[path.length - 1], values);
+        }
     }
 
     @Autowired
