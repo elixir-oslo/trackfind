@@ -139,6 +139,26 @@ public abstract class AbstractDataProvider implements DataProvider {
         sourceRepository.saveAll(sourcesToSave);
     }
 
+    @Transactional
+    protected synchronized void applyAutomaticMappings(Hub hub, Collection<Source> sources) {
+        Collection<Standard> standardsToSave = new ArrayList<>();
+        for (Source source : sources) {
+            String idMappingAttribute = hub.getIdMappingAttribute();
+            String versionMappingAttribute = hub.getVersionMappingAttribute();
+            Standard standard = new Standard();
+            standard.setId(source.getId());
+            standard.setRawVersion(source.getRawVersion());
+            standard.setCuratedVersion(source.getCuratedVersion());
+            standard.setStandardVersion(1L);
+            Map<String, Object> standardMap = new HashMap<>();
+            standardMap.put(idMappingAttribute.replace("'", ""), standard.getId());
+            standardMap.put(versionMappingAttribute.replace("'", ""), standard.getStandardVersion());
+            standard.setContent(gson.toJson(standardMap));
+            standardsToSave.add(standard);
+        }
+        standardRepository.saveAll(standardsToSave);
+    }
+
     /**
      * {@inheritDoc}
      */
