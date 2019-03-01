@@ -49,10 +49,7 @@ public class GSuiteService implements Function<Collection<Dataset>, String> {
     protected String sortJSON(String fairContent) {
         Map mapContent = gson.fromJson(fairContent, Map.class);
         mapContent = sortMap("", mapContent);
-        System.out.println("before = " + fairContent);
-        String after = gson.toJson(mapContent);
-        System.out.println("after = " + after);
-        return after;
+        return gson.toJson(mapContent);
     }
 
     @SuppressWarnings("unchecked")
