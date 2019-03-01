@@ -50,7 +50,6 @@ public class GSuiteService implements Function<Collection<Dataset>, String> {
     protected String sortJSON(String fairContent) {
         Map mapContent = gson.fromJson(fairContent, Map.class);
         mapContent = sortMap("", mapContent);
-        System.out.println("mapContent = " + mapContent);
         return gson.toJson(mapContent);
     }
 
