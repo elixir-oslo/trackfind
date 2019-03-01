@@ -12,7 +12,10 @@ import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Service for loading JSON schema and for validating JSON objects.
@@ -25,7 +28,7 @@ public class SchemaService {
     private TrackFindProperties properties;
 
     private org.everit.json.schema.Schema schema;
-    private Set<String> attributes;
+    private List<String> attributes;
 
     @Autowired
     @SuppressWarnings("unchecked")
@@ -34,14 +37,14 @@ public class SchemaService {
         try {
             try (InputStreamReader inputStreamReader = new InputStreamReader(getClass().getResourceAsStream("/schema.json"))) {
                 Map<String, Object> schemaMap = new Gson().fromJson(inputStreamReader, Map.class);
-                attributes = new TreeSet<>();
+                attributes = new ArrayList<>();
                 gatherAttributes("", schemaMap);
             }
             try (InputStream inputStream = getClass().getResourceAsStream("/schema.json")) {
                 JSONObject rawSchema = new JSONObject(new JSONTokener(inputStream));
                 this.schema = SchemaLoader.load(rawSchema);
             }
-            attributes = Collections.unmodifiableSet(attributes);
+            attributes = Collections.unmodifiableList(attributes);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             throw new RuntimeException(e.getMessage(), e);
@@ -71,7 +74,7 @@ public class SchemaService {
      *
      * @return Collection of attributes.
      */
-    public Collection<String> getAttributes() {
+    public List<String> getAttributes() {
         return attributes;
     }
 
