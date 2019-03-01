@@ -3,6 +3,7 @@ package no.uio.ifi.trackfind.backend.services;
 import com.google.gson.Gson;
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
 import no.uio.ifi.trackfind.backend.dao.Dataset;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.stereotype.Service;
@@ -49,6 +50,7 @@ public class GSuiteService implements Function<Collection<Dataset>, String> {
     protected String sortJSON(String fairContent) {
         Map mapContent = gson.fromJson(fairContent, Map.class);
         mapContent = sortMap("", mapContent);
+        System.out.println("mapContent = " + mapContent);
         return gson.toJson(mapContent);
     }
 
@@ -58,11 +60,19 @@ public class GSuiteService implements Function<Collection<Dataset>, String> {
             String key1 = path + o1.toString();
             String key2 = path + o2.toString();
             List<String> attributes = schemaService.getAttributes();
-            String fullKey1 = attributes.stream().filter(a -> a.startsWith(key1)).findFirst().orElse(null);
-            String fullKey2 = attributes.stream().filter(a -> a.startsWith(key2)).findFirst().orElse(null);
-            long index1 = fullKey1 == null ? Long.MAX_VALUE : attributes.indexOf(fullKey1);
-            long index2 = fullKey2 == null ? Long.MAX_VALUE : attributes.indexOf(fullKey2);
-            return Long.compare(index1, index2);
+            String fullKey1 = attributes.stream().filter(a -> a.startsWith(key1)).findFirst().orElse("");
+            String fullKey2 = attributes.stream().filter(a -> a.startsWith(key2)).findFirst().orElse("");
+            if (StringUtils.isEmpty(fullKey1) || StringUtils.isEmpty(fullKey2)) {
+                if (StringUtils.isEmpty(fullKey1) && StringUtils.isEmpty(fullKey2)) {
+                    return fullKey1.compareTo(fullKey2);
+                } else {
+                    return Long.compare(fullKey1.length(), fullKey2.length());
+                }
+            } else {
+                long index1 = attributes.indexOf(fullKey1);
+                long index2 = attributes.indexOf(fullKey2);
+                return Long.compare(index1, index2);
+            }
         });
         for (Object key : mapContent.keySet()) {
             Object value = mapContent.get(key);
