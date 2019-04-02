@@ -115,8 +115,7 @@ public class SearchService {
         String separator = properties.getLevelsSeparator();
         String end = separator + "*";
         for (String start : Arrays.asList(
-                "curated_content" + separator,
-                "standard_content" + separator,
+                "fair_content" + separator,
                 "joinTerm\\d+.value" + separator
         )) {
             String regexString = start + "(.*?)" + Pattern.quote(end);

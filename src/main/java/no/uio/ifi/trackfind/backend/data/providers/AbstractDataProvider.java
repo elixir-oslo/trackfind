@@ -122,11 +122,12 @@ public abstract class AbstractDataProvider implements DataProvider {
             source.setCuratedVersion(0L);
             sourcesToSave.add(source);
             if (idAttribute != null) {
-                Optional optionalId = Dynamic.from(dataset).get(idAttribute.replace("'", ""), properties.getLevelsSeparator()).asOptional();
+                Optional optionalId = Dynamic.from(dataset).get(idAttribute, properties.getLevelsSeparator()).asOptional();
                 if (optionalId.isPresent()) {
                     String id = String.valueOf(optionalId.get());
+                    String escapedIdAttribute = "'" + idAttribute.replace(properties.getLevelsSeparator(), "'" + properties.getLevelsSeparator() + "'") + "'";
                     Collection<Dataset> foundDatasets = searchService.search(hub,
-                            String.format("fair_content%s%s ? '%s'", properties.getLevelsSeparator(), idAttribute, id), 1);
+                            String.format("fair_content%s%s ? '%s'", properties.getLevelsSeparator(), escapedIdAttribute, id), 1);
                     if (CollectionUtils.isNotEmpty(foundDatasets)) {
                         Dataset foundDataset = foundDatasets.iterator().next();
                         source.setId(foundDataset.getId());
@@ -151,8 +152,8 @@ public abstract class AbstractDataProvider implements DataProvider {
             standard.setCuratedVersion(source.getCuratedVersion());
             standard.setStandardVersion(1L);
             Map<String, Object> standardMap = new HashMap<>();
-            putValueByPath(standardMap, idMappingAttribute.replace("'", "").split(properties.getLevelsSeparator()), Collections.singleton(standard.getId().toString()));
-            putValueByPath(standardMap, versionMappingAttribute.replace("'", "").split(properties.getLevelsSeparator()), Collections.singleton(source.getRawVersion() + ".0.1"));
+            putValueByPath(standardMap, idMappingAttribute.split(properties.getLevelsSeparator()), Collections.singleton(standard.getId().toString()));
+            putValueByPath(standardMap, versionMappingAttribute.split(properties.getLevelsSeparator()), Collections.singleton(source.getRawVersion() + ".0.1"));
             standard.setContent(gson.toJson(standardMap));
             standardsToSave.add(standard);
         }

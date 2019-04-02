@@ -45,6 +45,9 @@ public class TrackFindMappingsUI extends AbstractUI {
     private HubRepository hubRepository;
 
     private Button addStaticMappingButton;
+    private Button addInternalIdAttributeButton;
+    private Button addIdMappingAttributeButton;
+    private Button addVersionMappingAttributeButton;
     private VerticalLayout attributesMappingLayout;
 
     private Map<ComboBox<String>, TextField> attributesStaticMapping = new HashMap<>();
@@ -56,8 +59,8 @@ public class TrackFindMappingsUI extends AbstractUI {
     @Override
     protected void init(VaadinRequest vaadinRequest) {
         HorizontalLayout headerLayout = buildHeaderLayout();
-        VerticalLayout treeLayout = buildTreeLayout();
         VerticalLayout attributesMappingOuterLayout = buildAttributesMappingLayout();
+        VerticalLayout treeLayout = buildTreeLayout();
         HorizontalLayout mainLayout = buildMainLayout(treeLayout, attributesMappingOuterLayout);
         HorizontalLayout footerLayout = buildFooterLayout();
         VerticalLayout outerLayout = buildOuterLayout(headerLayout, mainLayout, footerLayout);
@@ -91,12 +94,30 @@ public class TrackFindMappingsUI extends AbstractUI {
             addStaticMappingPair("", sourceAttribute);
         });
 
-        HorizontalLayout mappingButtons = new HorizontalLayout(addStaticMappingButton);
-        mappingButtons.setWidth(100, Unit.PERCENTAGE);
-        VerticalLayout treeLayout = new VerticalLayout(treePanel, attributesFilterTextField, valuesFilterTextField, mappingButtons);
+        addInternalIdAttributeButton = new Button("Use as internal ID");
+        bindTreeButton(addInternalIdAttributeButton, internalIdAttribute);
+
+        addIdMappingAttributeButton = new Button("Use as ID mapping attribute");
+        bindTreeButton(addIdMappingAttributeButton, idMappingAttribute);
+
+        addVersionMappingAttributeButton = new Button("Use as Version mapping attribute");
+        bindTreeButton(addVersionMappingAttributeButton, versionMappingAttribute);
+
+        VerticalLayout treeLayout = new VerticalLayout(treePanel, attributesFilterTextField, valuesFilterTextField, addStaticMappingButton, addInternalIdAttributeButton, addIdMappingAttributeButton, addVersionMappingAttributeButton);
         treeLayout.setSizeFull();
         treeLayout.setExpandRatio(treePanel, 1f);
         return treeLayout;
+    }
+
+    private void bindTreeButton(Button addVersionMappingAttributeButton, TextField versionMappingAttribute) {
+        addVersionMappingAttributeButton.setWidth(100, Unit.PERCENTAGE);
+        addVersionMappingAttributeButton.setEnabled(!CollectionUtils.isEmpty(getCurrentTree().getSelectedItems()));
+        addVersionMappingAttributeButton.addClickListener((Button.ClickListener) event -> {
+            Set<TreeNode> selectedItems = getCurrentTree().getSelectedItems();
+            String attribute = CollectionUtils.isEmpty(selectedItems) ? "" : selectedItems.iterator().next().getPath();
+            versionMappingAttribute.setValue(attribute);
+            getCurrentTree().getDataProvider().refreshAll(); // hack to overcome Vaadin's bug when tree layout gets resized for some reason
+        });
     }
 
     @SuppressWarnings("unchecked")
@@ -104,7 +125,12 @@ public class TrackFindMappingsUI extends AbstractUI {
         TrackFindTree<TreeNode> tree = new TrackFindTree<>(hub);
         tree.setDataProvider(trackFindDataProvider);
         tree.setSelectionMode(Grid.SelectionMode.SINGLE);
-        tree.addSelectionListener((SelectionListener<TreeNode>) event -> addStaticMappingButton.setEnabled(!CollectionUtils.isEmpty(event.getAllSelectedItems()) && event.getFirstSelectedItem().get().isAttribute()));
+        tree.addSelectionListener((SelectionListener<TreeNode>) event -> {
+            addStaticMappingButton.setEnabled(!CollectionUtils.isEmpty(event.getAllSelectedItems()) && event.getFirstSelectedItem().get().isAttribute());
+            addInternalIdAttributeButton.setEnabled(!CollectionUtils.isEmpty(event.getAllSelectedItems()) && event.getFirstSelectedItem().get().isAttribute());
+            addIdMappingAttributeButton.setEnabled(!CollectionUtils.isEmpty(event.getAllSelectedItems()) && event.getFirstSelectedItem().get().isAttribute());
+            addVersionMappingAttributeButton.setEnabled(!CollectionUtils.isEmpty(event.getAllSelectedItems()) && event.getFirstSelectedItem().get().isAttribute());
+        });
         tree.setSizeFull();
         tree.setStyleGenerator((StyleGenerator<TreeNode>) item -> item.isAttribute() ? null : "value-tree-node");
 
@@ -173,19 +199,36 @@ public class TrackFindMappingsUI extends AbstractUI {
                         dataProvider.applyMappings(currentHub.getHub());
                     }
                 }));
+
         internalIdAttribute = new TextField("Internal ID attribute");
-        internalIdAttribute.setWidth(100, Unit.PERCENTAGE);
+        HorizontalLayout internalIdAttributeHorizontalLayout = addAttributeButtonLayout(internalIdAttribute);
+
         idMappingAttribute = new TextField("ID mapping attribute");
-        idMappingAttribute.setWidth(100, Unit.PERCENTAGE);
+        HorizontalLayout idMappingAttributeHorizontalLayout = addAttributeButtonLayout(idMappingAttribute);
+
         versionMappingAttribute = new TextField("Version mapping attribute");
-        versionMappingAttribute.setWidth(100, Unit.PERCENTAGE);
+        HorizontalLayout versionMappingAttributeHorizontalLayout = addAttributeButtonLayout(versionMappingAttribute);
+
         HorizontalLayout buttonsLayout = new HorizontalLayout(saveButton, crawlButton, applyMappingsButton);
         buttonsLayout.setWidth(100, Unit.PERCENTAGE);
         buttonsLayout.setEnabled(!properties.isDemoMode());
-        VerticalLayout attributesMappingOuterLayout = new VerticalLayout(attributesMappingPanel, internalIdAttribute, idMappingAttribute, versionMappingAttribute, buttonsLayout);
+        VerticalLayout attributesMappingOuterLayout = new VerticalLayout(attributesMappingPanel, internalIdAttributeHorizontalLayout, idMappingAttributeHorizontalLayout, versionMappingAttributeHorizontalLayout, buttonsLayout);
         attributesMappingOuterLayout.setSizeFull();
-        attributesMappingOuterLayout.setExpandRatio(attributesMappingPanel, 0.8f);
+        attributesMappingOuterLayout.setExpandRatio(attributesMappingPanel, 1f);
         return attributesMappingOuterLayout;
+    }
+
+    private HorizontalLayout addAttributeButtonLayout(TextField attribute) {
+        attribute.setWidth(100, Unit.PERCENTAGE);
+        Button clearButton = new Button("Clear", (Button.ClickListener) event -> attribute.clear());
+        HorizontalLayout horizontalLayout = new HorizontalLayout(attribute, clearButton);
+        horizontalLayout.setWidth(100, Unit.PERCENTAGE);
+        horizontalLayout.setComponentAlignment(attribute, Alignment.BOTTOM_LEFT);
+        horizontalLayout.setExpandRatio(attribute, 0.9f);
+
+        horizontalLayout.setComponentAlignment(clearButton, Alignment.BOTTOM_LEFT);
+        horizontalLayout.setExpandRatio(clearButton, 0.1f);
+        return horizontalLayout;
     }
 
     private HorizontalLayout buildAttributeToAttributeLayout(String standardAttribute, String sourceAttribute) {
