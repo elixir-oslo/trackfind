@@ -31,7 +31,7 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
     protected Stream<TreeNode> fetchChildrenFromBackEnd(HierarchicalQuery<TreeNode, SerializablePredicate<TreeNode>> query) {
         TreeFilter treeFilter = (TreeFilter) query.getFilter().orElseThrow(RuntimeException::new);
         Hub hub = treeFilter.getHub();
-        boolean raw = treeFilter.isRaw();
+        boolean raw = false;
         Map<String, Object> metamodelTree = metamodelService.getMetamodelTree(hub, raw);
         Optional<TreeNode> parentOptional = query.getParentOptional();
         if (!parentOptional.isPresent()) {
@@ -43,8 +43,7 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
                 treeNode.setLevel(0);
                 Collection<String> values = metamodelService.getValues(hub, treeNode.getPath(), "", raw);
                 treeNode.setHasValues(CollectionUtils.isNotEmpty(values));
-                Collection<String> grandChildren = new ArrayList<>();
-                grandChildren.addAll(values);
+                Collection<String> grandChildren = new ArrayList<>(values);
                 grandChildren.addAll(metamodelService.getSubAttributes(hub, treeNode.getPath(), "", raw));
                 treeNode.setChildren(grandChildren);
                 treeNode.setAttribute(true);
@@ -67,9 +66,9 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
                 treeNode.setParent(parent);
                 treeNode.setSeparator(properties.getLevelsSeparator());
                 treeNode.setLevel(parent.getLevel() + 1);
-                treeNode.setHasValues(CollectionUtils.isNotEmpty(metamodelService.getValues(hub, treeNode.getPath(), "", raw)));
-                Collection<String> grandChildren = new ArrayList<>();
-                grandChildren.addAll(metamodelService.getValues(hub, treeNode.getPath(), "", raw));
+                Collection<String> values = metamodelService.getValues(hub, treeNode.getPath(), "", raw);
+                treeNode.setHasValues(CollectionUtils.isNotEmpty(values));
+                Collection<String> grandChildren = new ArrayList<>(values);
                 grandChildren.addAll(metamodelService.getSubAttributes(hub, treeNode.getPath(), "", raw));
                 treeNode.setChildren(grandChildren);
                 treeNode.setAttribute(CollectionUtils.isNotEmpty(grandChildren));

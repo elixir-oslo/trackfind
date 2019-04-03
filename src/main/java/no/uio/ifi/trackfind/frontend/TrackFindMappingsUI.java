@@ -135,7 +135,7 @@ public class TrackFindMappingsUI extends AbstractUI {
         tree.setStyleGenerator((StyleGenerator<TreeNode>) item -> item.isAttribute() ? null : "value-tree-node");
 
         TreeGrid<TreeNode> treeGrid = (TreeGrid<TreeNode>) tree.getCompositionRoot();
-        treeGrid.setFilter(new TreeFilter(hub, true, "", ""));
+        treeGrid.setFilter(new TreeFilter(hub, "", ""));
 
         return tree;
     }

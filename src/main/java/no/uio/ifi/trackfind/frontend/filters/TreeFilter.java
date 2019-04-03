@@ -16,7 +16,6 @@ import org.springframework.util.CollectionUtils;
 public class TreeFilter implements SerializablePredicate<TreeNode> {
 
     private Hub hub;
-    private boolean raw;
     private String valuesFilter;
     private String attributesFilter;
 

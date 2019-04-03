@@ -14,8 +14,6 @@ import no.uio.ifi.trackfind.frontend.filters.TreeFilter;
 import no.uio.ifi.trackfind.frontend.providers.TrackFindDataProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Iterator;
-
 /**
  * Main Vaadin UI of the application.
  * Capable of displaying metadata for repositories, constructing and executing search queries along with exporting the results.
@@ -86,17 +84,6 @@ public abstract class AbstractUI extends UI {
         attributesFilterTextField.setValueChangeMode(ValueChangeMode.EAGER);
         attributesFilterTextField.setWidth(100, Unit.PERCENTAGE);
         return attributesFilterTextField;
-    }
-
-    @SuppressWarnings("unchecked")
-    protected void refreshTrees(boolean raw) {
-        Iterator<Component> iterator = tabSheet.iterator();
-        while (iterator.hasNext()) {
-            TrackFindTree<TreeNode> currentTree = (TrackFindTree<TreeNode>) iterator.next();
-            TreeFilter filter = (TreeFilter) ((TreeGrid<TreeNode>) currentTree.getCompositionRoot()).getFilter();
-            filter.setRaw(raw);
-            currentTree.getDataProvider().refreshAll();
-        }
     }
 
     @Autowired

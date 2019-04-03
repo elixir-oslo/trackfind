@@ -122,7 +122,7 @@ public class TrackFindMainUI extends AbstractUI {
         tree.setSelectionMode(Grid.SelectionMode.MULTI);
         tree.addItemClickListener(new TreeItemClickListener(tree));
         TreeGrid<TreeNode> treeGrid = (TreeGrid<TreeNode>) tree.getCompositionRoot();
-        TreeFilter filter = new TreeFilter(hub, false, "", "");
+        TreeFilter filter = new TreeFilter(hub, "", "");
         treeGrid.setFilter(filter);
         tree.addSelectionListener(new TreeSelectionListener(tree, filter, new KeyboardInterceptorExtension(tree)));
         tree.setSizeFull();
