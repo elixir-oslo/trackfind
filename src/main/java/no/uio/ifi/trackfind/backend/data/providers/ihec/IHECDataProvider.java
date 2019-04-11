@@ -1,5 +1,6 @@
 package no.uio.ifi.trackfind.backend.data.providers.ihec;
 
+import com.google.common.collect.HashMultimap;
 import com.google.gson.reflect.TypeToken;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.data.providers.AbstractDataProvider;
@@ -15,7 +16,6 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
@@ -82,7 +82,7 @@ public class IHECDataProvider extends AbstractDataProvider {
         log.info(size + " releases to process.");
         Set<Integer> releaseIds = releases.parallelStream().sorted().map(Release::getId).collect(Collectors.toSet());
         CountDownLatch countDownLatch = new CountDownLatch(size);
-        Collection<Map> allDatasets = new HashSet<>();
+        HashMultimap<String, String> mapToSave = HashMultimap.create();
         for (int releaseId : releaseIds) {
             executorService.submit(() -> {
                 try (InputStream inputStream = new URL(FETCH_URL + releaseId).openStream();
@@ -90,15 +90,14 @@ public class IHECDataProvider extends AbstractDataProvider {
                     Map grid = gson.fromJson(reader, Map.class);
                     Map datasetsMap = MapUtils.getMap(grid, "datasets");
                     Collection<Map> datasets = datasetsMap.values();
-                    Map samplesMap = MapUtils.getMap(grid, "samples");
-                    Object hubDescription = grid.get("hub_description");
-                    for (Map<String, Object> dataset : datasets) {
-                        String sampleId = String.valueOf(dataset.get("sample_id"));
-                        Object sample = samplesMap.get(sampleId);
-                        dataset.put("sample_data", sample);
-                        dataset.put("hub_description", hubDescription);
+                    for (Map dataset : datasets) {
+                        mapToSave.put("dataset", gson.toJson(dataset));
                     }
-                    allDatasets.addAll(datasets);
+                    Map samplesMap = MapUtils.getMap(grid, "samples");
+                    Collection<Map> samples = samplesMap.values();
+                    for (Map sample : samples) {
+                        mapToSave.put("sample", gson.toJson(sample));
+                    }
                     log.info("Release " + releaseId + " fetched.");
                 } catch (Exception e) {
                     log.error(e.getMessage(), e);
@@ -108,7 +107,7 @@ public class IHECDataProvider extends AbstractDataProvider {
             });
         }
         countDownLatch.await();
-        save(hubName, allDatasets);
+        save(hubName, mapToSave.asMap());
         log.info(size + " releases stored.");
     }
 

@@ -19,9 +19,9 @@ import com.vaadin.ui.components.grid.TreeGridDragSource;
 import com.vaadin.ui.dnd.DropTargetExtension;
 import com.vaadin.util.FileTypeResolver;
 import lombok.extern.slf4j.Slf4j;
-import no.uio.ifi.trackfind.backend.dao.Dataset;
-import no.uio.ifi.trackfind.backend.dao.Hub;
 import no.uio.ifi.trackfind.backend.data.TreeNode;
+import no.uio.ifi.trackfind.backend.pojo.SearchResult;
+import no.uio.ifi.trackfind.backend.pojo.TfHub;
 import no.uio.ifi.trackfind.backend.services.GSuiteService;
 import no.uio.ifi.trackfind.backend.services.SearchService;
 import no.uio.ifi.trackfind.frontend.components.KeyboardInterceptorExtension;
@@ -66,7 +66,7 @@ public class TrackFindMainUI extends AbstractUI {
     private TextArea queryTextArea;
     private TextField limitTextField;
     private TextArea resultsTextArea;
-    private Collection<Dataset> results;
+    private Collection<SearchResult> results;
     private String jsonResult;
     private String gSuiteResult;
 
@@ -86,9 +86,9 @@ public class TrackFindMainUI extends AbstractUI {
         tabSheet = new TabSheet();
         tabSheet.setSizeFull();
 
-        for (Hub hub : trackFindService.getActiveTrackHubs()) {
+        for (TfHub hub : trackFindService.getActiveTrackHubs()) {
             TrackFindTree<TreeNode> tree = buildTree(hub);
-            tabSheet.addTab(tree, hub.getHub());
+            tabSheet.addTab(tree, hub.getName());
         }
 
         Panel treePanel = new Panel("Model browser", tabSheet);
@@ -116,7 +116,7 @@ public class TrackFindMainUI extends AbstractUI {
     }
 
     @SuppressWarnings("unchecked")
-    protected TrackFindTree<TreeNode> buildTree(Hub hub) {
+    protected TrackFindTree<TreeNode> buildTree(TfHub hub) {
         TrackFindTree<TreeNode> tree = new TrackFindTree<>(hub);
         tree.setDataProvider(trackFindDataProvider);
         tree.setSelectionMode(Grid.SelectionMode.MULTI);
@@ -284,7 +284,7 @@ public class TrackFindMainUI extends AbstractUI {
 
     @SuppressWarnings("unchecked")
     private void executeQuery(String query) {
-        Hub hub = getCurrentHub();
+        TfHub hub = getCurrentHub();
         String limit = limitTextField.getValue();
         limit = StringUtils.isEmpty(limit) ? "0" : limit;
         results = searchService.search(hub, query, Integer.parseInt(limit));

@@ -10,7 +10,7 @@ import com.vaadin.server.VaadinRequest;
 import com.vaadin.spring.annotation.SpringUI;
 import com.vaadin.ui.*;
 import lombok.extern.slf4j.Slf4j;
-import no.uio.ifi.trackfind.backend.dao.Hub;
+import no.uio.ifi.trackfind.backend.pojo.TfHub;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -31,8 +31,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TrackFindHubsUI extends AbstractUI {
 
-    private ComboBox<Hub> comboBox;
-    private ListSelect<Hub> listSelect;
+    private ComboBox<TfHub> comboBox;
+    private ListSelect<TfHub> listSelect;
     private Button add;
     private Button remove;
 
@@ -52,12 +52,12 @@ public class TrackFindHubsUI extends AbstractUI {
         hubsLayout.setSizeFull();
         comboBox = new ComboBox<>("Available hubs");
         comboBox.setWidth(100, Unit.PERCENTAGE);
-        Collection<Hub> allTrackHubs = trackFindService.getAllTrackHubs();
-        Collection<Hub> activeTrackHubs = trackFindService.getActiveTrackHubs();
+        Collection<TfHub> allTrackHubs = trackFindService.getAllTrackHubs();
+        Collection<TfHub> activeTrackHubs = trackFindService.getActiveTrackHubs();
         allTrackHubs.removeAll(activeTrackHubs);
         comboBox.setItems(allTrackHubs);
-        comboBox.setItemCaptionGenerator(h -> h.getRepository() + ": " + h.getHub());
-        comboBox.addValueChangeListener((HasValue.ValueChangeListener<Hub>) event -> add.setEnabled(comboBox.getSelectedItem().isPresent()));
+        comboBox.setItemCaptionGenerator(h -> h.getRepository() + ": " + h.getName());
+        comboBox.addValueChangeListener((HasValue.ValueChangeListener<TfHub>) event -> add.setEnabled(comboBox.getSelectedItem().isPresent()));
         Panel panel = new Panel("Hub selection", comboBox);
         panel.setSizeFull();
         hubsLayout.addComponents(panel);
@@ -74,7 +74,7 @@ public class TrackFindHubsUI extends AbstractUI {
             trackFindService.activateHubs(Collections.singleton(hub));
             listSelect.setItems(trackFindService.getActiveTrackHubs());
             listSelect.getDataProvider().refreshAll();
-            Set<Hub> availableHubs = comboBox.getDataProvider().fetch(new Query<>()).collect(Collectors.toSet());
+            Set<TfHub> availableHubs = comboBox.getDataProvider().fetch(new Query<>()).collect(Collectors.toSet());
             availableHubs.remove(hub);
             comboBox.clear();
             comboBox.setItems(availableHubs);
@@ -83,11 +83,11 @@ public class TrackFindHubsUI extends AbstractUI {
         remove = new Button("Deactivate ←");
         remove.setEnabled(false);
         remove.addClickListener((Button.ClickListener) event -> {
-            Set<Hub> activeHubs = listSelect.getSelectedItems();
+            Set<TfHub> activeHubs = listSelect.getSelectedItems();
             trackFindService.deactivateHubs(activeHubs);
             listSelect.setItems(trackFindService.getActiveTrackHubs());
             listSelect.getDataProvider().refreshAll();
-            Set<Hub> availableHubs = comboBox.getDataProvider().fetch(new Query<>()).collect(Collectors.toSet());
+            Set<TfHub> availableHubs = comboBox.getDataProvider().fetch(new Query<>()).collect(Collectors.toSet());
             availableHubs.addAll(activeHubs);
             comboBox.setItems(availableHubs);
             comboBox.getDataProvider().refreshAll();
@@ -103,8 +103,8 @@ public class TrackFindHubsUI extends AbstractUI {
         listSelect.setWidth(100, Unit.PERCENTAGE);
         listSelect.setHeight(100, Unit.PERCENTAGE);
         listSelect.setItems(trackFindService.getActiveTrackHubs());
-        listSelect.setItemCaptionGenerator(h -> h.getRepository() + ": " + h.getHub());
-        listSelect.addSelectionListener((MultiSelectionListener<Hub>) event -> remove.setEnabled(!listSelect.getSelectedItems().isEmpty()));
+        listSelect.setItemCaptionGenerator(h -> h.getRepository() + ": " + h.getName());
+        listSelect.addSelectionListener((MultiSelectionListener<TfHub>) event -> remove.setEnabled(!listSelect.getSelectedItems().isEmpty()));
         Panel panel = new Panel("Hub selection", listSelect);
         hubsLayout.addComponentsAndExpand(panel);
         return hubsLayout;

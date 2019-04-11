@@ -3,7 +3,7 @@ package no.uio.ifi.trackfind.frontend.filters;
 import com.vaadin.server.SerializablePredicate;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import no.uio.ifi.trackfind.backend.dao.Hub;
+import no.uio.ifi.trackfind.backend.pojo.TfHub;
 import no.uio.ifi.trackfind.backend.data.TreeNode;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;
@@ -15,7 +15,7 @@ import org.springframework.util.CollectionUtils;
 @Data
 public class TreeFilter implements SerializablePredicate<TreeNode> {
 
-    private Hub hub;
+    private TfHub hub;
     private String valuesFilter;
     private String attributesFilter;
 

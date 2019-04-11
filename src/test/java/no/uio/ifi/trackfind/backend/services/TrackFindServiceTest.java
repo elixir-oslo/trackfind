@@ -1,6 +1,6 @@
 package no.uio.ifi.trackfind.backend.services;
 
-import no.uio.ifi.trackfind.backend.dao.Hub;
+import no.uio.ifi.trackfind.backend.pojo.TfHub;
 import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
 import no.uio.ifi.trackfind.backend.data.providers.ihec.IHECDataProvider;
 import org.junit.Before;
@@ -48,27 +48,27 @@ public class TrackFindServiceTest {
 
     @Test
     public void getActiveTrackHubsTest() {
-        Collection<Hub> allTrackHubs = trackFindService.getActiveTrackHubs();
+        Collection<TfHub> allTrackHubs = trackFindService.getActiveTrackHubs();
         assertThat(allTrackHubs).isNotEmpty().hasSize(1);
-        Hub hub = allTrackHubs.iterator().next();
+        TfHub hub = allTrackHubs.iterator().next();
         assertThat(hub.getRepository()).isEqualTo(TEST_DATA_PROVIDER);
-        assertThat(hub.getHub()).isEqualTo("active");
+        assertThat(hub.getName()).isEqualTo("active");
     }
 
     @Test
     public void getAllTrackHubsTest() {
-        Collection<Hub> allTrackHubs = trackFindService.getAllTrackHubs();
+        Collection<TfHub> allTrackHubs = trackFindService.getAllTrackHubs();
         assertThat(allTrackHubs).isNotEmpty().hasSize(1);
-        Hub hub = allTrackHubs.iterator().next();
+        TfHub hub = allTrackHubs.iterator().next();
         assertThat(hub.getRepository()).isEqualTo(TEST_DATA_PROVIDER);
-        assertThat(hub.getHub()).isEqualTo("inactive");
+        assertThat(hub.getName()).isEqualTo("inactive");
     }
 
     @Before
     public void setUp() {
         when(dataProvider.getName()).thenReturn(TEST_DATA_PROVIDER);
-        when(dataProvider.getActiveTrackHubs()).thenReturn(Collections.singleton(new Hub(TEST_DATA_PROVIDER, "active")));
-        when(dataProvider.getAllTrackHubs()).thenReturn(Collections.singleton(new Hub(TEST_DATA_PROVIDER, "inactive")));
+        when(dataProvider.getActiveTrackHubs()).thenReturn(Collections.singleton(new TfHub(TEST_DATA_PROVIDER, "active")));
+        when(dataProvider.getAllTrackHubs()).thenReturn(Collections.singleton(new TfHub(TEST_DATA_PROVIDER, "inactive")));
         dataProviders.add(dataProvider);
     }
 

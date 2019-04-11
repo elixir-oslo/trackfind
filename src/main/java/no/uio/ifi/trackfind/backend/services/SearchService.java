@@ -2,10 +2,9 @@ package no.uio.ifi.trackfind.backend.services;
 
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
-import no.uio.ifi.trackfind.backend.dao.Dataset;
-import no.uio.ifi.trackfind.backend.dao.Hub;
-import no.uio.ifi.trackfind.backend.dao.Queries;
-import no.uio.ifi.trackfind.backend.repositories.DatasetRepository;
+import no.uio.ifi.trackfind.backend.pojo.Queries;
+import no.uio.ifi.trackfind.backend.pojo.SearchResult;
+import no.uio.ifi.trackfind.backend.pojo.TfHub;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,7 +29,6 @@ public class SearchService {
 
     private TrackFindProperties properties;
     private JdbcTemplate jdbcTemplate;
-    private DatasetRepository datasetRepository;
 
     private Connection connection;
 
@@ -45,61 +43,62 @@ public class SearchService {
     /**
      * Searches for datasets using provided query.
      *
-     * @param hub   Hub to search in.
+     * @param hub   TfHub to search in.
      * @param query Query.
      * @param limit Limit. 0 for unlimited.
      * @return Found datasets.
      */
-    public Collection<Dataset> search(Hub hub, String query, int limit) {
-        try {
-            String repositoryName = hub.getRepository();
-            String hubName = hub.getHub();
-            limit = limit == 0 ? Integer.MAX_VALUE : limit;
-            Map<String, String> joinTerms = new HashMap<>();
-            int size = joinTerms.size();
-            while (true) {
-                query = processQuery(query, joinTerms);
-                if (size == joinTerms.size()) {
-                    break;
-                }
-                size = joinTerms.size();
-            }
-            String joinTermsConcatenated = joinTerms
-                    .entrySet()
-                    .stream()
-                    .map(e -> String.format("jsonb_array_elements(%s) %s",
-                            e.getKey().substring(0, e.getKey().length() - properties.getLevelsSeparator().length() - 1),
-                            e.getValue()
-                    ))
-                    .collect(Collectors.joining(", "));
-            if (StringUtils.isNotEmpty(joinTermsConcatenated)) {
-                joinTermsConcatenated = ", " + joinTermsConcatenated;
-            }
-            String rawQuery = String.format("SELECT *\n" +
-                    "FROM latest_datasets%s\n" +
-                    "WHERE repository = '%s' AND hub = '%s'\n" +
-                    "  AND (%s)\n" +
-                    "ORDER BY id ASC\n" +
-                    "LIMIT %s", joinTermsConcatenated, repositoryName, hubName, query, limit);
-            rawQuery = rawQuery.replaceAll("\\?", "\\?\\?");
-            PreparedStatement preparedStatement = connection.prepareStatement(rawQuery);
-            ResultSet resultSet = preparedStatement.executeQuery();
-            Collection<Dataset> result = new ArrayList<>();
-            while (resultSet.next()) {
-                Dataset dataset = new Dataset();
-                dataset.setId(resultSet.getLong("id"));
-                dataset.setRepository(resultSet.getString("repository"));
-                dataset.setCuratedContent(resultSet.getString("curated_content"));
-                dataset.setStandardContent(resultSet.getString("standard_content"));
-                dataset.setFairContent(resultSet.getString("fair_content"));
-                dataset.setVersion(resultSet.getString("version"));
-                result.add(dataset);
-            }
-            return result;
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-            return Collections.emptySet();
-        }
+    public Collection<SearchResult> search(TfHub hub, String query, int limit) {
+//        try {
+//            String repositoryName = hub.getRepository();
+//            String hubName = hub.getName();
+//            limit = limit == 0 ? Integer.MAX_VALUE : limit;
+//            Map<String, String> joinTerms = new HashMap<>();
+//            int size = joinTerms.size();
+//            while (true) {
+//                query = processQuery(query, joinTerms);
+//                if (size == joinTerms.size()) {
+//                    break;
+//                }
+//                size = joinTerms.size();
+//            }
+//            String joinTermsConcatenated = joinTerms
+//                    .entrySet()
+//                    .stream()
+//                    .map(e -> String.format("jsonb_array_elements(%s) %s",
+//                            e.getKey().substring(0, e.getKey().length() - properties.getLevelsSeparator().length() - 1),
+//                            e.getValue()
+//                    ))
+//                    .collect(Collectors.joining(", "));
+//            if (StringUtils.isNotEmpty(joinTermsConcatenated)) {
+//                joinTermsConcatenated = ", " + joinTermsConcatenated;
+//            }
+//            String rawQuery = String.format("SELECT *\n" +
+//                    "FROM latest_datasets%s\n" +
+//                    "WHERE repository = '%s' AND hub = '%s'\n" +
+//                    "  AND (%s)\n" +
+//                    "ORDER BY id ASC\n" +
+//                    "LIMIT %s", joinTermsConcatenated, repositoryName, hubName, query, limit);
+//            rawQuery = rawQuery.replaceAll("\\?", "\\?\\?");
+//            PreparedStatement preparedStatement = connection.prepareStatement(rawQuery);
+//            ResultSet resultSet = preparedStatement.executeQuery();
+//            Collection<Dataset> result = new ArrayList<>();
+//            while (resultSet.next()) {
+//                Dataset dataset = new Dataset();
+//                dataset.setId(resultSet.getLong("id"));
+//                dataset.setRepository(resultSet.getString("repository"));
+//                dataset.setCuratedContent(resultSet.getString("curated_content"));
+//                dataset.setStandardContent(resultSet.getString("standard_content"));
+//                dataset.setFairContent(resultSet.getString("fair_content"));
+//                dataset.setVersion(resultSet.getString("version"));
+//                result.add(dataset);
+//            }
+//            return result;
+//        } catch (Exception e) {
+//            log.error(e.getMessage(), e);
+//            return Collections.emptySet();
+//        }
+        return Collections.emptySet();
     }
 
     protected String processQuery(String query, Map<String, String> allJoinTerms) {
@@ -134,10 +133,10 @@ public class SearchService {
         return substitution;
     }
 
-    @SuppressWarnings("unchecked")
-    public Dataset fetch(Long datasetId, String version) {
-        return version == null ? datasetRepository.findByIdLatest(datasetId) : datasetRepository.findByIdAndVersion(datasetId, version);
-    }
+//    @SuppressWarnings("unchecked")
+//    public Dataset fetch(Long datasetId, String version) {
+//        return version == null ? objectRepository.findByIdLatest(datasetId) : objectRepository.findByIdAndVersion(datasetId, version);
+//    }
 
     @Value("${spring.datasource.url}")
     public void setJdbcUrl(String jdbcUrl) {
@@ -152,11 +151,6 @@ public class SearchService {
     @Autowired
     public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
-    }
-
-    @Autowired
-    public void setDatasetRepository(DatasetRepository datasetRepository) {
-        this.datasetRepository = datasetRepository;
     }
 
 }

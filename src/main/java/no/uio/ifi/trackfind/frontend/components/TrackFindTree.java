@@ -3,7 +3,7 @@ package no.uio.ifi.trackfind.frontend.components;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Tree;
 import lombok.AllArgsConstructor;
-import no.uio.ifi.trackfind.backend.dao.Hub;
+import no.uio.ifi.trackfind.backend.pojo.TfHub;
 
 /**
  * Vaadin Tree extension to expose it's CompositionRoot (which is protected out-of-the-box) and to inject back-end DataProvider.
@@ -14,13 +14,13 @@ import no.uio.ifi.trackfind.backend.dao.Hub;
 @AllArgsConstructor
 public class TrackFindTree<T> extends Tree<T> {
 
-    private Hub hub;
+    private TfHub hub;
 
-    public Hub getHub() {
+    public TfHub getHub() {
         return hub;
     }
 
-    public void setHub(Hub hub) {
+    public void setHub(TfHub hub) {
         this.hub = hub;
     }
 

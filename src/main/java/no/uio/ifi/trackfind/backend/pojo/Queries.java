@@ -1,4 +1,4 @@
-package no.uio.ifi.trackfind.backend.dao;
+package no.uio.ifi.trackfind.backend.pojo;
 
 public interface Queries {
 

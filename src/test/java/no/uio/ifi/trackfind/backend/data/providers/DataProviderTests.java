@@ -1,28 +1,17 @@
 package no.uio.ifi.trackfind.backend.data.providers;
 
-import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
-import no.uio.ifi.trackfind.backend.dao.Dataset;
-import no.uio.ifi.trackfind.backend.dao.Mapping;
 import no.uio.ifi.trackfind.backend.data.providers.ihec.IHECDataProvider;
-import no.uio.ifi.trackfind.backend.repositories.DatasetRepository;
 import no.uio.ifi.trackfind.backend.repositories.MappingRepository;
-import no.uio.ifi.trackfind.backend.repositories.SourceRepository;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.util.*;
-
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.when;
 
 // TODO: think about test for DataProvider.crawlRemoteRepository
 @RunWith(SpringRunner.class)
@@ -42,15 +31,8 @@ public class DataProviderTests {
     private JdbcTemplate jdbcTemplate;
 
     @Mock
-    private SourceRepository sourceRepository;
-
-    @Mock
-    private DatasetRepository datasetRepository;
-
-    @Mock
     private MappingRepository mappingRepository;
 
-    private Dataset originalDataset;
 
     @Test
     public void getName() {
@@ -103,7 +85,7 @@ public class DataProviderTests {
 //
 //        when(trackFindProperties.getLevelsSeparator()).thenReturn("->");
 //
-//        Mapping mapping = new Mapping();
+//        TfMapping mapping = new TfMapping();
 //        mapping.setFrom("analysis_attributes->alignment_software");
 //        mapping.setTo("software");
 //        mapping.setStaticMapping(true);

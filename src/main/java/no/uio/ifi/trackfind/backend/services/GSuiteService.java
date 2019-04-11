@@ -2,7 +2,7 @@ package no.uio.ifi.trackfind.backend.services;
 
 import com.google.gson.Gson;
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
-import no.uio.ifi.trackfind.backend.dao.Dataset;
+import no.uio.ifi.trackfind.backend.pojo.SearchResult;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
@@ -20,7 +20,7 @@ import java.util.function.Function;
  */
 // TODO: cover with tests
 @Service
-public class GSuiteService implements Function<Collection<Dataset>, String> {
+public class GSuiteService implements Function<Collection<SearchResult>, String> {
 
     private TrackFindProperties properties;
     private Gson gson;
@@ -28,22 +28,22 @@ public class GSuiteService implements Function<Collection<Dataset>, String> {
     private RestTemplate restTemplate;
 
     /**
-     * Convert datasets to GSuite.
+     * Convert searchResults to GSuite.
      *
-     * @param datasets Datasets to convert.
+     * @param searchResults Datasets to convert.
      * @return GSuite string.
      */
     @SuppressWarnings("unchecked")
     @Override
-    public String apply(Collection<Dataset> datasets) {
-        sortJSON(datasets);
-        HttpEntity<Collection<Dataset>> request = new HttpEntity<>(datasets);
+    public String apply(Collection<SearchResult> searchResults) {
+        sortJSON(searchResults);
+        HttpEntity<Collection<SearchResult>> request = new HttpEntity<>(searchResults);
         return restTemplate.postForObject("http://gsuite/togsuite", request, String.class);
     }
 
-    protected void sortJSON(Collection<Dataset> datasets) {
-        for (Dataset dataset : datasets) {
-            dataset.setFairContent(sortJSON(dataset.getFairContent()));
+    protected void sortJSON(Collection<SearchResult> searchResults) {
+        for (SearchResult searchResult : searchResults) {
+            searchResult.setContent(sortJSON(searchResult.getContent()));
         }
     }
 

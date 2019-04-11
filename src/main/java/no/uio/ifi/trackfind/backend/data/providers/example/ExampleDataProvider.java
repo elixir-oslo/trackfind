@@ -26,12 +26,12 @@ public class ExampleDataProvider extends AbstractDataProvider {
     @SuppressWarnings("unchecked")
     @Override
     protected void fetchData(String hubName) {
-        try (InputStream inputStream = new URL(FETCH_URL).openStream();
-             InputStreamReader reader = new InputStreamReader(inputStream)) {
-            save(hubName, gson.fromJson(reader, Collection.class));
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-        }
+//        try (InputStream inputStream = new URL(FETCH_URL).openStream();
+//             InputStreamReader reader = new InputStreamReader(inputStream)) {
+//            save(hubName, gson.fromJson(reader, Collection.class));
+//        } catch (Exception e) {
+//            log.error(e.getMessage(), e);
+//        }
     }
 
 }

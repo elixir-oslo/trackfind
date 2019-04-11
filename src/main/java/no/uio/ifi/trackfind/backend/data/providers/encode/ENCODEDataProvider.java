@@ -27,14 +27,14 @@ public class ENCODEDataProvider extends AbstractDataProvider {
     @SuppressWarnings("unchecked")
     @Override
     protected void fetchData(String hubName) {
-        try (InputStream inputStream = new URL(FETCH_URL).openStream();
-             InputStreamReader reader = new InputStreamReader(inputStream)) {
-            Map all = gson.fromJson(reader, Map.class);
-            Collection<Map> datasets = (Collection<Map>) all.get("@graph");
-            save(hubName, datasets);
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-        }
+//        try (InputStream inputStream = new URL(FETCH_URL).openStream();
+//             InputStreamReader reader = new InputStreamReader(inputStream)) {
+//            Map all = gson.fromJson(reader, Map.class);
+//            Collection<Map> datasets = (Collection<Map>) all.get("@graph");
+//            save(hubName, datasets);
+//        } catch (Exception e) {
+//            log.error(e.getMessage(), e);
+//        }
     }
 
 }

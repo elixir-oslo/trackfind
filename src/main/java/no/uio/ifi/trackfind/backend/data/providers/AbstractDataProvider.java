@@ -1,12 +1,14 @@
 package no.uio.ifi.trackfind.backend.data.providers;
 
-import alexh.weak.Dynamic;
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
-import no.uio.ifi.trackfind.backend.dao.*;
 import no.uio.ifi.trackfind.backend.events.DataReloadEvent;
 import no.uio.ifi.trackfind.backend.operations.Operation;
+import no.uio.ifi.trackfind.backend.pojo.TfHub;
+import no.uio.ifi.trackfind.backend.pojo.TfObject;
+import no.uio.ifi.trackfind.backend.pojo.TfObjectType;
+import no.uio.ifi.trackfind.backend.pojo.TfVersion;
 import no.uio.ifi.trackfind.backend.repositories.*;
 import no.uio.ifi.trackfind.backend.scripting.ScriptingEngine;
 import no.uio.ifi.trackfind.backend.services.CacheService;
@@ -20,7 +22,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import javax.transaction.Transactional;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
-import java.util.stream.Collectors;
 
 /**
  * Abstract class for all data providers.
@@ -37,9 +38,9 @@ public abstract class AbstractDataProvider implements DataProvider {
     protected SearchService searchService;
     protected JdbcTemplate jdbcTemplate;
     protected HubRepository hubRepository;
-    protected SourceRepository sourceRepository;
-    protected StandardRepository standardRepository;
-    protected DatasetRepository datasetRepository;
+    protected ObjectTypeRepository objectTypeRepository;
+    protected VersionRepository versionRepository;
+    protected ObjectRepository objectRepository;
     protected MappingRepository mappingRepository;
     protected ExecutorService executorService;
     protected Gson gson;
@@ -57,15 +58,15 @@ public abstract class AbstractDataProvider implements DataProvider {
      * {@inheritDoc}
      */
     @Override
-    public Collection<Hub> getAllTrackHubs() {
-        return Collections.singleton(new Hub(getName(), getName()));
+    public Collection<TfHub> getAllTrackHubs() {
+        return Collections.singleton(new TfHub(getName(), getName()));
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public Collection<Hub> getActiveTrackHubs() {
+    public Collection<TfHub> getActiveTrackHubs() {
         return hubRepository.findByRepository(getName());
     }
 
@@ -105,60 +106,62 @@ public abstract class AbstractDataProvider implements DataProvider {
     /**
      * Saves datasets to the database.
      *
-     * @param hubName  Track Hub name.
-     * @param datasets Datasets to save.
+     * @param hubName Hub name.
+     * @param objects Object-type to object map.
      */
-    protected void save(String hubName, Collection<Map> datasets) {
-        Hub hub = hubRepository.getOne(new HubId(getName(), hubName));
-        Long maxRawVersion = jdbcTemplate.queryForObject("SELECT MAX(raw_version) FROM source WHERE repository = ? AND hub = ?", Long.class, hub.getRepository(), hub.getHub());
-        String idAttribute = hub.getIdAttribute();
-        Collection<Source> sourcesToSave = new ArrayList<>();
-        for (Map dataset : datasets) {
-            Source source = new Source();
-            source.setRepository(getName());
-            source.setHub(hubName);
-            source.setContent(gson.toJson(dataset));
-            source.setRawVersion(maxRawVersion == null ? 1L : maxRawVersion + 1);
-            source.setCuratedVersion(0L);
-            sourcesToSave.add(source);
-            if (idAttribute != null) {
-                Optional optionalId = Dynamic.from(dataset).get(idAttribute, properties.getLevelsSeparator()).asOptional();
-                if (optionalId.isPresent()) {
-                    String id = String.valueOf(optionalId.get());
-                    String escapedIdAttribute = "'" + idAttribute.replace(properties.getLevelsSeparator(), "'" + properties.getLevelsSeparator() + "'") + "'";
-                    Collection<Dataset> foundDatasets = searchService.search(hub,
-                            String.format("fair_content%s%s ? '%s'", properties.getLevelsSeparator(), escapedIdAttribute, id), 1);
-                    if (CollectionUtils.isNotEmpty(foundDatasets)) {
-                        Dataset foundDataset = foundDatasets.iterator().next();
-                        source.setId(foundDataset.getId());
-                    }
-                } else {
-                    log.error("ID field not found for Hub {} in entry {}", hub, dataset);
-                }
+    protected void save(String hubName, Map<String, Collection<String>> objects) {
+        TfHub hub = hubRepository.findByNameAndRepository(getName(), hubName);
+        String maxVersion = jdbcTemplate.queryForObject("SELECT MAX(v.version) FROM tf_versions v, tf_objects o, tf_hubs h WHERE h.id = ? AND h.id = o.hub_id AND o.version_id = v.id", String.class, hub.getId());
+        if (maxVersion == null) {
+            maxVersion = "0";
+        }
+        TfVersion tfVersion = new TfVersion();
+        tfVersion.setVersion(String.valueOf(Long.parseLong(maxVersion) + 1));
+        tfVersion.setOperation(Operation.CRAWLING);
+        tfVersion.setUsername("admin");
+        tfVersion.setTime(new Date());
+        versionRepository.save(tfVersion);
+        Collection<TfObject> objectsToSave = new ArrayList<>();
+        for (String objectTypeName : objects.keySet()) {
+            TfObjectType objectType = objectTypeRepository.findByNameAndHubId(objectTypeName, hub.getId());
+            if (objectType == null) {
+                objectType = new TfObjectType();
+                objectType.setHub(hub);
+                objectType.setName(objectTypeName);
+                objectType = objectTypeRepository.save(objectType);
+            }
+            for (String obj : objects.get(objectTypeName)) {
+                TfObject tfObject = new TfObject();
+                tfObject.setHub(hub);
+                tfObject.setObjectType(objectType);
+                tfObject.setVersion(tfVersion);
+                tfObject.setContent(obj);
+                objectsToSave.add(tfObject);
             }
         }
-        applyAutomaticMappings(hub, sourceRepository.saveAll(sourcesToSave));
+        objectRepository.saveAll(objectsToSave);
+//        applyAutomaticMappings(hub, objectRepository.saveAll(objectsToSave));
     }
 
-    @Transactional
-    protected synchronized void applyAutomaticMappings(Hub hub, Collection<Source> sources) {
-        Collection<Standard> standardsToSave = new ArrayList<>();
-        for (Source source : sources) {
-            String idMappingAttribute = hub.getIdMappingAttribute();
-            String versionMappingAttribute = hub.getVersionMappingAttribute();
-            Standard standard = new Standard();
-            standard.setId(source.getId());
-            standard.setRawVersion(source.getRawVersion());
-            standard.setCuratedVersion(source.getCuratedVersion());
-            standard.setStandardVersion(1L);
-            Map<String, Object> standardMap = new HashMap<>();
-            putValueByPath(standardMap, idMappingAttribute.split(properties.getLevelsSeparator()), Collections.singleton(standard.getId().toString()));
-            putValueByPath(standardMap, versionMappingAttribute.split(properties.getLevelsSeparator()), Collections.singleton(source.getRawVersion() + ".0.1"));
-            standard.setContent(gson.toJson(standardMap));
-            standardsToSave.add(standard);
-        }
-        standardRepository.saveAll(standardsToSave);
-    }
+//    @Transactional
+//    protected synchronized void applyAutomaticMappings(TfHub hub, Collection<TfObject> objects) {
+//        Collection<TfObject> objectsToSave = new ArrayList<>();
+//        for (TfObject obj : objects) {
+//            String idMappingAttribute = hub.getIdMappingAttribute();
+//            String versionMappingAttribute = hub.getVersionMappingAttribute();
+//            TfObject standard = new TfObject();
+//            standard.setId(obj.getId());
+//            standard.setRawVersion(obj.getRawVersion());
+//            standard.setCuratedVersion(obj.getCuratedVersion());
+//            standard.setStandardVersion(1L);
+//            Map<String, Object> standardMap = new HashMap<>();
+//            putValueByPath(standardMap, idMappingAttribute.split(properties.getLevelsSeparator()), Collections.singleton(standard.getId().toString()));
+//            putValueByPath(standardMap, versionMappingAttribute.split(properties.getLevelsSeparator()), Collections.singleton(obj.getRawVersion() + ".0.1"));
+//            standard.setContent(gson.toJson(standardMap));
+//            objectsToSave.add(standard);
+//        }
+//        objectRepository.saveAll(objectsToSave);
+//    }
 
     /**
      * {@inheritDoc}
@@ -176,60 +179,60 @@ public abstract class AbstractDataProvider implements DataProvider {
     @Transactional
     @Override
     public synchronized void applyMappings(String hubName) {
-        log.info("Applying mappings for {}: {}", getName(), hubName);
-        Collection<Mapping> mappings = mappingRepository.findByRepositoryAndHub(getName(), hubName);
-        Collection<Mapping> staticMappings = mappings.stream().filter(Mapping::isStaticMapping).collect(Collectors.toSet());
-        Optional<Mapping> dynamicMappingOptional = mappings.stream().filter(m -> !m.isStaticMapping()).findAny();
-        Collection<Source> sources = sourceRepository.findByRepositoryAndHubLatest(getName(), hubName);
-        Collection<Standard> standards = new HashSet<>();
-        ScriptingEngine scriptingEngine = scriptingEngines.stream().filter(se -> properties.getScriptingLanguage().equals(se.getLanguage())).findAny().orElseThrow(RuntimeException::new);
-        try {
-            for (Source source : sources) {
-                Map<String, Object> rawMap = gson.fromJson(source.getContent(), Map.class);
-                Map<String, Object> standardMap = new HashMap<>();
-                if (dynamicMappingOptional.isPresent()) {
-                    Mapping mapping = dynamicMappingOptional.get();
-                    standardMap = gson.fromJson(scriptingEngine.execute(mapping.getFrom(), source.getContent()), Map.class);
-                }
-                for (Mapping mapping : staticMappings) {
-                    Collection<String> values;
-                    Dynamic dynamicValues = Dynamic.from(rawMap).get(mapping.getFrom(), properties.getLevelsSeparator());
-                    if (dynamicValues.isPresent()) {
-                        if (dynamicValues.isList()) {
-                            values = dynamicValues.asList();
-                        } else {
-                            values = Collections.singletonList(dynamicValues.asString());
-                        }
-                    } else {
-                        values = Collections.emptyList();
-                    }
-                    String[] path = mapping.getTo().split(properties.getLevelsSeparator());
-                    putValueByPath(standardMap, path, values);
-                }
-                Standard standard = new Standard();
-                standard.setId(source.getId());
-                standard.setContent(gson.toJson(standardMap));
-                standard.setRawVersion(source.getRawVersion());
-                standard.setCuratedVersion(source.getCuratedVersion());
-                standard.setStandardVersion(0L);
-                Optional<Standard> standardLatest =
-                        standardRepository.findByIdAndRawVersionAndCuratedVersionLatest(standard.getId(),
-                                standard.getRawVersion(),
-                                standard.getCuratedVersion());
-                if (standardLatest.isPresent()) {
-                    standard.setStandardVersion(standardLatest.get().getStandardVersion() + 1);
-                } else {
-                    standard.setStandardVersion(1L);
-                }
-                standards.add(standard);
-            }
-            standardRepository.saveAll(standards);
-            applicationEventPublisher.publishEvent(new DataReloadEvent(hubName, Operation.MAPPING));
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-            return;
-        }
-        log.info("Success!");
+//        log.info("Applying mappings for {}: {}", getName(), hubName);
+//        Collection<TfMapping> mappings = mappingRepository.findByHub(getName(), hubName);
+//        Collection<TfMapping> staticMappings = mappings.stream().filter(TfMapping::isStaticMapping).collect(Collectors.toSet());
+//        Optional<TfMapping> dynamicMappingOptional = mappings.stream().filter(m -> !m.isStaticMapping()).findAny();
+//        Collection<Source> sources = sourceRepository.findByRepositoryAndHubLatest(getName(), hubName);
+//        Collection<Standard> standards = new HashSet<>();
+//        ScriptingEngine scriptingEngine = scriptingEngines.stream().filter(se -> properties.getScriptingLanguage().equals(se.getLanguage())).findAny().orElseThrow(RuntimeException::new);
+//        try {
+//            for (Source source : sources) {
+//                Map<String, Object> rawMap = gson.fromJson(source.getContent(), Map.class);
+//                Map<String, Object> standardMap = new HashMap<>();
+//                if (dynamicMappingOptional.isPresent()) {
+//                    TfMapping mapping = dynamicMappingOptional.get();
+//                    standardMap = gson.fromJson(scriptingEngine.execute(mapping.getFrom(), source.getContent()), Map.class);
+//                }
+//                for (TfMapping mapping : staticMappings) {
+//                    Collection<String> values;
+//                    Dynamic dynamicValues = Dynamic.from(rawMap).get(mapping.getFrom(), properties.getLevelsSeparator());
+//                    if (dynamicValues.isPresent()) {
+//                        if (dynamicValues.isList()) {
+//                            values = dynamicValues.asList();
+//                        } else {
+//                            values = Collections.singletonList(dynamicValues.asString());
+//                        }
+//                    } else {
+//                        values = Collections.emptyList();
+//                    }
+//                    String[] path = mapping.getTo().split(properties.getLevelsSeparator());
+//                    putValueByPath(standardMap, path, values);
+//                }
+//                Standard standard = new Standard();
+//                standard.setId(source.getId());
+//                standard.setContent(gson.toJson(standardMap));
+//                standard.setRawVersion(source.getRawVersion());
+//                standard.setCuratedVersion(source.getCuratedVersion());
+//                standard.setStandardVersion(0L);
+//                Optional<Standard> standardLatest =
+//                        standardRepository.findByIdAndRawVersionAndCuratedVersionLatest(standard.getId(),
+//                                standard.getRawVersion(),
+//                                standard.getCuratedVersion());
+//                if (standardLatest.isPresent()) {
+//                    standard.setStandardVersion(standardLatest.get().getStandardVersion() + 1);
+//                } else {
+//                    standard.setStandardVersion(1L);
+//                }
+//                standards.add(standard);
+//            }
+//            standardRepository.saveAll(standards);
+//            applicationEventPublisher.publishEvent(new DataReloadEvent(hubName, Operation.MAPPING));
+//        } catch (Exception e) {
+//            log.error(e.getMessage(), e);
+//            return;
+//        }
+//        log.info("Success!");
     }
 
     @SuppressWarnings("unchecked")
@@ -276,18 +279,18 @@ public abstract class AbstractDataProvider implements DataProvider {
     }
 
     @Autowired
-    public void setSourceRepository(SourceRepository sourceRepository) {
-        this.sourceRepository = sourceRepository;
+    public void setObjectTypeRepository(ObjectTypeRepository objectTypeRepository) {
+        this.objectTypeRepository = objectTypeRepository;
     }
 
     @Autowired
-    public void setStandardRepository(StandardRepository standardRepository) {
-        this.standardRepository = standardRepository;
+    public void setVersionRepository(VersionRepository versionRepository) {
+        this.versionRepository = versionRepository;
     }
 
     @Autowired
-    public void setDatasetRepository(DatasetRepository datasetRepository) {
-        this.datasetRepository = datasetRepository;
+    public void setObjectRepository(ObjectRepository objectRepository) {
+        this.objectRepository = objectRepository;
     }
 
     @Autowired

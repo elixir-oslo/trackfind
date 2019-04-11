@@ -8,10 +8,10 @@ import com.vaadin.server.VaadinRequest;
 import com.vaadin.spring.annotation.SpringUI;
 import com.vaadin.ui.*;
 import lombok.extern.slf4j.Slf4j;
-import no.uio.ifi.trackfind.backend.dao.Hub;
-import no.uio.ifi.trackfind.backend.dao.Mapping;
 import no.uio.ifi.trackfind.backend.data.TreeNode;
 import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
+import no.uio.ifi.trackfind.backend.pojo.TfHub;
+import no.uio.ifi.trackfind.backend.pojo.TfMapping;
 import no.uio.ifi.trackfind.backend.repositories.HubRepository;
 import no.uio.ifi.trackfind.backend.repositories.MappingRepository;
 import no.uio.ifi.trackfind.frontend.components.TrackFindTree;
@@ -45,14 +45,12 @@ public class TrackFindMappingsUI extends AbstractUI {
     private HubRepository hubRepository;
 
     private Button addStaticMappingButton;
-    private Button addInternalIdAttributeButton;
     private Button addIdMappingAttributeButton;
     private Button addVersionMappingAttributeButton;
     private VerticalLayout attributesMappingLayout;
 
     private Map<ComboBox<String>, TextField> attributesStaticMapping = new HashMap<>();
     private AceEditor script;
-    private TextField internalIdAttribute;
     private TextField idMappingAttribute;
     private TextField versionMappingAttribute;
 
@@ -72,9 +70,9 @@ public class TrackFindMappingsUI extends AbstractUI {
         tabSheet = new TabSheet();
         tabSheet.setSizeFull();
 
-        for (Hub hub : trackFindService.getActiveTrackHubs()) {
+        for (TfHub hub : trackFindService.getActiveTrackHubs()) {
             TrackFindTree<TreeNode> tree = buildTree(hub);
-            tabSheet.addTab(tree, hub.getHub());
+            tabSheet.addTab(tree, hub.getName());
         }
 
         tabSheet.addSelectedTabChangeListener((TabSheet.SelectedTabChangeListener) event -> loadConfiguration());
@@ -94,16 +92,13 @@ public class TrackFindMappingsUI extends AbstractUI {
             addStaticMappingPair("", sourceAttribute);
         });
 
-        addInternalIdAttributeButton = new Button("Use as internal ID");
-        bindTreeButton(addInternalIdAttributeButton, internalIdAttribute);
-
         addIdMappingAttributeButton = new Button("Use as ID mapping attribute");
         bindTreeButton(addIdMappingAttributeButton, idMappingAttribute);
 
         addVersionMappingAttributeButton = new Button("Use as Version mapping attribute");
         bindTreeButton(addVersionMappingAttributeButton, versionMappingAttribute);
 
-        VerticalLayout treeLayout = new VerticalLayout(treePanel, attributesFilterTextField, valuesFilterTextField, addStaticMappingButton, addInternalIdAttributeButton, addIdMappingAttributeButton, addVersionMappingAttributeButton);
+        VerticalLayout treeLayout = new VerticalLayout(treePanel, attributesFilterTextField, valuesFilterTextField, addStaticMappingButton, addIdMappingAttributeButton, addVersionMappingAttributeButton);
         treeLayout.setSizeFull();
         treeLayout.setExpandRatio(treePanel, 1f);
         return treeLayout;
@@ -121,13 +116,12 @@ public class TrackFindMappingsUI extends AbstractUI {
     }
 
     @SuppressWarnings("unchecked")
-    protected TrackFindTree<TreeNode> buildTree(Hub hub) {
+    protected TrackFindTree<TreeNode> buildTree(TfHub hub) {
         TrackFindTree<TreeNode> tree = new TrackFindTree<>(hub);
         tree.setDataProvider(trackFindDataProvider);
         tree.setSelectionMode(Grid.SelectionMode.SINGLE);
         tree.addSelectionListener((SelectionListener<TreeNode>) event -> {
             addStaticMappingButton.setEnabled(!CollectionUtils.isEmpty(event.getAllSelectedItems()) && event.getFirstSelectedItem().get().isAttribute());
-            addInternalIdAttributeButton.setEnabled(!CollectionUtils.isEmpty(event.getAllSelectedItems()) && event.getFirstSelectedItem().get().isAttribute());
             addIdMappingAttributeButton.setEnabled(!CollectionUtils.isEmpty(event.getAllSelectedItems()) && event.getFirstSelectedItem().get().isAttribute());
             addVersionMappingAttributeButton.setEnabled(!CollectionUtils.isEmpty(event.getAllSelectedItems()) && event.getFirstSelectedItem().get().isAttribute());
         });
@@ -181,9 +175,9 @@ public class TrackFindMappingsUI extends AbstractUI {
                         "Crawling is time-consuming process and will lead to changing the data in the database.",
                 (ConfirmDialog.Listener) dialog -> {
                     if (dialog.isConfirmed()) {
-                        Hub currentHub = getCurrentHub();
+                        TfHub currentHub = getCurrentHub();
                         DataProvider dataProvider = trackFindService.getDataProvider(currentHub.getRepository());
-                        dataProvider.crawlRemoteRepository(currentHub.getHub());
+                        dataProvider.crawlRemoteRepository(currentHub.getName());
                         getCurrentTree().getDataProvider().refreshAll();
                     }
                 }));
@@ -194,14 +188,11 @@ public class TrackFindMappingsUI extends AbstractUI {
                         "Applying attribute mappings is time-consuming process and will lead to changing the data in the database.",
                 (ConfirmDialog.Listener) dialog -> {
                     if (dialog.isConfirmed()) {
-                        Hub currentHub = getCurrentHub();
+                        TfHub currentHub = getCurrentHub();
                         DataProvider dataProvider = trackFindService.getDataProvider(currentHub.getRepository());
-                        dataProvider.applyMappings(currentHub.getHub());
+                        dataProvider.applyMappings(currentHub.getName());
                     }
                 }));
-
-        internalIdAttribute = new TextField("Internal ID attribute");
-        HorizontalLayout internalIdAttributeHorizontalLayout = addAttributeButtonLayout(internalIdAttribute);
 
         idMappingAttribute = new TextField("ID mapping attribute");
         HorizontalLayout idMappingAttributeHorizontalLayout = addAttributeButtonLayout(idMappingAttribute);
@@ -212,7 +203,7 @@ public class TrackFindMappingsUI extends AbstractUI {
         HorizontalLayout buttonsLayout = new HorizontalLayout(saveButton, crawlButton, applyMappingsButton);
         buttonsLayout.setWidth(100, Unit.PERCENTAGE);
         buttonsLayout.setEnabled(!properties.isDemoMode());
-        VerticalLayout attributesMappingOuterLayout = new VerticalLayout(attributesMappingPanel, internalIdAttributeHorizontalLayout, idMappingAttributeHorizontalLayout, versionMappingAttributeHorizontalLayout, buttonsLayout);
+        VerticalLayout attributesMappingOuterLayout = new VerticalLayout(attributesMappingPanel, idMappingAttributeHorizontalLayout, versionMappingAttributeHorizontalLayout, buttonsLayout);
         attributesMappingOuterLayout.setSizeFull();
         attributesMappingOuterLayout.setExpandRatio(attributesMappingPanel, 1f);
         return attributesMappingOuterLayout;
@@ -269,19 +260,16 @@ public class TrackFindMappingsUI extends AbstractUI {
     }
 
     private void loadConfiguration() {
-        Hub currentHub = getCurrentHub();
-        String repository = currentHub.getRepository();
-        String hub = currentHub.getHub();
-        Collection<Mapping> mappings = mappingRepository.findByRepositoryAndHub(repository, hub);
-        Collection<Mapping> staticMappings = mappings.stream().filter(Mapping::isStaticMapping).collect(Collectors.toSet());
+        TfHub currentHub = getCurrentHub();
+        Collection<TfMapping> mappings = mappingRepository.findByHubId(currentHub.getId());
+        Collection<TfMapping> staticMappings = mappings.stream().filter(TfMapping::isStaticMapping).collect(Collectors.toSet());
         attributesStaticMapping.clear();
         attributesMappingLayout.removeAllComponents();
-        for (Mapping mapping : staticMappings) {
+        for (TfMapping mapping : staticMappings) {
             addStaticMappingPair(mapping.getTo(), mapping.getFrom());
         }
         script.clear();
         mappings.stream().filter(m -> !m.isStaticMapping()).findAny().ifPresent(m -> script.setValue(m.getFrom()));
-        internalIdAttribute.setValue(Optional.ofNullable(currentHub.getIdAttribute()).orElse(""));
         idMappingAttribute.setValue(Optional.ofNullable(currentHub.getIdMappingAttribute()).orElse(""));
         versionMappingAttribute.setValue(Optional.ofNullable(currentHub.getVersionMappingAttribute()).orElse(""));
     }
@@ -292,31 +280,26 @@ public class TrackFindMappingsUI extends AbstractUI {
 
     @Transactional
     protected void saveConfiguration() {
-        Hub currentHub = getCurrentHub();
-        String repository = currentHub.getRepository();
-        String hub = currentHub.getHub();
-        Collection<Mapping> existingMappings = mappingRepository.findByRepositoryAndHub(repository, hub);
-        Collection<Mapping> mappings = new HashSet<>();
+        TfHub currentHub = getCurrentHub();
+        Collection<TfMapping> existingMappings = mappingRepository.findByHubId(currentHub.getId());
+        Collection<TfMapping> mappings = new HashSet<>();
         mappingRepository.deleteInBatch(existingMappings);
         for (Map.Entry<ComboBox<String>, TextField> mappingPair : attributesStaticMapping.entrySet()) {
-            Mapping mapping = new Mapping();
-            mapping.setRepository(repository);
-            mapping.setHub(hub);
+            TfMapping mapping = new TfMapping();
+            mapping.setHub(currentHub);
             mapping.setStaticMapping(true);
             mapping.setFrom(mappingPair.getValue().getValue());
             mapping.setTo(mappingPair.getKey().getValue());
             mappings.add(mapping);
         }
         script.getOptionalValue().ifPresent(s -> {
-            Mapping mapping = new Mapping();
-            mapping.setRepository(repository);
-            mapping.setHub(hub);
+            TfMapping mapping = new TfMapping();
+            mapping.setHub(currentHub);
             mapping.setStaticMapping(false);
             mapping.setFrom(s);
             mappings.add(mapping);
         });
         mappingRepository.saveAll(mappings);
-        currentHub.setIdAttribute(internalIdAttribute.getValue());
         currentHub.setIdMappingAttribute(idMappingAttribute.getValue());
         currentHub.setVersionMappingAttribute(versionMappingAttribute.getValue());
         hubRepository.save(currentHub);

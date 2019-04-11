@@ -5,7 +5,7 @@ import com.vaadin.shared.ui.ValueChangeMode;
 import com.vaadin.ui.*;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
-import no.uio.ifi.trackfind.backend.dao.Hub;
+import no.uio.ifi.trackfind.backend.pojo.TfHub;
 import no.uio.ifi.trackfind.backend.data.TreeNode;
 import no.uio.ifi.trackfind.backend.services.SchemaService;
 import no.uio.ifi.trackfind.backend.services.TrackFindService;
@@ -38,7 +38,7 @@ public abstract class AbstractUI extends UI {
     }
 
     @SuppressWarnings("unchecked")
-    protected Hub getCurrentHub() {
+    protected TfHub getCurrentHub() {
         return getCurrentTree().getHub();
     }
 

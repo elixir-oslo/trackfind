@@ -1,15 +1,16 @@
 package no.uio.ifi.trackfind.backend.repositories;
 
-import no.uio.ifi.trackfind.backend.dao.Hub;
-import no.uio.ifi.trackfind.backend.dao.HubId;
+import no.uio.ifi.trackfind.backend.pojo.TfHub;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
 
 @Repository
-public interface HubRepository extends JpaRepository<Hub, HubId> {
+public interface HubRepository extends JpaRepository<TfHub, Long> {
 
-    Collection<Hub> findByRepository(String repository);
+    Collection<TfHub> findByRepository(String repository);
+
+    TfHub findByNameAndRepository(String name, String repository);
 
 }

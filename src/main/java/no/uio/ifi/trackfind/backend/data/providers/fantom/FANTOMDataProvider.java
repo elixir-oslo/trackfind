@@ -35,55 +35,55 @@ public class FANTOMDataProvider extends AbstractDataProvider {
      */
     @Override
     protected void fetchData(String hubName) throws Exception {
-        log.info("Collecting directories...");
-        Document root = Jsoup.parse(new URL(METADATA_URL), 10000);
-        Set<String> dirs = root.getElementsByTag("a").parallelStream().map(e -> e.attr("href")).filter(s -> s.contains(".") && s.endsWith("/")).collect(Collectors.toSet());
-        int size = dirs.size();
-        log.info(size + " directories to process");
-        CountDownLatch countDownLatch = new CountDownLatch(size);
-        Collection<Map> allDatasets = new HashSet<>();
-        for (String dir : dirs) {
-            executorService.submit(() -> {
-                try {
-                    Document folder = Jsoup.parse(new URL(METADATA_URL + dir), 10000);
-                    Set<String> allFiles = folder.getElementsByTag("a").parallelStream().map(e -> e.attr("href")).collect(Collectors.toSet());
-                    Optional<String> metadataFileOptional = allFiles.parallelStream().filter(s -> s.endsWith("_sdrf.txt")).findAny();
-                    if (!metadataFileOptional.isPresent()) {
-                        return;
-                    }
-                    URL url = new URL(METADATA_URL + dir + metadataFileOptional.get());
-                    try (InputStream inputStream = url.openStream();
-                         Reader reader = new InputStreamReader(inputStream);
-                         CSVParser parser = new CSVParser(reader, CSVFormat.newFormat('\t').withSkipHeaderRecord())) {
-                        List<CSVRecord> records = parser.getRecords();
-                        Iterator<CSVRecord> recordIterator = records.iterator();
-                        CSVRecord header = recordIterator.next();
-                        String[] attributes = parseAttributes(header);
-                        while (recordIterator.hasNext()) {
-                            Map<String, Object> map = new HashMap<>();
-                            CSVRecord next = recordIterator.next();
-                            for (int i = 0; i < attributes.length; i++) {
-                                if (!attributes[i].startsWith("skip")) {
-                                    map.put(attributes[i], next.get(i));
-                                }
-                            }
-
-                            Set<String> datasetRelatedFiles = allFiles.parallelStream().filter(s -> s.contains(next.get(0))).map(f -> METADATA_URL + dir + f).collect(Collectors.toSet());
-                            map.put("files", datasetRelatedFiles);
-                            allDatasets.add(map);
-                        }
-                        log.info("Directory " + dir + " processed.");
-                    }
-                } catch (Exception e) {
-                    log.error(e.getMessage(), e);
-                } finally {
-                    countDownLatch.countDown();
-                }
-            });
-        }
-        countDownLatch.await();
-        save(hubName, allDatasets);
-        log.info(size + " releases stored.");
+//        log.info("Collecting directories...");
+//        Document root = Jsoup.parse(new URL(METADATA_URL), 10000);
+//        Set<String> dirs = root.getElementsByTag("a").parallelStream().map(e -> e.attr("href")).filter(s -> s.contains(".") && s.endsWith("/")).collect(Collectors.toSet());
+//        int size = dirs.size();
+//        log.info(size + " directories to process");
+//        CountDownLatch countDownLatch = new CountDownLatch(size);
+//        Collection<Map> allDatasets = new HashSet<>();
+//        for (String dir : dirs) {
+//            executorService.submit(() -> {
+//                try {
+//                    Document folder = Jsoup.parse(new URL(METADATA_URL + dir), 10000);
+//                    Set<String> allFiles = folder.getElementsByTag("a").parallelStream().map(e -> e.attr("href")).collect(Collectors.toSet());
+//                    Optional<String> metadataFileOptional = allFiles.parallelStream().filter(s -> s.endsWith("_sdrf.txt")).findAny();
+//                    if (!metadataFileOptional.isPresent()) {
+//                        return;
+//                    }
+//                    URL url = new URL(METADATA_URL + dir + metadataFileOptional.get());
+//                    try (InputStream inputStream = url.openStream();
+//                         Reader reader = new InputStreamReader(inputStream);
+//                         CSVParser parser = new CSVParser(reader, CSVFormat.newFormat('\t').withSkipHeaderRecord())) {
+//                        List<CSVRecord> records = parser.getRecords();
+//                        Iterator<CSVRecord> recordIterator = records.iterator();
+//                        CSVRecord header = recordIterator.next();
+//                        String[] attributes = parseAttributes(header);
+//                        while (recordIterator.hasNext()) {
+//                            Map<String, Object> map = new HashMap<>();
+//                            CSVRecord next = recordIterator.next();
+//                            for (int i = 0; i < attributes.length; i++) {
+//                                if (!attributes[i].startsWith("skip")) {
+//                                    map.put(attributes[i], next.get(i));
+//                                }
+//                            }
+//
+//                            Set<String> datasetRelatedFiles = allFiles.parallelStream().filter(s -> s.contains(next.get(0))).map(f -> METADATA_URL + dir + f).collect(Collectors.toSet());
+//                            map.put("files", datasetRelatedFiles);
+//                            allDatasets.add(map);
+//                        }
+//                        log.info("Directory " + dir + " processed.");
+//                    }
+//                } catch (Exception e) {
+//                    log.error(e.getMessage(), e);
+//                } finally {
+//                    countDownLatch.countDown();
+//                }
+//            });
+//        }
+//        countDownLatch.await();
+//        save(hubName, allDatasets);
+//        log.info(size + " releases stored.");
     }
 
     /**

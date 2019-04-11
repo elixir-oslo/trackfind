@@ -1,6 +1,6 @@
 package no.uio.ifi.trackfind.backend.data.providers;
 
-import no.uio.ifi.trackfind.backend.dao.Hub;
+import no.uio.ifi.trackfind.backend.pojo.TfHub;
 
 import java.util.Collection;
 
@@ -23,26 +23,26 @@ public interface DataProvider {
      *
      * @return All Track Hubs list.
      */
-    Collection<Hub> getAllTrackHubs();
+    Collection<TfHub> getAllTrackHubs();
 
     /**
      * Gets the names of active Track hubs by this data provider.
      *
      * @return Active Track Hubs list.
      */
-    Collection<Hub> getActiveTrackHubs();
+    Collection<TfHub> getActiveTrackHubs();
 
     /**
      * Re-fetches data, rebuilds index.
      *
-     * @param hubName Hub name.
+     * @param hubName TfHub name.
      */
     void crawlRemoteRepository(String hubName);
 
     /**
      * Applies attributes mappings, rebuilds index.
      *
-     * @param hubName Hub name.
+     * @param hubName TfHub name.
      */
     void applyMappings(String hubName);
 

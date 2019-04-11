@@ -1,7 +1,7 @@
 package no.uio.ifi.trackfind.backend.rest.controllers;
 
 import io.swagger.annotations.*;
-import no.uio.ifi.trackfind.backend.dao.Hub;
+import no.uio.ifi.trackfind.backend.pojo.TfHub;
 import no.uio.ifi.trackfind.backend.services.TrackFindService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -30,7 +30,7 @@ public class TrackHubsController {
      */
     @ApiOperation(value = "Gets set of Track Hubs registered in the system.")
     @GetMapping(path = "/hubs", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<Collection<Hub>> getTrackHubs(@ApiParam(value = "Only Active Track Hubs", required = false, defaultValue = "true")
+    public ResponseEntity<Collection<TfHub>> getTrackHubs(@ApiParam(value = "Only Active Track Hubs", required = false, defaultValue = "true")
                                                         @RequestParam(required = false, defaultValue = "false") boolean active) {
         return ResponseEntity.ok(active ? trackFindService.getActiveTrackHubs() : trackFindService.getAllTrackHubs());
     }
@@ -43,9 +43,9 @@ public class TrackHubsController {
      */
     @ApiOperation(value = "Gets set of Track Hubs registered in the system by repository.")
     @GetMapping(path = "/{repository}/hubs", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<Collection<Hub>> getTrackHubs(@ApiParam(value = "Repository name.", required = true, example = "TrackHubRegistry")
+    public ResponseEntity<Collection<TfHub>> getTrackHubs(@ApiParam(value = "Repository name.", required = true, example = "TrackHubRegistry")
                                                         @PathVariable String repository,
-                                                        @ApiParam(value = "Only Active Track Hubs", required = false, defaultValue = "true")
+                                                          @ApiParam(value = "Only Active Track Hubs", required = false, defaultValue = "true")
                                                         @RequestParam(required = false, defaultValue = "false") boolean active) {
         return ResponseEntity.ok(active ? trackFindService.getDataProvider(repository).getActiveTrackHubs() : trackFindService.getDataProvider(repository).getAllTrackHubs());
     }

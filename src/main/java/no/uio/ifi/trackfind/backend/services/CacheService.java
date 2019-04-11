@@ -1,7 +1,7 @@
 package no.uio.ifi.trackfind.backend.services;
 
 import lombok.extern.slf4j.Slf4j;
-import no.uio.ifi.trackfind.backend.dao.Queries;
+import no.uio.ifi.trackfind.backend.pojo.Queries;
 import no.uio.ifi.trackfind.backend.events.DataReloadEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;

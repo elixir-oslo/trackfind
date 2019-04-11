@@ -1,15 +1,13 @@
 package no.uio.ifi.trackfind.backend.services;
 
 import lombok.extern.slf4j.Slf4j;
-import no.uio.ifi.trackfind.backend.dao.Hub;
+import no.uio.ifi.trackfind.backend.pojo.TfHub;
 import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
 import no.uio.ifi.trackfind.backend.repositories.HubRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.stream.Collectors;
 
 /**
@@ -38,7 +36,7 @@ public class TrackFindService {
      *
      * @return All Track Hubs by DataProviders.
      */
-    public Collection<Hub> getAllTrackHubs() {
+    public Collection<TfHub> getAllTrackHubs() {
         return dataProviders.stream().flatMap(dp -> dp.getAllTrackHubs().stream()).collect(Collectors.toList());
     }
 
@@ -47,7 +45,7 @@ public class TrackFindService {
      *
      * @return Active Track Hubs by DataProviders.
      */
-    public Collection<Hub> getActiveTrackHubs() {
+    public Collection<TfHub> getActiveTrackHubs() {
         return dataProviders.stream().flatMap(dp -> dp.getActiveTrackHubs().stream()).collect(Collectors.toList());
     }
 
@@ -56,7 +54,7 @@ public class TrackFindService {
      *
      * @param hubs Hubs to activate.
      */
-    public void activateHubs(Collection<Hub> hubs) {
+    public void activateHubs(Collection<TfHub> hubs) {
         hubRepository.saveAll(hubs);
     }
 
@@ -65,7 +63,7 @@ public class TrackFindService {
      *
      * @param hubs Hubs to deactivate.
      */
-    public void deactivateHubs(Collection<Hub> hubs) {
+    public void deactivateHubs(Collection<TfHub> hubs) {
         hubRepository.deleteAll(hubs);
     }
 
