@@ -103,6 +103,16 @@ FROM tf_latest_versions lv,
 WHERE lv.id = ot.version_id
   AND ot.id = o.object_type_id;
 
+CREATE INDEX IF NOT EXISTS tf_latest_objects_id_index
+    ON tf_latest_objects (id);
+
+CREATE INDEX IF NOT EXISTS tf_latest_objects_object_type_id_index
+    ON tf_latest_objects (object_type_id);
+
+CREATE INDEX IF NOT EXISTS tf_latest_objects_content_index
+    ON tf_latest_objects
+        USING gin (content);
+
 -- CREATE TABLE IF NOT EXISTS standard
 -- (
 --     id               BIGINT NOT NULL,
