@@ -91,12 +91,12 @@ public class IHECDataProvider extends AbstractDataProvider {
                     Map datasetsMap = MapUtils.getMap(grid, "datasets");
                     Collection<Map> datasets = datasetsMap.values();
                     for (Map dataset : datasets) {
-                        mapToSave.put("dataset", gson.toJson(dataset));
+                        mapToSave.put(hubName + "_dataset", gson.toJson(dataset));
                     }
                     Map samplesMap = MapUtils.getMap(grid, "samples");
                     Collection<Map> samples = samplesMap.values();
                     for (Map sample : samples) {
-                        mapToSave.put("sample", gson.toJson(sample));
+                        mapToSave.put(hubName + "_sample", gson.toJson(sample));
                     }
                     log.info("Release " + releaseId + " fetched.");
                 } catch (Exception e) {

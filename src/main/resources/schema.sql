@@ -88,6 +88,21 @@ CREATE TABLE IF NOT EXISTS tf_mappings
     FOREIGN KEY (version_id) REFERENCES tf_versions (id)
 );
 
+CREATE OR REPLACE VIEW tf_latest_versions AS
+    WITH max_versions AS (SELECT hub_id, MAX(version) "max_version"
+                          FROM tf_versions
+                          GROUP BY hub_id)
+    SELECT v.* FROM max_versions m, tf_versions v
+    WHERE m.hub_id = v.hub_id AND m.max_version = v.version;
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS tf_latest_objects AS
+SELECT o.*
+FROM tf_latest_versions lv,
+     tf_object_types ot,
+     tf_objects o
+WHERE lv.id = ot.version_id
+  AND ot.id = o.object_type_id;
+
 -- CREATE TABLE IF NOT EXISTS standard
 -- (
 --     id               BIGINT NOT NULL,
