@@ -4,6 +4,7 @@ public interface Queries {
 
     String REFRESH_MATERIALIZED_VIEWS = "" +
             "REFRESH MATERIALIZED VIEW tf_latest_objects;" +
+            "REFRESH MATERIALIZED VIEW tf_metamodel;" +
             "";
 
     String CHECK_SEARCH_USER_EXISTS = "SELECT count(*) FROM pg_catalog.pg_roles WHERE rolname = 'search'";
