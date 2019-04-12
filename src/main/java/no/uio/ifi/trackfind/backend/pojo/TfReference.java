@@ -35,8 +35,4 @@ public class TfReference implements Serializable {
     @Column(name = "to_attribute", nullable = false)
     private String toAttribute;
 
-    @ManyToOne
-    @JoinColumn(name = "version_id", referencedColumnName = "id")
-    private TfVersion version;
-
 }

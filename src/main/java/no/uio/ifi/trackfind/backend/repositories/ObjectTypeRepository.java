@@ -7,6 +7,4 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ObjectTypeRepository extends JpaRepository<TfObjectType, Long> {
 
-    TfObjectType findByNameAndHubId(String name, Long hubId);
-
 }

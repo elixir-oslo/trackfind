@@ -45,14 +45,10 @@ public class TrackFindMappingsUI extends AbstractUI {
     private HubRepository hubRepository;
 
     private Button addStaticMappingButton;
-    private Button addIdMappingAttributeButton;
-    private Button addVersionMappingAttributeButton;
     private VerticalLayout attributesMappingLayout;
 
     private Map<ComboBox<String>, TextField> attributesStaticMapping = new HashMap<>();
     private AceEditor script;
-    private TextField idMappingAttribute;
-    private TextField versionMappingAttribute;
 
     @Override
     protected void init(VaadinRequest vaadinRequest) {
@@ -92,27 +88,10 @@ public class TrackFindMappingsUI extends AbstractUI {
             addStaticMappingPair("", sourceAttribute);
         });
 
-        addIdMappingAttributeButton = new Button("Use as ID mapping attribute");
-        bindTreeButton(addIdMappingAttributeButton, idMappingAttribute);
-
-        addVersionMappingAttributeButton = new Button("Use as Version mapping attribute");
-        bindTreeButton(addVersionMappingAttributeButton, versionMappingAttribute);
-
-        VerticalLayout treeLayout = new VerticalLayout(treePanel, attributesFilterTextField, valuesFilterTextField, addStaticMappingButton, addIdMappingAttributeButton, addVersionMappingAttributeButton);
+        VerticalLayout treeLayout = new VerticalLayout(treePanel, attributesFilterTextField, valuesFilterTextField, addStaticMappingButton);
         treeLayout.setSizeFull();
         treeLayout.setExpandRatio(treePanel, 1f);
         return treeLayout;
-    }
-
-    private void bindTreeButton(Button addVersionMappingAttributeButton, TextField versionMappingAttribute) {
-        addVersionMappingAttributeButton.setWidth(100, Unit.PERCENTAGE);
-        addVersionMappingAttributeButton.setEnabled(!CollectionUtils.isEmpty(getCurrentTree().getSelectedItems()));
-        addVersionMappingAttributeButton.addClickListener((Button.ClickListener) event -> {
-            Set<TreeNode> selectedItems = getCurrentTree().getSelectedItems();
-            String attribute = CollectionUtils.isEmpty(selectedItems) ? "" : selectedItems.iterator().next().getPath();
-            versionMappingAttribute.setValue(attribute);
-            getCurrentTree().getDataProvider().refreshAll(); // hack to overcome Vaadin's bug when tree layout gets resized for some reason
-        });
     }
 
     @SuppressWarnings("unchecked")
@@ -122,8 +101,6 @@ public class TrackFindMappingsUI extends AbstractUI {
         tree.setSelectionMode(Grid.SelectionMode.SINGLE);
         tree.addSelectionListener((SelectionListener<TreeNode>) event -> {
             addStaticMappingButton.setEnabled(!CollectionUtils.isEmpty(event.getAllSelectedItems()) && event.getFirstSelectedItem().get().isAttribute());
-            addIdMappingAttributeButton.setEnabled(!CollectionUtils.isEmpty(event.getAllSelectedItems()) && event.getFirstSelectedItem().get().isAttribute());
-            addVersionMappingAttributeButton.setEnabled(!CollectionUtils.isEmpty(event.getAllSelectedItems()) && event.getFirstSelectedItem().get().isAttribute());
         });
         tree.setSizeFull();
         tree.setStyleGenerator((StyleGenerator<TreeNode>) item -> item.isAttribute() ? null : "value-tree-node");
@@ -194,16 +171,10 @@ public class TrackFindMappingsUI extends AbstractUI {
                     }
                 }));
 
-        idMappingAttribute = new TextField("ID mapping attribute");
-        HorizontalLayout idMappingAttributeHorizontalLayout = addAttributeButtonLayout(idMappingAttribute);
-
-        versionMappingAttribute = new TextField("Version mapping attribute");
-        HorizontalLayout versionMappingAttributeHorizontalLayout = addAttributeButtonLayout(versionMappingAttribute);
-
         HorizontalLayout buttonsLayout = new HorizontalLayout(saveButton, crawlButton, applyMappingsButton);
         buttonsLayout.setWidth(100, Unit.PERCENTAGE);
         buttonsLayout.setEnabled(!properties.isDemoMode());
-        VerticalLayout attributesMappingOuterLayout = new VerticalLayout(attributesMappingPanel, idMappingAttributeHorizontalLayout, versionMappingAttributeHorizontalLayout, buttonsLayout);
+        VerticalLayout attributesMappingOuterLayout = new VerticalLayout(attributesMappingPanel, buttonsLayout);
         attributesMappingOuterLayout.setSizeFull();
         attributesMappingOuterLayout.setExpandRatio(attributesMappingPanel, 1f);
         return attributesMappingOuterLayout;
@@ -261,7 +232,7 @@ public class TrackFindMappingsUI extends AbstractUI {
 
     private void loadConfiguration() {
         TfHub currentHub = getCurrentHub();
-        Collection<TfMapping> mappings = mappingRepository.findByHubId(currentHub.getId());
+        Collection<TfMapping> mappings = mappingRepository.findByVersionId(currentHub.getMaxVersion().get().getId());
         Collection<TfMapping> staticMappings = mappings.stream().filter(TfMapping::isStaticMapping).collect(Collectors.toSet());
         attributesStaticMapping.clear();
         attributesMappingLayout.removeAllComponents();
@@ -270,8 +241,6 @@ public class TrackFindMappingsUI extends AbstractUI {
         }
         script.clear();
         mappings.stream().filter(m -> !m.isStaticMapping()).findAny().ifPresent(m -> script.setValue(m.getFrom()));
-        idMappingAttribute.setValue(Optional.ofNullable(currentHub.getIdMappingAttribute()).orElse(""));
-        versionMappingAttribute.setValue(Optional.ofNullable(currentHub.getVersionMappingAttribute()).orElse(""));
     }
 
     private void addStaticMappingPair(String standardAttribute, String sourceAttribute) {
@@ -281,12 +250,12 @@ public class TrackFindMappingsUI extends AbstractUI {
     @Transactional
     protected void saveConfiguration() {
         TfHub currentHub = getCurrentHub();
-        Collection<TfMapping> existingMappings = mappingRepository.findByHubId(currentHub.getId());
+        Collection<TfMapping> existingMappings = mappingRepository.findByVersionId(currentHub.getMaxVersion().get().getId());
         Collection<TfMapping> mappings = new HashSet<>();
         mappingRepository.deleteInBatch(existingMappings);
         for (Map.Entry<ComboBox<String>, TextField> mappingPair : attributesStaticMapping.entrySet()) {
             TfMapping mapping = new TfMapping();
-            mapping.setHub(currentHub);
+            mapping.setVersion(currentHub.getMaxVersion().get());
             mapping.setStaticMapping(true);
             mapping.setFrom(mappingPair.getValue().getValue());
             mapping.setTo(mappingPair.getKey().getValue());
@@ -294,14 +263,12 @@ public class TrackFindMappingsUI extends AbstractUI {
         }
         script.getOptionalValue().ifPresent(s -> {
             TfMapping mapping = new TfMapping();
-            mapping.setHub(currentHub);
+            mapping.setVersion(currentHub.getMaxVersion().get());
             mapping.setStaticMapping(false);
             mapping.setFrom(s);
             mappings.add(mapping);
         });
         mappingRepository.saveAll(mappings);
-        currentHub.setIdMappingAttribute(idMappingAttribute.getValue());
-        currentHub.setVersionMappingAttribute(versionMappingAttribute.getValue());
         hubRepository.save(currentHub);
         Notification.show("Mappings saved. Press \"Apply\" for changes to take effect.");
     }

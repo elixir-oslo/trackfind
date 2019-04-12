@@ -24,7 +24,7 @@ public class TfVersion implements Serializable {
     private Long id;
 
     @Column(name = "version", nullable = false)
-    private String version;
+    private Long version;
 
     @Column(name = "operation", nullable = false)
     @Enumerated(EnumType.STRING)
@@ -35,5 +35,9 @@ public class TfVersion implements Serializable {
 
     @Column(name = "time", nullable = false)
     private Date time;
+
+    @ManyToOne
+    @JoinColumn(name = "hub_id", referencedColumnName = "id")
+    private TfHub hub;
 
 }

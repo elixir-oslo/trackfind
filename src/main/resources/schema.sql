@@ -18,28 +18,29 @@ $$;
 CREATE TABLE IF NOT EXISTS tf_hubs
 (
     id         BIGSERIAL PRIMARY KEY,
-    name       VARCHAR NOT NULL,
     repository VARCHAR NOT NULL,
-    UNIQUE (name, repository)
+    name       VARCHAR NOT NULL,
+    UNIQUE (repository, name)
 );
 
 CREATE TABLE IF NOT EXISTS tf_versions
 (
     id        BIGSERIAL PRIMARY KEY,
-    version   VARCHAR NOT NULL,
+    hub_id    BIGINT,
+    version   BIGINT  NOT NULL,
     operation VARCHAR NOT NULL,
     username  VARCHAR NOT NULL,
-    time      TIMESTAMP
+    time      TIMESTAMP,
+    UNIQUE (hub_id, version),
+    FOREIGN KEY (hub_id) REFERENCES tf_hubs (id)
 );
 
 CREATE TABLE IF NOT EXISTS tf_object_types
 (
     id         BIGSERIAL PRIMARY KEY,
     name       VARCHAR NOT NULL,
-    hub_id     BIGINT,
     version_id BIGINT  NOT NULL,
-    UNIQUE (name, hub_id),
-    FOREIGN KEY (hub_id) REFERENCES tf_hubs (id),
+    UNIQUE (name, version_id),
     FOREIGN KEY (version_id) REFERENCES tf_versions (id)
 );
 
@@ -49,20 +50,13 @@ CREATE SEQUENCE IF NOT EXISTS tf_objects_ids_sequence
 CREATE TABLE IF NOT EXISTS tf_objects
 (
     id             BIGSERIAL PRIMARY KEY,
-    hub_id         BIGINT NOT NULL,
     object_type_id BIGINT NOT NULL,
-    version_id     BIGINT NOT NULL,
     content        JSONB  NOT NULL,
-    FOREIGN KEY (hub_id) REFERENCES tf_hubs (id),
-    FOREIGN KEY (object_type_id) REFERENCES tf_object_types (id),
-    FOREIGN KEY (version_id) REFERENCES tf_versions (id)
+    FOREIGN KEY (object_type_id) REFERENCES tf_object_types (id)
 );
 
 CREATE INDEX IF NOT EXISTS tf_objects_id_index
     ON tf_objects (id);
-
-CREATE INDEX IF NOT EXISTS tf_objects_hub_id_index
-    ON tf_objects (hub_id);
 
 CREATE INDEX IF NOT EXISTS tf_objects_object_type_id_index
     ON tf_objects (object_type_id);
@@ -71,9 +65,6 @@ CREATE INDEX IF NOT EXISTS tf_objects_content_index
     ON tf_objects
         USING gin (content);
 
-CREATE INDEX IF NOT EXISTS tf_objects_version_id_index
-    ON tf_objects (version_id);
-
 CREATE TABLE IF NOT EXISTS tf_references
 (
     id                  BIGSERIAL PRIMARY KEY,
@@ -81,23 +72,19 @@ CREATE TABLE IF NOT EXISTS tf_references
     from_attribute      VARCHAR NOT NULL,
     to_object_type_id   BIGINT  NOT NULL,
     to_attribute        VARCHAR NOT NULL,
-    version_id          BIGINT  NOT NULL,
     UNIQUE (from_object_type_id, from_attribute, to_object_type_id, to_attribute),
     FOREIGN KEY (from_object_type_id) REFERENCES tf_object_types (id),
-    FOREIGN KEY (to_object_type_id) REFERENCES tf_object_types (id),
-    FOREIGN KEY (version_id) REFERENCES tf_versions (id)
+    FOREIGN KEY (to_object_type_id) REFERENCES tf_object_types (id)
 );
 
 CREATE TABLE IF NOT EXISTS tf_mappings
 (
     id         BIGSERIAL PRIMARY KEY,
-    hub_id     BIGINT  NOT NULL,
     map_from   VARCHAR NOT NULL,
     map_to     VARCHAR NOT NULL,
     static     BOOLEAN NOT NULL,
     version_id BIGINT  NOT NULL,
-    UNIQUE (hub_id, map_from, map_to, static),
-    FOREIGN KEY (hub_id) REFERENCES tf_hubs (id),
+    UNIQUE (map_from, map_to, static, version_id),
     FOREIGN KEY (version_id) REFERENCES tf_versions (id)
 );
 

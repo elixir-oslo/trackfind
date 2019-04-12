@@ -22,16 +22,8 @@ public class TfObject implements Serializable {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "hub_id", referencedColumnName = "id")
-    private TfHub hub;
-
-    @ManyToOne
     @JoinColumn(name = "object_type_id", referencedColumnName = "id")
     private TfObjectType objectType;
-
-    @ManyToOne
-    @JoinColumn(name = "version_id", referencedColumnName = "id")
-    private TfVersion version;
 
     @Column(name = "content", nullable = false, columnDefinition = "jsonb")
     private String content;

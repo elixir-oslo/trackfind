@@ -14,6 +14,7 @@ import no.uio.ifi.trackfind.backend.scripting.ScriptingEngine;
 import no.uio.ifi.trackfind.backend.services.CacheService;
 import no.uio.ifi.trackfind.backend.services.SearchService;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.ApplicationEventPublisher;
@@ -111,30 +112,28 @@ public abstract class AbstractDataProvider implements DataProvider {
      */
     protected void save(String hubName, Map<String, Collection<String>> objects) {
         TfHub hub = hubRepository.findByNameAndRepository(getName(), hubName);
-        String maxVersion = jdbcTemplate.queryForObject("SELECT MAX(v.version) FROM tf_versions v, tf_objects o, tf_hubs h WHERE h.id = ? AND h.id = o.hub_id AND o.version_id = v.id", String.class, hub.getId());
-        if (maxVersion == null) {
-            maxVersion = "0";
-        }
-        TfVersion tfVersion = new TfVersion();
-        tfVersion.setVersion(String.valueOf(Long.parseLong(maxVersion) + 1));
-        tfVersion.setOperation(Operation.CRAWLING);
-        tfVersion.setUsername("admin");
-        tfVersion.setTime(new Date());
-        versionRepository.save(tfVersion);
+        TfVersion version = hub.getMaxVersion().orElseGet(() -> {
+            TfVersion tfVersion = new TfVersion();
+            tfVersion.setVersion(0L);
+            return tfVersion;
+        });
+        version = SerializationUtils.clone(version);
+        version.setId(null);
+        version.setVersion(version.getVersion() + 1);
+        version.setOperation(Operation.CRAWLING);
+        version.setUsername("admin");
+        version.setTime(new Date());
+        version.setHub(hub);
+        version = versionRepository.save(version);
         Collection<TfObject> objectsToSave = new ArrayList<>();
         for (String objectTypeName : objects.keySet()) {
-            TfObjectType objectType = objectTypeRepository.findByNameAndHubId(objectTypeName, hub.getId());
-            if (objectType == null) {
-                objectType = new TfObjectType();
-                objectType.setHub(hub);
-                objectType.setName(objectTypeName);
-                objectType = objectTypeRepository.save(objectType);
-            }
+            TfObjectType objectType = new TfObjectType();
+            objectType.setName(objectTypeName);
+            objectType.setVersion(version);
+            objectType = objectTypeRepository.save(objectType);
             for (String obj : objects.get(objectTypeName)) {
                 TfObject tfObject = new TfObject();
-                tfObject.setHub(hub);
                 tfObject.setObjectType(objectType);
-                tfObject.setVersion(tfVersion);
                 tfObject.setContent(obj);
                 objectsToSave.add(tfObject);
             }

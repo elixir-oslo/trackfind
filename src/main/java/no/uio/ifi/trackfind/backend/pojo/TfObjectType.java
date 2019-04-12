@@ -25,10 +25,6 @@ public class TfObjectType implements Serializable {
     private String name;
 
     @ManyToOne
-    @JoinColumn(name = "hub_id", referencedColumnName = "id")
-    private TfHub hub;
-
-    @ManyToOne
     @JoinColumn(name = "version_id", referencedColumnName = "id")
     private TfVersion version;
 

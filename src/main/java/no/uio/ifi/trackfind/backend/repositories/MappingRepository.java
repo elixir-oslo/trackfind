@@ -9,6 +9,6 @@ import java.util.Collection;
 @Repository
 public interface MappingRepository extends JpaRepository<TfMapping, Long> {
 
-    Collection<TfMapping> findByHubId(Long hubId);
+    Collection<TfMapping> findByVersionId(Long versionId);
 
 }
