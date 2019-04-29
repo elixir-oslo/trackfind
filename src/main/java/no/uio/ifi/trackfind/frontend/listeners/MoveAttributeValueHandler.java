@@ -26,7 +26,6 @@ public abstract class MoveAttributeValueHandler {
     private static final String TEXT_EQUALITY_OPERATOR = " ? ";
     private static final String NUMBER_EQUALITY_OPERATOR = " = ";
 
-    private String datasetPrefix;
     private String levelsSeparator;
 
     public MoveAttributeValueHandler(String levelsSeparator) {
@@ -68,7 +67,6 @@ public abstract class MoveAttributeValueHandler {
         if (inversion) {
             query.append("NOT ");
         }
-        query.append(datasetPrefix).append(levelsSeparator);
         TreeNode firstItem = items.iterator().next();
         String path = firstItem.getSQLPath();
         String queryTerm = path.substring(0, path.lastIndexOf(levelsSeparator));
@@ -98,7 +96,6 @@ public abstract class MoveAttributeValueHandler {
         if (inversion) {
             query += "NOT ";
         }
-        query += datasetPrefix + levelsSeparator;
         String path = item.getSQLPath();
         if (!item.isAttribute()) {
             String value = getValue(item);
@@ -116,10 +113,6 @@ public abstract class MoveAttributeValueHandler {
 
     protected String getValue(TreeNode item) {
         return "'" + item.toString() + "'";
-    }
-
-    public void setDatasetPrefix(String datasetPrefix) {
-        this.datasetPrefix = datasetPrefix;
     }
 
 }

@@ -105,7 +105,6 @@ public class TrackFindMainUI extends AbstractUI {
         TextField valuesFilterTextField = createFilter(false);
 
         addToQueryButtonClickListener = new AddToQueryButtonClickListener(this, properties.getLevelsSeparator());
-        addToQueryButtonClickListener.setDatasetPrefix("fair_content");
         Button addToQueryButton = new Button("Add to query ➚", addToQueryButtonClickListener);
         addToQueryButton.setWidth(100, Unit.PERCENTAGE);
 
@@ -230,7 +229,6 @@ public class TrackFindMainUI extends AbstractUI {
         DropTargetExtension<TextArea> dropTarget = new DropTargetExtension<>(queryTextArea);
         dropTarget.setDropEffect(DropEffect.COPY);
         textAreaDropListener = new TextAreaDropListener(queryTextArea, properties.getLevelsSeparator());
-        textAreaDropListener.setDatasetPrefix("fair_content");
         dropTarget.addDropListener(textAreaDropListener);
         Panel queryPanel = new Panel("Search query", queryTextArea);
         queryPanel.setSizeFull();
