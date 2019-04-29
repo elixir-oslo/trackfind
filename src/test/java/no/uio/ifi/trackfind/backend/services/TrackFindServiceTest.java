@@ -48,7 +48,7 @@ public class TrackFindServiceTest {
 
     @Test
     public void getActiveTrackHubsTest() {
-        Collection<TfHub> allTrackHubs = trackFindService.getActiveTrackHubs();
+        Collection<TfHub> allTrackHubs = trackFindService.getTrackHubs(true);
         assertThat(allTrackHubs).isNotEmpty().hasSize(1);
         TfHub hub = allTrackHubs.iterator().next();
         assertThat(hub.getRepository()).isEqualTo(TEST_DATA_PROVIDER);
@@ -57,7 +57,7 @@ public class TrackFindServiceTest {
 
     @Test
     public void getAllTrackHubsTest() {
-        Collection<TfHub> allTrackHubs = trackFindService.getAllTrackHubs();
+        Collection<TfHub> allTrackHubs = trackFindService.getTrackHubs(false);
         assertThat(allTrackHubs).isNotEmpty().hasSize(1);
         TfHub hub = allTrackHubs.iterator().next();
         assertThat(hub.getRepository()).isEqualTo(TEST_DATA_PROVIDER);
