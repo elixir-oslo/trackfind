@@ -3,6 +3,7 @@ package no.uio.ifi.trackfind.backend.rest.controllers;
 import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
 import no.uio.ifi.trackfind.backend.pojo.SearchResult;
 import no.uio.ifi.trackfind.backend.pojo.TfHub;
+import no.uio.ifi.trackfind.backend.pojo.TfObjectType;
 import no.uio.ifi.trackfind.backend.services.GSuiteService;
 import no.uio.ifi.trackfind.backend.services.MetamodelService;
 import no.uio.ifi.trackfind.backend.services.SearchService;
@@ -60,7 +61,7 @@ public class TrackFindController {
      * @return Metamodel in tree form.
      */
     @GetMapping(path = "/metamodel/{repository}/{hub}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<Map<String, Object>> getMetamodel(
+    public ResponseEntity<Map<String, Map<String, Object>>> getMetamodel(
             @PathVariable String repository,
             @PathVariable String hub) {
         return ResponseEntity.ok(metamodelService.getMetamodelTree(repository, hub));
@@ -77,7 +78,7 @@ public class TrackFindController {
     public ResponseEntity<Collection<String>> getCategories(
             @PathVariable String repository,
             @PathVariable String hub) {
-        return ResponseEntity.ok(metamodelService.getCategories(repository, hub));
+        return ResponseEntity.ok(metamodelService.getObjectTypes(repository, hub).stream().map(TfObjectType::getName).collect(Collectors.toSet()));
     }
 
     /**
