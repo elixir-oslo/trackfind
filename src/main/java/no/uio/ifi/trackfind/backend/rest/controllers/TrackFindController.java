@@ -107,7 +107,7 @@ public class TrackFindController {
      * @param path       Path to the attribute to get values for.
      * @return List of values.
      */
-    @GetMapping(path = "/values/{repository}/{hub}/{category}/", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping(path = "/values/{repository}/{hub}/{category}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Collection<String>> getValues(
             @PathVariable String repository,
             @PathVariable String hub,
