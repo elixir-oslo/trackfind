@@ -17,13 +17,13 @@ import no.uio.ifi.trackfind.backend.repositories.MappingRepository;
 import no.uio.ifi.trackfind.frontend.components.TrackFindTree;
 import no.uio.ifi.trackfind.frontend.filters.TreeFilter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.vaadin.aceeditor.AceEditor;
 import org.vaadin.aceeditor.AceMode;
 import org.vaadin.aceeditor.AceTheme;
 import org.vaadin.dialogs.ConfirmDialog;
 
-import javax.transaction.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -230,7 +230,8 @@ public class TrackFindMappingsUI extends AbstractUI {
         return targetAttributeName;
     }
 
-    private void loadConfiguration() {
+    @Transactional
+    protected void loadConfiguration() {
         TfHub currentHub = getCurrentHub();
         Collection<TfMapping> mappings = mappingRepository.findByVersionId(currentHub.getMaxVersion().get().getId());
         Collection<TfMapping> staticMappings = mappings.stream().filter(TfMapping::isStaticMapping).collect(Collectors.toSet());
