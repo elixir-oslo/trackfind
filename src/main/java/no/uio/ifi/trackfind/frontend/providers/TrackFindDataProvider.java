@@ -56,7 +56,6 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
                 return Stream.empty();
             }
             String category = parent.getCategory();
-            boolean isParentObjectType = parent.getParent() == null;
             Collection<String> children = parent.getChildren();
             Stream<TreeNode> treeNodeStream = children.parallelStream().map(c -> {
                 TreeNode treeNode = new TreeNode();
@@ -65,18 +64,13 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
                 treeNode.setParent(parent);
                 treeNode.setSeparator(properties.getLevelsSeparator());
                 treeNode.setLevel(parent.getLevel() + 1);
-                if (isParentObjectType) {
+                Collection<String> grandChildren = metamodelService.getValues(repository, hubName, category, treeNode.getPath());
+                if (CollectionUtils.isEmpty(grandChildren)) {
                     treeNode.setHasValues(false);
                     treeNode.setChildren(metamodelService.getAttributes(repository, hubName, category, treeNode.getPath()));
                 } else {
-                    Collection<String> grandChildren = metamodelService.getValues(repository, hubName, category, treeNode.getPath());
-                    if (CollectionUtils.isEmpty(grandChildren)) {
-                        treeNode.setHasValues(false);
-                        treeNode.setChildren(metamodelService.getAttributes(repository, hubName, category, treeNode.getPath()));
-                    } else {
-                        treeNode.setHasValues(true);
-                        treeNode.setChildren(grandChildren);
-                    }
+                    treeNode.setHasValues(true);
+                    treeNode.setChildren(grandChildren);
                 }
                 treeNode.setAttribute(CollectionUtils.isNotEmpty(treeNode.getChildren()));
                 treeNode.setArray(metamodelService.getArrayOfObjectsAttributes(repository, hubName, category).contains(treeNode.getPath()));
