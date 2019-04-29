@@ -99,9 +99,7 @@ public class TrackFindMappingsUI extends AbstractUI {
         TrackFindTree<TreeNode> tree = new TrackFindTree<>(hub);
         tree.setDataProvider(trackFindDataProvider);
         tree.setSelectionMode(Grid.SelectionMode.SINGLE);
-        tree.addSelectionListener((SelectionListener<TreeNode>) event -> {
-            addStaticMappingButton.setEnabled(!CollectionUtils.isEmpty(event.getAllSelectedItems()) && event.getFirstSelectedItem().get().isAttribute());
-        });
+        tree.addSelectionListener((SelectionListener<TreeNode>) event -> addStaticMappingButton.setEnabled(!CollectionUtils.isEmpty(event.getAllSelectedItems()) && event.getFirstSelectedItem().get().isAttribute()));
         tree.setSizeFull();
         tree.setStyleGenerator((StyleGenerator<TreeNode>) item -> item.isAttribute() ? null : "value-tree-node");
 
@@ -180,19 +178,6 @@ public class TrackFindMappingsUI extends AbstractUI {
         return attributesMappingOuterLayout;
     }
 
-    private HorizontalLayout addAttributeButtonLayout(TextField attribute) {
-        attribute.setWidth(100, Unit.PERCENTAGE);
-        Button clearButton = new Button("Clear", (Button.ClickListener) event -> attribute.clear());
-        HorizontalLayout horizontalLayout = new HorizontalLayout(attribute, clearButton);
-        horizontalLayout.setWidth(100, Unit.PERCENTAGE);
-        horizontalLayout.setComponentAlignment(attribute, Alignment.BOTTOM_LEFT);
-        horizontalLayout.setExpandRatio(attribute, 0.9f);
-
-        horizontalLayout.setComponentAlignment(clearButton, Alignment.BOTTOM_LEFT);
-        horizontalLayout.setExpandRatio(clearButton, 0.1f);
-        return horizontalLayout;
-    }
-
     private HorizontalLayout buildAttributeToAttributeLayout(String standardAttribute, String sourceAttribute) {
         HorizontalLayout attributeToAttributeLayout = new HorizontalLayout();
         attributeToAttributeLayout.setWidth(100, Unit.PERCENTAGE);
@@ -233,7 +218,7 @@ public class TrackFindMappingsUI extends AbstractUI {
     @Transactional
     protected void loadConfiguration() {
         TfHub currentHub = getCurrentHub();
-        Collection<TfMapping> mappings = mappingRepository.findByVersionId(currentHub.getMaxVersion().get().getId());
+        Collection<TfMapping> mappings = mappingRepository.findByVersionId(currentHub.getMaxVersion().orElseThrow(RuntimeException::new).getId());
         Collection<TfMapping> staticMappings = mappings.stream().filter(TfMapping::isStaticMapping).collect(Collectors.toSet());
         attributesStaticMapping.clear();
         attributesMappingLayout.removeAllComponents();
@@ -251,7 +236,7 @@ public class TrackFindMappingsUI extends AbstractUI {
     @Transactional
     protected void saveConfiguration() {
         TfHub currentHub = getCurrentHub();
-        Collection<TfMapping> existingMappings = mappingRepository.findByVersionId(currentHub.getMaxVersion().get().getId());
+        Collection<TfMapping> existingMappings = mappingRepository.findByVersionId(currentHub.getMaxVersion().orElseThrow(RuntimeException::new).getId());
         Collection<TfMapping> mappings = new HashSet<>();
         mappingRepository.deleteInBatch(existingMappings);
         for (Map.Entry<ComboBox<String>, TextField> mappingPair : attributesStaticMapping.entrySet()) {
