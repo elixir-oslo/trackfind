@@ -52,8 +52,8 @@ public class TrackFindHubsUI extends AbstractUI {
         hubsLayout.setSizeFull();
         comboBox = new ComboBox<>("Available hubs");
         comboBox.setWidth(100, Unit.PERCENTAGE);
-        Collection<TfHub> allTrackHubs = trackFindService.getAllTrackHubs();
-        Collection<TfHub> activeTrackHubs = trackFindService.getActiveTrackHubs();
+        Collection<TfHub> allTrackHubs = trackFindService.getTrackHubs(false);
+        Collection<TfHub> activeTrackHubs = trackFindService.getTrackHubs(true);
         allTrackHubs.removeAll(activeTrackHubs);
         comboBox.setItems(allTrackHubs);
         comboBox.setItemCaptionGenerator(h -> h.getRepository() + ": " + h.getName());
@@ -72,7 +72,7 @@ public class TrackFindHubsUI extends AbstractUI {
         add.setWidth(100, Unit.PERCENTAGE);
         add.addClickListener((Button.ClickListener) event -> comboBox.getSelectedItem().ifPresent(hub -> {
             trackFindService.activateHubs(Collections.singleton(hub));
-            listSelect.setItems(trackFindService.getActiveTrackHubs());
+            listSelect.setItems(trackFindService.getTrackHubs(true));
             listSelect.getDataProvider().refreshAll();
             Set<TfHub> availableHubs = comboBox.getDataProvider().fetch(new Query<>()).collect(Collectors.toSet());
             availableHubs.remove(hub);
@@ -85,7 +85,7 @@ public class TrackFindHubsUI extends AbstractUI {
         remove.addClickListener((Button.ClickListener) event -> {
             Set<TfHub> activeHubs = listSelect.getSelectedItems();
             trackFindService.deactivateHubs(activeHubs);
-            listSelect.setItems(trackFindService.getActiveTrackHubs());
+            listSelect.setItems(trackFindService.getTrackHubs(true));
             listSelect.getDataProvider().refreshAll();
             Set<TfHub> availableHubs = comboBox.getDataProvider().fetch(new Query<>()).collect(Collectors.toSet());
             availableHubs.addAll(activeHubs);
@@ -102,7 +102,7 @@ public class TrackFindHubsUI extends AbstractUI {
         listSelect = new ListSelect<>();
         listSelect.setWidth(100, Unit.PERCENTAGE);
         listSelect.setHeight(100, Unit.PERCENTAGE);
-        listSelect.setItems(trackFindService.getActiveTrackHubs());
+        listSelect.setItems(trackFindService.getTrackHubs(true));
         listSelect.setItemCaptionGenerator(h -> h.getRepository() + ": " + h.getName());
         listSelect.addSelectionListener((MultiSelectionListener<TfHub>) event -> remove.setEnabled(!listSelect.getSelectedItems().isEmpty()));
         Panel panel = new Panel("Hub selection", listSelect);
