@@ -66,7 +66,7 @@ public class TrackFindMappingsUI extends AbstractUI {
         tabSheet = new TabSheet();
         tabSheet.setSizeFull();
 
-        for (TfHub hub : trackFindService.getActiveTrackHubs()) {
+        for (TfHub hub : trackFindService.getTrackHubs(true)) {
             TrackFindTree<TreeNode> tree = buildTree(hub);
             tabSheet.addTab(tree, hub.getName());
         }
