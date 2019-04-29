@@ -1,6 +1,5 @@
 package no.uio.ifi.trackfind.backend.rest.controllers;
 
-import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
 import no.uio.ifi.trackfind.backend.pojo.SearchResult;
 import no.uio.ifi.trackfind.backend.pojo.TfHub;
 import no.uio.ifi.trackfind.backend.pojo.TfObjectType;
@@ -38,7 +37,7 @@ public class TrackFindController {
      */
     @GetMapping(path = "/repositories", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Collection<String>> getRepositories() {
-        return ResponseEntity.ok(trackFindService.getDataProviders().stream().map(DataProvider::getName).collect(Collectors.toSet()));
+        return ResponseEntity.ok(trackFindService.getTrackHubs(true).stream().map(TfHub::getRepository).collect(Collectors.toSet()));
     }
 
     /**
