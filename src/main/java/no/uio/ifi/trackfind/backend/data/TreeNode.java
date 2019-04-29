@@ -13,6 +13,7 @@ import java.util.Collection;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class TreeNode implements Comparable<TreeNode> {
 
+    private String category;
     private String value;
     private boolean attribute;
     private boolean array;

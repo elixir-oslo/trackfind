@@ -27,14 +27,6 @@ public class MetamodelService {
     private JdbcTemplate jdbcTemplate;
     private HubRepository hubRepository;
 
-    @Cacheable("metamodel-array-of-objects-attributes")
-    public Collection<String> getArrayOfObjectsAttributes(TfObjectType objectType) {
-        return jdbcTemplate.queryForList(
-                "SELECT DISTINCT attribute FROM tf_array_of_objects WHERE object_type_id = ?",
-                String.class,
-                objectType.getId());
-    }
-
     @Cacheable("metamodel-flat")
     public Map<String, Multimap<String, String>> getMetamodelFlat(String repository, String hub) {
         Collection<TfObjectType> objectTypes = getObjectTypes(repository, hub);
@@ -85,8 +77,18 @@ public class MetamodelService {
         return maxVersion.getObjectTypes();
     }
 
+    @Cacheable("metamodel-array-of-objects-attributes")
+    public Collection<String> getArrayOfObjectsAttributes(String repository, String hub, String category) {
+        TfObjectType objectType = getObjectTypes(repository, hub).stream().filter(c -> c.getName().equals(category)).findAny().orElseThrow(RuntimeException::new);
+        return jdbcTemplate.queryForList(
+                "SELECT DISTINCT attribute FROM tf_array_of_objects WHERE object_type_id = ?",
+                String.class,
+                objectType.getId());
+    }
+
     @Cacheable("metamodel-attribute-types")
-    public Map<String, String> getAttributeTypes(TfObjectType objectType) {
+    public Map<String, String> getAttributeTypes(String repository, String hub, String category) {
+        TfObjectType objectType = getObjectTypes(repository, hub).stream().filter(c -> c.getName().equals(category)).findAny().orElseThrow(RuntimeException::new);
         Map<String, String> metamodel = new HashMap<>();
         List<Map<String, Object>> attributeTypePairs = jdbcTemplate.queryForList(
                 "SELECT DISTINCT attribute, type FROM tf_metamodel WHERE object_type_id = ?",

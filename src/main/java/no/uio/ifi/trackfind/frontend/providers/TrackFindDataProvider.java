@@ -4,15 +4,14 @@ import com.vaadin.data.provider.AbstractBackEndHierarchicalDataProvider;
 import com.vaadin.data.provider.HierarchicalQuery;
 import com.vaadin.server.SerializablePredicate;
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
-import no.uio.ifi.trackfind.backend.pojo.TfHub;
 import no.uio.ifi.trackfind.backend.data.TreeNode;
+import no.uio.ifi.trackfind.backend.pojo.TfHub;
 import no.uio.ifi.trackfind.backend.services.MetamodelService;
 import no.uio.ifi.trackfind.frontend.filters.TreeFilter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
@@ -31,24 +30,23 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
     protected Stream<TreeNode> fetchChildrenFromBackEnd(HierarchicalQuery<TreeNode, SerializablePredicate<TreeNode>> query) {
         TreeFilter treeFilter = (TreeFilter) query.getFilter().orElseThrow(RuntimeException::new);
         TfHub hub = treeFilter.getHub();
-        boolean raw = false;
-        Map<String, Object> metamodelTree = metamodelService.getMetamodelTree(hub, raw);
+        String repository = hub.getRepository();
+        String hubName = hub.getName();
+        Map<String, Map<String, Object>> metamodelTree = metamodelService.getMetamodelTree(repository, hubName);
         Optional<TreeNode> parentOptional = query.getParentOptional();
         if (!parentOptional.isPresent()) {
             Stream<TreeNode> treeNodeStream = metamodelTree.keySet().parallelStream().map(c -> {
                 TreeNode treeNode = new TreeNode();
+                treeNode.setCategory(c);
                 treeNode.setValue(c);
                 treeNode.setParent(null);
                 treeNode.setSeparator(properties.getLevelsSeparator());
                 treeNode.setLevel(0);
-                Collection<String> values = metamodelService.getValues(hub, treeNode.getPath(), "", raw);
-                treeNode.setHasValues(CollectionUtils.isNotEmpty(values));
-                Collection<String> grandChildren = new ArrayList<>(values);
-                grandChildren.addAll(metamodelService.getSubAttributes(hub, treeNode.getPath(), "", raw));
-                treeNode.setChildren(grandChildren);
+                treeNode.setHasValues(false);
+                treeNode.setChildren(metamodelTree.get(c).keySet());
                 treeNode.setAttribute(true);
-                treeNode.setArray(metamodelService.getArrayOfObjectsAttributes(hub, raw).contains(treeNode.getPath()));
-                treeNode.setType(metamodelService.getAttributeTypes(hub, raw).get(treeNode.getPath()));
+                treeNode.setArray(false);
+                treeNode.setType("string");
                 return treeNode;
             }).sorted();
             return treeNodeStream.filter(treeFilter);
@@ -57,23 +55,32 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
             if (!parent.isAttribute()) {
                 return Stream.empty();
             }
-            Collection<String> children = new ArrayList<>();
-            children.addAll(metamodelService.getValues(hub, parent.getPath(), "", raw));
-            children.addAll(metamodelService.getSubAttributes(hub, parent.getPath(), "", raw));
+            String category = parent.getCategory();
+            boolean isParentObjectType = parent.getParent() == null;
+            Collection<String> children = parent.getChildren();
             Stream<TreeNode> treeNodeStream = children.parallelStream().map(c -> {
                 TreeNode treeNode = new TreeNode();
+                treeNode.setCategory(category);
                 treeNode.setValue(c);
                 treeNode.setParent(parent);
                 treeNode.setSeparator(properties.getLevelsSeparator());
                 treeNode.setLevel(parent.getLevel() + 1);
-                Collection<String> values = metamodelService.getValues(hub, treeNode.getPath(), "", raw);
-                treeNode.setHasValues(CollectionUtils.isNotEmpty(values));
-                Collection<String> grandChildren = new ArrayList<>(values);
-                grandChildren.addAll(metamodelService.getSubAttributes(hub, treeNode.getPath(), "", raw));
-                treeNode.setChildren(grandChildren);
-                treeNode.setAttribute(CollectionUtils.isNotEmpty(grandChildren));
-                treeNode.setArray(metamodelService.getArrayOfObjectsAttributes(hub, raw).contains(treeNode.getPath()));
-                treeNode.setType(metamodelService.getAttributeTypes(hub, raw).get(treeNode.getPath()));
+                if (isParentObjectType) {
+                    treeNode.setHasValues(false);
+                    treeNode.setChildren(metamodelService.getAttributes(repository, hubName, category, treeNode.getPath()));
+                } else {
+                    Collection<String> grandChildren = metamodelService.getValues(repository, hubName, category, treeNode.getPath());
+                    if (CollectionUtils.isEmpty(grandChildren)) {
+                        treeNode.setHasValues(false);
+                        treeNode.setChildren(metamodelService.getAttributes(repository, hubName, category, treeNode.getPath()));
+                    } else {
+                        treeNode.setHasValues(true);
+                        treeNode.setChildren(grandChildren);
+                    }
+                }
+                treeNode.setAttribute(CollectionUtils.isNotEmpty(treeNode.getChildren()));
+                treeNode.setArray(metamodelService.getArrayOfObjectsAttributes(repository, hubName, category).contains(treeNode.getPath()));
+                treeNode.setType(metamodelService.getAttributeTypes(repository, hubName, category).get(treeNode.getPath()));
                 return treeNode;
             }).sorted();
             return treeNodeStream.filter(treeFilter);
