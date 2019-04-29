@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -28,6 +29,7 @@ public class MetamodelService {
     private HubRepository hubRepository;
 
     @Cacheable("metamodel-flat")
+    @Transactional
     public Map<String, Multimap<String, String>> getMetamodelFlat(String repository, String hub) {
         Collection<TfObjectType> objectTypes = getObjectTypes(repository, hub);
         Map<String, Multimap<String, String>> metamodel = new HashMap<>();
@@ -48,6 +50,7 @@ public class MetamodelService {
 
     @SuppressWarnings("unchecked")
     @Cacheable("metamodel-tree")
+    @Transactional
     public Map<String, Map<String, Object>> getMetamodelTree(String repository, String hub) {
         Map<String, Map<String, Object>> result = new HashMap<>();
         Collection<TfObjectType> objectTypes = getObjectTypes(repository, hub);
@@ -71,6 +74,7 @@ public class MetamodelService {
     }
 
     @Cacheable("metamodel-categories")
+    @Transactional
     public Collection<TfObjectType> getObjectTypes(String repository, String hub) {
         TfHub hubs = hubRepository.findByRepositoryAndName(repository, hub);
         TfVersion maxVersion = hubs.getMaxVersion().orElseThrow(RuntimeException::new);
@@ -78,6 +82,7 @@ public class MetamodelService {
     }
 
     @Cacheable("metamodel-array-of-objects-attributes")
+    @Transactional
     public Collection<String> getArrayOfObjectsAttributes(String repository, String hub, String category) {
         TfObjectType objectType = getObjectTypes(repository, hub).stream().filter(c -> c.getName().equals(category)).findAny().orElseThrow(RuntimeException::new);
         return jdbcTemplate.queryForList(
@@ -87,6 +92,7 @@ public class MetamodelService {
     }
 
     @Cacheable("metamodel-attribute-types")
+    @Transactional
     public Map<String, String> getAttributeTypes(String repository, String hub, String category) {
         TfObjectType objectType = getObjectTypes(repository, hub).stream().filter(c -> c.getName().equals(category)).findAny().orElseThrow(RuntimeException::new);
         Map<String, String> metamodel = new HashMap<>();
@@ -102,6 +108,7 @@ public class MetamodelService {
     }
 
     @Cacheable("metamodel-attributes")
+    @Transactional
     public Collection<String> getAttributes(String repository, String hub, String category, String path) {
         if (StringUtils.isEmpty(path)) {
             return getMetamodelTree(repository, hub).get(category).keySet();
@@ -123,6 +130,7 @@ public class MetamodelService {
     }
 
     @Cacheable("metamodel-values")
+    @Transactional
     public Collection<String> getValues(String repository, String hub, String category, String path) {
         Map<String, Multimap<String, String>> metamodelFlat = getMetamodelFlat(repository, hub);
         Multimap<String, String> metamodel = metamodelFlat.get(category);
