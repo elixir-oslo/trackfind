@@ -4,9 +4,11 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
 import no.uio.ifi.trackfind.backend.pojo.TfHub;
+import no.uio.ifi.trackfind.backend.pojo.TfMapping;
 import no.uio.ifi.trackfind.backend.pojo.TfObjectType;
 import no.uio.ifi.trackfind.backend.pojo.TfVersion;
 import no.uio.ifi.trackfind.backend.repositories.HubRepository;
+import no.uio.ifi.trackfind.backend.repositories.MappingRepository;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
@@ -27,6 +29,7 @@ public class MetamodelService {
     private TrackFindProperties properties;
     private JdbcTemplate jdbcTemplate;
     private HubRepository hubRepository;
+    private MappingRepository mappingRepository;
 
     @Cacheable("metamodel-flat")
     @Transactional
@@ -140,6 +143,13 @@ public class MetamodelService {
         return metamodel.get(path).parallelStream().collect(Collectors.toSet());
     }
 
+    @Cacheable("metamodel-mappings")
+    @Transactional
+    public Collection<TfMapping> getMappings(String repository, String hub) {
+        TfHub currentHub = hubRepository.findByRepositoryAndName(repository, hub);
+        return mappingRepository.findByVersionId(currentHub.getMaxVersion().orElseThrow(RuntimeException::new).getId());
+    }
+
     @Autowired
     public void setProperties(TrackFindProperties properties) {
         this.properties = properties;
@@ -153,6 +163,11 @@ public class MetamodelService {
     @Autowired
     public void setHubRepository(HubRepository hubRepository) {
         this.hubRepository = hubRepository;
+    }
+
+    @Autowired
+    public void setMappingRepository(MappingRepository mappingRepository) {
+        this.mappingRepository = mappingRepository;
     }
 
 }

@@ -88,7 +88,8 @@ public abstract class AbstractDataProvider implements DataProvider {
             "metamodel-categories",
             "metamodel-attributes",
             "metamodel-attribute-types",
-            "metamodel-values"
+            "metamodel-values",
+            "metamodel-mappings"
     }, allEntries = true)
     @Transactional
     @Override
@@ -173,7 +174,8 @@ public abstract class AbstractDataProvider implements DataProvider {
             "metamodel-categories",
             "metamodel-attributes",
             "metamodel-attribute-types",
-            "metamodel-values"
+            "metamodel-values",
+            "metamodel-mappings"
     }, allEntries = true)
     @Transactional
     @Override

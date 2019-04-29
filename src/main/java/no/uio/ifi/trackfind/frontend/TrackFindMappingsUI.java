@@ -14,10 +14,10 @@ import no.uio.ifi.trackfind.backend.pojo.TfHub;
 import no.uio.ifi.trackfind.backend.pojo.TfMapping;
 import no.uio.ifi.trackfind.backend.repositories.HubRepository;
 import no.uio.ifi.trackfind.backend.repositories.MappingRepository;
+import no.uio.ifi.trackfind.backend.services.MetamodelService;
 import no.uio.ifi.trackfind.frontend.components.TrackFindTree;
 import no.uio.ifi.trackfind.frontend.filters.TreeFilter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.vaadin.aceeditor.AceEditor;
 import org.vaadin.aceeditor.AceMode;
@@ -41,6 +41,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TrackFindMappingsUI extends AbstractUI {
 
+    private MetamodelService metamodelService;
     private MappingRepository mappingRepository;
     private HubRepository hubRepository;
 
@@ -215,10 +216,9 @@ public class TrackFindMappingsUI extends AbstractUI {
         return targetAttributeName;
     }
 
-    @Transactional
-    protected void loadConfiguration() {
+    private void loadConfiguration() {
         TfHub currentHub = getCurrentHub();
-        Collection<TfMapping> mappings = mappingRepository.findByVersionId(currentHub.getMaxVersion().orElseThrow(RuntimeException::new).getId());
+        Collection<TfMapping> mappings = metamodelService.getMappings(currentHub.getRepository(), currentHub.getName());
         Collection<TfMapping> staticMappings = mappings.stream().filter(TfMapping::isStaticMapping).collect(Collectors.toSet());
         attributesStaticMapping.clear();
         attributesMappingLayout.removeAllComponents();
@@ -233,15 +233,14 @@ public class TrackFindMappingsUI extends AbstractUI {
         attributesMappingLayout.addComponent(buildAttributeToAttributeLayout(standardAttribute, sourceAttribute));
     }
 
-    @Transactional
-    protected void saveConfiguration() {
+    private void saveConfiguration() {
         TfHub currentHub = getCurrentHub();
-        Collection<TfMapping> existingMappings = mappingRepository.findByVersionId(currentHub.getMaxVersion().orElseThrow(RuntimeException::new).getId());
+        Collection<TfMapping> existingMappings = metamodelService.getMappings(currentHub.getRepository(), currentHub.getName());
         Collection<TfMapping> mappings = new HashSet<>();
         mappingRepository.deleteInBatch(existingMappings);
         for (Map.Entry<ComboBox<String>, TextField> mappingPair : attributesStaticMapping.entrySet()) {
             TfMapping mapping = new TfMapping();
-            mapping.setVersion(currentHub.getMaxVersion().get());
+            mapping.setVersion(currentHub.getMaxVersion().orElseThrow(RuntimeException::new));
             mapping.setStaticMapping(true);
             mapping.setFrom(mappingPair.getValue().getValue());
             mapping.setTo(mappingPair.getKey().getValue());
@@ -249,7 +248,7 @@ public class TrackFindMappingsUI extends AbstractUI {
         }
         script.getOptionalValue().ifPresent(s -> {
             TfMapping mapping = new TfMapping();
-            mapping.setVersion(currentHub.getMaxVersion().get());
+            mapping.setVersion(currentHub.getMaxVersion().orElseThrow(RuntimeException::new));
             mapping.setStaticMapping(false);
             mapping.setFrom(s);
             mappings.add(mapping);
@@ -257,6 +256,11 @@ public class TrackFindMappingsUI extends AbstractUI {
         mappingRepository.saveAll(mappings);
         hubRepository.save(currentHub);
         Notification.show("Mappings saved. Press \"Apply\" for changes to take effect.");
+    }
+
+    @Autowired
+    public void setMetamodelService(MetamodelService metamodelService) {
+        this.metamodelService = metamodelService;
     }
 
     @Autowired
