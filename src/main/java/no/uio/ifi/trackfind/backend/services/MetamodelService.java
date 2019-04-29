@@ -116,13 +116,14 @@ public class MetamodelService {
         Map<String, Multimap<String, String>> metamodelFlat = getMetamodelFlat(repository, hub);
         Set<String> attributes = metamodelFlat.get(category).asMap().keySet();
         String separator = properties.getLevelsSeparator();
-        if (attributes.contains(path)) {
+        String clearPath = path.replace(category + separator, "");
+        if (attributes.contains(clearPath)) {
             return Collections.emptySet();
         }
         return attributes
                 .parallelStream()
-                .filter(a -> a.startsWith(path))
-                .map(a -> a.replace(path, ""))
+                .filter(a -> a.startsWith(clearPath))
+                .map(a -> a.replace(clearPath, ""))
                 .map(a -> (a.contains(separator) ? a.substring(separator.length()) : a))
                 .map(a -> (a.contains(separator) ? a.substring(0, a.indexOf(separator)) : a))
                 .filter(StringUtils::isNotEmpty)
@@ -132,6 +133,8 @@ public class MetamodelService {
     @Cacheable("metamodel-values")
     @Transactional
     public Collection<String> getValues(String repository, String hub, String category, String path) {
+        String separator = properties.getLevelsSeparator();
+        path = path.replace(category + separator, "");
         Map<String, Multimap<String, String>> metamodelFlat = getMetamodelFlat(repository, hub);
         Multimap<String, String> metamodel = metamodelFlat.get(category);
         return metamodel.get(path).parallelStream().collect(Collectors.toSet());
