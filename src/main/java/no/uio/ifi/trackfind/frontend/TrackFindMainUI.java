@@ -86,7 +86,7 @@ public class TrackFindMainUI extends AbstractUI {
         tabSheet = new TabSheet();
         tabSheet.setSizeFull();
 
-        for (TfHub hub : trackFindService.getActiveTrackHubs()) {
+        for (TfHub hub : trackFindService.getTrackHubs(true)) {
             TrackFindTree<TreeNode> tree = buildTree(hub);
             tabSheet.addTab(tree, hub.getName());
         }
@@ -287,7 +287,7 @@ public class TrackFindMainUI extends AbstractUI {
         TfHub hub = getCurrentHub();
         String limit = limitTextField.getValue();
         limit = StringUtils.isEmpty(limit) ? "0" : limit;
-        results = searchService.search(hub, query, Integer.parseInt(limit));
+        results = searchService.search(hub.getRepository(), hub.getName(), query, Integer.parseInt(limit));
         if (results.isEmpty()) {
             resultsTextArea.setValue("");
             Notification.show("Nothing found for such request");
