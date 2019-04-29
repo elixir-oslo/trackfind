@@ -4,19 +4,18 @@ import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
 import no.uio.ifi.trackfind.backend.pojo.Queries;
 import no.uio.ifi.trackfind.backend.pojo.SearchResult;
-import no.uio.ifi.trackfind.backend.pojo.TfHub;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 /**
  * Service to perform JSONB-oriented search for datasets in the database.
@@ -41,14 +40,15 @@ public class SearchService {
     }
 
     /**
-     * Searches for datasets using provided query.
+     * Searches for entries using provided query.
      *
-     * @param hub   TfHub to search in.
-     * @param query Query.
-     * @param limit Limit. 0 for unlimited.
-     * @return Found datasets.
+     * @param repository Repository name.
+     * @param hub        Track TfHub name.
+     * @param query      Search query.
+     * @param limit      Max number of entries to return. 0 for unlimited.
+     * @return Found entries.
      */
-    public Collection<SearchResult> search(TfHub hub, String query, int limit) {
+    public Collection<SearchResult> search(String repository, String hub, String query, int limit) {
 //        try {
 //            String repositoryName = hub.getRepository();
 //            String hubName = hub.getName();

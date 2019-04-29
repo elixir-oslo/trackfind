@@ -1,8 +1,8 @@
 package no.uio.ifi.trackfind.backend.services;
 
 import lombok.extern.slf4j.Slf4j;
-import no.uio.ifi.trackfind.backend.pojo.TfHub;
 import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
+import no.uio.ifi.trackfind.backend.pojo.TfHub;
 import no.uio.ifi.trackfind.backend.repositories.HubRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -32,21 +32,26 @@ public class TrackFindService {
     }
 
     /**
-     * Gets all Track Hubs by DataProviders.
+     * Gets all Track Hubs.
      *
-     * @return All Track Hubs by DataProviders.
+     * @return All Track Hubs.
      */
-    public Collection<TfHub> getAllTrackHubs() {
-        return dataProviders.stream().flatMap(dp -> dp.getAllTrackHubs().stream()).collect(Collectors.toList());
+    public Collection<TfHub> getTrackHubs(boolean active) {
+        return active ?
+                dataProviders.stream().flatMap(dp -> dp.getActiveTrackHubs().stream()).collect(Collectors.toList())
+                :
+                dataProviders.stream().flatMap(dp -> dp.getAllTrackHubs().stream()).collect(Collectors.toList());
     }
 
     /**
-     * Gets active Track Hubs by DataProviders.
+     * Gets all Track Hubs by repository.
      *
-     * @return Active Track Hubs by DataProviders.
+     * @return All Track Hubs by repository.
      */
-    public Collection<TfHub> getActiveTrackHubs() {
-        return dataProviders.stream().flatMap(dp -> dp.getActiveTrackHubs().stream()).collect(Collectors.toList());
+    public Collection<TfHub> getTrackHubs(String repositoryName, boolean active) {
+        return active ? getDataProvider(repositoryName).getActiveTrackHubs()
+                :
+                getDataProvider(repositoryName).getAllTrackHubs();
     }
 
     /**

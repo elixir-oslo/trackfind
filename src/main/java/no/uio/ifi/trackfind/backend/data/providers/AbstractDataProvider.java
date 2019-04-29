@@ -85,9 +85,9 @@ public abstract class AbstractDataProvider implements DataProvider {
             "metamodel-array-of-objects-attributes",
             "metamodel-flat",
             "metamodel-tree",
-            "metamodel-attribute-types",
+            "metamodel-categories",
             "metamodel-attributes",
-            "metamodel-subattributes",
+            "metamodel-attribute-types",
             "metamodel-values"
     }, allEntries = true)
     @Transactional
@@ -111,7 +111,7 @@ public abstract class AbstractDataProvider implements DataProvider {
      * @param objects Object-type to object map.
      */
     protected void save(String hubName, Map<String, Collection<String>> objects) {
-        TfHub hub = hubRepository.findByNameAndRepository(getName(), hubName);
+        TfHub hub = hubRepository.findByRepositoryAndName(getName(), hubName);
         TfVersion version = hub.getMaxVersion().orElseGet(() -> {
             TfVersion tfVersion = new TfVersion();
             tfVersion.setVersion(0L);
@@ -170,9 +170,9 @@ public abstract class AbstractDataProvider implements DataProvider {
             "metamodel-array-of-objects-attributes",
             "metamodel-flat",
             "metamodel-tree",
-            "metamodel-attribute-types",
+            "metamodel-categories",
             "metamodel-attributes",
-            "metamodel-subattributes",
+            "metamodel-attribute-types",
             "metamodel-values"
     }, allEntries = true)
     @Transactional

@@ -11,6 +11,6 @@ public interface HubRepository extends JpaRepository<TfHub, Long> {
 
     Collection<TfHub> findByRepository(String repository);
 
-    TfHub findByNameAndRepository(String name, String repository);
+    TfHub findByRepositoryAndName(String repository, String name);
 
 }

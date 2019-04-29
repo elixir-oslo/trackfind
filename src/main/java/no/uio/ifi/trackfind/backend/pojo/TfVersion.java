@@ -8,6 +8,7 @@ import no.uio.ifi.trackfind.backend.operations.Operation;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.Date;
 
 @Entity
@@ -39,5 +40,8 @@ public class TfVersion implements Serializable {
     @ManyToOne
     @JoinColumn(name = "hub_id", referencedColumnName = "id")
     private TfHub hub;
+
+    @OneToMany(mappedBy = "hub")
+    private Collection<TfObjectType> objectTypes;
 
 }
