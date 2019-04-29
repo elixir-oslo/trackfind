@@ -41,7 +41,7 @@ public class TfVersion implements Serializable {
     @JoinColumn(name = "hub_id", referencedColumnName = "id")
     private TfHub hub;
 
-    @OneToMany(mappedBy = "hub")
+    @OneToMany(mappedBy = "version")
     private Collection<TfObjectType> objectTypes;
 
 }

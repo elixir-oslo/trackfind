@@ -4,30 +4,32 @@ services:
 
   db:
     image: postgres:10.5
+    ports:
+      - "5432:5432"
     environment:
-    - POSTGRES_DB=trackfind
-    - POSTGRES_USER
-    - POSTGRES_PASSWORD
+      - POSTGRES_DB=trackfind
+      - POSTGRES_USER=test
+      - POSTGRES_PASSWORD=test
     volumes:
-    - db:/var/lib/postgresql/data
+      - db:/var/lib/postgresql/data
 
   gsuite:
     image: nels/rest_gsuite:latest
     ports:
-    - "8080:5000"    
+    - "8080:5000"
 
-  trackfind:
-    image: nels/trackfind:latest
-    init: true
-    ports:
-    - "80:8888"
-    depends_on:
-    - db
-    environment:
-    - DB_INSTANCE=db
-    - POSTGRES_DB=trackfind
-    - POSTGRES_USER
-    - POSTGRES_PASSWORD
+#  trackfind:
+#    image: nels/trackfind:latest
+#    init: true
+#    ports:
+#    - "80:8888"
+#    depends_on:
+#    - db
+#    environment:
+#    - DB_INSTANCE=db
+#    - POSTGRES_DB=trackfind
+#    - POSTGRES_USER
+#    - POSTGRES_PASSWORD
 
 volumes:
   db:
