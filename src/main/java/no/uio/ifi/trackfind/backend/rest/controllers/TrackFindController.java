@@ -36,7 +36,7 @@ public class TrackFindController {
      *
      * @return Collection of repositories.
      */
-    @GetMapping(path = "/repos", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping(path = "/repositories", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Collection<String>> getRepositories() {
         return ResponseEntity.ok(trackFindService.getDataProviders().stream().map(DataProvider::getName).collect(Collectors.toSet()));
     }
