@@ -88,12 +88,18 @@ public class IHECDataProvider extends AbstractDataProvider {
                 try (InputStream inputStream = new URL(FETCH_URL + releaseId).openStream();
                      InputStreamReader reader = new InputStreamReader(inputStream)) {
                     Map grid = gson.fromJson(reader, Map.class);
-                    Map datasetsMap = MapUtils.getMap(grid, "datasets");
+                    Map<String, Map> datasetsMap = MapUtils.getMap(grid, "datasets");
+                    for (Map.Entry<String, Map> entry : datasetsMap.entrySet()) {
+                        entry.getValue().put("tf_dataset_id", entry.getKey());
+                    }
                     Collection<Map> datasets = datasetsMap.values();
                     for (Map dataset : datasets) {
                         mapToSave.put(hubName + "_dataset", gson.toJson(dataset));
                     }
-                    Map samplesMap = MapUtils.getMap(grid, "samples");
+                    Map<String, Map> samplesMap = MapUtils.getMap(grid, "samples");
+                    for (Map.Entry<String, Map> entry : samplesMap.entrySet()) {
+                        entry.getValue().put("tf_sample_id", entry.getKey());
+                    }
                     Collection<Map> samples = samplesMap.values();
                     for (Map sample : samples) {
                         mapToSave.put(hubName + "_sample", gson.toJson(sample));
