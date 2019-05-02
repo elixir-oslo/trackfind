@@ -23,7 +23,7 @@ SELECT fot.version_id = tot.version_id
 FROM tf_object_types fot,
      tf_object_types tot
 WHERE fot.id = from_object_type_id
-  AND tot.id = to_object_type_id;
+  AND tot.id = to_object_type_id
 $$;
 
 CREATE TABLE IF NOT EXISTS tf_hubs
