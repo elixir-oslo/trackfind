@@ -1,5 +1,5 @@
 CREATE OR REPLACE FUNCTION jsonb_recursive_merge(a jsonb, b jsonb)
-    RETURNS jsonb
+    RETURNS JSONB
     LANGUAGE SQL AS
 $$
 SELECT jsonb_object_agg(
@@ -13,6 +13,17 @@ SELECT jsonb_object_agg(
            )
 FROM jsonb_each(a) e1(ka, va)
          FULL JOIN jsonb_each(b) e2(kb, vb) ON ka = kb
+$$;
+
+CREATE OR REPLACE FUNCTION check_reference(from_object_type_id BIGINT, to_object_type_id BIGINT)
+    RETURNS BOOLEAN
+    LANGUAGE SQL AS
+$$
+SELECT fot.version_id = tot.version_id
+FROM tf_object_types fot,
+     tf_object_types tot
+WHERE fot.id = from_object_type_id
+  AND tot.id = to_object_type_id;
 $$;
 
 CREATE TABLE IF NOT EXISTS tf_hubs
@@ -74,7 +85,8 @@ CREATE TABLE IF NOT EXISTS tf_references
     to_attribute        VARCHAR NOT NULL,
     UNIQUE (from_object_type_id, from_attribute, to_object_type_id, to_attribute),
     FOREIGN KEY (from_object_type_id) REFERENCES tf_object_types (id),
-    FOREIGN KEY (to_object_type_id) REFERENCES tf_object_types (id)
+    FOREIGN KEY (to_object_type_id) REFERENCES tf_object_types (id),
+    CHECK ( check_reference(from_object_type_id, to_object_type_id) )
 );
 
 CREATE TABLE IF NOT EXISTS tf_mappings
@@ -92,8 +104,11 @@ CREATE OR REPLACE VIEW tf_latest_versions AS
     WITH max_versions AS (SELECT hub_id, MAX(version) "max_version"
                           FROM tf_versions
                           GROUP BY hub_id)
-    SELECT v.* FROM max_versions m, tf_versions v
-    WHERE m.hub_id = v.hub_id AND m.max_version = v.version;
+    SELECT v.*
+    FROM max_versions m,
+         tf_versions v
+    WHERE m.hub_id = v.hub_id
+      AND m.max_version = v.version;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS tf_latest_objects AS
 SELECT o.*
