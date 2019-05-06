@@ -14,7 +14,7 @@ import java.util.Optional;
 @Table(name = "tf_hubs")
 @Data
 @EqualsAndHashCode(of = {"id", "repository", "name"})
-@ToString
+@ToString(exclude = "versions")
 @RequiredArgsConstructor
 @NoArgsConstructor
 public class TfHub implements Serializable {
@@ -32,15 +32,14 @@ public class TfHub implements Serializable {
     @Column(name = "name", nullable = false)
     private String name;
 
-    @OneToMany(mappedBy = "hub")
+    @OneToMany(mappedBy = "hub", fetch = FetchType.EAGER)
     private Collection<TfVersion> versions;
 
-    public Optional<TfVersion> getMaxVersion() {
-        Collection<TfVersion> versions = getVersions();
+    public Optional<TfVersion> getCurrentVersion() {
         if (CollectionUtils.isEmpty(versions)) {
             return Optional.empty();
         }
-        return Optional.ofNullable(Collections.max(getVersions(), Comparator.comparing(TfVersion::getVersion)));
+        return Optional.ofNullable(Collections.max(versions, Comparator.comparing(TfVersion::getVersion)));
     }
 
 }

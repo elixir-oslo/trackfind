@@ -15,7 +15,7 @@ import java.util.Date;
 @Table(name = "tf_versions")
 @Data
 @EqualsAndHashCode(of = {"id"})
-@ToString
+@ToString(exclude = "objectTypes")
 @NoArgsConstructor
 public class TfVersion implements Serializable {
 
@@ -41,7 +41,7 @@ public class TfVersion implements Serializable {
     @JoinColumn(name = "hub_id", referencedColumnName = "id")
     private TfHub hub;
 
-    @OneToMany(mappedBy = "version")
+    @OneToMany(mappedBy = "version", fetch = FetchType.EAGER)
     private Collection<TfObjectType> objectTypes;
 
 }

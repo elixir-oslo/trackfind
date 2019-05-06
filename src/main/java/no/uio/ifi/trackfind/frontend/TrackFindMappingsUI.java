@@ -240,7 +240,7 @@ public class TrackFindMappingsUI extends AbstractUI {
         mappingRepository.deleteInBatch(existingMappings);
         for (Map.Entry<ComboBox<String>, TextField> mappingPair : attributesStaticMapping.entrySet()) {
             TfMapping mapping = new TfMapping();
-            mapping.setVersion(currentHub.getMaxVersion().orElseThrow(RuntimeException::new));
+            mapping.setVersion(currentHub.getCurrentVersion().orElseThrow(RuntimeException::new));
             mapping.setStaticMapping(true);
             mapping.setFrom(mappingPair.getValue().getValue());
             mapping.setTo(mappingPair.getKey().getValue());
@@ -248,7 +248,7 @@ public class TrackFindMappingsUI extends AbstractUI {
         }
         script.getOptionalValue().ifPresent(s -> {
             TfMapping mapping = new TfMapping();
-            mapping.setVersion(currentHub.getMaxVersion().orElseThrow(RuntimeException::new));
+            mapping.setVersion(currentHub.getCurrentVersion().orElseThrow(RuntimeException::new));
             mapping.setStaticMapping(false);
             mapping.setFrom(s);
             mappings.add(mapping);

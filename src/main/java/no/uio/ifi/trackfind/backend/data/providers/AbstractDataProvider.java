@@ -20,7 +20,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import javax.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 
@@ -31,6 +31,7 @@ import java.util.concurrent.ExecutorService;
  * @author Dmytro Titov
  */
 @Slf4j
+@Transactional
 public abstract class AbstractDataProvider implements DataProvider {
 
     protected TrackFindProperties properties;
@@ -88,10 +89,8 @@ public abstract class AbstractDataProvider implements DataProvider {
             "metamodel-categories",
             "metamodel-attributes",
             "metamodel-attribute-types",
-            "metamodel-values",
-            "metamodel-mappings"
+            "metamodel-values"
     }, allEntries = true)
-    @Transactional
     @Override
     public synchronized void crawlRemoteRepository(String hubName) {
         log.info("Fetching data using for {}: {}", getName(), hubName);
@@ -113,7 +112,7 @@ public abstract class AbstractDataProvider implements DataProvider {
      */
     protected void save(String hubName, Map<String, Collection<String>> objects) {
         TfHub hub = hubRepository.findByRepositoryAndName(getName(), hubName);
-        TfVersion version = hub.getMaxVersion().orElseGet(() -> {
+        TfVersion version = hub.getCurrentVersion().orElseGet(() -> {
             TfVersion tfVersion = new TfVersion();
             tfVersion.setVersion(0L);
             return tfVersion;
@@ -143,7 +142,6 @@ public abstract class AbstractDataProvider implements DataProvider {
 //        applyAutomaticMappings(hub, objectRepository.saveAll(objectsToSave));
     }
 
-//    @Transactional
 //    protected synchronized void applyAutomaticMappings(TfHub hub, Collection<TfObject> objects) {
 //        Collection<TfObject> objectsToSave = new ArrayList<>();
 //        for (TfObject obj : objects) {
@@ -174,10 +172,8 @@ public abstract class AbstractDataProvider implements DataProvider {
             "metamodel-categories",
             "metamodel-attributes",
             "metamodel-attribute-types",
-            "metamodel-values",
-            "metamodel-mappings"
+            "metamodel-values"
     }, allEntries = true)
-    @Transactional
     @Override
     public synchronized void applyMappings(String hubName) {
 //        log.info("Applying mappings for {}: {}", getName(), hubName);

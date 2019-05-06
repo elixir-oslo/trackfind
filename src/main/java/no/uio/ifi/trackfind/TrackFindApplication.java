@@ -8,6 +8,7 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.AdviceMode;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.EnableLoadTimeWeaving;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import static org.springframework.context.annotation.EnableLoadTimeWeaving.AspectJWeaving.ENABLED;
 
@@ -21,6 +22,7 @@ import static org.springframework.context.annotation.EnableLoadTimeWeaving.Aspec
 @EnableAspectJAutoProxy
 @EnableLoadTimeWeaving(aspectjWeaving = ENABLED)
 @EnableCaching(mode = AdviceMode.ASPECTJ)
+@EnableTransactionManagement(mode = AdviceMode.ASPECTJ)
 public class TrackFindApplication {
 
     public static void main(String[] args) {

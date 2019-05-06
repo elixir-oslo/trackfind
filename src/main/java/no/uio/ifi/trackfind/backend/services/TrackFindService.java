@@ -6,6 +6,7 @@ import no.uio.ifi.trackfind.backend.pojo.TfHub;
 import no.uio.ifi.trackfind.backend.repositories.HubRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.stream.Collectors;
@@ -17,6 +18,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Service
+@Transactional
 public class TrackFindService {
 
     private Collection<DataProvider> dataProviders;
@@ -32,9 +34,9 @@ public class TrackFindService {
     }
 
     /**
-     * Gets all Track Hubs.
+     * Gets Track Hubs.
      *
-     * @return All Track Hubs.
+     * @return Track Hubs.
      */
     public Collection<TfHub> getTrackHubs(boolean active) {
         return active ?
@@ -44,9 +46,9 @@ public class TrackFindService {
     }
 
     /**
-     * Gets all Track Hubs by repository.
+     * Gets Track Hubs by repository.
      *
-     * @return All Track Hubs by repository.
+     * @return Track Hubs by repository.
      */
     public Collection<TfHub> getTrackHubs(String repositoryName, boolean active) {
         return active ? getDataProvider(repositoryName).getActiveTrackHubs()

@@ -7,12 +7,13 @@ import lombok.ToString;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.Collection;
 
 @Entity
 @Table(name = "tf_object_types")
 @Data
 @EqualsAndHashCode(of = {"id"})
-@ToString
+@ToString(exclude = "references")
 @NoArgsConstructor
 public class TfObjectType implements Serializable {
 
@@ -27,5 +28,8 @@ public class TfObjectType implements Serializable {
     @ManyToOne
     @JoinColumn(name = "version_id", referencedColumnName = "id")
     private TfVersion version;
+
+    @OneToMany(mappedBy = "fromObjectType")
+    private Collection<TfReference> references;
 
 }
