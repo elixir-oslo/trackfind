@@ -28,6 +28,7 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
      */
     @Override
     protected Stream<TreeNode> fetchChildrenFromBackEnd(HierarchicalQuery<TreeNode, SerializablePredicate<TreeNode>> query) {
+        String levelsSeparator = properties.getLevelsSeparator();
         TreeFilter treeFilter = (TreeFilter) query.getFilter().orElseThrow(RuntimeException::new);
         TfHub hub = treeFilter.getHub();
         String repository = hub.getRepository();
@@ -40,7 +41,7 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
                 treeNode.setCategory(c);
                 treeNode.setValue(c);
                 treeNode.setParent(null);
-                treeNode.setSeparator(properties.getLevelsSeparator());
+                treeNode.setSeparator(levelsSeparator);
                 treeNode.setLevel(0);
                 treeNode.setHasValues(false);
                 treeNode.setChildren(metamodelTree.get(c).keySet());
@@ -56,13 +57,16 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
                 return Stream.empty();
             }
             String category = parent.getCategory();
+            Collection<String> arrayOfObjectsAttributes = metamodelService.getArrayOfObjectsAttributes(repository, hubName, category);
+            Map<String, String> attributeTypes = metamodelService.getAttributeTypes(repository, hubName, category);
             Collection<String> children = parent.getChildren();
+            String prefix = category + levelsSeparator;
             Stream<TreeNode> treeNodeStream = children.parallelStream().map(c -> {
                 TreeNode treeNode = new TreeNode();
                 treeNode.setCategory(category);
                 treeNode.setValue(c);
                 treeNode.setParent(parent);
-                treeNode.setSeparator(properties.getLevelsSeparator());
+                treeNode.setSeparator(levelsSeparator);
                 treeNode.setLevel(parent.getLevel() + 1);
                 Collection<String> grandChildren = metamodelService.getValues(repository, hubName, category, treeNode.getPath());
                 if (CollectionUtils.isEmpty(grandChildren)) {
@@ -73,8 +77,8 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
                     treeNode.setChildren(grandChildren);
                 }
                 treeNode.setAttribute(CollectionUtils.isNotEmpty(treeNode.getChildren()));
-                treeNode.setArray(metamodelService.getArrayOfObjectsAttributes(repository, hubName, category).contains(treeNode.getPath()));
-                treeNode.setType(metamodelService.getAttributeTypes(repository, hubName, category).get(treeNode.getPath()));
+                treeNode.setArray(arrayOfObjectsAttributes.contains(treeNode.getPath().replace(prefix, "")));
+                treeNode.setType(attributeTypes.get(treeNode.getPath().replace(prefix, "")));
                 return treeNode;
             }).sorted();
             return treeNodeStream.filter(treeFilter);
