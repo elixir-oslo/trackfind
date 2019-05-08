@@ -77,8 +77,9 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
                     treeNode.setChildren(grandChildren);
                 }
                 treeNode.setAttribute(CollectionUtils.isNotEmpty(treeNode.getChildren()));
-                treeNode.setArray(arrayOfObjectsAttributes.contains(treeNode.getPath().replace(prefix, "")));
-                treeNode.setType(attributeTypes.get(treeNode.getPath().replace(prefix, "")));
+                String path = treeNode.getPath().replace(prefix, "");
+                treeNode.setArray(arrayOfObjectsAttributes.contains(path));
+                treeNode.setType(attributeTypes.get(path));
                 return treeNode;
             }).sorted();
             return treeNodeStream.filter(treeFilter);

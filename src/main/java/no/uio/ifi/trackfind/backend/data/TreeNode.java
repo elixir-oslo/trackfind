@@ -38,13 +38,10 @@ public class TreeNode implements Comparable<TreeNode> {
      */
     @EqualsAndHashCode.Include
     public String getPath() {
-        StringBuilder path = new StringBuilder(toString());
-        TreeNode parent = getParent();
-        while (parent != null) {
-            path.insert(0, parent.toString() + separator);
-            parent = parent.getParent();
+        if (parent == null) {
+            return toString();
         }
-        return path.toString();
+        return parent.getPath() + separator + toString();
     }
 
     /**
@@ -53,13 +50,10 @@ public class TreeNode implements Comparable<TreeNode> {
      * @return Sequence of attributes separated by some delimiter.
      */
     public String getSQLPath() {
-        StringBuilder path = new StringBuilder("'" + toString() + "'");
-        TreeNode parent = getParent();
-        while (parent != null) {
-            path.insert(0, "'" + parent.toString() + "'" + separator + (parent.isArray() ? "*->" : ""));
-            parent = parent.getParent();
+        if (parent == null) {
+            return toString() + ".content";
         }
-        return path.toString() + (isArray() ? "*->" : "");
+        return parent.getSQLPath() + (array ? separator + "*" : "") + separator + "'" + toString() + "'";
     }
 
     /**
