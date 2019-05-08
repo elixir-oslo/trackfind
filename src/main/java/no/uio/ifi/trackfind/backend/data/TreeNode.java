@@ -38,38 +38,6 @@ public class TreeNode implements Comparable<TreeNode> {
      */
     @EqualsAndHashCode.Include
     public String getPath() {
-        if (path == null) { // double checked synchronization
-            synchronized (this) {
-                if (path == null) {
-                    path = getPathInternally();
-                }
-            }
-        }
-        return path;
-    }
-
-    /**
-     * Gets SQL path from the root node to current node.
-     *
-     * @return Sequence of attributes separated by some delimiter.
-     */
-    public String getSQLPath() {
-        if (sqlPath == null) { // double checked synchronization
-            synchronized (this) {
-                if (sqlPath == null) {
-                    sqlPath = getSQLPathInternally();
-                }
-            }
-        }
-        return sqlPath;
-    }
-
-    /**
-     * Gets path from the root node to current node.
-     *
-     * @return Sequence of attributes separated by some delimiter.
-     */
-    private String getPathInternally() {
         StringBuilder path = new StringBuilder(toString());
         TreeNode parent = getParent();
         while (parent != null) {
@@ -84,7 +52,7 @@ public class TreeNode implements Comparable<TreeNode> {
      *
      * @return Sequence of attributes separated by some delimiter.
      */
-    private String getSQLPathInternally() {
+    public String getSQLPath() {
         StringBuilder path = new StringBuilder("'" + toString() + "'");
         TreeNode parent = getParent();
         while (parent != null) {
