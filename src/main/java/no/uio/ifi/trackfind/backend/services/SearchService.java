@@ -61,13 +61,11 @@ public class SearchService {
         ResultSet resultSet = preparedStatement.executeQuery();
         Collection<SearchResult> results = new ArrayList<>();
         while (resultSet.next()) {
-            Map<String, Map> content = new HashMap<>();
+            SearchResult searchResult = new SearchResult();
             for (TfObjectType objectType : objectTypes) {
                 String json = resultSet.getString(objectType.getName() + "_content");
-                content.put(objectType.getName(), gson.fromJson(json, Map.class));
+                searchResult.getContent().put(objectType.getName(), gson.fromJson(json, Map.class));
             }
-            SearchResult searchResult = new SearchResult();
-            searchResult.setContent(gson.toJson(content));
             results.add(searchResult);
         }
         return results;

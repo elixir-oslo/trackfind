@@ -1,12 +1,18 @@
 package no.uio.ifi.trackfind.backend.pojo;
 
-import com.fasterxml.jackson.annotation.JsonRawValue;
-import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
 
-@Data
+import java.util.HashMap;
+import java.util.Map;
+
 public class SearchResult {
 
-    @JsonRawValue
-    private String content;
+
+    private Map<String, Map> content = new HashMap<>();
+
+    @JsonAnyGetter
+    public Map<String, Map> getContent() {
+        return content;
+    }
 
 }
