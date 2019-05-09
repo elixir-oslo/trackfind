@@ -15,17 +15,6 @@ FROM jsonb_each(a) e1(ka, va)
          FULL JOIN jsonb_each(b) e2(kb, vb) ON ka = kb
 $$;
 
-CREATE OR REPLACE FUNCTION check_reference(from_object_type_id BIGINT, to_object_type_id BIGINT)
-    RETURNS BOOLEAN
-    LANGUAGE SQL AS
-$$
-SELECT fot.version_id = tot.version_id
-FROM tf_object_types fot,
-     tf_object_types tot
-WHERE fot.id = from_object_type_id
-  AND tot.id = to_object_type_id
-$$;
-
 CREATE TABLE IF NOT EXISTS tf_hubs
 (
     id         BIGSERIAL PRIMARY KEY,
@@ -54,6 +43,17 @@ CREATE TABLE IF NOT EXISTS tf_object_types
     UNIQUE (name, version_id),
     FOREIGN KEY (version_id) REFERENCES tf_versions (id)
 );
+
+CREATE OR REPLACE FUNCTION check_reference(from_object_type_id BIGINT, to_object_type_id BIGINT)
+    RETURNS BOOLEAN
+    LANGUAGE SQL AS
+$$
+SELECT fot.version_id = tot.version_id
+FROM tf_object_types fot,
+     tf_object_types tot
+WHERE fot.id = from_object_type_id
+  AND tot.id = to_object_type_id
+$$;
 
 CREATE SEQUENCE IF NOT EXISTS tf_objects_ids_sequence
     START 1 INCREMENT 1;
