@@ -36,9 +36,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.Charset;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Collections;
 
 /**
  * Main Vaadin UI of the application.
@@ -280,12 +282,16 @@ public class TrackFindMainUI extends AbstractUI {
         return new VerticalLayout(instructions.toArray(new Component[]{}));
     }
 
-    @SuppressWarnings("unchecked")
     private void executeQuery(String query) {
         TfHub hub = getCurrentHub();
         String limit = limitTextField.getValue();
         limit = StringUtils.isEmpty(limit) ? "0" : limit;
-        results = searchService.search(hub.getRepository(), hub.getName(), query, Integer.parseInt(limit));
+        try {
+            results = searchService.search(hub.getRepository(), hub.getName(), query, Integer.parseInt(limit));
+        } catch (SQLException e) {
+            results = Collections.emptyList();
+            log.error(e.getMessage(), e);
+        }
         if (results.isEmpty()) {
             resultsTextArea.setValue("");
             Notification.show("Nothing found for such request");

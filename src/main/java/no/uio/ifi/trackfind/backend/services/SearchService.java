@@ -1,21 +1,20 @@
 package no.uio.ifi.trackfind.backend.services;
 
+import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
 import no.uio.ifi.trackfind.backend.pojo.Queries;
 import no.uio.ifi.trackfind.backend.pojo.SearchResult;
+import no.uio.ifi.trackfind.backend.pojo.TfObjectType;
+import no.uio.ifi.trackfind.backend.pojo.TfReference;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Service to perform JSONB-oriented search for datasets in the database.
@@ -28,6 +27,8 @@ public class SearchService {
 
     private TrackFindProperties properties;
     private JdbcTemplate jdbcTemplate;
+    private MetamodelService metamodelService;
+    private Gson gson;
 
     private Connection connection;
 
@@ -48,95 +49,86 @@ public class SearchService {
      * @param limit      Max number of entries to return. 0 for unlimited.
      * @return Found entries.
      */
-    public Collection<SearchResult> search(String repository, String hub, String query, int limit) {
-//        try {
-//            String repositoryName = hub.getRepository();
-//            String hubName = hub.getName();
-//            limit = limit == 0 ? Integer.MAX_VALUE : limit;
-//            Map<String, String> joinTerms = new HashMap<>();
-//            int size = joinTerms.size();
-//            while (true) {
-//                query = processQuery(query, joinTerms);
-//                if (size == joinTerms.size()) {
-//                    break;
-//                }
-//                size = joinTerms.size();
-//            }
-//            String joinTermsConcatenated = joinTerms
-//                    .entrySet()
-//                    .stream()
-//                    .map(e -> String.format("jsonb_array_elements(%s) %s",
-//                            e.getKey().substring(0, e.getKey().length() - properties.getLevelsSeparator().length() - 1),
-//                            e.getValue()
-//                    ))
-//                    .collect(Collectors.joining(", "));
-//            if (StringUtils.isNotEmpty(joinTermsConcatenated)) {
-//                joinTermsConcatenated = ", " + joinTermsConcatenated;
-//            }
-//            String rawQuery = String.format("SELECT *\n" +
-//                    "FROM latest_datasets%s\n" +
-//                    "WHERE repository = '%s' AND hub = '%s'\n" +
-//                    "  AND (%s)\n" +
-//                    "ORDER BY id ASC\n" +
-//                    "LIMIT %s", joinTermsConcatenated, repositoryName, hubName, query, limit);
-//            rawQuery = rawQuery.replaceAll("\\?", "\\?\\?");
-//            PreparedStatement preparedStatement = connection.prepareStatement(rawQuery);
-//            ResultSet resultSet = preparedStatement.executeQuery();
-//            Collection<Dataset> result = new ArrayList<>();
-//            while (resultSet.next()) {
-//                Dataset dataset = new Dataset();
-//                dataset.setId(resultSet.getLong("id"));
-//                dataset.setRepository(resultSet.getString("repository"));
-//                dataset.setCuratedContent(resultSet.getString("curated_content"));
-//                dataset.setStandardContent(resultSet.getString("standard_content"));
-//                dataset.setFairContent(resultSet.getString("fair_content"));
-//                dataset.setVersion(resultSet.getString("version"));
-//                result.add(dataset);
-//            }
-//            return result;
-//        } catch (Exception e) {
-//            log.error(e.getMessage(), e);
-//            return Collections.emptySet();
-//        }
-        return Collections.emptySet();
-    }
+    public Collection<SearchResult> search(String repository, String hub, String query, int limit) throws SQLException {
+        Collection<TfReference> references = metamodelService.getReferences(repository, hub);
 
-    protected String processQuery(String query, Map<String, String> allJoinTerms) {
-        Map<String, String> joinTerms = getJoinTerms(query, allJoinTerms);
-        for (Map.Entry<String, String> joinTerm : joinTerms.entrySet()) {
-            query = query.replaceAll(Pattern.quote(joinTerm.getKey()), joinTerm.getValue() + ".value");
-        }
-        return query;
-    }
+        Collection<TfObjectType> objectTypes = new HashSet<>();
+        references.forEach(r -> objectTypes.addAll(Arrays.asList(r.getFromObjectType(), r.getToObjectType())));
 
-    protected Map<String, String> getJoinTerms(String query, Map<String, String> allJoinTerms) {
-        Collection<String> joinTerms = new HashSet<>();
-        String separator = properties.getLevelsSeparator();
-        String end = separator + "*";
-        for (String start : Arrays.asList(
-                "fair_content" + separator,
-                "joinTerm\\d+.value" + separator
-        )) {
-            String regexString = start + "(.*?)" + Pattern.quote(end);
-            Pattern pattern = Pattern.compile(regexString);
-            Matcher matcher = pattern.matcher(query);
-            while (matcher.find()) {
-                joinTerms.add(matcher.group());
+        String fullQueryString = buildQuery(references, objectTypes, query, limit);
+
+        PreparedStatement preparedStatement = connection.prepareStatement(fullQueryString);
+        ResultSet resultSet = preparedStatement.executeQuery();
+        Collection<SearchResult> results = new ArrayList<>();
+        while (resultSet.next()) {
+            Map<String, Map> content = new HashMap<>();
+            for (TfObjectType objectType : objectTypes) {
+                String json = resultSet.getString(objectType.getName() + "_content");
+                content.put(objectType.getName(), gson.fromJson(json, Map.class));
             }
+            SearchResult searchResult = new SearchResult();
+            searchResult.setContent(gson.toJson(content));
+            results.add(searchResult);
         }
-        Map<String, String> substitution = new HashMap<>();
-        int i = allJoinTerms.size();
-        for (String joinTerm : joinTerms) {
-            substitution.put(joinTerm, "joinTerm" + i++);
-        }
-        allJoinTerms.putAll(substitution);
-        return substitution;
+        return results;
     }
 
-//    @SuppressWarnings("unchecked")
-//    public Dataset fetch(Long datasetId, String version) {
-//        return version == null ? objectRepository.findByIdLatest(datasetId) : objectRepository.findByIdAndVersion(datasetId, version);
-//    }
+    protected String buildQuery(Collection<TfReference> references, Collection<TfObjectType> objectTypes, String query, int limit) {
+        String separator = properties.getLevelsSeparator();
+
+        StringBuilder fullQuery = new StringBuilder("SELECT ");
+
+        for (TfObjectType objectType : objectTypes) {
+            fullQuery.append(objectType.getName()).append(".content ").append(objectType.getName()).append("_content, ");
+        }
+
+        fullQuery.setLength(fullQuery.length() - 2);
+        fullQuery.append("\nFROM ");
+
+        for (TfObjectType objectType : objectTypes) {
+            fullQuery.append("tf_latest_objects ").append(objectType.getName()).append(", ");
+        }
+
+        fullQuery.setLength(fullQuery.length() - 2);
+        fullQuery.append("\nWHERE ");
+
+        for (TfObjectType objectType : objectTypes) {
+            fullQuery.append(objectType.getName()).append(".object_type_id = ").append(objectType.getId()).append(" AND ");
+        }
+
+        fullQuery.append("\n");
+
+        for (TfReference reference : references) {
+            String fromObjectType = reference.getFromObjectType().getName();
+            String fromAttribute = reference.getFromAttribute();
+            String toObjectType = reference.getToObjectType().getName();
+            String toAttribute = reference.getToAttribute();
+            fullQuery
+                    .append(fromObjectType)
+                    .append(".content ")
+                    .append(separator)
+                    .append(" ")
+                    .append(fromAttribute)
+                    .append(" = ")
+                    .append(toObjectType)
+                    .append(".content ")
+                    .append(separator)
+                    .append(" ")
+                    .append(toAttribute)
+                    .append(" AND ");
+        }
+
+        fullQuery.append("\n\n");
+
+        fullQuery.append(query);
+
+        limit = limit == 0 ? Integer.MAX_VALUE : limit;
+        fullQuery.append(" LIMIT ").append(limit);
+
+        System.out.println("fullQuery = " + fullQuery);
+
+        return fullQuery.toString().replaceAll("\\?", "\\?\\?");
+    }
 
     @Value("${spring.datasource.url}")
     public void setJdbcUrl(String jdbcUrl) {
@@ -151,6 +143,16 @@ public class SearchService {
     @Autowired
     public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
+    }
+
+    @Autowired
+    public void setMetamodelService(MetamodelService metamodelService) {
+        this.metamodelService = metamodelService;
+    }
+
+    @Autowired
+    public void setGson(Gson gson) {
+        this.gson = gson;
     }
 
 }

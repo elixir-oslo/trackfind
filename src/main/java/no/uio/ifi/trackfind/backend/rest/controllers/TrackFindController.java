@@ -12,6 +12,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -130,7 +131,7 @@ public class TrackFindController {
             @PathVariable String repository,
             @PathVariable String hub,
             @RequestParam String query,
-            @RequestParam(required = false, defaultValue = "0") int limit) {
+            @RequestParam(required = false, defaultValue = "0") int limit) throws SQLException {
         return ResponseEntity.ok(searchService.search(repository, hub, query, limit));
     }
 
@@ -148,7 +149,7 @@ public class TrackFindController {
             @PathVariable String repository,
             @PathVariable String hub,
             @RequestParam String query,
-            @RequestParam(required = false, defaultValue = "0") int limit) {
+            @RequestParam(required = false, defaultValue = "0") int limit) throws SQLException {
         Collection<SearchResult> datasets = searchService.search(repository, hub, query, limit);
         return ResponseEntity.ok(gSuiteService.apply(datasets));
     }
