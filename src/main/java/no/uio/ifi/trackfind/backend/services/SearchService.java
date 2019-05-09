@@ -123,8 +123,6 @@ public class SearchService {
         limit = limit == 0 ? Integer.MAX_VALUE : limit;
         fullQuery.append(" LIMIT ").append(limit);
 
-        System.out.println("fullQuery = " + fullQuery);
-
         return fullQuery.toString().replaceAll("\\?", "\\?\\?");
     }
 
