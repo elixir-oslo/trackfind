@@ -32,10 +32,10 @@ public class ExampleDataProvider extends AbstractDataProvider {
         try (InputStream inputStream = new URL(FETCH_URL).openStream();
              InputStreamReader reader = new InputStreamReader(inputStream)) {
             Map topMap = gson.fromJson(reader, Map.class);
-            mapToSave.put("studies_Example", gson.toJson(((List)topMap.get("studies")).get(0)));
-            mapToSave.put("experiments_Example", gson.toJson(((List)topMap.get("experiments")).get(0)));
-            mapToSave.put("samples_Example", gson.toJson(((List)topMap.get("samples")).get(0)));
-            mapToSave.put("tracks_Example", gson.toJson(((List)topMap.get("tracks")).get(0)));
+            mapToSave.put("studies", gson.toJson(((List)topMap.get("studies")).get(0)));
+            mapToSave.put("experiments", gson.toJson(((List)topMap.get("experiments")).get(0)));
+            mapToSave.put("samples", gson.toJson(((List)topMap.get("samples")).get(0)));
+            mapToSave.put("tracks", gson.toJson(((List)topMap.get("tracks")).get(0)));
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
