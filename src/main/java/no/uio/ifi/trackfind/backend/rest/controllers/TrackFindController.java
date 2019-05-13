@@ -123,6 +123,7 @@ public class TrackFindController {
      * @param repository Repository name.
      * @param hub        Track TfHub name.
      * @param query      Search query.
+     * @param categories Comma-separated categories.
      * @param limit      Max number of entries to return.
      * @return Search results by version.
      */
@@ -131,8 +132,9 @@ public class TrackFindController {
             @PathVariable String repository,
             @PathVariable String hub,
             @RequestParam String query,
+            @RequestParam(required = false) String categories,
             @RequestParam(required = false, defaultValue = "0") int limit) throws SQLException {
-        return ResponseEntity.ok(searchService.search(repository, hub, query, limit));
+        return ResponseEntity.ok(searchService.search(repository, hub, query, categories, limit));
     }
 
     /**
@@ -141,6 +143,7 @@ public class TrackFindController {
      * @param repository Repository name.
      * @param hub        Track TfHub name.
      * @param query      Search query.
+     * @param categories Comma-separated categories.
      * @param limit      Max number of entries to return. 0 for unlimited.
      * @return Search results by version.
      */
@@ -149,8 +152,9 @@ public class TrackFindController {
             @PathVariable String repository,
             @PathVariable String hub,
             @RequestParam String query,
+            @RequestParam(required = false) String categories,
             @RequestParam(required = false, defaultValue = "0") int limit) throws SQLException {
-        Collection<SearchResult> datasets = searchService.search(repository, hub, query, limit);
+        Collection<SearchResult> datasets = searchService.search(repository, hub, query, categories, limit);
         return ResponseEntity.ok(gSuiteService.apply(datasets));
     }
 

@@ -7,6 +7,7 @@ import no.uio.ifi.trackfind.backend.pojo.Queries;
 import no.uio.ifi.trackfind.backend.pojo.SearchResult;
 import no.uio.ifi.trackfind.backend.pojo.TfObjectType;
 import no.uio.ifi.trackfind.backend.pojo.TfReference;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import java.sql.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Service to perform JSONB-oriented search for datasets in the database.
@@ -46,51 +48,59 @@ public class SearchService {
      * @param repository Repository name.
      * @param hub        Track TfHub name.
      * @param query      Search query.
+     * @param categories Comma-separated categories.
      * @param limit      Max number of entries to return. 0 for unlimited.
      * @return Found entries.
      */
-    public Collection<SearchResult> search(String repository, String hub, String query, int limit) throws SQLException {
+    public Collection<SearchResult> search(String repository, String hub, String query, String categories, int limit) throws SQLException {
         Collection<TfReference> references = metamodelService.getReferences(repository, hub);
 
-        Collection<TfObjectType> objectTypes = new HashSet<>();
-        references.forEach(r -> objectTypes.addAll(Arrays.asList(r.getFromObjectType(), r.getToObjectType())));
+        Collection<TfObjectType> objectTypesFromReferences = new HashSet<>();
+        references.forEach(r -> objectTypesFromReferences.addAll(Arrays.asList(r.getFromObjectType(), r.getToObjectType())));
 
-        String fullQueryString = buildQuery(references, objectTypes, query, limit);
+        Set<String> objectTypesToSelect;
+        if (StringUtils.isEmpty(categories)) {
+            objectTypesToSelect = objectTypesFromReferences.stream().map(TfObjectType::getName).collect(Collectors.toSet());
+        } else {
+            objectTypesToSelect = Arrays.stream(StringUtils.split(categories, ",")).map(String::trim).collect(Collectors.toSet());
+        }
+
+        String fullQueryString = buildQuery(references, objectTypesFromReferences, objectTypesToSelect, query, limit);
 
         PreparedStatement preparedStatement = connection.prepareStatement(fullQueryString);
         ResultSet resultSet = preparedStatement.executeQuery();
         Collection<SearchResult> results = new ArrayList<>();
         while (resultSet.next()) {
             SearchResult searchResult = new SearchResult();
-            for (TfObjectType objectType : objectTypes) {
-                String json = resultSet.getString(objectType.getName() + "_content");
-                searchResult.getContent().put(objectType.getName(), gson.fromJson(json, Map.class));
+            for (String objectTypeName : objectTypesToSelect) {
+                String json = resultSet.getString(objectTypeName + "_content");
+                searchResult.getContent().put(objectTypeName, gson.fromJson(json, Map.class));
             }
             results.add(searchResult);
         }
         return results;
     }
 
-    protected String buildQuery(Collection<TfReference> references, Collection<TfObjectType> objectTypes, String query, int limit) {
+    protected String buildQuery(Collection<TfReference> references, Collection<TfObjectType> objectTypesFromReferences, Set<String> objectTypesToSelect, String query, int limit) {
         String separator = properties.getLevelsSeparator();
 
         StringBuilder fullQuery = new StringBuilder("SELECT ");
 
-        for (TfObjectType objectType : objectTypes) {
-            fullQuery.append(objectType.getName()).append(".content ").append(objectType.getName()).append("_content, ");
+        for (String objectTypeName : objectTypesToSelect) {
+            fullQuery.append(objectTypeName).append(".content ").append(objectTypeName).append("_content, ");
         }
 
         fullQuery.setLength(fullQuery.length() - 2);
         fullQuery.append("\nFROM ");
 
-        for (TfObjectType objectType : objectTypes) {
+        for (TfObjectType objectType : objectTypesFromReferences) {
             fullQuery.append("tf_latest_objects ").append(objectType.getName()).append(", ");
         }
 
         fullQuery.setLength(fullQuery.length() - 2);
         fullQuery.append("\nWHERE ");
 
-        for (TfObjectType objectType : objectTypes) {
+        for (TfObjectType objectType : objectTypesFromReferences) {
             fullQuery.append(objectType.getName()).append(".object_type_id = ").append(objectType.getId()).append(" AND ");
         }
 
