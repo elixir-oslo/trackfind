@@ -26,7 +26,6 @@ public class ExampleDataProvider extends AbstractDataProvider {
     /**
      * {@inheritDoc}
      */
-    @SuppressWarnings("unchecked")
     @Override
     protected void fetchData(String hubName) {
         HashMultimap<String, String> mapToSave = HashMultimap.create();
