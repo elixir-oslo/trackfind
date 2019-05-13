@@ -84,7 +84,7 @@ public class SearchService {
     protected String buildQuery(Collection<TfReference> references, Collection<TfObjectType> objectTypesFromReferences, Set<String> objectTypesToSelect, String query, int limit) {
         String separator = properties.getLevelsSeparator();
 
-        StringBuilder fullQuery = new StringBuilder("SELECT ");
+        StringBuilder fullQuery = new StringBuilder("SELECT DISTINCT ");
 
         for (String objectTypeName : objectTypesToSelect) {
             fullQuery.append(objectTypeName).append(".content ").append(objectTypeName).append("_content, ");
