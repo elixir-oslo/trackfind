@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.util.Collection;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -32,10 +32,12 @@ public class ExampleDataProvider extends AbstractDataProvider {
         try (InputStream inputStream = new URL(FETCH_URL).openStream();
              InputStreamReader reader = new InputStreamReader(inputStream)) {
             Map topMap = gson.fromJson(reader, Map.class);
-            mapToSave.put("studies", gson.toJson(((List)topMap.get("studies")).get(0)));
-            mapToSave.put("experiments", gson.toJson(((List)topMap.get("experiments")).get(0)));
-            mapToSave.put("samples", gson.toJson(((List)topMap.get("samples")).get(0)));
-            mapToSave.put("tracks", gson.toJson(((List)topMap.get("tracks")).get(0)));
+            for (String category : Arrays.asList("studies", "experiments", "samples", "tracks")) {
+                List objects = (List) topMap.get(category);
+                for (Object object : objects) {
+                    mapToSave.put(category, gson.toJson(object));
+                }
+            }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
