@@ -135,8 +135,12 @@ public class TrackFindController {
             @PathVariable String hub,
             @RequestParam String query,
             @RequestParam(required = false, defaultValue = "") String categories,
-            @RequestParam(required = false, defaultValue = "0") int limit) throws SQLException {
-        return ResponseEntity.ok(searchService.search(repository, hub, query, Arrays.stream(StringUtils.split(categories, ",")).map(String::trim).collect(Collectors.toSet()), limit));
+            @RequestParam(required = false, defaultValue = "0") int limit) {
+        try {
+            return ResponseEntity.ok(searchService.search(repository, hub, query, Arrays.stream(StringUtils.split(categories, ",")).map(String::trim).collect(Collectors.toSet()), limit));
+        } catch (SQLException e) {
+            return ResponseEntity.badRequest().body(null);
+        }
     }
 
     /**
@@ -155,9 +159,13 @@ public class TrackFindController {
             @PathVariable String hub,
             @RequestParam String query,
             @RequestParam(required = false, defaultValue = "") String categories,
-            @RequestParam(required = false, defaultValue = "0") int limit) throws SQLException {
-        Collection<SearchResult> datasets = searchService.search(repository, hub, query, Arrays.stream(StringUtils.split(categories, ",")).map(String::trim).collect(Collectors.toSet()), limit);
-        return ResponseEntity.ok(gSuiteService.apply(datasets));
+            @RequestParam(required = false, defaultValue = "0") int limit) {
+        try {
+            Collection<SearchResult> datasets = searchService.search(repository, hub, query, Arrays.stream(StringUtils.split(categories, ",")).map(String::trim).collect(Collectors.toSet()), limit);
+            return ResponseEntity.ok(gSuiteService.apply(datasets));
+        } catch (SQLException e) {
+            return ResponseEntity.badRequest().body(null);
+        }
     }
 
     @Autowired
