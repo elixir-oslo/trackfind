@@ -65,14 +65,15 @@ public class TrackFindMainUI extends AbstractUI {
     private int numberOfResults;
 
     private CheckBoxGroup<String> categoriesChecklist = new CheckBoxGroup<>("Categories: ");
-    private TextAreaDropListener textAreaDropListener;
-    private AddToQueryButtonClickListener addToQueryButtonClickListener;
     private TextArea queryTextArea;
     private TextField limitTextField;
     private TextArea resultsTextArea;
     private Collection<SearchResult> results;
     private String jsonResult;
     private String gSuiteResult;
+    private FileDownloader gSuiteFileDownloader;
+    private FileDownloader jsonFileDownloader;
+
 
     @Override
     protected void init(VaadinRequest vaadinRequest) {
@@ -103,7 +104,7 @@ public class TrackFindMainUI extends AbstractUI {
         TextField attributesFilterTextField = createFilter(true);
         TextField valuesFilterTextField = createFilter(false);
 
-        addToQueryButtonClickListener = new AddToQueryButtonClickListener(this, properties.getLevelsSeparator());
+        AddToQueryButtonClickListener addToQueryButtonClickListener = new AddToQueryButtonClickListener(this, properties.getLevelsSeparator());
         Button addToQueryButton = new Button("Add to query ➚", addToQueryButtonClickListener);
         addToQueryButton.setWidth(100, Unit.PERCENTAGE);
 
@@ -145,41 +146,9 @@ public class TrackFindMainUI extends AbstractUI {
         Button exportJSONButton = new Button("Export as JSON file");
         exportJSONButton.setEnabled(false);
         exportJSONButton.setWidth(100, Unit.PERCENTAGE);
-        Resource gSuiteResource = new StreamResource(null, null) {
-            @Override
-            public StreamSource getStreamSource() {
-                return (StreamResource.StreamSource) () -> new ByteArrayInputStream(gSuiteResult.getBytes(Charset.defaultCharset()));
-            }
-
-            @Override
-            public String getFilename() {
-                return Calendar.getInstance().getTime().toString() + ".gsuite";
-            }
-
-            @Override
-            public String getMIMEType() {
-                return FileTypeResolver.getMIMEType(getFilename());
-            }
-        };
-        FileDownloader gSuiteFileDownloader = new FileDownloader(gSuiteResource);
+        gSuiteFileDownloader = new FileDownloader(new ExternalResource(""));
         gSuiteFileDownloader.extend(exportGSuiteButton);
-        Resource jsonResource = new StreamResource(null, null) {
-            @Override
-            public StreamSource getStreamSource() {
-                return (StreamResource.StreamSource) () -> new ByteArrayInputStream(jsonResult.getBytes(Charset.defaultCharset()));
-            }
-
-            @Override
-            public String getFilename() {
-                return Calendar.getInstance().getTime().toString() + ".json";
-            }
-
-            @Override
-            public String getMIMEType() {
-                return FileTypeResolver.getMIMEType(getFilename());
-            }
-        };
-        FileDownloader jsonFileDownloader = new FileDownloader(jsonResource);
+        jsonFileDownloader = new FileDownloader(new ExternalResource(""));
         jsonFileDownloader.extend(exportJSONButton);
         resultsTextArea = new TextArea();
         resultsTextArea.setSizeFull();
@@ -227,7 +196,7 @@ public class TrackFindMainUI extends AbstractUI {
         queryTextArea.addStyleName("scrollable-text-area");
         DropTargetExtension<TextArea> dropTarget = new DropTargetExtension<>(queryTextArea);
         dropTarget.setDropEffect(DropEffect.COPY);
-        textAreaDropListener = new TextAreaDropListener(queryTextArea, properties.getLevelsSeparator());
+        TextAreaDropListener textAreaDropListener = new TextAreaDropListener(queryTextArea, properties.getLevelsSeparator());
         dropTarget.addDropListener(textAreaDropListener);
         Panel queryPanel = new Panel("Search query", queryTextArea);
         queryPanel.setSizeFull();
@@ -292,6 +261,28 @@ public class TrackFindMainUI extends AbstractUI {
             log.error(e.getMessage(), e);
         }
         resultsTextArea.setValue(jsonResult);
+
+        gSuiteFileDownloader.setFileDownloadResource(getStreamResource(gSuiteResult));
+        jsonFileDownloader.setFileDownloadResource(getStreamResource(jsonResult));
+    }
+
+    private Resource getStreamResource(String content) {
+        return new StreamResource(null, null) {
+            @Override
+            public StreamSource getStreamSource() {
+                return (StreamResource.StreamSource) () -> new ByteArrayInputStream(content.getBytes(Charset.defaultCharset()));
+            }
+
+            @Override
+            public String getFilename() {
+                return Calendar.getInstance().getTime().toString() + ".json";
+            }
+
+            @Override
+            public String getMIMEType() {
+                return FileTypeResolver.getMIMEType(getFilename());
+            }
+        };
     }
 
     public TextArea getQueryTextArea() {
