@@ -7,7 +7,7 @@ import no.uio.ifi.trackfind.backend.pojo.Queries;
 import no.uio.ifi.trackfind.backend.pojo.SearchResult;
 import no.uio.ifi.trackfind.backend.pojo.TfObjectType;
 import no.uio.ifi.trackfind.backend.pojo.TfReference;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -52,17 +52,17 @@ public class SearchService {
      * @param limit      Max number of entries to return. 0 for unlimited.
      * @return Found entries.
      */
-    public Collection<SearchResult> search(String repository, String hub, String query, String categories, int limit) throws SQLException {
+    public Collection<SearchResult> search(String repository, String hub, String query, Collection<String> categories, int limit) throws SQLException {
         Collection<TfReference> references = metamodelService.getReferences(repository, hub);
 
         Collection<TfObjectType> objectTypesFromReferences = new HashSet<>();
         references.forEach(r -> objectTypesFromReferences.addAll(Arrays.asList(r.getFromObjectType(), r.getToObjectType())));
 
-        Set<String> objectTypesToSelect;
-        if (StringUtils.isEmpty(categories)) {
+        Collection<String> objectTypesToSelect;
+        if (CollectionUtils.isEmpty(categories)) {
             objectTypesToSelect = objectTypesFromReferences.stream().map(TfObjectType::getName).collect(Collectors.toSet());
         } else {
-            objectTypesToSelect = Arrays.stream(StringUtils.split(categories, ",")).map(String::trim).collect(Collectors.toSet());
+            objectTypesToSelect = categories;
         }
 
         String fullQueryString = buildQuery(references, objectTypesFromReferences, objectTypesToSelect, query, limit);
@@ -81,7 +81,7 @@ public class SearchService {
         return results;
     }
 
-    protected String buildQuery(Collection<TfReference> references, Collection<TfObjectType> objectTypesFromReferences, Set<String> objectTypesToSelect, String query, int limit) {
+    protected String buildQuery(Collection<TfReference> references, Collection<TfObjectType> objectTypesFromReferences, Collection<String> objectTypesToSelect, String query, int limit) {
         String separator = properties.getLevelsSeparator();
 
         StringBuilder fullQuery = new StringBuilder("SELECT DISTINCT ");

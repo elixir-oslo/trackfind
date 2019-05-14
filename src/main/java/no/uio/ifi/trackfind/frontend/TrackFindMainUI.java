@@ -9,7 +9,6 @@ import com.vaadin.data.HasValue;
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.event.ShortcutListener;
 import com.vaadin.server.*;
-import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.shared.ui.ValueChangeMode;
 import com.vaadin.shared.ui.dnd.DropEffect;
 import com.vaadin.shared.ui.dnd.EffectAllowed;
@@ -22,7 +21,9 @@ import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.data.TreeNode;
 import no.uio.ifi.trackfind.backend.pojo.SearchResult;
 import no.uio.ifi.trackfind.backend.pojo.TfHub;
+import no.uio.ifi.trackfind.backend.pojo.TfObjectType;
 import no.uio.ifi.trackfind.backend.services.GSuiteService;
+import no.uio.ifi.trackfind.backend.services.MetamodelService;
 import no.uio.ifi.trackfind.backend.services.SearchService;
 import no.uio.ifi.trackfind.frontend.components.KeyboardInterceptorExtension;
 import no.uio.ifi.trackfind.frontend.components.TrackFindTree;
@@ -37,7 +38,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.Charset;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
@@ -58,11 +58,13 @@ import java.util.Collections;
 public class TrackFindMainUI extends AbstractUI {
 
     private ObjectMapper mapper;
+    private MetamodelService metamodelService;
     private GSuiteService gSuiteService;
     private SearchService searchService;
 
     private int numberOfResults;
 
+    private CheckBoxGroup<String> categoriesChecklist = new CheckBoxGroup<>("Categories: ");
     private TextAreaDropListener textAreaDropListener;
     private AddToQueryButtonClickListener addToQueryButtonClickListener;
     private TextArea queryTextArea;
@@ -93,15 +95,10 @@ public class TrackFindMainUI extends AbstractUI {
             tabSheet.addTab(tree, hub.getName());
         }
 
+        tabSheet.addSelectedTabChangeListener((TabSheet.SelectedTabChangeListener) event -> refreshCategoriesCheckList());
+
         Panel treePanel = new Panel("Model browser", tabSheet);
         treePanel.setSizeFull();
-
-//        CheckBox checkBox = new CheckBox("Raw metamodel");
-//        checkBox.addValueChangeListener((HasValue.ValueChangeListener<Boolean>) event -> {
-//            textAreaDropListener.setDatasetPrefix(event.getValue() ? "curated_content" : "standard_content");
-//            addToQueryButtonClickListener.setDatasetPrefix(event.getValue() ? "curated_content" : "standard_content");
-//            refreshTrees(event.getValue());
-//        });
 
         TextField attributesFilterTextField = createFilter(true);
         TextField valuesFilterTextField = createFilter(false);
@@ -256,30 +253,21 @@ public class TrackFindMainUI extends AbstractUI {
             }
         });
 
-        VerticalLayout helpLayout = buildHelpLayout();
+        refreshCategoriesCheckList();
 
-        PopupView popup = new PopupView("Help", helpLayout);
-        VerticalLayout queryLayout = new VerticalLayout(queryPanel, limitTextField, searchButton, popup);
+        HorizontalLayout searchLayout = new HorizontalLayout(limitTextField, searchButton);
+        searchLayout.setWidth("100%");
+        searchLayout.setComponentAlignment(searchButton, Alignment.BOTTOM_RIGHT);
+
+        VerticalLayout queryLayout = new VerticalLayout(queryPanel, categoriesChecklist, searchLayout);
         queryLayout.setSizeFull();
         queryLayout.setExpandRatio(queryPanel, 1f);
         return queryLayout;
     }
 
-    private VerticalLayout buildHelpLayout() {
-        Collection<Component> instructions = new ArrayList<>();
-        instructions.add(new Label("<b>How to perform a search:<b> ", ContentMode.HTML));
-        instructions.add(new Label("1. Navigate through metamodel tree using browser on the left."));
-        instructions.add(new Label("2. Filter attributes or values using text-fields in the bottom if needed."));
-        instructions.add(new Label("3. Select attribute or value(s) you want to use in the search query. Multiple values can be selected using <i>Shift</i> or <i>Ctrl</i> / <i>Command</i>.", ContentMode.HTML));
-        instructions.add(new Label("4. Drag and drop attribute name or value to the query area or simply press <i>Add to query</i> button."));
-        instructions.add(new Label("5. Correct query manually if necessary."));
-        instructions.add(new Label("6. Press <i>Ctrl+Shift</i> or <i>Command+Shift</i> or click <i>Search</i> button to execute the query.", ContentMode.HTML));
-        instructions.add(new Label("<b>Hotkeys:<b> ", ContentMode.HTML));
-        instructions.add(new Label("Use <i>Ctrl</i> or <i>Command</i> to select multiple values in tree.", ContentMode.HTML));
-        instructions.add(new Label("Use <i>Shift</i> to select range of values in tree.", ContentMode.HTML));
-        instructions.add(new Label("Hold <i>Alt</i> or <i>Option</i> key while dragging to use OR operator instead of AND.", ContentMode.HTML));
-        instructions.add(new Label("Hold <i>Shift</i> key while dragging to add NOT operator.", ContentMode.HTML));
-        return new VerticalLayout(instructions.toArray(new Component[]{}));
+    private void refreshCategoriesCheckList() {
+        Collection<TfObjectType> objectTypes = metamodelService.getObjectTypes(getCurrentHub().getRepository(), getCurrentHub().getName());
+        categoriesChecklist.setItems(objectTypes.stream().map(TfObjectType::getName));
     }
 
     private void executeQuery(String query) {
@@ -287,7 +275,7 @@ public class TrackFindMainUI extends AbstractUI {
         String limit = limitTextField.getValue();
         limit = StringUtils.isEmpty(limit) ? "0" : limit;
         try {
-            results = searchService.search(hub.getRepository(), hub.getName(), query, null, Integer.parseInt(limit));
+            results = searchService.search(hub.getRepository(), hub.getName(), query, categoriesChecklist.getSelectedItems(), Integer.parseInt(limit));
         } catch (SQLException e) {
             results = Collections.emptyList();
             log.error(e.getMessage(), e);
@@ -313,6 +301,11 @@ public class TrackFindMainUI extends AbstractUI {
     @Autowired
     public void setMapper(ObjectMapper mapper) {
         this.mapper = mapper;
+    }
+
+    @Autowired
+    public void setMetamodelService(MetamodelService metamodelService) {
+        this.metamodelService = metamodelService;
     }
 
     @Autowired

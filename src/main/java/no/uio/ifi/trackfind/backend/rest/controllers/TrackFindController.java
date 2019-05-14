@@ -7,12 +7,14 @@ import no.uio.ifi.trackfind.backend.services.GSuiteService;
 import no.uio.ifi.trackfind.backend.services.MetamodelService;
 import no.uio.ifi.trackfind.backend.services.SearchService;
 import no.uio.ifi.trackfind.backend.services.TrackFindService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -132,9 +134,9 @@ public class TrackFindController {
             @PathVariable String repository,
             @PathVariable String hub,
             @RequestParam String query,
-            @RequestParam(required = false) String categories,
+            @RequestParam(required = false, defaultValue = "") String categories,
             @RequestParam(required = false, defaultValue = "0") int limit) throws SQLException {
-        return ResponseEntity.ok(searchService.search(repository, hub, query, categories, limit));
+        return ResponseEntity.ok(searchService.search(repository, hub, query, Arrays.stream(StringUtils.split(categories, ",")).map(String::trim).collect(Collectors.toSet()), limit));
     }
 
     /**
@@ -152,9 +154,9 @@ public class TrackFindController {
             @PathVariable String repository,
             @PathVariable String hub,
             @RequestParam String query,
-            @RequestParam(required = false) String categories,
+            @RequestParam(required = false, defaultValue = "") String categories,
             @RequestParam(required = false, defaultValue = "0") int limit) throws SQLException {
-        Collection<SearchResult> datasets = searchService.search(repository, hub, query, categories, limit);
+        Collection<SearchResult> datasets = searchService.search(repository, hub, query, Arrays.stream(StringUtils.split(categories, ",")).map(String::trim).collect(Collectors.toSet()), limit);
         return ResponseEntity.ok(gSuiteService.apply(datasets));
     }
 
