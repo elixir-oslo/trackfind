@@ -59,18 +59,18 @@ public class TreeSelectionListener implements SelectionListener<TreeNode> {
             return;
         }
         TreeNode current = addedSelection.iterator().next();
-        if (current.isHasValues()) {
+        if (current.isAttribute()) {
             selectedItems.stream().filter(tn -> !tn.equals(current)).forEach(tree::deselect);
             return;
         }
-        selectedItems.stream().filter(TreeNode::isHasValues).forEach(tree::deselect);
+        selectedItems.stream().filter(TreeNode::isAttribute).forEach(tree::deselect);
         selectedItems.stream().filter(tn -> tn.getLevel() != current.getLevel() || tn.getParent() != current.getParent()).forEach(tree::deselect);
         if (!keyboardInterceptorExtension.isControlKeyDown() &&
                 !keyboardInterceptorExtension.isMetaKeyDown() &&
                 !keyboardInterceptorExtension.isShiftKeyDown()) {
             selectedItems.stream().filter(tn -> !tn.equals(current)).forEach(tree::deselect);
         } else if (keyboardInterceptorExtension.isShiftKeyDown()) {
-            TreeNode first = selectedItems.stream().sorted().findFirst().get();
+            TreeNode first = selectedItems.stream().sorted().findFirst().orElseThrow(RuntimeException::new);
             TreeNode last = selectedItems.stream().sorted().reduce((f, s) -> s).get();
             if (first.getLevel() != last.getLevel()) {
                 return;

@@ -105,6 +105,12 @@ public class MetamodelService {
         return metamodel;
     }
 
+    @Cacheable("metamodel-isattribute")
+    public boolean isAttribute(String repository, String hub, String category, String path) {
+        Multimap<String, String> metamodel = getMetamodelFlat(repository, hub).get(category);
+        return metamodel.keySet().stream().anyMatch(k -> k.startsWith(path));
+    }
+
     @Cacheable("metamodel-attributes")
     public Collection<String> getAttributes(String repository, String hub, String category, String path) {
         if (StringUtils.isEmpty(path)) {

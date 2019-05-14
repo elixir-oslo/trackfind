@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
@@ -36,21 +37,20 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
         Map<String, Map<String, Object>> metamodelTree = metamodelService.getMetamodelTree(repository, hubName);
         Optional<TreeNode> parentOptional = query.getParentOptional();
         if (!parentOptional.isPresent()) {
-            Stream<TreeNode> treeNodeStream = metamodelTree.keySet().parallelStream().map(c -> {
+            return metamodelTree.keySet().parallelStream().map(c -> {
                 TreeNode treeNode = new TreeNode();
+                treeNode.setTreeFilter(treeFilter);
                 treeNode.setCategory(c);
                 treeNode.setValue(c);
                 treeNode.setParent(null);
                 treeNode.setSeparator(levelsSeparator);
                 treeNode.setLevel(0);
-                treeNode.setHasValues(false);
                 treeNode.setChildren(metamodelTree.get(c).keySet());
                 treeNode.setAttribute(true);
                 treeNode.setArray(false);
                 treeNode.setType("string");
                 return treeNode;
-            }).sorted();
-            return treeNodeStream.filter(treeFilter);
+            }).filter(treeFilter).sorted();
         } else {
             TreeNode parent = parentOptional.get();
             if (!parent.isAttribute()) {
@@ -61,28 +61,27 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
             Map<String, String> attributeTypes = metamodelService.getAttributeTypes(repository, hubName, category);
             Collection<String> children = parent.getChildren();
             String prefix = category + levelsSeparator;
-            Stream<TreeNode> treeNodeStream = children.parallelStream().map(c -> {
+            return children.parallelStream().map(c -> {
                 TreeNode treeNode = new TreeNode();
+                treeNode.setTreeFilter(treeFilter);
                 treeNode.setCategory(category);
                 treeNode.setValue(c);
                 treeNode.setParent(parent);
                 treeNode.setSeparator(levelsSeparator);
                 treeNode.setLevel(parent.getLevel() + 1);
-                Collection<String> grandChildren = metamodelService.getValues(repository, hubName, category, treeNode.getPath());
-                if (CollectionUtils.isEmpty(grandChildren)) {
-                    treeNode.setHasValues(false);
-                    treeNode.setChildren(metamodelService.getAttributes(repository, hubName, category, treeNode.getPath()));
-                } else {
-                    treeNode.setHasValues(true);
-                    treeNode.setChildren(grandChildren);
-                }
-                treeNode.setAttribute(CollectionUtils.isNotEmpty(treeNode.getChildren()));
                 String path = treeNode.getPath().replace(prefix, "");
+                treeNode.setAttribute(metamodelService.isAttribute(repository, hubName, category, path));
                 treeNode.setArray(arrayOfObjectsAttributes.contains(path));
                 treeNode.setType(attributeTypes.get(path));
+                Collection<String> grandChildren = metamodelService.getValues(repository, hubName, category, treeNode.getPath());
+                if (CollectionUtils.isEmpty(grandChildren)) {
+                    grandChildren = metamodelService.getAttributes(repository, hubName, category, treeNode.getPath());
+                } else {
+                    grandChildren = grandChildren.stream().filter(v -> v.toLowerCase().contains(treeFilter.getValuesFilter().toLowerCase())).collect(Collectors.toSet());
+                }
+                treeNode.setChildren(grandChildren);
                 return treeNode;
-            }).sorted();
-            return treeNodeStream.filter(treeFilter);
+            }).filter(treeFilter).sorted();
         }
     }
 
@@ -93,7 +92,7 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
 
     @Override
     public boolean hasChildren(TreeNode item) {
-        return item.isAttribute();
+        return getChildCount(new HierarchicalQuery<>(item.getTreeFilter(), item)) != 0;
     }
 
     @Autowired

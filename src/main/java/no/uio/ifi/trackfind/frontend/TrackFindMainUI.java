@@ -101,14 +101,14 @@ public class TrackFindMainUI extends AbstractUI {
         Panel treePanel = new Panel("Model browser", tabSheet);
         treePanel.setSizeFull();
 
-        TextField attributesFilterTextField = createFilter(true);
+//        TextField attributesFilterTextField = createFilter(true);
         TextField valuesFilterTextField = createFilter(false);
 
         AddToQueryButtonClickListener addToQueryButtonClickListener = new AddToQueryButtonClickListener(this, properties.getLevelsSeparator());
         Button addToQueryButton = new Button("Add to query ➚", addToQueryButtonClickListener);
         addToQueryButton.setWidth(100, Unit.PERCENTAGE);
 
-        VerticalLayout treeLayout = new VerticalLayout(treePanel, attributesFilterTextField, valuesFilterTextField, addToQueryButton);
+        VerticalLayout treeLayout = new VerticalLayout(treePanel, valuesFilterTextField, addToQueryButton);
         treeLayout.setSizeFull();
         treeLayout.setExpandRatio(treePanel, 1f);
         return treeLayout;

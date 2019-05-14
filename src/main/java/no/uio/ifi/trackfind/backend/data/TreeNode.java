@@ -1,6 +1,7 @@
 package no.uio.ifi.trackfind.backend.data;
 
 import lombok.*;
+import no.uio.ifi.trackfind.frontend.filters.TreeFilter;
 
 import java.util.Collection;
 
@@ -13,12 +14,12 @@ import java.util.Collection;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class TreeNode implements Comparable<TreeNode> {
 
+    private TreeFilter treeFilter;
     private String category;
     private String value;
     private boolean attribute;
     private boolean array;
     private String type;
-    private boolean hasValues;
     private int level;
     private String separator;
     private TreeNode parent;
