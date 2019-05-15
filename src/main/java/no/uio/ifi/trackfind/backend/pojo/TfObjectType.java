@@ -32,7 +32,4 @@ public class TfObjectType implements Serializable {
     @OneToMany(mappedBy = "fromObjectType")
     private Collection<TfReference> references;
 
-    @ManyToMany(mappedBy = "objectTypes")
-    private Collection<TfScript> scripts;
-
 }

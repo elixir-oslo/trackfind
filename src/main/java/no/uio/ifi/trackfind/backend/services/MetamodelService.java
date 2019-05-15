@@ -6,7 +6,6 @@ import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
 import no.uio.ifi.trackfind.backend.pojo.*;
 import no.uio.ifi.trackfind.backend.repositories.HubRepository;
 import no.uio.ifi.trackfind.backend.repositories.ReferenceRepository;
-import no.uio.ifi.trackfind.backend.repositories.ScriptRepository;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
@@ -28,7 +27,6 @@ public class MetamodelService {
     private TrackFindProperties properties;
     private JdbcTemplate jdbcTemplate;
     private HubRepository hubRepository;
-    private ScriptRepository scriptRepository;
     private ReferenceRepository referenceRepository;
 
     @Cacheable("metamodel-flat")
@@ -179,11 +177,6 @@ public class MetamodelService {
     @Autowired
     public void setHubRepository(HubRepository hubRepository) {
         this.hubRepository = hubRepository;
-    }
-
-    @Autowired
-    public void setScriptRepository(ScriptRepository scriptRepository) {
-        this.scriptRepository = scriptRepository;
     }
 
     @Autowired

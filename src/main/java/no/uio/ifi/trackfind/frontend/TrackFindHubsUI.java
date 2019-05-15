@@ -10,7 +10,9 @@ import com.vaadin.server.VaadinRequest;
 import com.vaadin.spring.annotation.SpringUI;
 import com.vaadin.ui.*;
 import lombok.extern.slf4j.Slf4j;
+import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
 import no.uio.ifi.trackfind.backend.pojo.TfHub;
+import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -35,6 +37,7 @@ public class TrackFindHubsUI extends AbstractUI {
     private ListSelect<TfHub> listSelect;
     private Button add;
     private Button remove;
+    private Button crawl;
 
     @Override
     protected void init(VaadinRequest vaadinRequest) {
@@ -82,9 +85,15 @@ public class TrackFindHubsUI extends AbstractUI {
         }));
         remove = new Button("Deactivate ←");
         remove.setEnabled(false);
+        remove.setWidth(100, Unit.PERCENTAGE);
         remove.addClickListener((Button.ClickListener) event -> {
             Set<TfHub> activeHubs = listSelect.getSelectedItems();
-            trackFindService.deactivateHubs(activeHubs);
+            try {
+                trackFindService.deactivateHubs(activeHubs);
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+                Notification.show("Error: " + e.getMessage(), Notification.Type.ERROR_MESSAGE);
+            }
             listSelect.setItems(trackFindService.getTrackHubs(true));
             listSelect.getDataProvider().refreshAll();
             Set<TfHub> availableHubs = comboBox.getDataProvider().fetch(new Query<>()).collect(Collectors.toSet());
@@ -92,8 +101,29 @@ public class TrackFindHubsUI extends AbstractUI {
             comboBox.setItems(availableHubs);
             comboBox.getDataProvider().refreshAll();
         });
-        remove.setWidth(100, Unit.PERCENTAGE);
-        verticalLayout.addComponents(add, remove);
+        crawl = new Button("Crawl");
+        crawl.setEnabled(false);
+        crawl.setWidth(100, Unit.PERCENTAGE);
+        crawl.addClickListener((Button.ClickListener) event -> ConfirmDialog.show(getUI(),
+                "Are you sure? " +
+                        "Crawling is time-consuming process and will lead to changing the data in the database.",
+                (ConfirmDialog.Listener) dialog -> {
+                    if (dialog.isConfirmed()) {
+                        try {
+                            Set<TfHub> activeHubs = listSelect.getSelectedItems();
+                            for (TfHub hub : activeHubs) {
+                                DataProvider dataProvider = trackFindService.getDataProvider(hub.getRepository());
+                                dataProvider.crawlRemoteRepository(hub.getName());
+                            }
+                            Notification.show("Success!");
+                        } catch (Exception e) {
+                            log.error(e.getMessage(), e);
+                            Notification.show("Error: " + e.getMessage(), Notification.Type.ERROR_MESSAGE);
+                        }
+                    }
+                }));
+        crawl.setWidth(100, Unit.PERCENTAGE);
+        verticalLayout.addComponents(add, remove, crawl);
         return verticalLayout;
     }
 
@@ -105,6 +135,7 @@ public class TrackFindHubsUI extends AbstractUI {
         listSelect.setItems(trackFindService.getTrackHubs(true));
         listSelect.setItemCaptionGenerator(h -> h.getRepository() + ": " + h.getName());
         listSelect.addSelectionListener((MultiSelectionListener<TfHub>) event -> remove.setEnabled(!listSelect.getSelectedItems().isEmpty()));
+        listSelect.addSelectionListener((MultiSelectionListener<TfHub>) event -> crawl.setEnabled(!listSelect.getSelectedItems().isEmpty()));
         Panel panel = new Panel("Hub selection", listSelect);
         hubsLayout.addComponentsAndExpand(panel);
         return hubsLayout;

@@ -124,19 +124,6 @@ public class TrackFindMappingsUI extends AbstractUI {
         Button saveButton = new Button("Save");
         saveButton.setSizeFull();
         saveButton.addClickListener((Button.ClickListener) event -> saveConfiguration());
-        Button crawlButton = new Button("Crawl");
-        crawlButton.setSizeFull();
-        crawlButton.addClickListener((Button.ClickListener) event -> ConfirmDialog.show(getUI(),
-                "Are you sure? " +
-                        "Crawling is time-consuming process and will lead to changing the data in the database.",
-                (ConfirmDialog.Listener) dialog -> {
-                    if (dialog.isConfirmed()) {
-                        TfHub currentHub = getCurrentHub();
-                        DataProvider dataProvider = trackFindService.getDataProvider(currentHub.getRepository());
-                        dataProvider.crawlRemoteRepository(currentHub.getName());
-                        getCurrentTree().getDataProvider().refreshAll();
-                    }
-                }));
         Button applyMappingsButton = new Button("Apply mappings");
         applyMappingsButton.setSizeFull();
         applyMappingsButton.addClickListener((Button.ClickListener) event -> ConfirmDialog.show(getUI(),
@@ -150,7 +137,7 @@ public class TrackFindMappingsUI extends AbstractUI {
                     }
                 }));
 
-        HorizontalLayout buttonsLayout = new HorizontalLayout(saveButton, crawlButton, applyMappingsButton);
+        HorizontalLayout buttonsLayout = new HorizontalLayout(saveButton, applyMappingsButton);
         buttonsLayout.setWidth(100, Unit.PERCENTAGE);
         buttonsLayout.setEnabled(!properties.isDemoMode());
         VerticalLayout attributesMappingOuterLayout = new VerticalLayout(attributesMappingPanel, buttonsLayout);
