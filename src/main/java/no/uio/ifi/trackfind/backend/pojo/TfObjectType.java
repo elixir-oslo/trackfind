@@ -29,7 +29,7 @@ public class TfObjectType implements Serializable {
     @JoinColumn(name = "version_id", referencedColumnName = "id")
     private TfVersion version;
 
-    @OneToMany(mappedBy = "fromObjectType")
+    @OneToMany(mappedBy = "fromObjectType", fetch = FetchType.EAGER)
     private Collection<TfReference> references;
 
 }

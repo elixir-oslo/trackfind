@@ -17,7 +17,6 @@ import no.uio.ifi.trackfind.backend.pojo.TfHub;
 import no.uio.ifi.trackfind.backend.pojo.TfObjectType;
 import no.uio.ifi.trackfind.backend.pojo.TfReference;
 import no.uio.ifi.trackfind.backend.services.MetamodelService;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.stream.Stream;
