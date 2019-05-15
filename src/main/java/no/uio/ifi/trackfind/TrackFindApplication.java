@@ -19,7 +19,6 @@ import static org.springframework.context.annotation.EnableLoadTimeWeaving.Aspec
  */
 @Slf4j
 @SpringBootApplication
-@EnableAspectJAutoProxy
 @EnableLoadTimeWeaving(aspectjWeaving = ENABLED)
 @EnableCaching(mode = AdviceMode.ASPECTJ)
 @EnableTransactionManagement(mode = AdviceMode.ASPECTJ)
