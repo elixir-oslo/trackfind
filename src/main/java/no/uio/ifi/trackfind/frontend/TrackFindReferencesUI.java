@@ -13,6 +13,7 @@ import com.vaadin.ui.renderers.ButtonRenderer;
 import com.vaadin.ui.renderers.ClickableRenderer;
 import elemental.json.JsonValue;
 import lombok.extern.slf4j.Slf4j;
+import no.uio.ifi.trackfind.backend.annotations.DoInTransaction;
 import no.uio.ifi.trackfind.backend.pojo.TfHub;
 import no.uio.ifi.trackfind.backend.pojo.TfObjectType;
 import no.uio.ifi.trackfind.backend.pojo.TfReference;
@@ -37,6 +38,7 @@ public class TrackFindReferencesUI extends AbstractUI {
 
     private MetamodelService metamodelService;
 
+    @DoInTransaction
     @Override
     protected void init(VaadinRequest vaadinRequest) {
         HorizontalLayout headerLayout = buildHeaderLayout();

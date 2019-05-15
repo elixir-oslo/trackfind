@@ -6,8 +6,8 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.AdviceMode;
-import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.EnableLoadTimeWeaving;
+import org.springframework.context.annotation.aspectj.EnableSpringConfigured;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import static org.springframework.context.annotation.EnableLoadTimeWeaving.AspectJWeaving.ENABLED;
@@ -19,6 +19,7 @@ import static org.springframework.context.annotation.EnableLoadTimeWeaving.Aspec
  */
 @Slf4j
 @SpringBootApplication
+@EnableSpringConfigured
 @EnableLoadTimeWeaving(aspectjWeaving = ENABLED)
 @EnableCaching(mode = AdviceMode.ASPECTJ)
 @EnableTransactionManagement(mode = AdviceMode.ASPECTJ)
