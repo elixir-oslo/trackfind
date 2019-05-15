@@ -4,7 +4,7 @@ import no.uio.ifi.trackfind.backend.operations.Operation;
 import org.springframework.context.ApplicationEvent;
 
 /**
- * Event being sent upon data update (Crawling/Curation/TfMapping).
+ * Event being sent upon data update (Crawling/Curation/TfScript).
  */
 public class DataReloadEvent extends ApplicationEvent {
 

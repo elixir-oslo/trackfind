@@ -3,7 +3,7 @@ package no.uio.ifi.trackfind.backend.data.providers;
 import com.google.gson.Gson;
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
 import no.uio.ifi.trackfind.backend.data.providers.ihec.IHECDataProvider;
-import no.uio.ifi.trackfind.backend.repositories.MappingRepository;
+import no.uio.ifi.trackfind.backend.repositories.ScriptRepository;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -31,7 +31,7 @@ public class DataProviderTests {
     private JdbcTemplate jdbcTemplate;
 
     @Mock
-    private MappingRepository mappingRepository;
+    private ScriptRepository scriptRepository;
 
 
     @Test
@@ -85,7 +85,7 @@ public class DataProviderTests {
 //
 //        when(trackFindProperties.getLevelsSeparator()).thenReturn("->");
 //
-//        TfMapping mapping = new TfMapping();
+//        TfScript mapping = new TfScript();
 //        mapping.setFrom("analysis_attributes->alignment_software");
 //        mapping.setTo("software");
 //        mapping.setStaticMapping(true);

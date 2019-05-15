@@ -8,8 +8,8 @@ import no.uio.ifi.trackfind.backend.operations.Operation;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.Date;
+import java.util.Set;
 
 @Entity
 @Table(name = "tf_versions")
@@ -42,6 +42,9 @@ public class TfVersion implements Serializable {
     private TfHub hub;
 
     @OneToMany(mappedBy = "version", fetch = FetchType.EAGER)
-    private Collection<TfObjectType> objectTypes;
+    private Set<TfObjectType> objectTypes;
+
+    @OneToMany(mappedBy = "version", fetch = FetchType.EAGER)
+    private Set<TfScript> scripts;
 
 }

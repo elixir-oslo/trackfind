@@ -26,22 +26,20 @@ CREATE TABLE IF NOT EXISTS tf_hubs
 CREATE TABLE IF NOT EXISTS tf_versions
 (
     id        BIGSERIAL PRIMARY KEY,
-    hub_id    BIGINT,
+    hub_id    BIGINT REFERENCES tf_hubs (id),
     version   BIGINT  NOT NULL,
     operation VARCHAR NOT NULL,
     username  VARCHAR NOT NULL,
     time      TIMESTAMP,
-    UNIQUE (hub_id, version),
-    FOREIGN KEY (hub_id) REFERENCES tf_hubs (id)
+    UNIQUE (hub_id, version)
 );
 
 CREATE TABLE IF NOT EXISTS tf_object_types
 (
     id         BIGSERIAL PRIMARY KEY,
     name       VARCHAR NOT NULL,
-    version_id BIGINT  NOT NULL,
-    UNIQUE (name, version_id),
-    FOREIGN KEY (version_id) REFERENCES tf_versions (id)
+    version_id BIGINT  NOT NULL REFERENCES tf_versions (id),
+    UNIQUE (name, version_id)
 );
 
 CREATE OR REPLACE FUNCTION check_reference(from_object_type_id BIGINT, to_object_type_id BIGINT)
@@ -61,9 +59,8 @@ CREATE SEQUENCE IF NOT EXISTS tf_objects_ids_sequence
 CREATE TABLE IF NOT EXISTS tf_objects
 (
     id             BIGSERIAL PRIMARY KEY,
-    object_type_id BIGINT NOT NULL,
-    content        JSONB  NOT NULL,
-    FOREIGN KEY (object_type_id) REFERENCES tf_object_types (id)
+    object_type_id BIGINT NOT NULL REFERENCES tf_object_types (id),
+    content        JSONB  NOT NULL
 );
 
 CREATE INDEX IF NOT EXISTS tf_objects_id_index
@@ -79,25 +76,27 @@ CREATE INDEX IF NOT EXISTS tf_objects_content_index
 CREATE TABLE IF NOT EXISTS tf_references
 (
     id                  BIGSERIAL PRIMARY KEY,
-    from_object_type_id BIGINT  NOT NULL,
+    from_object_type_id BIGINT  NOT NULL REFERENCES tf_object_types (id),
     from_attribute      VARCHAR NOT NULL,
-    to_object_type_id   BIGINT  NOT NULL,
+    to_object_type_id   BIGINT  NOT NULL REFERENCES tf_object_types (id),
     to_attribute        VARCHAR NOT NULL,
     UNIQUE (from_object_type_id, from_attribute, to_object_type_id, to_attribute),
-    FOREIGN KEY (from_object_type_id) REFERENCES tf_object_types (id),
-    FOREIGN KEY (to_object_type_id) REFERENCES tf_object_types (id),
     CHECK ( check_reference(from_object_type_id, to_object_type_id) )
 );
 
-CREATE TABLE IF NOT EXISTS tf_mappings
+CREATE TABLE IF NOT EXISTS tf_scripts
 (
     id         BIGSERIAL PRIMARY KEY,
-    map_from   VARCHAR NOT NULL,
-    map_to     VARCHAR NOT NULL,
-    static     BOOLEAN NOT NULL,
-    version_id BIGINT  NOT NULL,
-    UNIQUE (map_from, map_to, static, version_id),
-    FOREIGN KEY (version_id) REFERENCES tf_versions (id)
+    index      BIGINT NOT NULL,
+    script     TEXT   NOT NULL,
+    version_id BIGINT NOT NULL REFERENCES tf_versions (id)
+);
+
+CREATE TABLE IF NOT EXISTS tf_scripts_joining
+(
+    script_id      BIGINT NOT NULL REFERENCES tf_scripts (id),
+    object_type_id BIGINT NOT NULL REFERENCES tf_object_types (id),
+    PRIMARY KEY (script_id, object_type_id)
 );
 
 CREATE OR REPLACE VIEW tf_latest_versions AS

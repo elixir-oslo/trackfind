@@ -5,8 +5,8 @@ import com.google.common.collect.Multimap;
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
 import no.uio.ifi.trackfind.backend.pojo.*;
 import no.uio.ifi.trackfind.backend.repositories.HubRepository;
-import no.uio.ifi.trackfind.backend.repositories.MappingRepository;
 import no.uio.ifi.trackfind.backend.repositories.ReferenceRepository;
+import no.uio.ifi.trackfind.backend.repositories.ScriptRepository;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
@@ -28,7 +28,7 @@ public class MetamodelService {
     private TrackFindProperties properties;
     private JdbcTemplate jdbcTemplate;
     private HubRepository hubRepository;
-    private MappingRepository mappingRepository;
+    private ScriptRepository scriptRepository;
     private ReferenceRepository referenceRepository;
 
     @Cacheable("metamodel-flat")
@@ -142,9 +142,9 @@ public class MetamodelService {
         return metamodel.get(path).parallelStream().collect(Collectors.toSet());
     }
 
-    public Collection<TfMapping> getMappings(String repository, String hub) {
+    public Collection<TfScript> getScripts(String repository, String hub) {
         TfHub currentHub = hubRepository.findByRepositoryAndName(repository, hub);
-        return mappingRepository.findByVersionId(currentHub.getCurrentVersion().orElseThrow(RuntimeException::new).getId());
+        return currentHub.getCurrentVersion().orElseThrow(RuntimeException::new).getScripts();
     }
 
     public Collection<TfReference> getReferences(String repository, String hub) {
@@ -182,8 +182,8 @@ public class MetamodelService {
     }
 
     @Autowired
-    public void setMappingRepository(MappingRepository mappingRepository) {
-        this.mappingRepository = mappingRepository;
+    public void setScriptRepository(ScriptRepository scriptRepository) {
+        this.scriptRepository = scriptRepository;
     }
 
     @Autowired

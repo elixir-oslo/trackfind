@@ -3,7 +3,6 @@ package no.uio.ifi.trackfind.frontend;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Title;
 import com.vaadin.annotations.Widgetset;
-import com.vaadin.event.selection.SelectionListener;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.spring.annotation.SpringUI;
 import com.vaadin.ui.*;
@@ -11,21 +10,20 @@ import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.data.TreeNode;
 import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
 import no.uio.ifi.trackfind.backend.pojo.TfHub;
-import no.uio.ifi.trackfind.backend.pojo.TfMapping;
+import no.uio.ifi.trackfind.backend.pojo.TfScript;
 import no.uio.ifi.trackfind.backend.repositories.HubRepository;
-import no.uio.ifi.trackfind.backend.repositories.MappingRepository;
+import no.uio.ifi.trackfind.backend.repositories.ScriptRepository;
 import no.uio.ifi.trackfind.backend.services.MetamodelService;
 import no.uio.ifi.trackfind.frontend.components.TrackFindTree;
 import no.uio.ifi.trackfind.frontend.filters.TreeFilter;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.CollectionUtils;
 import org.vaadin.aceeditor.AceEditor;
 import org.vaadin.aceeditor.AceMode;
 import org.vaadin.aceeditor.AceTheme;
 import org.vaadin.dialogs.ConfirmDialog;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Collection;
 
 /**
  * Mappings Vaadin UI of the application.
@@ -42,13 +40,9 @@ import java.util.stream.Collectors;
 public class TrackFindMappingsUI extends AbstractUI {
 
     private MetamodelService metamodelService;
-    private MappingRepository mappingRepository;
+    private ScriptRepository scriptRepository;
     private HubRepository hubRepository;
 
-    private Button addStaticMappingButton;
-    private VerticalLayout attributesMappingLayout;
-
-    private Map<ComboBox<String>, TextField> attributesStaticMapping = new HashMap<>();
     private AceEditor script;
 
     @Override
@@ -80,16 +74,7 @@ public class TrackFindMappingsUI extends AbstractUI {
         TextField attributesFilterTextField = createFilter(true);
         TextField valuesFilterTextField = createFilter(false);
 
-        addStaticMappingButton = new Button("Add static mapping");
-        addStaticMappingButton.setWidth(100, Unit.PERCENTAGE);
-        addStaticMappingButton.setEnabled(!CollectionUtils.isEmpty(getCurrentTree().getSelectedItems()));
-        addStaticMappingButton.addClickListener((Button.ClickListener) event -> {
-            Set<TreeNode> selectedItems = getCurrentTree().getSelectedItems();
-            String sourceAttribute = CollectionUtils.isEmpty(selectedItems) ? "" : selectedItems.iterator().next().getPath();
-            addStaticMappingPair("", sourceAttribute);
-        });
-
-        VerticalLayout treeLayout = new VerticalLayout(treePanel, attributesFilterTextField, valuesFilterTextField, addStaticMappingButton);
+        VerticalLayout treeLayout = new VerticalLayout(treePanel, attributesFilterTextField, valuesFilterTextField);
         treeLayout.setSizeFull();
         treeLayout.setExpandRatio(treePanel, 1f);
         return treeLayout;
@@ -100,7 +85,6 @@ public class TrackFindMappingsUI extends AbstractUI {
         TrackFindTree<TreeNode> tree = new TrackFindTree<>(hub);
         tree.setDataProvider(trackFindDataProvider);
         tree.setSelectionMode(Grid.SelectionMode.SINGLE);
-        tree.addSelectionListener((SelectionListener<TreeNode>) event -> addStaticMappingButton.setEnabled(!CollectionUtils.isEmpty(event.getAllSelectedItems()) && event.getFirstSelectedItem().get().isAttribute()));
         tree.setSizeFull();
         tree.setStyleGenerator((StyleGenerator<TreeNode>) item -> item.isAttribute() ? null : "value-tree-node");
 
@@ -120,9 +104,6 @@ public class TrackFindMappingsUI extends AbstractUI {
 
     @SuppressWarnings("PMD.NPathComplexity")
     private VerticalLayout buildAttributesMappingLayout() {
-        attributesMappingLayout = new VerticalLayout();
-        attributesMappingLayout.setWidth(100, Unit.PERCENTAGE);
-
         script = new AceEditor();
         script.setSizeFull();
         script.setTheme(AceTheme.github);
@@ -130,8 +111,7 @@ public class TrackFindMappingsUI extends AbstractUI {
 
         TabSheet mappingsTabSheet = new TabSheet();
         mappingsTabSheet.setSizeFull();
-        mappingsTabSheet.addTab(attributesMappingLayout, "Static");
-        mappingsTabSheet.addTab(script, "Dynamic");
+        mappingsTabSheet.addTab(script, "Script 1");
 
         mappingsTabSheet.addSelectedTabChangeListener((TabSheet.SelectedTabChangeListener) event -> {
             if (event.getTabSheet().getSelectedTab().equals(script)) {
@@ -139,7 +119,7 @@ public class TrackFindMappingsUI extends AbstractUI {
             }
         });
 
-        Panel attributesMappingPanel = new Panel("Mappings", mappingsTabSheet);
+        Panel attributesMappingPanel = new Panel("Scripts", mappingsTabSheet);
         attributesMappingPanel.setSizeFull();
         Button saveButton = new Button("Save");
         saveButton.setSizeFull();
@@ -161,7 +141,7 @@ public class TrackFindMappingsUI extends AbstractUI {
         applyMappingsButton.setSizeFull();
         applyMappingsButton.addClickListener((Button.ClickListener) event -> ConfirmDialog.show(getUI(),
                 "Are you sure? " +
-                        "Applying attribute mappings is time-consuming process and will lead to changing the data in the database.",
+                        "Applying attribute scripts is time-consuming process and will lead to changing the data in the database.",
                 (ConfirmDialog.Listener) dialog -> {
                     if (dialog.isConfirmed()) {
                         TfHub currentHub = getCurrentHub();
@@ -179,83 +159,28 @@ public class TrackFindMappingsUI extends AbstractUI {
         return attributesMappingOuterLayout;
     }
 
-    private HorizontalLayout buildAttributeToAttributeLayout(String standardAttribute, String sourceAttribute) {
-        HorizontalLayout attributeToAttributeLayout = new HorizontalLayout();
-        attributeToAttributeLayout.setWidth(100, Unit.PERCENTAGE);
-
-        TextField sourceAttributeTextField = new TextField("Source attribute name", sourceAttribute);
-        sourceAttributeTextField.setWidth(100, Unit.PERCENTAGE);
-        sourceAttributeTextField.setReadOnly(true);
-
-        ComboBox<String> targetAttributeComboBox = buildStandardAttributesComboBox(standardAttribute);
-        targetAttributeComboBox.setWidth(100, Unit.PERCENTAGE);
-        attributesStaticMapping.put(targetAttributeComboBox, sourceAttributeTextField);
-
-        Button deleteMappingButton = new Button("Delete");
-        deleteMappingButton.setWidth(100, Unit.PERCENTAGE);
-        deleteMappingButton.addClickListener((Button.ClickListener) event -> {
-            ((AbstractLayout) attributeToAttributeLayout.getParent()).removeComponent(attributeToAttributeLayout);
-            attributesStaticMapping.remove(targetAttributeComboBox);
-        });
-
-        attributeToAttributeLayout.addComponent(targetAttributeComboBox);
-        attributeToAttributeLayout.setExpandRatio(targetAttributeComboBox, 0.4f);
-        attributeToAttributeLayout.setComponentAlignment(targetAttributeComboBox, Alignment.BOTTOM_LEFT);
-        attributeToAttributeLayout.addComponent(sourceAttributeTextField);
-        attributeToAttributeLayout.setExpandRatio(sourceAttributeTextField, 0.4f);
-        attributeToAttributeLayout.setComponentAlignment(sourceAttributeTextField, Alignment.BOTTOM_LEFT);
-        attributeToAttributeLayout.addComponent(deleteMappingButton);
-        attributeToAttributeLayout.setExpandRatio(deleteMappingButton, 0.2f);
-        attributeToAttributeLayout.setComponentAlignment(deleteMappingButton, Alignment.BOTTOM_LEFT);
-        return attributeToAttributeLayout;
-    }
-
-    private ComboBox<String> buildStandardAttributesComboBox(String targetAttribute) {
-        ComboBox<String> targetAttributeName = new ComboBox<>("Target attribute name", schemaService.getAttributes());
-        targetAttributeName.setSelectedItem(targetAttribute);
-        return targetAttributeName;
-    }
-
     private void loadConfiguration() {
         TfHub currentHub = getCurrentHub();
-        Collection<TfMapping> mappings = metamodelService.getMappings(currentHub.getRepository(), currentHub.getName());
-        Collection<TfMapping> staticMappings = mappings.stream().filter(TfMapping::isStaticMapping).collect(Collectors.toSet());
-        attributesStaticMapping.clear();
-        attributesMappingLayout.removeAllComponents();
-        for (TfMapping mapping : staticMappings) {
-            addStaticMappingPair(mapping.getTo(), mapping.getFrom());
+        Collection<TfScript> scripts = metamodelService.getScripts(currentHub.getRepository(), currentHub.getName());
+        if (CollectionUtils.isNotEmpty(scripts)) {
+            script.setValue(scripts.iterator().next().getScript());
         }
-        script.clear();
-        mappings.stream().filter(m -> !m.isStaticMapping()).findAny().ifPresent(m -> script.setValue(m.getFrom()));
-    }
-
-    private void addStaticMappingPair(String standardAttribute, String sourceAttribute) {
-        attributesMappingLayout.addComponent(buildAttributeToAttributeLayout(standardAttribute, sourceAttribute));
     }
 
     private void saveConfiguration() {
         TfHub currentHub = getCurrentHub();
-        Collection<TfMapping> existingMappings = metamodelService.getMappings(currentHub.getRepository(), currentHub.getName());
-        Collection<TfMapping> mappings = new HashSet<>();
-        mappingRepository.deleteInBatch(existingMappings);
-        for (Map.Entry<ComboBox<String>, TextField> mappingPair : attributesStaticMapping.entrySet()) {
-            TfMapping mapping = new TfMapping();
-            mapping.setVersion(currentHub.getCurrentVersion().orElseThrow(RuntimeException::new));
-            mapping.setStaticMapping(true);
-            mapping.setFrom(mappingPair.getValue().getValue());
-            mapping.setTo(mappingPair.getKey().getValue());
-            mappings.add(mapping);
-        }
+        Collection<TfScript> scripts = metamodelService.getScripts(currentHub.getRepository(), currentHub.getName());
+        scriptRepository.deleteInBatch(scripts);
         script.getOptionalValue().ifPresent(s -> {
-            TfMapping mapping = new TfMapping();
-            mapping.setVersion(currentHub.getCurrentVersion().orElseThrow(RuntimeException::new));
-            mapping.setStaticMapping(false);
-            mapping.setFrom(s);
-            mappings.add(mapping);
+            TfScript script = new TfScript();
+            script.setIndex(0L);
+            script.setObjectTypes(metamodelService.getObjectTypes(currentHub.getRepository(), currentHub.getName()));
+            script.setScript(s);
+            script.setVersion(currentHub.getCurrentVersion().orElseThrow(RuntimeException::new));
+            scriptRepository.save(script);
         });
-        mappingRepository.saveAll(mappings);
         hubRepository.save(currentHub);
-        Notification.show("Mappings saved. Press \"Apply\" for changes to take effect.");
+        Notification.show("Scripts saved. Press \"Apply\" for changes to take effect.");
     }
 
     @Autowired
@@ -264,8 +189,8 @@ public class TrackFindMappingsUI extends AbstractUI {
     }
 
     @Autowired
-    public void setMappingRepository(MappingRepository mappingRepository) {
-        this.mappingRepository = mappingRepository;
+    public void setScriptRepository(ScriptRepository scriptRepository) {
+        this.scriptRepository = scriptRepository;
     }
 
     @Autowired

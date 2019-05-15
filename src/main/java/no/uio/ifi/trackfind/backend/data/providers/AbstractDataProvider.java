@@ -43,7 +43,7 @@ public abstract class AbstractDataProvider implements DataProvider {
     protected ObjectTypeRepository objectTypeRepository;
     protected VersionRepository versionRepository;
     protected ObjectRepository objectRepository;
-    protected MappingRepository mappingRepository;
+    protected ScriptRepository scriptRepository;
     protected ExecutorService executorService;
     protected Gson gson;
     protected Collection<ScriptingEngine> scriptingEngines;
@@ -179,9 +179,9 @@ public abstract class AbstractDataProvider implements DataProvider {
     @Override
     public synchronized void applyMappings(String hubName) {
 //        log.info("Applying mappings for {}: {}", getName(), hubName);
-//        Collection<TfMapping> mappings = mappingRepository.findByHub(getName(), hubName);
-//        Collection<TfMapping> staticMappings = mappings.stream().filter(TfMapping::isStaticMapping).collect(Collectors.toSet());
-//        Optional<TfMapping> dynamicMappingOptional = mappings.stream().filter(m -> !m.isStaticMapping()).findAny();
+//        Collection<TfScript> mappings = mappingRepository.findByHub(getName(), hubName);
+//        Collection<TfScript> staticMappings = mappings.stream().filter(TfScript::isStaticMapping).collect(Collectors.toSet());
+//        Optional<TfScript> dynamicMappingOptional = mappings.stream().filter(m -> !m.isStaticMapping()).findAny();
 //        Collection<Source> sources = sourceRepository.findByRepositoryAndHubLatest(getName(), hubName);
 //        Collection<Standard> standards = new HashSet<>();
 //        ScriptingEngine scriptingEngine = scriptingEngines.stream().filter(se -> properties.getScriptingLanguage().equals(se.getLanguage())).findAny().orElseThrow(RuntimeException::new);
@@ -190,10 +190,10 @@ public abstract class AbstractDataProvider implements DataProvider {
 //                Map<String, Object> rawMap = gson.fromJson(source.getContent(), Map.class);
 //                Map<String, Object> standardMap = new HashMap<>();
 //                if (dynamicMappingOptional.isPresent()) {
-//                    TfMapping mapping = dynamicMappingOptional.get();
+//                    TfScript mapping = dynamicMappingOptional.get();
 //                    standardMap = gson.fromJson(scriptingEngine.execute(mapping.getFrom(), source.getContent()), Map.class);
 //                }
-//                for (TfMapping mapping : staticMappings) {
+//                for (TfScript mapping : staticMappings) {
 //                    Collection<String> values;
 //                    Dynamic dynamicValues = Dynamic.from(rawMap).get(mapping.getFrom(), properties.getLevelsSeparator());
 //                    if (dynamicValues.isPresent()) {
@@ -293,8 +293,8 @@ public abstract class AbstractDataProvider implements DataProvider {
     }
 
     @Autowired
-    public void setMappingRepository(MappingRepository mappingRepository) {
-        this.mappingRepository = mappingRepository;
+    public void setScriptRepository(ScriptRepository scriptRepository) {
+        this.scriptRepository = scriptRepository;
     }
 
     @Autowired
