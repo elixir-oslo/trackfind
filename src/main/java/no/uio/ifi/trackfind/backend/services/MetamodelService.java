@@ -142,8 +142,7 @@ public class MetamodelService {
 
     public Collection<TfScript> getScripts(String repository, String hub) {
         TfHub currentHub = hubRepository.findByRepositoryAndName(repository, hub);
-        Set<TfObjectType> objectTypes = currentHub.getCurrentVersion().orElseThrow(RuntimeException::new).getObjectTypes();
-        return objectTypes.stream().flatMap(ot -> ot.getScripts().stream()).collect(Collectors.toSet());
+        return currentHub.getCurrentVersion().orElseThrow(RuntimeException::new).getScripts();
     }
 
     public Collection<TfReference> getReferences(String repository, String hub) {

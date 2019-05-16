@@ -4,7 +4,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import java.util.Collection;
 
 @Entity
 @Table(name = "tf_scripts")
@@ -17,16 +16,12 @@ public class TfScript {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "version_id", referencedColumnName = "id")
+    private TfVersion version;
+
     @Column(name = "index", nullable = false)
     private Long index;
-
-    @ManyToMany
-    @JoinTable(
-            name = "tf_scripts_joining",
-            joinColumns = {@JoinColumn(name = "script_id")},
-            inverseJoinColumns = {@JoinColumn(name = "object_type_id")}
-    )
-    private Collection<TfObjectType> objectTypes;
 
     @Column(name = "script", nullable = false)
     private String script;

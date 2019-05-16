@@ -87,15 +87,9 @@ CREATE TABLE IF NOT EXISTS tf_references
 CREATE TABLE IF NOT EXISTS tf_scripts
 (
     id         BIGSERIAL PRIMARY KEY,
+    version_id BIGINT NOT NULL REFERENCES tf_versions (id),
     index      BIGINT NOT NULL,
     script     TEXT   NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS tf_scripts_joining
-(
-    script_id      BIGINT NOT NULL REFERENCES tf_scripts (id),
-    object_type_id BIGINT NOT NULL REFERENCES tf_object_types (id),
-    PRIMARY KEY (script_id, object_type_id)
 );
 
 CREATE OR REPLACE VIEW tf_latest_versions AS

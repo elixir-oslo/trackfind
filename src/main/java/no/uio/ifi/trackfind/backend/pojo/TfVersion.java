@@ -44,4 +44,7 @@ public class TfVersion implements Serializable {
     @OneToMany(mappedBy = "version", fetch = FetchType.EAGER)
     private Set<TfObjectType> objectTypes;
 
+    @OneToMany(mappedBy = "version", fetch = FetchType.EAGER)
+    private Set<TfScript> scripts;
+
 }

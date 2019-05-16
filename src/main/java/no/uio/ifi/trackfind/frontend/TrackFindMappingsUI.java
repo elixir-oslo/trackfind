@@ -161,7 +161,7 @@ public class TrackFindMappingsUI extends AbstractUI {
         script.getOptionalValue().ifPresent(s -> {
             TfScript script = new TfScript();
             script.setIndex(0L);
-            script.setObjectTypes(metamodelService.getObjectTypes(currentHub.getRepository(), currentHub.getName()));
+            script.setVersion(currentHub.getCurrentVersion().orElseThrow(RuntimeException::new));
             script.setScript(s);
             scriptRepository.save(script);
         });

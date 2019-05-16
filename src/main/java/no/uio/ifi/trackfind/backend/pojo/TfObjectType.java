@@ -13,7 +13,7 @@ import java.util.Collection;
 @Table(name = "tf_object_types")
 @Data
 @EqualsAndHashCode(of = {"id"})
-@ToString(exclude = {"references", "scripts"})
+@ToString(exclude = "references")
 @NoArgsConstructor
 public class TfObjectType implements Serializable {
 
@@ -31,8 +31,5 @@ public class TfObjectType implements Serializable {
 
     @OneToMany(mappedBy = "fromObjectType", fetch = FetchType.EAGER)
     private Collection<TfReference> references;
-
-    @ManyToMany(mappedBy = "objectTypes")
-    private Collection<TfScript> scripts;
 
 }
