@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import javax.net.ssl.*;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
@@ -66,7 +67,7 @@ public class IHECDataProvider extends AbstractDataProvider {
      */
     @SuppressWarnings("unchecked")
     @Override
-    protected void fetchData(String hubName) throws Exception {
+    protected void fetchData(String hubName) throws InterruptedException, NoSuchAlgorithmException, KeyManagementException {
         disableSSL();
         log.info("Collecting releases...");
         Collection<Release> releases;
@@ -74,6 +75,9 @@ public class IHECDataProvider extends AbstractDataProvider {
              InputStreamReader reader = new InputStreamReader(inputStream)) {
             releases = gson.fromJson(reader, new TypeToken<Collection<Release>>() {
             }.getType());
+        } catch (IOException e) {
+            log.error(e.getMessage(), e);
+            return;
         }
         if (CollectionUtils.isEmpty(releases)) {
             return;

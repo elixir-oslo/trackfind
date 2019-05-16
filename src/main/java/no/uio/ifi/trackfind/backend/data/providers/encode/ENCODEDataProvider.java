@@ -11,6 +11,7 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * Data Provider for ENCODE.
@@ -32,22 +33,28 @@ public class ENCODEDataProvider extends AbstractDataProvider {
      */
     @SuppressWarnings("unchecked")
     @Override
-    protected void fetchData(String hubName) {
+    protected void fetchData(String hubName) throws InterruptedException {
+        CountDownLatch countDownLatch = new CountDownLatch(AVAILABLE_TYPES.size());
         HashMultimap<String, String> mapToSave = HashMultimap.create();
         for (String type : AVAILABLE_TYPES) {
-            log.info("Processing type: {}", type);
-            try (InputStream inputStream = new URL(String.format(FETCH_URL, type)).openStream();
-                 InputStreamReader reader = new InputStreamReader(inputStream)) {
-                Map all = gson.fromJson(reader, Map.class);
-                Collection<Map> objects = (Collection<Map>) all.get("@graph");
-                for (Map object : objects) {
-                    mapToSave.put(hubName + "_" + type, gson.toJson(object));
+            executorService.submit(() -> {
+                try (InputStream inputStream = new URL(String.format(FETCH_URL, type)).openStream();
+                     InputStreamReader reader = new InputStreamReader(inputStream)) {
+                    log.info("Processing type: {}", type);
+                    Map all = gson.fromJson(reader, Map.class);
+                    Collection<Map> objects = (Collection<Map>) all.get("@graph");
+                    for (Map object : objects) {
+                        mapToSave.put(hubName + "_" + type, gson.toJson(object));
+                    }
+                    log.info("{} processed", type);
+                } catch (Exception e) {
+                    log.error(e.getMessage(), e);
+                } finally {
+                    countDownLatch.countDown();
                 }
-            } catch (Exception e) {
-                log.error(e.getMessage(), e);
-            }
-            log.info("{} processed", type);
+            });
         }
+        countDownLatch.await();
         save(hubName, mapToSave.asMap());
     }
 
