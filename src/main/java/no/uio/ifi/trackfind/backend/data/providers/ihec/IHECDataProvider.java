@@ -79,7 +79,7 @@ public class IHECDataProvider extends AbstractDataProvider {
             return;
         }
         int size = releases.size();
-        log.info(size + " releases to process.");
+        log.info("{} releases to process.", size);
         Set<Integer> releaseIds = releases.parallelStream().sorted().map(Release::getId).collect(Collectors.toSet());
         CountDownLatch countDownLatch = new CountDownLatch(size);
         HashMultimap<String, String> mapToSave = HashMultimap.create();
@@ -104,7 +104,7 @@ public class IHECDataProvider extends AbstractDataProvider {
                     for (Map sample : samples) {
                         mapToSave.put(hubName + "_sample", gson.toJson(sample));
                     }
-                    log.info("Release " + releaseId + " fetched.");
+                    log.info("Release {} fetched.", releaseId);
                 } catch (Exception e) {
                     log.error(e.getMessage(), e);
                 } finally {
@@ -114,7 +114,7 @@ public class IHECDataProvider extends AbstractDataProvider {
         }
         countDownLatch.await();
         save(hubName, mapToSave.asMap());
-        log.info(size + " releases stored.");
+        log.info("{} releases stored.", size);
     }
 
 }
