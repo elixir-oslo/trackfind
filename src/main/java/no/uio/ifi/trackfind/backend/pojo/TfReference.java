@@ -19,14 +19,14 @@ public class TfReference implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "from_object_type_id", referencedColumnName = "id")
     private TfObjectType fromObjectType;
 
     @Column(name = "from_attribute", nullable = false)
     private String fromAttribute;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "to_object_type_id", referencedColumnName = "id")
     private TfObjectType toObjectType;
 

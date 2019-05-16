@@ -13,7 +13,6 @@ import com.vaadin.ui.renderers.ButtonRenderer;
 import com.vaadin.ui.renderers.ClickableRenderer;
 import elemental.json.JsonValue;
 import lombok.extern.slf4j.Slf4j;
-import no.uio.ifi.trackfind.backend.annotations.DoInTransaction;
 import no.uio.ifi.trackfind.backend.pojo.TfHub;
 import no.uio.ifi.trackfind.backend.pojo.TfObjectType;
 import no.uio.ifi.trackfind.backend.pojo.TfReference;
@@ -38,7 +37,6 @@ public class TrackFindReferencesUI extends AbstractUI {
 
     private MetamodelService metamodelService;
 
-    @DoInTransaction
     @Override
     protected void init(VaadinRequest vaadinRequest) {
         HorizontalLayout headerLayout = buildHeaderLayout();
@@ -64,10 +62,10 @@ public class TrackFindReferencesUI extends AbstractUI {
             grid.addColumn(TfReference::getFromAttribute).setCaption("From attribute").setId("1");
             grid.addColumn(r -> r.getToObjectType().getName()).setCaption("To category").setId("2");
             grid.addColumn(TfReference::getToAttribute).setCaption("To attribute").setId("3");
-            grid.getColumn("fromObjectType").setHidden(true);
-            grid.getColumn("fromAttribute").setHidden(true);
-            grid.getColumn("toObjectType").setHidden(true);
-            grid.getColumn("toAttribute").setHidden(true);
+            grid.removeColumn("fromObjectType");
+            grid.removeColumn("fromAttribute");
+            grid.removeColumn("toObjectType");
+            grid.removeColumn("toAttribute");
             ButtonRenderer buttonRenderer = new ButtonRenderer((ClickableRenderer.RendererClickListener<TfReference>) event -> {
                 metamodelService.deleteReference(event.getItem());
                 grid.setItems(metamodelService.getReferences(hub.getRepository(), hub.getName()));

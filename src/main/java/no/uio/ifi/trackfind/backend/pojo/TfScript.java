@@ -31,8 +31,4 @@ public class TfScript {
     @Column(name = "script", nullable = false)
     private String script;
 
-    @ManyToOne
-    @JoinColumn(name = "version_id", referencedColumnName = "id")
-    private TfVersion version;
-
 }

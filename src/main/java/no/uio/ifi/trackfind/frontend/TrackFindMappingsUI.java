@@ -163,7 +163,6 @@ public class TrackFindMappingsUI extends AbstractUI {
             script.setIndex(0L);
             script.setObjectTypes(metamodelService.getObjectTypes(currentHub.getRepository(), currentHub.getName()));
             script.setScript(s);
-            script.setVersion(currentHub.getCurrentVersion().orElseThrow(RuntimeException::new));
             scriptRepository.save(script);
         });
         hubRepository.save(currentHub);

@@ -37,14 +37,11 @@ public class TfVersion implements Serializable {
     @Column(name = "time", nullable = false)
     private Date time;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "hub_id", referencedColumnName = "id")
     private TfHub hub;
 
     @OneToMany(mappedBy = "version", fetch = FetchType.EAGER)
     private Set<TfObjectType> objectTypes;
-
-    @OneToMany(mappedBy = "version", fetch = FetchType.EAGER)
-    private Set<TfScript> scripts;
 
 }

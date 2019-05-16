@@ -88,8 +88,7 @@ CREATE TABLE IF NOT EXISTS tf_scripts
 (
     id         BIGSERIAL PRIMARY KEY,
     index      BIGINT NOT NULL,
-    script     TEXT   NOT NULL,
-    version_id BIGINT NOT NULL REFERENCES tf_versions (id)
+    script     TEXT   NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS tf_scripts_joining
