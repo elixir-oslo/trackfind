@@ -108,6 +108,7 @@ public class TrackFindController {
      * @param hub        Track Hub name.
      * @param category   Category name.
      * @param path       Path to the attribute to get values for.
+     * @param filter     Optional filter for values (case-insensitive).
      * @return List of values.
      */
     @GetMapping(path = "/values/{repository}/{hub}/{category}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -115,8 +116,9 @@ public class TrackFindController {
             @PathVariable String repository,
             @PathVariable String hub,
             @PathVariable String category,
-            @RequestParam String path) {
-        return ResponseEntity.ok(metamodelService.getValues(repository, hub, category, path));
+            @RequestParam String path,
+            @RequestParam(required = false, defaultValue = "") String filter) {
+        return ResponseEntity.ok(metamodelService.getValues(repository, hub, category, path).stream().filter(v -> v.toLowerCase().contains(filter.toLowerCase())).collect(Collectors.toSet()));
     }
 
     /**
