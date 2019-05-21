@@ -140,7 +140,7 @@ public class TrackFindMainUI extends AbstractUI {
     }
 
     private VerticalLayout buildResultsLayout() {
-        Button exportGSuiteButton = new Button("Export as GSuite file", (Button.ClickListener) event -> gSuiteResult = gSuiteService.apply(results));
+        Button exportGSuiteButton = new Button("Export as GSuite file");
         exportGSuiteButton.setEnabled(false);
         exportGSuiteButton.setWidth(100, Unit.PERCENTAGE);
         Button exportJSONButton = new Button("Export as JSON file");
@@ -257,6 +257,7 @@ public class TrackFindMainUI extends AbstractUI {
         numberOfResults = results.size();
         try {
             jsonResult = mapper.writeValueAsString(results);
+            gSuiteResult = gSuiteResult = gSuiteService.apply(results);
         } catch (JsonProcessingException e) {
             log.error(e.getMessage(), e);
         }
