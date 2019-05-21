@@ -38,6 +38,12 @@ public class ExampleDataProvider extends AbstractDataProvider {
                     mapToSave.put(category, gson.toJson(object));
                 }
             }
+
+            // fake category (for test)
+            List objects = (List) topMap.get("samples");
+            for (Object object : objects) {
+                mapToSave.put("non_standard_samples", gson.toJson(object));
+            }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
