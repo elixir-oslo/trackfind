@@ -1,5 +1,6 @@
 package no.uio.ifi.trackfind.backend.rest.controllers;
 
+import com.google.common.collect.Multimap;
 import no.uio.ifi.trackfind.backend.pojo.SearchResult;
 import no.uio.ifi.trackfind.backend.pojo.TfHub;
 import no.uio.ifi.trackfind.backend.pojo.TfObjectType;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -63,10 +65,20 @@ public class TrackFindController {
      * @return Metamodel in tree form.
      */
     @GetMapping(path = "/metamodel/{repository}/{hub}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<Map<String, Map<String, Object>>> getMetamodel(
+    public ResponseEntity<Map> getMetamodel(
             @PathVariable String repository,
-            @PathVariable String hub) {
-        return ResponseEntity.ok(metamodelService.getMetamodelTree(repository, hub));
+            @PathVariable String hub,
+            @RequestParam(required = false, defaultValue = "false") boolean flat) {
+        if (flat) {
+            Map<String, Multimap<String, String>> metamodelFlat = metamodelService.getMetamodelFlat(repository, hub);
+            Map<String, Map<String, Collection<String>>> result = new HashMap<>();
+            for (String key : metamodelFlat.keySet()) {
+                result.put(key, metamodelFlat.get(key).asMap());
+            }
+            return ResponseEntity.ok(result);
+        } else {
+            return ResponseEntity.ok(metamodelService.getMetamodelTree(repository, hub));
+        }
     }
 
     /**
