@@ -89,12 +89,11 @@ public abstract class AbstractDataProvider implements DataProvider {
             "metamodel-categories",
             "metamodel-attributes",
             "metamodel-attribute-types",
-            "metamodel-values",
-            "metamodel-isattribute"
+            "metamodel-values"
     }, allEntries = true)
     @Override
     public synchronized void crawlRemoteRepository(String hubName) {
-        log.info("Fetching data using for {}: {}", getName(), hubName);
+        log.info("Fetching data for {}: {}", getName(), hubName);
         try {
             fetchData(hubName);
             applicationEventPublisher.publishEvent(new DataReloadEvent(getName(), Operation.CRAWLING));
@@ -173,8 +172,7 @@ public abstract class AbstractDataProvider implements DataProvider {
             "metamodel-categories",
             "metamodel-attributes",
             "metamodel-attribute-types",
-            "metamodel-values",
-            "metamodel-isattribute"
+            "metamodel-values"
     }, allEntries = true)
     @Override
     public synchronized void applyMappings(String hubName) {

@@ -2,6 +2,7 @@ package no.uio.ifi.trackfind.backend.services;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
 import no.uio.ifi.trackfind.backend.pojo.*;
 import no.uio.ifi.trackfind.backend.repositories.HubRepository;
@@ -19,7 +20,7 @@ import java.util.stream.Collectors;
 /**
  * Service for getting metamodel information: categories, attributes, values, etc.
  */
-// TODO: cover with tests
+@Slf4j
 @Service
 @Transactional
 public class MetamodelService {
@@ -29,27 +30,28 @@ public class MetamodelService {
     private HubRepository hubRepository;
     private ReferenceRepository referenceRepository;
 
-    @Cacheable("metamodel-flat")
+    @Cacheable(value = "metamodel-flat", sync = true)
     public Map<String, Multimap<String, String>> getMetamodelFlat(String repository, String hub) {
         Collection<TfObjectType> objectTypes = getObjectTypes(repository, hub);
-        Map<String, Multimap<String, String>> metamodel = new HashMap<>();
-        for (TfObjectType objectType : objectTypes) {
-            Multimap<String, String> attributeValues = HashMultimap.create();
-            List<Map<String, Object>> attributeValuePairs = jdbcTemplate.queryForList(
-                    "SELECT attribute, value FROM tf_metamodel WHERE object_type_id = ?",
-                    objectType.getId());
-            for (Map attributeValuePair : attributeValuePairs) {
-                String attribute = String.valueOf(attributeValuePair.get("attribute"));
-                String value = String.valueOf(attributeValuePair.get("value"));
-                attributeValues.put(attribute, value);
-            }
-            metamodel.put(objectType.getName(), attributeValues);
-        }
-        return metamodel;
+        Map<Long, String> objectTypesMap = objectTypes.stream().collect(Collectors.toMap(TfObjectType::getId, TfObjectType::getName));
+        String objectTypeIds = objectTypes.stream().map(ot -> ot.getId().toString()).collect(Collectors.joining(","));
+        return jdbcTemplate.query(String.format("SELECT object_type_id, attribute, value FROM tf_metamodel WHERE object_type_id IN (%s)", objectTypeIds),
+                resultSet -> {
+                    Map<String, Multimap<String, String>> result = new HashMap<>();
+                    while (resultSet.next()) {
+                        long objectTypeId = resultSet.getLong("object_type_id");
+                        String objectTypeName = objectTypesMap.get(objectTypeId);
+                        String attribute = resultSet.getString("attribute");
+                        String value = resultSet.getString("value");
+                        result.computeIfAbsent(objectTypeName, k -> HashMultimap.create()).put(attribute, value);
+                    }
+                    return result;
+                }
+        );
     }
 
     @SuppressWarnings("unchecked")
-    @Cacheable("metamodel-tree")
+    @Cacheable(value = "metamodel-tree", sync = true)
     public Map<String, Map<String, Object>> getMetamodelTree(String repository, String hub) {
         Map<String, Map<String, Object>> result = new HashMap<>();
         Collection<TfObjectType> objectTypes = getObjectTypes(repository, hub);
@@ -72,14 +74,14 @@ public class MetamodelService {
         return result;
     }
 
-    @Cacheable("metamodel-categories")
+    @Cacheable(value = "metamodel-categories", sync = true)
     public Collection<TfObjectType> getObjectTypes(String repository, String hub) {
         TfHub hubs = hubRepository.findByRepositoryAndName(repository, hub);
         TfVersion maxVersion = hubs.getCurrentVersion().orElseThrow(RuntimeException::new);
         return maxVersion.getObjectTypes();
     }
 
-    @Cacheable("metamodel-array-of-objects-attributes")
+    @Cacheable(value = "metamodel-array-of-objects-attributes", sync = true)
     public Collection<String> getArrayOfObjectsAttributes(String repository, String hub, String category) {
         TfObjectType objectType = getObjectTypes(repository, hub).stream().filter(c -> c.getName().equals(category)).findAny().orElseThrow(RuntimeException::new);
         return jdbcTemplate.queryForList(
@@ -88,7 +90,7 @@ public class MetamodelService {
                 objectType.getId());
     }
 
-    @Cacheable("metamodel-attribute-types")
+    @Cacheable(value = "metamodel-attribute-types", sync = true)
     public Map<String, String> getAttributeTypes(String repository, String hub, String category) {
         TfObjectType objectType = getObjectTypes(repository, hub).stream().filter(c -> c.getName().equals(category)).findAny().orElseThrow(RuntimeException::new);
         Map<String, String> metamodel = new HashMap<>();
@@ -103,38 +105,24 @@ public class MetamodelService {
         return metamodel;
     }
 
-    @Cacheable("metamodel-isattribute")
-    public boolean isAttribute(String repository, String hub, String category, String path) {
-        Multimap<String, String> metamodel = getMetamodelFlat(repository, hub).get(category);
-        return metamodel.keySet().stream().anyMatch(k -> k.startsWith(path));
-    }
-
-    @Cacheable("metamodel-attributes")
+    @Cacheable(value = "metamodel-attributes", sync = true)
     public Collection<String> getAttributes(String repository, String hub, String category, String path) {
+        TfObjectType objectType = getObjectTypes(repository, hub).stream().filter(c -> c.getName().equals(category)).findAny().orElseThrow(RuntimeException::new);
         if (StringUtils.isEmpty(path)) {
-            return getMetamodelTree(repository, hub).get(category).keySet();
+            return jdbcTemplate.queryForList(
+                    "SELECT attribute FROM tf_attributes WHERE object_type_id = ?",
+                    String.class,
+                    objectType.getId());
+        } else {
+            return jdbcTemplate.queryForList(
+                    "SELECT REPLACE(attribute, ?, '') FROM tf_attributes WHERE object_type_id = ? AND lower(attribute) LIKE ?",
+                    String.class,
+                    path.toLowerCase() + "->", objectType.getId(), path.toLowerCase() + "->%");
         }
-        Map<String, Multimap<String, String>> metamodelFlat = getMetamodelFlat(repository, hub);
-        Set<String> attributes = metamodelFlat.get(category).asMap().keySet();
-        String separator = properties.getLevelsSeparator();
-        String clearPath = path.replace(category + separator, "");
-        if (attributes.contains(clearPath)) {
-            return Collections.emptySet();
-        }
-        return attributes
-                .parallelStream()
-                .filter(a -> a.startsWith(clearPath))
-                .map(a -> a.replace(clearPath, ""))
-                .map(a -> (a.contains(separator) ? a.substring(separator.length()) : a))
-                .map(a -> (a.contains(separator) ? a.substring(0, a.indexOf(separator)) : a))
-                .filter(StringUtils::isNotEmpty)
-                .collect(Collectors.toSet());
     }
 
-    @Cacheable("metamodel-values")
+    @Cacheable(value = "metamodel-values", sync = true)
     public Collection<String> getValues(String repository, String hub, String category, String path) {
-        String separator = properties.getLevelsSeparator();
-        path = path.replace(category + separator, "");
         Map<String, Multimap<String, String>> metamodelFlat = getMetamodelFlat(repository, hub);
         Multimap<String, String> metamodel = metamodelFlat.get(category);
         return metamodel.get(path).parallelStream().collect(Collectors.toSet());

@@ -172,6 +172,13 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS tf_metamodel AS
     WHERE collect_metadata.type NOT IN ('object', 'array')
     WITH DATA;
 
+CREATE MATERIALIZED VIEW IF NOT EXISTS tf_attributes AS
+SELECT DISTINCT object_type_id, attribute
+FROM tf_metamodel;
+
+CREATE INDEX IF NOT EXISTS tf_attributes_object_type_id_attribute_index
+    ON tf_attributes (object_type_id, attribute);
+
 CREATE MATERIALIZED VIEW IF NOT EXISTS tf_array_of_objects AS
     WITH RECURSIVE collect_metadata AS (SELECT tf_latest_objects.object_type_id,
                                                first_level.key,
