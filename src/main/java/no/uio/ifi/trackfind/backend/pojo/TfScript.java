@@ -4,12 +4,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.io.Serializable;
 
 @Entity
 @Table(name = "tf_scripts")
 @Data
 @NoArgsConstructor
-public class TfScript {
+public class TfScript implements Serializable {
 
     @Id
     @Column(name = "id", nullable = false)
