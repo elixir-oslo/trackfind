@@ -1,6 +1,5 @@
 package no.uio.ifi.trackfind.frontend;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Title;
@@ -257,8 +256,8 @@ public class TrackFindMainUI extends AbstractUI {
         numberOfResults = results.size();
         try {
             jsonResult = mapper.writeValueAsString(results);
-            gSuiteResult = gSuiteResult = gSuiteService.apply(results);
-        } catch (JsonProcessingException e) {
+            gSuiteResult = gSuiteService.apply(results);
+        } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
         resultsTextArea.setValue(jsonResult);
