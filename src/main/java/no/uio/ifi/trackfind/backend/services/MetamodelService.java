@@ -108,17 +108,28 @@ public class MetamodelService {
     @Cacheable(value = "metamodel-attributes", sync = true)
     public Collection<String> getAttributes(String repository, String hub, String category, String path) {
         TfObjectType objectType = getObjectTypes(repository, hub).stream().filter(c -> c.getName().equals(category)).findAny().orElseThrow(RuntimeException::new);
+        List<String> attributes;
         if (StringUtils.isEmpty(path)) {
-            return jdbcTemplate.queryForList(
+            attributes = jdbcTemplate.queryForList(
                     "SELECT attribute FROM tf_attributes WHERE object_type_id = ?",
                     String.class,
                     objectType.getId());
         } else {
-            return jdbcTemplate.queryForList(
+            attributes = jdbcTemplate.queryForList(
                     "SELECT REPLACE(attribute, ?, '') FROM tf_attributes WHERE object_type_id = ? AND lower(attribute) LIKE ?",
                     String.class,
                     path.toLowerCase() + "->", objectType.getId(), path.toLowerCase() + "->%");
         }
+        String separator = properties.getLevelsSeparator();
+        return attributes.stream()
+                .map(a -> {
+                    if (a.contains(separator)) {
+                        return a.substring(0, a.indexOf(separator));
+                    } else {
+                        return a;
+                    }
+                })
+                .collect(Collectors.toSet());
     }
 
     @Cacheable(value = "metamodel-values", sync = true)
