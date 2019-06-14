@@ -88,6 +88,7 @@ public abstract class AbstractDataProvider implements DataProvider {
             "metamodel-tree",
             "metamodel-categories",
             "metamodel-attributes",
+            "metamodel-attributes-flat",
             "metamodel-attribute-types",
             "metamodel-values"
     }, allEntries = true)
@@ -171,6 +172,7 @@ public abstract class AbstractDataProvider implements DataProvider {
             "metamodel-tree",
             "metamodel-categories",
             "metamodel-attributes",
+            "metamodel-attributes-flat",
             "metamodel-attribute-types",
             "metamodel-values"
     }, allEntries = true)

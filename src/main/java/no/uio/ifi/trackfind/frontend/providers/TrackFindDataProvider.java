@@ -56,7 +56,7 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
                 return Stream.empty();
             }
             String category = parent.getCategory();
-            Collection<String> attributes = metamodelService.getAttributes(repository, hubName, category, null);
+            Collection<String> attributes = metamodelService.getAttributesFlat(repository, hubName, category, null);
             Collection<String> arrayOfObjectsAttributes = metamodelService.getArrayOfObjectsAttributes(repository, hubName, category);
             Map<String, String> attributeTypes = metamodelService.getAttributeTypes(repository, hubName, category);
             Collection<String> children = parent.getChildren();
@@ -78,7 +78,7 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
                         Collection<String> values = metamodelService.getValues(repository, hubName, category, path);
                         treeNode.setChildren(values.stream().filter(v -> v.toLowerCase().contains(treeFilter.getValuesFilter().toLowerCase())).collect(Collectors.toSet()));
                     } else {
-                        Collection<String> subAttributes = metamodelService.getAttributes(repository, hubName, category, path);
+                        Collection<String> subAttributes = metamodelService.getAttributesFlat(repository, hubName, category, path);
                         treeNode.setChildren(subAttributes);
                     }
                 }
