@@ -147,6 +147,7 @@ public class MetamodelService {
         return currentHub.getCurrentVersion().orElseThrow(RuntimeException::new).getScripts();
     }
 
+    @Cacheable(value = "metamodel-references", sync = true)
     public Collection<TfReference> getReferences(String repository, String hub) {
         TfHub currentHub = hubRepository.findByRepositoryAndName(repository, hub);
         TfVersion currentVersion = currentHub.getCurrentVersion().orElseThrow(RuntimeException::new);
