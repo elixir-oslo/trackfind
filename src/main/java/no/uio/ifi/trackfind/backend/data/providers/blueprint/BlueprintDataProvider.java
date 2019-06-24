@@ -21,7 +21,7 @@ import java.util.Map;
 @Component
 public class BlueprintDataProvider extends AbstractDataProvider {
 
-    private static final String FETCH_URL = "https://raw.githubusercontent.com/elixir-no-nels/trackfind/scripting/blueprint.json";
+    private static final String FETCH_URL = "https://raw.githubusercontent.com/elixir-no-nels/trackfind/master/blueprint.json";
 
     /**
      * {@inheritDoc}
