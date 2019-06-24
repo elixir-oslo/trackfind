@@ -1,18 +1,31 @@
-sudo: required
+language: python
 
-services:
-  - docker
+python:
+  - "3.6"
 
-language: java
+jdk:
+  - oraclejdk8
 
-deploy:
-  provider: releases
-  api_key:
-    secure: M6HX7HxmzGNoXZh6+BBZxSXHESh7L/P+ph1I7kop7P9RbetYDjk9g9N/upnxuUnYwhkRS10ZelweNZh6GuB6LaehZEAsea286dveeEXwhM/tYzJPk+r2bc0WNjmG9oH9Kcxj3cGD3CbOdVHva8hXUhH1fVp7WtJ6szvSYa1VMGscKXCgES/NVPlP7iLigxaTplGjeeHnnDDBnw/KjiFnyue2D1tDiSnX/GxlcHkQ1Zl8U6JT4IYo6CKlTk+OjVZoYNNtBd81RBWB0fOVUYoH7yzEuCNni39weYoF2YZxFViWcY2CM1llloCic1lGamEQvb4qzf2qRbLjwL3fBpLm/74HSjxXMMjjd2SN+8Ai3+9Ca+b09cy/nyexXrKlTMFnLCAmSpsS+iDy1kPCpJxy8Q/KZE3SmvbIUNu+svDa1PALch+ehyjAm2BHveS5JHoEUg0hd5V9KZ7RpNUxD+uWdrJ/bzndJ1fVWMjkHRs41FNIspXwVykWL6DieBXoG/j+NR55G9h/IT5qqL4pwdLwuOZaEW3kTIkoRPZ26KpPwQczrm1Si1MDB7CF4hNK4Rdmylwq9Qt4TKBhtgoQjt9CfuA7ZWrj0YrIfWN1B7dcB+KDaDwO1+f2w24M2MfYwDYRS1Wv5ENNDBhSHVj8NdaphpKWSuQxeerOM0aV7vrirMg=
-  file: target/trackfind-$TRAVIS_TAG.jar
-  skip_cleanup: true
-  on:
-    tags: true
+cache:
+  directories:
+    - pip
+    - $HOME/.m2
+
+env:
+  - DOCKER_COMPOSE_VERSION=1.24.0
+
+before_install:
+  - sudo rm /usr/local/bin/docker-compose
+  - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
+  - chmod +x docker-compose
+  - sudo mv docker-compose /usr/local/bin
+  - pip install tavern
+
+install: mvn install
+
+before_script: docker-compose up -d
+
+script: py.test tests  -v
 
 after_success:
   - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
