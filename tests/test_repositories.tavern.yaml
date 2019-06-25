@@ -1,18 +1,16 @@
 ---
-# Every test file has one or more tests...
-test_name: Get some fake data from the JSON placeholder API
+test_name: List repositories
 
-# ...and each test has one or more stages (e.g. an HTTP request)
 stages:
-  - name: Make sure we have the right ID
+  - name: List repositories
 
-    # Define the request to be made...
     request:
-      url: https://jsonplaceholder.typicode.com/posts/1
+      url: http://localhost/api/v1/repositories
       method: GET
 
-    # ...and the expected response code and body
     response:
       status_code: 200
       body:
-        id: 1
+        - "Blueprint"
+        - "Example"
+        - "IHEC"
