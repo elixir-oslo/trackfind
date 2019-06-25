@@ -10,7 +10,4 @@ stages:
 
     response:
       status_code: 200
-      body:
-        - "Blueprint"
-        - "Example"
-        - "IHEC"
+      body: []
