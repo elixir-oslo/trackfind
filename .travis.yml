@@ -23,7 +23,9 @@ before_install:
 
 install: mvn install
 
-before_script: docker-compose up -d
+before_script:
+  - docker-compose up -d
+  - sleep 30
 
 script: py.test tests  -v
 
