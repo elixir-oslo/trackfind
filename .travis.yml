@@ -25,9 +25,12 @@ install: mvn install
 
 before_script:
   - docker-compose up -d
-  - sleep 30
+  - sleep 40
 
 script: py.test tests  -v
+
+after_failure:
+  - docker-compose logs
 
 after_success:
   - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
