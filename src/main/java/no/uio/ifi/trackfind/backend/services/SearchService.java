@@ -1,6 +1,7 @@
 package no.uio.ifi.trackfind.backend.services;
 
 import com.google.gson.Gson;
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
 import no.uio.ifi.trackfind.backend.pojo.Queries;
@@ -52,6 +53,7 @@ public class SearchService {
      * @param limit      Max number of entries to return. 0 for unlimited.
      * @return Found entries.
      */
+    @HystrixCommand
     public Collection<SearchResult> search(String repository, String hub, String query, Collection<String> categories, int limit) throws SQLException {
         Collection<TfReference> references = metamodelService.getReferences(repository, hub);
 
@@ -81,6 +83,7 @@ public class SearchService {
         return results;
     }
 
+    @HystrixCommand
     protected String buildQuery(Collection<TfReference> references, Collection<TfObjectType> objectTypesFromReferences, Collection<String> objectTypesToSelect, String query, int limit) {
         String separator = properties.getLevelsSeparator();
 

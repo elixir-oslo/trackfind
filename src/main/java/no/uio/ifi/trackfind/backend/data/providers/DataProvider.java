@@ -1,5 +1,6 @@
 package no.uio.ifi.trackfind.backend.data.providers;
 
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import no.uio.ifi.trackfind.backend.pojo.TfHub;
 
 import java.util.Collection;
@@ -16,6 +17,7 @@ public interface DataProvider {
      *
      * @return Data provider name.
      */
+    @HystrixCommand
     String getName();
 
     /**
@@ -23,6 +25,7 @@ public interface DataProvider {
      *
      * @return All Track Hubs list.
      */
+    @HystrixCommand
     Collection<TfHub> getAllTrackHubs();
 
     /**
@@ -30,6 +33,7 @@ public interface DataProvider {
      *
      * @return Active Track Hubs list.
      */
+    @HystrixCommand
     Collection<TfHub> getActiveTrackHubs();
 
     /**
@@ -37,6 +41,7 @@ public interface DataProvider {
      *
      * @param hubName TfHub name.
      */
+    @HystrixCommand
     void crawlRemoteRepository(String hubName);
 
     /**
@@ -44,6 +49,7 @@ public interface DataProvider {
      *
      * @param hubName TfHub name.
      */
+    @HystrixCommand
     void applyMappings(String hubName);
 
 }

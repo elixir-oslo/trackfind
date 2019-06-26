@@ -5,7 +5,13 @@ logging:
     org.hibernate: ERROR
   file: console.log
 
-server.port: 8888
+server.port: 80
+
+management.endpoints.web.exposure.include: "*"
+
+hystrix.command.default:
+  fallback.enabled: false
+  execution.timeout.enabled: false
 
 spring:
   main.banner-mode: 'off'

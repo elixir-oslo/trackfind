@@ -2,6 +2,7 @@ package no.uio.ifi.trackfind.backend.services;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
 import no.uio.ifi.trackfind.backend.pojo.*;
@@ -31,6 +32,7 @@ public class MetamodelService {
     private ReferenceRepository referenceRepository;
 
     @Cacheable(value = "metamodel-flat", sync = true)
+    @HystrixCommand
     public Map<String, Multimap<String, String>> getMetamodelFlat(String repository, String hub) {
         Collection<TfObjectType> objectTypes = getObjectTypes(repository, hub);
         Map<Long, String> objectTypesMap = objectTypes.stream().collect(Collectors.toMap(TfObjectType::getId, TfObjectType::getName));
@@ -52,6 +54,7 @@ public class MetamodelService {
 
     @SuppressWarnings("unchecked")
     @Cacheable(value = "metamodel-tree", sync = true)
+    @HystrixCommand
     public Map<String, Map<String, Object>> getMetamodelTree(String repository, String hub) {
         Map<String, Map<String, Object>> result = new HashMap<>();
         Collection<TfObjectType> objectTypes = getObjectTypes(repository, hub);
@@ -75,6 +78,7 @@ public class MetamodelService {
     }
 
     @Cacheable(value = "metamodel-categories", sync = true)
+    @HystrixCommand
     public Collection<TfObjectType> getObjectTypes(String repository, String hub) {
         TfHub hubs = hubRepository.findByRepositoryAndName(repository, hub);
         TfVersion maxVersion = hubs.getCurrentVersion().orElseThrow(RuntimeException::new);
@@ -82,6 +86,7 @@ public class MetamodelService {
     }
 
     @Cacheable(value = "metamodel-array-of-objects-attributes", sync = true)
+    @HystrixCommand
     public Collection<String> getArrayOfObjectsAttributes(String repository, String hub, String category) {
         TfObjectType objectType = getObjectTypes(repository, hub).stream().filter(c -> c.getName().equals(category)).findAny().orElseThrow(RuntimeException::new);
         return jdbcTemplate.queryForList(
@@ -91,6 +96,7 @@ public class MetamodelService {
     }
 
     @Cacheable(value = "metamodel-attribute-types", sync = true)
+    @HystrixCommand
     public Map<String, String> getAttributeTypes(String repository, String hub, String category) {
         TfObjectType objectType = getObjectTypes(repository, hub).stream().filter(c -> c.getName().equals(category)).findAny().orElseThrow(RuntimeException::new);
         Map<String, String> metamodel = new HashMap<>();
@@ -106,6 +112,7 @@ public class MetamodelService {
     }
 
     @Cacheable(value = "metamodel-attributes-flat", sync = true)
+    @HystrixCommand
     public Collection<String> getAttributesFlat(String repository, String hub, String category, String path) {
         TfObjectType objectType = getObjectTypes(repository, hub).stream().filter(c -> c.getName().equals(category)).findAny().orElseThrow(RuntimeException::new);
         if (StringUtils.isEmpty(path)) {
@@ -122,6 +129,7 @@ public class MetamodelService {
     }
 
     @Cacheable(value = "metamodel-attributes", sync = true)
+    @HystrixCommand
     public Collection<String> getAttributes(String repository, String hub, String category, String path) {
         String separator = properties.getLevelsSeparator();
         return getAttributesFlat(repository, hub, category, path).stream()
@@ -136,6 +144,7 @@ public class MetamodelService {
     }
 
     @Cacheable(value = "metamodel-values", sync = true)
+    @HystrixCommand
     public Collection<String> getValues(String repository, String hub, String category, String path) {
         Map<String, Multimap<String, String>> metamodelFlat = getMetamodelFlat(repository, hub);
         Multimap<String, String> metamodel = metamodelFlat.get(category);
@@ -148,6 +157,7 @@ public class MetamodelService {
     }
 
     @Cacheable(value = "metamodel-references", sync = true)
+    @HystrixCommand
     public Collection<TfReference> getReferences(String repository, String hub) {
         TfHub currentHub = hubRepository.findByRepositoryAndName(repository, hub);
         TfVersion currentVersion = currentHub.getCurrentVersion().orElseThrow(RuntimeException::new);
@@ -159,10 +169,12 @@ public class MetamodelService {
         return references;
     }
 
+    @HystrixCommand
     public void addReference(TfReference reference) {
         referenceRepository.save(reference);
     }
 
+    @HystrixCommand
     public void deleteReference(TfReference reference) {
         referenceRepository.delete(reference);
     }

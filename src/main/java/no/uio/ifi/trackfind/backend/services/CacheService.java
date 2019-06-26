@@ -1,5 +1,6 @@
 package no.uio.ifi.trackfind.backend.services;
 
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.pojo.Queries;
 import no.uio.ifi.trackfind.backend.events.DataReloadEvent;
@@ -23,6 +24,7 @@ public class CacheService {
      * Refreshes materialized views in the database.
      */
     @TransactionalEventListener(classes = DataReloadEvent.class)
+    @HystrixCommand
     public void resetCaches(DataReloadEvent dataReloadEvent) {
         log.info("Event {} received.", dataReloadEvent.getSource());
         jdbcTemplate.execute(Queries.REFRESH_MATERIALIZED_VIEWS);

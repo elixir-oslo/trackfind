@@ -1,6 +1,7 @@
 package no.uio.ifi.trackfind.backend.services;
 
 import com.google.gson.Gson;
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
 import no.uio.ifi.trackfind.backend.pojo.SearchResult;
 import org.apache.commons.lang3.StringUtils;
@@ -34,6 +35,7 @@ public class GSuiteService implements Function<Collection<SearchResult>, String>
      * @return GSuite string.
      */
     @SuppressWarnings("unchecked")
+    @HystrixCommand
     @Override
     public String apply(Collection<SearchResult> searchResults) {
 //        sortJSON(searchResults);
