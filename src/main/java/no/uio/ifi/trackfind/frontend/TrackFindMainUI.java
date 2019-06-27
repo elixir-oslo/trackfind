@@ -8,6 +8,7 @@ import com.vaadin.data.HasValue;
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.event.ShortcutListener;
 import com.vaadin.server.*;
+import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.shared.ui.ValueChangeMode;
 import com.vaadin.shared.ui.dnd.DropEffect;
 import com.vaadin.shared.ui.dnd.EffectAllowed;
@@ -84,6 +85,9 @@ public class TrackFindMainUI extends AbstractUI {
         HorizontalLayout footerLayout = buildFooterLayout();
         VerticalLayout outerLayout = buildOuterLayout(headerLayout, mainLayout, footerLayout);
         setContent(outerLayout);
+        String implementationVersion = getClass().getPackage().getImplementationVersion();
+        implementationVersion = implementationVersion == null ? "dev" : implementationVersion;
+        Page.getCurrent().setTitle("TrackFind: " + implementationVersion);
     }
 
     protected VerticalLayout buildTreeLayout() {
@@ -133,6 +137,10 @@ public class TrackFindMainUI extends AbstractUI {
     }
 
     private HorizontalLayout buildMainLayout(VerticalLayout treeLayout, VerticalLayout queryLayout, VerticalLayout resultsLayout) {
+        MarginInfo marginInfo = new MarginInfo(true, true, false, true);
+        treeLayout.setMargin(marginInfo);
+        queryLayout.setMargin(marginInfo);
+        resultsLayout.setMargin(marginInfo);
         HorizontalLayout mainLayout = new HorizontalLayout(treeLayout, queryLayout, resultsLayout);
         mainLayout.setSizeFull();
         return mainLayout;
