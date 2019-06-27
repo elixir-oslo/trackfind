@@ -1,6 +1,7 @@
 package no.uio.ifi.trackfind.frontend;
 
 import com.vaadin.data.HasValue;
+import com.vaadin.server.ExternalResource;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.shared.ui.ValueChangeMode;
@@ -54,12 +55,12 @@ public abstract class AbstractUI extends UI {
     }
 
     protected HorizontalLayout buildFooterLayout() {
-        ThemeResource resource1 = new ThemeResource("images/nels.png");
-        Image nels = new Image(null, resource1);
-        ThemeResource resource2 = new ThemeResource("images/elixir.png");
-        Image elixir = new Image(null, resource2);
-        ThemeResource resource3 = new ThemeResource("images/uio.png");
-        Image uio = new Image(null, resource3);
+        Link nels = new Link(null, new ExternalResource("https://nels.bioinfo.no/"));
+        nels.setIcon(new ThemeResource("images/nels.png"));
+        Link elixir = new Link(null, new ExternalResource("https://www.elixir-norway.org/"));
+        elixir.setIcon(new ThemeResource("images/elixir.png"));
+        Link uio = new Link(null, new ExternalResource("https://www.mn.uio.no/ifi/english/research/groups/bmi/"));
+        uio.setIcon(new ThemeResource("images/uio.png"));
         HorizontalLayout footerLayout = new HorizontalLayout(nels, elixir, uio);
         footerLayout.setHeight("100%");
         footerLayout.setComponentAlignment(nels, Alignment.MIDDLE_LEFT);
