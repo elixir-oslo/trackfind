@@ -2,6 +2,7 @@ package no.uio.ifi.trackfind.backend.data.providers;
 
 import com.google.gson.Gson;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
 import no.uio.ifi.trackfind.backend.events.DataReloadEvent;
@@ -78,6 +79,7 @@ public abstract class AbstractDataProvider implements DataProvider {
      *
      * @throws Exception in case of some problems.
      */
+    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     protected abstract void fetchData(String hubName) throws Exception;
 
     /**
@@ -113,7 +115,7 @@ public abstract class AbstractDataProvider implements DataProvider {
      * @param hubName Hub name.
      * @param objects Object-type to object map.
      */
-    @HystrixCommand
+    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     protected void save(String hubName, Map<String, Collection<String>> objects) {
         TfHub hub = hubRepository.findByRepositoryAndName(getName(), hubName);
         TfVersion version = hub.getCurrentVersion().orElseGet(() -> {

@@ -2,6 +2,7 @@ package no.uio.ifi.trackfind.backend.services;
 
 import com.google.gson.Gson;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
 import org.apache.commons.collections.MapUtils;
@@ -53,7 +54,7 @@ public class SchemaService {
     }
 
     @SuppressWarnings("unchecked")
-    @HystrixCommand
+    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     private void gatherAttributes(String path, Map object) {
         String type = String.valueOf(object.get("type"));
         if ("object".equals(type)) {
@@ -76,7 +77,7 @@ public class SchemaService {
      *
      * @return Collection of attributes.
      */
-    @HystrixCommand
+    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     public List<String> getAttributes() {
         return attributes;
     }
@@ -86,7 +87,7 @@ public class SchemaService {
      *
      * @param object Object to validate.
      */
-    @HystrixCommand
+    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     public void validate(Object object) {
         this.schema.validate(object);
     }
