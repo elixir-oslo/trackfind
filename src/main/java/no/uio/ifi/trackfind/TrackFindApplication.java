@@ -1,5 +1,6 @@
 package no.uio.ifi.trackfind;
 
+import de.codecentric.boot.admin.server.config.EnableAdminServer;
 import de.invesdwin.instrument.DynamicInstrumentationLoader;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
@@ -27,6 +28,7 @@ import static org.springframework.context.annotation.EnableLoadTimeWeaving.Aspec
 @EnableTransactionManagement(mode = AdviceMode.ASPECTJ)
 @EnableHystrix
 @EnableHystrixDashboard
+@EnableAdminServer
 public class TrackFindApplication {
 
     public static void main(String[] args) {

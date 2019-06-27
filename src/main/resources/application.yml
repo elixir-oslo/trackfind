@@ -15,6 +15,12 @@ hystrix.command.default:
 
 spring:
   main.banner-mode: 'off'
+  application.name: trackfind
+  boot.admin:
+    client:
+      url: http://localhost:80/admin
+      instance.service-url: http://localhost:80
+    context-path: /admin
   jackson.serialization.indent-output: true
   datasource:
     url: jdbc:postgresql://${DB_INSTANCE:localhost}:${DB_PORT:5432}/${POSTGRES_DB:trackfind}?stringtype=unspecified
