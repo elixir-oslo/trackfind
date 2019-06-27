@@ -49,10 +49,10 @@ environment.
 You should be able to run application as follows:
 
 ```sh
-mvn clean spring-boot:run
+docker-compose up -d
 ```
 
-Next navigate to http://localhost:8080 and perform a smoke-test: make sure that all basic functionality is working properly.
+Next navigate to http://localhost and perform a smoke-test: make sure that all basic functionality is working properly.
 
 ### 6. Keeping your Pull Request updated
 
