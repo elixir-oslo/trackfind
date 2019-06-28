@@ -10,4 +10,5 @@ stages:
 
     response:
       status_code: 200
-      body: []
+      body:
+        - Example
