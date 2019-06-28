@@ -22,7 +22,7 @@ before_script:
   - chmod +x docker-compose
   - sudo mv docker-compose /usr/local/bin
   - docker-compose up -d
-  - sleep 120
+  - sleep 200
   - pip install tavern
 
 script: py.test tests  -v
