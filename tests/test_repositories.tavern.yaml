@@ -1,11 +1,22 @@
 ---
-test_name: List repositories
+test_name: List repositories and hubs
 
 stages:
   - name: List repositories
 
     request:
       url: http://localhost/api/v1/repositories
+      method: GET
+
+    response:
+      status_code: 200
+      body:
+        - Example
+
+  - name: List hubs
+
+    request:
+      url: http://localhost/api/v1/hubs/Example
       method: GET
 
     response:
