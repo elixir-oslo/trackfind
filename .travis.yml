@@ -10,7 +10,7 @@ cache:
 env:
   - DOCKER_COMPOSE_VERSION=1.24.0
 
-install: mvn install
+install: mvn install -B
 
 before_script:
   - sudo rm /usr/local/bin/docker-compose
@@ -22,7 +22,7 @@ before_script:
 
 script:
   - cd int-tests
-  - mvn test
+  - mvn test -B
 
 after_failure:
   - docker-compose logs
