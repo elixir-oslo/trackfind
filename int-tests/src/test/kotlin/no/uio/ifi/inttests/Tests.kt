@@ -34,7 +34,7 @@ class Tests {
     fun testGetMetamodel() {
         given().`when`().get("/metamodel/$EXAMPLE/$EXAMPLE").then().statusCode(200).assertThat()
             .body(
-                matchesJsonSchemaInClasspath("fairtracks.schema.json")
+                matchesJsonSchemaInClasspath("metamodel.schema.json")
             )
     }
 
@@ -60,7 +60,8 @@ class Tests {
 
     @Test
     fun testGetSubAttributes() {
-        given().`when`().get("/attributes/$EXAMPLE/$EXAMPLE/samples?path=sample_type").then()
+        given().`when`().get("/attributes/$EXAMPLE/$EXAMPLE/samples?path=sample_type")
+            .then()
             .statusCode(200)
             .assertThat()
             .body(
@@ -74,7 +75,8 @@ class Tests {
 
     @Test
     fun testGetValues() {
-        given().`when`().get("/values/$EXAMPLE/$EXAMPLE/samples?path=sample_type->term_value").then()
+        given().`when`().get("/values/$EXAMPLE/$EXAMPLE/samples?path=sample_type->term_value")
+            .then()
             .statusCode(200)
             .assertThat()
             .body(
@@ -87,7 +89,8 @@ class Tests {
 
     @Test
     fun testGetValuesWithFilter() {
-        given().`when`().get("/values/$EXAMPLE/$EXAMPLE/tracks?path=file_format->term_value&filter=ENCODE").then()
+        given().`when`().get("/values/$EXAMPLE/$EXAMPLE/tracks?path=file_format->term_value&filter=ENCODE")
+            .then()
             .statusCode(200)
             .assertThat()
             .body(
@@ -95,6 +98,17 @@ class Tests {
                 hasItems(
                     "ENCODE narrow peak format"
                 )
+            )
+    }
+
+    @Test
+    fun testSearch() {
+        given().`when`().get("/search/$EXAMPLE/$EXAMPLE?query=samples.content->'biomaterial_type' ? 'primary cell'")
+            .then()
+            .statusCode(200)
+            .assertThat()
+            .body(
+                matchesJsonSchemaInClasspath("search.schema.json")
             )
     }
 
