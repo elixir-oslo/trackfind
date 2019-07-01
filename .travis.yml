@@ -1,14 +1,10 @@
-language: python
-
-python:
-  - "3.6"
+language: java
 
 jdk:
   - oraclejdk8
 
 cache:
   directories:
-    - pip
     - $HOME/.m2
 
 env:
@@ -22,10 +18,11 @@ before_script:
   - chmod +x docker-compose
   - sudo mv docker-compose /usr/local/bin
   - docker-compose up -d
-  - sleep 200
-  - pip install tavern
+  - sleep 180
 
-script: py.test tests  -v
+script:
+  - cd int-tests
+  - mvn test
 
 after_failure:
   - docker-compose logs
