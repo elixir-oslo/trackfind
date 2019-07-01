@@ -30,12 +30,12 @@ class Tests {
             .body("", hasItems(EXAMPLE))
     }
 
-//    @Test
-//    fun testMetamodel() {
-//        given().`when`().get("/metamodel/$EXAMPLE/$EXAMPLE").then().statusCode(200).assertThat()
-//            .body(
-//                matchesJsonSchemaInClasspath("fairtracks.schema.json")
-//            )
-//    }
+    @Test
+    fun testMetamodel() {
+        given().`when`().get("/metamodel/$EXAMPLE/$EXAMPLE").then().statusCode(200).assertThat()
+            .body(
+                matchesJsonSchemaInClasspath("fairtracks.schema.json")
+            )
+    }
 
 }

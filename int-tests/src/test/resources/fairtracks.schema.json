@@ -1,49 +1,864 @@
 {
+  "definitions": {},
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://raw.githubusercontent.com/fairtracks/fairtracks_standard/master/json/schema/fairtracks.schema.json",
-  "title": "FAIRification of Genomic Tracks JSON Schema",
+  "$id": "http://example.com/root.json",
   "type": "object",
+  "title": "The Root Schema",
+  "required": [
+    "non_standard_samples",
+    "experiments",
+    "studies",
+    "tracks",
+    "samples"
+  ],
   "properties": {
-    "@schema": {
-      "description": "The JSON schema absolute URI. Used for link JSON data to a particular version of the JSON schema. Must match the value of '$id' in the linked schema",
-      "const": "https://raw.githubusercontent.com/fairtracks/fairtracks_standard/master/json/schema/fairtracks.schema.json",
-      "type": "string",
-      "format": "iri"
-    },
-    "studies": {
-      "type": "array",
-      "items": {
-        "$ref": "https://raw.githubusercontent.com/fairtracks/fairtracks_standard/master/json/schema/fairtracks_study.schema.json",
-        "minItems": 1
+    "non_standard_samples": {
+      "$id": "#/properties/non_standard_samples",
+      "type": "object",
+      "title": "The Non_standard_samples Schema",
+      "required": [
+        "local_id",
+        "global_id",
+        "biomaterial_type",
+        "sample_type"
+      ],
+      "properties": {
+        "local_id": {
+          "$id": "#/properties/non_standard_samples/properties/local_id",
+          "type": "array",
+          "title": "The Local_id Schema",
+          "items": {
+            "$id": "#/properties/non_standard_samples/properties/local_id/items",
+            "type": "string",
+            "title": "The Items Schema",
+            "default": "",
+            "examples": [
+              "GEO:GSM945229"
+            ],
+            "pattern": "^(.*)$"
+          }
+        },
+        "global_id": {
+          "$id": "#/properties/non_standard_samples/properties/global_id",
+          "type": "array",
+          "title": "The Global_id Schema",
+          "items": {
+            "$id": "#/properties/non_standard_samples/properties/global_id/items",
+            "type": "string",
+            "title": "The Items Schema",
+            "default": "",
+            "examples": [
+              "biosample:SAMN01731491"
+            ],
+            "pattern": "^(.*)$"
+          }
+        },
+        "biomaterial_type": {
+          "$id": "#/properties/non_standard_samples/properties/biomaterial_type",
+          "type": "array",
+          "title": "The Biomaterial_type Schema",
+          "items": {
+            "$id": "#/properties/non_standard_samples/properties/biomaterial_type/items",
+            "type": "string",
+            "title": "The Items Schema",
+            "default": "",
+            "examples": [
+              "primary cell"
+            ],
+            "pattern": "^(.*)$"
+          }
+        },
+        "sample_type": {
+          "$id": "#/properties/non_standard_samples/properties/sample_type",
+          "type": "object",
+          "title": "The Sample_type Schema",
+          "required": [
+            "term_value",
+            "term_iri"
+          ],
+          "properties": {
+            "term_value": {
+              "$id": "#/properties/non_standard_samples/properties/sample_type/properties/term_value",
+              "type": "array",
+              "title": "The Term_value Schema",
+              "items": {
+                "$id": "#/properties/non_standard_samples/properties/sample_type/properties/term_value/items",
+                "type": "string",
+                "title": "The Items Schema",
+                "default": "",
+                "examples": [
+                  "H1-hESC"
+                ],
+                "pattern": "^(.*)$"
+              }
+            },
+            "term_iri": {
+              "$id": "#/properties/non_standard_samples/properties/sample_type/properties/term_iri",
+              "type": "array",
+              "title": "The Term_iri Schema",
+              "items": {
+                "$id": "#/properties/non_standard_samples/properties/sample_type/properties/term_iri/items",
+                "type": "string",
+                "title": "The Items Schema",
+                "default": "",
+                "examples": [
+                  "http://purl.obolibrary.org/obo/CL_0000236"
+                ],
+                "pattern": "^(.*)$"
+              }
+            }
+          }
+        }
       }
     },
     "experiments": {
-      "type": "array",
-      "items": {
-        "$ref": "https://raw.githubusercontent.com/fairtracks/fairtracks_standard/master/json/schema/fairtracks_experiment.schema.json",
-        "minItems": 1
+      "$id": "#/properties/experiments",
+      "type": "object",
+      "title": "The Experiments Schema",
+      "required": [
+        "compute_protocol_description",
+        "sample_ref",
+        "study_ref",
+        "local_id",
+        "tech_type",
+        "global_id",
+        "lab_protocol_description",
+        "target"
+      ],
+      "properties": {
+        "compute_protocol_description": {
+          "$id": "#/properties/experiments/properties/compute_protocol_description",
+          "type": "array",
+          "title": "The Compute_protocol_description Schema",
+          "items": {
+            "$id": "#/properties/experiments/properties/compute_protocol_description/items",
+            "type": "string",
+            "title": "The Items Schema",
+            "default": "",
+            "examples": [
+              "https://www.encodeproject.org/documents/6f6351d4-9310-4a3b-a3c2-70ecac47b28b/@@download/attachment/ChIP-seq_Mapping_Pipeline_Overview.pdf"
+            ],
+            "pattern": "^(.*)$"
+          }
+        },
+        "sample_ref": {
+          "$id": "#/properties/experiments/properties/sample_ref",
+          "type": "array",
+          "title": "The Sample_ref Schema",
+          "items": {
+            "$id": "#/properties/experiments/properties/sample_ref/items",
+            "type": "string",
+            "title": "The Items Schema",
+            "default": "",
+            "examples": [
+              "GEO:GSM945229"
+            ],
+            "pattern": "^(.*)$"
+          }
+        },
+        "study_ref": {
+          "$id": "#/properties/experiments/properties/study_ref",
+          "type": "array",
+          "title": "The Study_ref Schema",
+          "items": {
+            "$id": "#/properties/experiments/properties/study_ref/items",
+            "type": "string",
+            "title": "The Items Schema",
+            "default": "",
+            "examples": [
+              "UW_ChipSeq"
+            ],
+            "pattern": "^(.*)$"
+          }
+        },
+        "local_id": {
+          "$id": "#/properties/experiments/properties/local_id",
+          "type": "array",
+          "title": "The Local_id Schema",
+          "items": {
+            "$id": "#/properties/experiments/properties/local_id/items",
+            "type": "string",
+            "title": "The Items Schema",
+            "default": "",
+            "examples": [
+              "encode:ENCSR000DQP"
+            ],
+            "pattern": "^(.*)$"
+          }
+        },
+        "tech_type": {
+          "$id": "#/properties/experiments/properties/tech_type",
+          "type": "object",
+          "title": "The Tech_type Schema",
+          "required": [
+            "term_value",
+            "term_iri"
+          ],
+          "properties": {
+            "term_value": {
+              "$id": "#/properties/experiments/properties/tech_type/properties/term_value",
+              "type": "array",
+              "title": "The Term_value Schema",
+              "items": {
+                "$id": "#/properties/experiments/properties/tech_type/properties/term_value/items",
+                "type": "string",
+                "title": "The Items Schema",
+                "default": "",
+                "examples": [
+                  "ChIP-seq assay"
+                ],
+                "pattern": "^(.*)$"
+              }
+            },
+            "term_iri": {
+              "$id": "#/properties/experiments/properties/tech_type/properties/term_iri",
+              "type": "array",
+              "title": "The Term_iri Schema",
+              "items": {
+                "$id": "#/properties/experiments/properties/tech_type/properties/term_iri/items",
+                "type": "string",
+                "title": "The Items Schema",
+                "default": "",
+                "examples": [
+                  "http://purl.obolibrary.org/obo/OBI_0000716"
+                ],
+                "pattern": "^(.*)$"
+              }
+            }
+          }
+        },
+        "global_id": {
+          "$id": "#/properties/experiments/properties/global_id",
+          "type": "array",
+          "title": "The Global_id Schema",
+          "items": {
+            "$id": "#/properties/experiments/properties/global_id/items",
+            "type": "string",
+            "title": "The Items Schema",
+            "default": "",
+            "examples": [
+              "GEO:GSE35583"
+            ],
+            "pattern": "^(.*)$"
+          }
+        },
+        "lab_protocol_description": {
+          "$id": "#/properties/experiments/properties/lab_protocol_description",
+          "type": "array",
+          "title": "The Lab_protocol_description Schema",
+          "items": {
+            "$id": "#/properties/experiments/properties/lab_protocol_description/items",
+            "type": "string",
+            "title": "The Items Schema",
+            "default": "",
+            "examples": [
+              "https://www.encodeproject.org/documents/8f459e88-6344-434f-8f9f-6375a9ff1880/@@download/attachment/CD20%2B_Stam_protocol.pdf"
+            ],
+            "pattern": "^(.*)$"
+          }
+        },
+        "target": {
+          "$id": "#/properties/experiments/properties/target",
+          "type": "object",
+          "title": "The Target Schema",
+          "required": [
+            "term_value",
+            "term_iri"
+          ],
+          "properties": {
+            "term_value": {
+              "$id": "#/properties/experiments/properties/target/properties/term_value",
+              "type": "array",
+              "title": "The Term_value Schema",
+              "items": {
+                "$id": "#/properties/experiments/properties/target/properties/term_value/items",
+                "type": "string",
+                "title": "The Items Schema",
+                "default": "",
+                "examples": [
+                  "H3K4_trimethylation"
+                ],
+                "pattern": "^(.*)$"
+              }
+            },
+            "term_iri": {
+              "$id": "#/properties/experiments/properties/target/properties/term_iri",
+              "type": "array",
+              "title": "The Term_iri Schema",
+              "items": {
+                "$id": "#/properties/experiments/properties/target/properties/term_iri/items",
+                "type": "string",
+                "title": "The Items Schema",
+                "default": "",
+                "examples": [
+                  "http://purl.obolibrary.org/obo/SO_0001706"
+                ],
+                "pattern": "^(.*)$"
+              }
+            }
+          }
+        }
       }
     },
-    "samples": {
-      "type": "array",
-      "items": {
-        "$ref": "https://raw.githubusercontent.com/fairtracks/fairtracks_standard/master/json/schema/fairtracks_sample.schema.json",
-        "minItems": 1
+    "studies": {
+      "$id": "#/properties/studies",
+      "type": "object",
+      "title": "The Studies Schema",
+      "required": [
+        "phenotype",
+        "study_name",
+        "local_id",
+        "contact",
+        "global_id",
+        "publications"
+      ],
+      "properties": {
+        "phenotype": {
+          "$id": "#/properties/studies/properties/phenotype",
+          "type": "object",
+          "title": "The Phenotype Schema",
+          "required": [
+            "term_value",
+            "term_iri"
+          ],
+          "properties": {
+            "term_value": {
+              "$id": "#/properties/studies/properties/phenotype/properties/term_value",
+              "type": "array",
+              "title": "The Term_value Schema",
+              "items": {
+                "$id": "#/properties/studies/properties/phenotype/properties/term_value/items",
+                "type": "string",
+                "title": "The Items Schema",
+                "default": "",
+                "examples": [
+                  "Normal"
+                ],
+                "pattern": "^(.*)$"
+              }
+            },
+            "term_iri": {
+              "$id": "#/properties/studies/properties/phenotype/properties/term_iri",
+              "type": "array",
+              "title": "The Term_iri Schema",
+              "items": {
+                "$id": "#/properties/studies/properties/phenotype/properties/term_iri/items",
+                "type": "string",
+                "title": "The Items Schema",
+                "default": "",
+                "examples": [
+                  "http://purl.obolibrary.org/obo/PATO_0000461"
+                ],
+                "pattern": "^(.*)$"
+              }
+            }
+          }
+        },
+        "study_name": {
+          "$id": "#/properties/studies/properties/study_name",
+          "type": "array",
+          "title": "The Study_name Schema",
+          "items": {
+            "$id": "#/properties/studies/properties/study_name/items",
+            "type": "string",
+            "title": "The Items Schema",
+            "default": "",
+            "examples": [
+              "Histone Modifications by ChIP-seq from ENCODE/University of Washington"
+            ],
+            "pattern": "^(.*)$"
+          }
+        },
+        "local_id": {
+          "$id": "#/properties/studies/properties/local_id",
+          "type": "array",
+          "title": "The Local_id Schema",
+          "items": {
+            "$id": "#/properties/studies/properties/local_id/items",
+            "type": "string",
+            "title": "The Items Schema",
+            "default": "",
+            "examples": [
+              "UW_ChipSeq"
+            ],
+            "pattern": "^(.*)$"
+          }
+        },
+        "contact": {
+          "$id": "#/properties/studies/properties/contact",
+          "type": "object",
+          "title": "The Contact Schema",
+          "required": [
+            "orcid_id",
+            "name",
+            "e-mail"
+          ],
+          "properties": {
+            "orcid_id": {
+              "$id": "#/properties/studies/properties/contact/properties/orcid_id",
+              "type": "array",
+              "title": "The Orcid_id Schema",
+              "items": {
+                "$id": "#/properties/studies/properties/contact/properties/orcid_id/items",
+                "type": "string",
+                "title": "The Items Schema",
+                "default": "",
+                "examples": [
+                  "0000-0000-0000-0000"
+                ],
+                "pattern": "^(.*)$"
+              }
+            },
+            "name": {
+              "$id": "#/properties/studies/properties/contact/properties/name",
+              "type": "array",
+              "title": "The Name Schema",
+              "items": {
+                "$id": "#/properties/studies/properties/contact/properties/name/items",
+                "type": "string",
+                "title": "The Items Schema",
+                "default": "",
+                "examples": [
+                  "ENCODE DCC"
+                ],
+                "pattern": "^(.*)$"
+              }
+            },
+            "e-mail": {
+              "$id": "#/properties/studies/properties/contact/properties/e-mail",
+              "type": "array",
+              "title": "The E-mail Schema",
+              "items": {
+                "$id": "#/properties/studies/properties/contact/properties/e-mail/items",
+                "type": "string",
+                "title": "The Items Schema",
+                "default": "",
+                "examples": [
+                  "encode-help@lists.stanford.edu"
+                ],
+                "pattern": "^(.*)$"
+              }
+            }
+          }
+        },
+        "global_id": {
+          "$id": "#/properties/studies/properties/global_id",
+          "type": "array",
+          "title": "The Global_id Schema",
+          "items": {
+            "$id": "#/properties/studies/properties/global_id/items",
+            "type": "string",
+            "title": "The Items Schema",
+            "default": "",
+            "examples": [
+              "GEO:GSE35583"
+            ],
+            "pattern": "^(.*)$"
+          }
+        },
+        "publications": {
+          "$id": "#/properties/studies/properties/publications",
+          "type": "array",
+          "title": "The Publications Schema",
+          "items": {
+            "$id": "#/properties/studies/properties/publications/items",
+            "type": "string",
+            "title": "The Items Schema",
+            "default": "",
+            "examples": [
+              "22955617"
+            ],
+            "pattern": "^(.*)$"
+          }
+        }
       }
     },
     "tracks": {
-      "type": "array",
-      "items": {
-        "$ref": "https://raw.githubusercontent.com/fairtracks/fairtracks_standard/master/json/schema/fairtracks_track.schema.json",
-        "minItems": 1
+      "$id": "#/properties/tracks",
+      "type": "object",
+      "title": "The Tracks Schema",
+      "required": [
+        "file_iri",
+        "content_type",
+        "local_id",
+        "file_name",
+        "genome_assembly",
+        "checksum",
+        "global_id",
+        "label_short",
+        "label_long",
+        "file_format",
+        "experiment_ref"
+      ],
+      "properties": {
+        "file_iri": {
+          "$id": "#/properties/tracks/properties/file_iri",
+          "type": "array",
+          "title": "The File_iri Schema",
+          "items": {
+            "$id": "#/properties/tracks/properties/file_iri/items",
+            "type": "string",
+            "title": "The Items Schema",
+            "default": "",
+            "examples": [
+              "https://www.encodeproject.org/files/ENCFF718EPO/@@download/ENCFF718EPO.bigBed",
+              "https://www.encodeproject.org/files/ENCFF717PIO/@@download/ENCFF717PIO.bigWig",
+              "https://www.encodeproject.org/files/ENCFF955LOC/@@download/ENCFF955LOC.bigWig",
+              "https://www.encodeproject.org/files/ENCFF625ZYB/@@download/ENCFF625ZYB.bed.gz"
+            ],
+            "pattern": "^(.*)$"
+          }
+        },
+        "content_type": {
+          "$id": "#/properties/tracks/properties/content_type",
+          "type": "object",
+          "title": "The Content_type Schema",
+          "required": [
+            "term_value",
+            "term_iri"
+          ],
+          "properties": {
+            "term_value": {
+              "$id": "#/properties/tracks/properties/content_type/properties/term_value",
+              "type": "array",
+              "title": "The Term_value Schema",
+              "items": {
+                "$id": "#/properties/tracks/properties/content_type/properties/term_value/items",
+                "type": "string",
+                "title": "The Items Schema",
+                "default": "",
+                "examples": [
+                  "Annotation track"
+                ],
+                "pattern": "^(.*)$"
+              }
+            },
+            "term_iri": {
+              "$id": "#/properties/tracks/properties/content_type/properties/term_iri",
+              "type": "array",
+              "title": "The Term_iri Schema",
+              "items": {
+                "$id": "#/properties/tracks/properties/content_type/properties/term_iri/items",
+                "type": "string",
+                "title": "The Items Schema",
+                "default": "",
+                "examples": [
+                  "http://edamontology.org/data_3002"
+                ],
+                "pattern": "^(.*)$"
+              }
+            }
+          }
+        },
+        "local_id": {
+          "$id": "#/properties/tracks/properties/local_id",
+          "type": "array",
+          "title": "The Local_id Schema",
+          "items": {
+            "$id": "#/properties/tracks/properties/local_id/items",
+            "type": "string",
+            "title": "The Items Schema",
+            "default": "",
+            "examples": [
+              "encode:ENCFF717PIO",
+              "encode:ENCFF718EPO",
+              "encode:ENCFF955LOC",
+              "encode:ENCFF625ZYB"
+            ],
+            "pattern": "^(.*)$"
+          }
+        },
+        "file_name": {
+          "$id": "#/properties/tracks/properties/file_name",
+          "type": "array",
+          "title": "The File_name Schema",
+          "items": {
+            "$id": "#/properties/tracks/properties/file_name/items",
+            "type": "string",
+            "title": "The Items Schema",
+            "default": "",
+            "examples": [
+              "r1.narrowPeak.gz",
+              "r1.fc_signal.bw",
+              "r1.pvalue_signal.bw",
+              "r1.narrowPeak.bb"
+            ],
+            "pattern": "^(.*)$"
+          }
+        },
+        "genome_assembly": {
+          "$id": "#/properties/tracks/properties/genome_assembly",
+          "type": "array",
+          "title": "The Genome_assembly Schema",
+          "items": {
+            "$id": "#/properties/tracks/properties/genome_assembly/items",
+            "type": "string",
+            "title": "The Items Schema",
+            "default": "",
+            "examples": [
+              "GRCh38"
+            ],
+            "pattern": "^(.*)$"
+          }
+        },
+        "checksum": {
+          "$id": "#/properties/tracks/properties/checksum",
+          "type": "object",
+          "title": "The Checksum Schema",
+          "required": [
+            "cs_method",
+            "cs_hash"
+          ],
+          "properties": {
+            "cs_method": {
+              "$id": "#/properties/tracks/properties/checksum/properties/cs_method",
+              "type": "array",
+              "title": "The Cs_method Schema",
+              "items": {
+                "$id": "#/properties/tracks/properties/checksum/properties/cs_method/items",
+                "type": "string",
+                "title": "The Items Schema",
+                "default": "",
+                "examples": [
+                  "MD5"
+                ],
+                "pattern": "^(.*)$"
+              }
+            },
+            "cs_hash": {
+              "$id": "#/properties/tracks/properties/checksum/properties/cs_hash",
+              "type": "array",
+              "title": "The Cs_hash Schema",
+              "items": {
+                "$id": "#/properties/tracks/properties/checksum/properties/cs_hash/items",
+                "type": "string",
+                "title": "The Items Schema",
+                "default": "",
+                "examples": [
+                  "0ab98dbd2a2193ab3e09df030ea4f934",
+                  "6d2c6c99a7407f1c49ab163e41d9b575",
+                  "942ea96e86313d4338cf3fd020882c4d",
+                  "550ae974bf94f1deb1676613ab24a5da"
+                ],
+                "pattern": "^(.*)$"
+              }
+            }
+          }
+        },
+        "global_id": {
+          "$id": "#/properties/tracks/properties/global_id",
+          "type": "array",
+          "title": "The Global_id Schema",
+          "items": {
+            "$id": "#/properties/tracks/properties/global_id/items",
+            "type": "string",
+            "title": "The Items Schema",
+            "default": "",
+            "examples": [
+              "fairtracks:1",
+              "fairtracks:4",
+              "fairtracks:2",
+              "fairtracks:3"
+            ],
+            "pattern": "^(.*)$"
+          }
+        },
+        "label_short": {
+          "$id": "#/properties/tracks/properties/label_short",
+          "type": "array",
+          "title": "The Label_short Schema",
+          "items": {
+            "$id": "#/properties/tracks/properties/label_short/items",
+            "type": "string",
+            "title": "The Items Schema",
+            "default": "",
+            "examples": [
+              "ENCFF717PIO",
+              "ENCFF955LOC",
+              "ENCFF718EPO",
+              "ENCFF625ZYB"
+            ],
+            "pattern": "^(.*)$"
+          }
+        },
+        "label_long": {
+          "$id": "#/properties/tracks/properties/label_long",
+          "type": "array",
+          "title": "The Label_long Schema",
+          "items": {
+            "$id": "#/properties/tracks/properties/label_long/items",
+            "type": "string",
+            "title": "The Items Schema",
+            "default": "",
+            "examples": [
+              "H3K4me3 ChIP-seq of B cell peaks rep1 ENCSR000DQP - ENCFF625ZYB",
+              "H3K4me3 ChIP-seq of B cell fold change over control rep1 ENCSR000DQP - ENCFF717PIO",
+              "H3K4me3 ChIP-seq of B cell peaks rep1 ENCSR000DQP - ENCFF718EPO",
+              "H3K4me3 ChIP-seq of B cell signal p-value rep1 ENCSR000DQP - ENCFF955LOC"
+            ],
+            "pattern": "^(.*)$"
+          }
+        },
+        "file_format": {
+          "$id": "#/properties/tracks/properties/file_format",
+          "type": "object",
+          "title": "The File_format Schema",
+          "required": [
+            "term_value",
+            "term_iri"
+          ],
+          "properties": {
+            "term_value": {
+              "$id": "#/properties/tracks/properties/file_format/properties/term_value",
+              "type": "array",
+              "title": "The Term_value Schema",
+              "items": {
+                "$id": "#/properties/tracks/properties/file_format/properties/term_value/items",
+                "type": "string",
+                "title": "The Items Schema",
+                "default": "",
+                "examples": [
+                  "bigWig",
+                  "bigBed",
+                  "ENCODE narrow peak format"
+                ],
+                "pattern": "^(.*)$"
+              }
+            },
+            "term_iri": {
+              "$id": "#/properties/tracks/properties/file_format/properties/term_iri",
+              "type": "array",
+              "title": "The Term_iri Schema",
+              "items": {
+                "$id": "#/properties/tracks/properties/file_format/properties/term_iri/items",
+                "type": "string",
+                "title": "The Items Schema",
+                "default": "",
+                "examples": [
+                  "http://edamontology.org/format_3613",
+                  "http://edamontology.org/format_3004",
+                  "http://edamontology.org/format_3006"
+                ],
+                "pattern": "^(.*)$"
+              }
+            }
+          }
+        },
+        "experiment_ref": {
+          "$id": "#/properties/tracks/properties/experiment_ref",
+          "type": "array",
+          "title": "The Experiment_ref Schema",
+          "items": {
+            "$id": "#/properties/tracks/properties/experiment_ref/items",
+            "type": "string",
+            "title": "The Items Schema",
+            "default": "",
+            "examples": [
+              "encode:ENCSR000DQP"
+            ],
+            "pattern": "^(.*)$"
+          }
+        }
+      }
+    },
+    "samples": {
+      "$id": "#/properties/samples",
+      "type": "object",
+      "title": "The Samples Schema",
+      "required": [
+        "local_id",
+        "global_id",
+        "biomaterial_type",
+        "sample_type"
+      ],
+      "properties": {
+        "local_id": {
+          "$id": "#/properties/samples/properties/local_id",
+          "type": "array",
+          "title": "The Local_id Schema",
+          "items": {
+            "$id": "#/properties/samples/properties/local_id/items",
+            "type": "string",
+            "title": "The Items Schema",
+            "default": "",
+            "examples": [
+              "GEO:GSM945229"
+            ],
+            "pattern": "^(.*)$"
+          }
+        },
+        "global_id": {
+          "$id": "#/properties/samples/properties/global_id",
+          "type": "array",
+          "title": "The Global_id Schema",
+          "items": {
+            "$id": "#/properties/samples/properties/global_id/items",
+            "type": "string",
+            "title": "The Items Schema",
+            "default": "",
+            "examples": [
+              "biosample:SAMN01731491"
+            ],
+            "pattern": "^(.*)$"
+          }
+        },
+        "biomaterial_type": {
+          "$id": "#/properties/samples/properties/biomaterial_type",
+          "type": "array",
+          "title": "The Biomaterial_type Schema",
+          "items": {
+            "$id": "#/properties/samples/properties/biomaterial_type/items",
+            "type": "string",
+            "title": "The Items Schema",
+            "default": "",
+            "examples": [
+              "primary cell"
+            ],
+            "pattern": "^(.*)$"
+          }
+        },
+        "sample_type": {
+          "$id": "#/properties/samples/properties/sample_type",
+          "type": "object",
+          "title": "The Sample_type Schema",
+          "required": [
+            "term_value",
+            "term_iri"
+          ],
+          "properties": {
+            "term_value": {
+              "$id": "#/properties/samples/properties/sample_type/properties/term_value",
+              "type": "array",
+              "title": "The Term_value Schema",
+              "items": {
+                "$id": "#/properties/samples/properties/sample_type/properties/term_value/items",
+                "type": "string",
+                "title": "The Items Schema",
+                "default": "",
+                "examples": [
+                  "H1-hESC"
+                ],
+                "pattern": "^(.*)$"
+              }
+            },
+            "term_iri": {
+              "$id": "#/properties/samples/properties/sample_type/properties/term_iri",
+              "type": "array",
+              "title": "The Term_iri Schema",
+              "items": {
+                "$id": "#/properties/samples/properties/sample_type/properties/term_iri/items",
+                "type": "string",
+                "title": "The Items Schema",
+                "default": "",
+                "examples": [
+                  "http://purl.obolibrary.org/obo/CL_0000236"
+                ],
+                "pattern": "^(.*)$"
+              }
+            }
+          }
+        }
       }
     }
-  },
-  "required": [
-    "studies",
-    "experiments",
-    "samples",
-    "tracks"
-  ],
-  "additionalProperties": true
+  }
 }
