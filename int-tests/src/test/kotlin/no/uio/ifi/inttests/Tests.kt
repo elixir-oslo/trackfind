@@ -3,9 +3,11 @@ package no.uio.ifi.inttests
 import io.restassured.RestAssured
 import io.restassured.RestAssured.given
 import io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath
+import org.apache.http.HttpStatus
 import org.hamcrest.core.IsCollectionContaining.hasItems
 import kotlin.test.BeforeTest
 import kotlin.test.Test
+import kotlin.test.assertEquals
 
 const val EXAMPLE = "Example"
 
@@ -20,19 +22,19 @@ class Tests {
 
     @Test
     fun testGetRepositories() {
-        given().`when`().get("/repositories").then().statusCode(200).assertThat()
+        given().`when`().get("/repositories").then().statusCode(HttpStatus.SC_OK).assertThat()
             .body("", hasItems(EXAMPLE))
     }
 
     @Test
     fun testGetHubs() {
-        given().`when`().get("/hubs/$EXAMPLE").then().statusCode(200).assertThat()
+        given().`when`().get("/hubs/$EXAMPLE").then().statusCode(HttpStatus.SC_OK).assertThat()
             .body("", hasItems(EXAMPLE))
     }
 
     @Test
     fun testGetMetamodel() {
-        given().`when`().get("/metamodel/$EXAMPLE/$EXAMPLE").then().statusCode(200).assertThat()
+        given().`when`().get("/metamodel/$EXAMPLE/$EXAMPLE").then().statusCode(HttpStatus.SC_OK).assertThat()
             .body(
                 matchesJsonSchemaInClasspath("metamodel.schema.json")
             )
@@ -40,13 +42,13 @@ class Tests {
 
     @Test
     fun testGetCategories() {
-        given().`when`().get("/categories/$EXAMPLE/$EXAMPLE").then().statusCode(200).assertThat()
+        given().`when`().get("/categories/$EXAMPLE/$EXAMPLE").then().statusCode(HttpStatus.SC_OK).assertThat()
             .body("", hasItems("tracks", "experiments", "samples", "studies", "non_standard_samples"))
     }
 
     @Test
     fun testGetAttributes() {
-        given().`when`().get("/attributes/$EXAMPLE/$EXAMPLE/samples").then().statusCode(200).assertThat()
+        given().`when`().get("/attributes/$EXAMPLE/$EXAMPLE/samples").then().statusCode(HttpStatus.SC_OK).assertThat()
             .body(
                 "",
                 hasItems(
@@ -62,7 +64,7 @@ class Tests {
     fun testGetSubAttributes() {
         given().`when`().get("/attributes/$EXAMPLE/$EXAMPLE/samples?path=sample_type")
             .then()
-            .statusCode(200)
+            .statusCode(HttpStatus.SC_OK)
             .assertThat()
             .body(
                 "",
@@ -77,7 +79,7 @@ class Tests {
     fun testGetValues() {
         given().`when`().get("/values/$EXAMPLE/$EXAMPLE/samples?path=sample_type->term_value")
             .then()
-            .statusCode(200)
+            .statusCode(HttpStatus.SC_OK)
             .assertThat()
             .body(
                 "",
@@ -91,7 +93,7 @@ class Tests {
     fun testGetValuesWithFilter() {
         given().`when`().get("/values/$EXAMPLE/$EXAMPLE/tracks?path=file_format->term_value&filter=ENCODE")
             .then()
-            .statusCode(200)
+            .statusCode(HttpStatus.SC_OK)
             .assertThat()
             .body(
                 "",
@@ -102,14 +104,30 @@ class Tests {
     }
 
     @Test
-    fun testSearch() {
+    fun testSearchJSON() {
         given().`when`().get("/search/$EXAMPLE/$EXAMPLE?query=samples.content->'biomaterial_type' ? 'primary cell'")
             .then()
-            .statusCode(200)
+            .statusCode(HttpStatus.SC_OK)
             .assertThat()
             .body(
                 matchesJsonSchemaInClasspath("search.schema.json")
             )
+    }
+
+    @Test
+    fun testSearchGSuite() {
+        val actual = given()
+            .headers(
+                mapOf(
+                    "Accept" to "text/plain"
+                )
+            )
+            .`when`().get("/search/$EXAMPLE/$EXAMPLE?query=samples.content->'biomaterial_type' ? 'primary cell'")
+            .then()
+            .statusCode(HttpStatus.SC_OK)
+            .extract().asString()
+        val expected = javaClass.getResource("/search.sample.gsuite").readText()
+        assertEquals(expected, actual)
     }
 
 }

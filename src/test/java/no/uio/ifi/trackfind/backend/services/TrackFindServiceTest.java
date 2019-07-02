@@ -32,6 +32,14 @@ public class TrackFindServiceTest {
     @Mock
     private IHECDataProvider dataProvider;
 
+    @Before
+    public void setUp() {
+        when(dataProvider.getName()).thenReturn(TEST_DATA_PROVIDER);
+        when(dataProvider.getActiveTrackHubs()).thenReturn(Collections.singleton(new TfHub(TEST_DATA_PROVIDER, "active")));
+        when(dataProvider.getAllTrackHubs()).thenReturn(Collections.singleton(new TfHub(TEST_DATA_PROVIDER, "inactive")));
+        dataProviders.add(dataProvider);
+    }
+
     @Test
     public void getDataProvidersTest() {
         Collection<DataProvider> dataProviders = trackFindService.getDataProviders();
@@ -62,14 +70,6 @@ public class TrackFindServiceTest {
         TfHub hub = allTrackHubs.iterator().next();
         assertThat(hub.getRepository()).isEqualTo(TEST_DATA_PROVIDER);
         assertThat(hub.getName()).isEqualTo("inactive");
-    }
-
-    @Before
-    public void setUp() {
-        when(dataProvider.getName()).thenReturn(TEST_DATA_PROVIDER);
-        when(dataProvider.getActiveTrackHubs()).thenReturn(Collections.singleton(new TfHub(TEST_DATA_PROVIDER, "active")));
-        when(dataProvider.getAllTrackHubs()).thenReturn(Collections.singleton(new TfHub(TEST_DATA_PROVIDER, "inactive")));
-        dataProviders.add(dataProvider);
     }
 
 }
