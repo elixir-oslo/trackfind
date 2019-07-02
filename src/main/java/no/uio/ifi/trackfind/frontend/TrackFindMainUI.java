@@ -88,8 +88,10 @@ public class TrackFindMainUI extends AbstractUI {
         setContent(outerLayout);
         String implementationVersion = getClass().getPackage().getImplementationVersion();
         implementationVersion = implementationVersion == null ? "dev" : implementationVersion;
-        Page.getCurrent().setTitle("TrackFind: " + implementationVersion);
+        Page currentPage = Page.getCurrent();
+        currentPage.setTitle("TrackFind: " + implementationVersion);
         GoogleAnalyticsTracker tracker = new GoogleAnalyticsTracker("UA-143208550-1");
+        tracker.trackPageview("/");
         tracker.extend(getUI());
     }
 
