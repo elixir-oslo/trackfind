@@ -34,6 +34,7 @@ import no.uio.ifi.trackfind.frontend.listeners.TreeItemClickListener;
 import no.uio.ifi.trackfind.frontend.listeners.TreeSelectionListener;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.vaadin.googleanalytics.tracking.EnableGoogleAnalytics;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.Charset;
@@ -55,6 +56,7 @@ import java.util.Collections;
 @Title("TrackFind")
 @Theme("trackfind")
 @Slf4j
+@EnableGoogleAnalytics("UA-143208550-1")
 public class TrackFindMainUI extends AbstractUI {
 
     private ObjectMapper mapper;
