@@ -42,8 +42,8 @@ services:
       - PROTECTED_RESOURCES=/admin,/monitor
 #      - SSL_ENGINE=on
 #    volumes:
-#      /etc/letsencrypt/live/<site>/fullchain.pem:/etc/ssl/certs/fullchain.pem
-#      /etc/letsencrypt/live/<site>/privkey.pem:/etc/ssl/certs/privkey.pem
+#      - /etc/letsencrypt/live/<site>/fullchain.pem:/etc/ssl/certs/fullchain.pem
+#      - /etc/letsencrypt/live/<site>/privkey.pem:/etc/ssl/certs/privkey.pem
 
 volumes:
   db:
