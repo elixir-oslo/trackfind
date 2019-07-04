@@ -26,3 +26,5 @@ target
 out
 *.gz
 *.tmp
+
+.env
