@@ -5,7 +5,7 @@ logging:
     org.hibernate: ERROR
   file: console.log
 
-server.port: 80
+server.port: 8080
 
 management.endpoints.web.exposure.include: "*"
 
@@ -14,8 +14,8 @@ spring:
   application.name: trackfind
   boot.admin:
     client:
-      url: http://localhost:80/admin
-      instance.service-url: http://localhost:80
+      url: http://localhost:8080/admin
+      instance.service-url: http://localhost:8080
     context-path: /admin
   jackson.serialization.indent-output: true
   datasource:
