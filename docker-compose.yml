@@ -30,6 +30,7 @@ services:
     image: nels/apache-elixir-aai:latest
     ports:
       - 80:80
+      - 443:443
     environment:
       - SERVER_ADMIN
       - SERVER_URL
