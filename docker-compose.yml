@@ -13,14 +13,10 @@ services:
 
   gsuite:
     image: nels/rest_gsuite:latest
-    ports:
-      - 8080:5000
 
   trackfind:
     image: nels/trackfind:latest
     init: true
-    ports:
-      - 80:80
     depends_on:
       - db
     environment:
@@ -29,6 +25,20 @@ services:
       - POSTGRES_DB=trackfind
       - POSTGRES_USER
       - POSTGRES_PASSWORD
+
+  apache:
+    image: nels/apache-elixir-aai:latest
+    ports:
+      - 80:80
+    environment:
+      - SERVER_ADMIN
+      - SERVER_URL=http://localhost
+      - SERVER_PORT=80
+      - PROXY_PASS=http://trackfind:8080/
+      - ELIXIR_AAI_CLIENT_ID
+      - ELIXIR_AAI_CLIENT_SECRET
+      - SCOPES="openid"
+      - PROTECTED_RESOURCES=/admin,/monitor
 
 volumes:
   db:
