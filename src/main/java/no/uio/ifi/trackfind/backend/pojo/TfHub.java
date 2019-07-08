@@ -42,4 +42,13 @@ public class TfHub implements Serializable {
         return Optional.ofNullable(Collections.max(versions, Comparator.comparing(TfVersion::getVersion)));
     }
 
+    public Optional<TfVersion> getPreviousVersion() {
+        Optional<TfVersion> currentVersion = getCurrentVersion();
+        if (!currentVersion.isPresent()) {
+            return Optional.empty();
+        }
+        Long previousVersion = currentVersion.get().getVersion() - 1;
+        return versions.stream().filter(v -> v.getVersion().equals(previousVersion)).findAny();
+    }
+
 }

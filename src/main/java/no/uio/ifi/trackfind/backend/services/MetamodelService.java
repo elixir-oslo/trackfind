@@ -11,6 +11,7 @@ import no.uio.ifi.trackfind.backend.repositories.HubRepository;
 import no.uio.ifi.trackfind.backend.repositories.ReferenceRepository;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -170,9 +171,34 @@ public class MetamodelService {
         return references;
     }
 
+    @CacheEvict(cacheNames = {
+            "metamodel-references"
+    }, allEntries = true)
     @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     public void addReference(TfReference reference) {
         referenceRepository.save(reference);
+    }
+
+    @CacheEvict(cacheNames = {
+            "metamodel-references"
+    }, allEntries = true)
+    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
+    public void copyFromPreviousVersion(String repository, String hub) {
+        TfHub currentHub = hubRepository.findByRepositoryAndName(repository, hub);
+        Collection<TfObjectType> currentObjectTypes = getObjectTypes(repository, hub);
+        Collection<String> currentObjectTypeNames = currentObjectTypes.stream().map(TfObjectType::getName).collect(Collectors.toSet());
+        TfVersion previousVersion = currentHub.getPreviousVersion().orElseThrow(RuntimeException::new);
+        Collection<TfObjectType> previousObjectTypes = previousVersion.getObjectTypes();
+        for (TfObjectType objectType : previousObjectTypes) {
+            for (TfReference reference : objectType.getReferences()) {
+                if (currentObjectTypeNames.contains(reference.getFromObjectType().getName()) && currentObjectTypeNames.contains(reference.getToObjectType().getName())) {
+                    TfObjectType newFromObjectType = currentObjectTypes.stream().filter(cot -> cot.getName().equalsIgnoreCase(reference.getFromObjectType().getName())).findAny().orElseThrow(RuntimeException::new);
+                    TfObjectType newToObjectType = currentObjectTypes.stream().filter(cot -> cot.getName().equalsIgnoreCase(reference.getToObjectType().getName())).findAny().orElseThrow(RuntimeException::new);
+                    TfReference newReference = new TfReference(null, newFromObjectType, reference.getFromAttribute(), newToObjectType, reference.getToAttribute());
+                    referenceRepository.save(newReference);
+                }
+            }
+        }
     }
 
     @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})

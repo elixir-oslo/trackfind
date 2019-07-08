@@ -115,19 +115,22 @@ public class TrackFindReferencesUI extends AbstractUI {
             selectedTab.setItems(metamodelService.getReferences(hub.getRepository(), hub.getName()));
         });
         addButton.setEnabled(false);
-        fromCategoryComboBox.addValueChangeListener((HasValue.ValueChangeListener<TfObjectType>) event -> {
-            changeAddButtonState(fromCategoryComboBox, fromAttributeTextField, toCategoryComboBox, toAttributeTextField, addButton);
+        HasValue.ValueChangeListener valueChangeListener = event -> changeAddButtonState(fromCategoryComboBox, fromAttributeTextField, toCategoryComboBox, toAttributeTextField, addButton);
+        fromCategoryComboBox.addValueChangeListener(valueChangeListener);
+        fromAttributeTextField.addValueChangeListener(valueChangeListener);
+        toCategoryComboBox.addValueChangeListener(valueChangeListener);
+        toAttributeTextField.addValueChangeListener(valueChangeListener);
+        Button copyButton = new Button("Copy from previous version", (Button.ClickListener) event -> {
+            Grid selectedTab = (Grid) referencesTabSheet.getSelectedTab();
+            TfHub hub = (TfHub) selectedTab.getData();
+            try {
+                metamodelService.copyFromPreviousVersion(hub.getRepository(), hub.getName());
+                selectedTab.setItems(metamodelService.getReferences(hub.getRepository(), hub.getName()));
+            } catch (Exception ignored) {
+            }
         });
-        fromAttributeTextField.addValueChangeListener((HasValue.ValueChangeListener<String>) event -> {
-            changeAddButtonState(fromCategoryComboBox, fromAttributeTextField, toCategoryComboBox, toAttributeTextField, addButton);
-        });
-        toCategoryComboBox.addValueChangeListener((HasValue.ValueChangeListener<TfObjectType>) event -> {
-            changeAddButtonState(fromCategoryComboBox, fromAttributeTextField, toCategoryComboBox, toAttributeTextField, addButton);
-        });
-        toAttributeTextField.addValueChangeListener((HasValue.ValueChangeListener<String>) event -> {
-            changeAddButtonState(fromCategoryComboBox, fromAttributeTextField, toCategoryComboBox, toAttributeTextField, addButton);
-        });
-        HorizontalLayout controlsLayout = new HorizontalLayout(fromCategoryComboBox, fromAttributeTextField, toCategoryComboBox, toAttributeTextField, addButton);
+        HorizontalLayout controlsLayout = new HorizontalLayout(copyButton, fromCategoryComboBox, fromAttributeTextField, toCategoryComboBox, toAttributeTextField, addButton);
+        controlsLayout.setComponentAlignment(copyButton, Alignment.BOTTOM_RIGHT);
         controlsLayout.setComponentAlignment(addButton, Alignment.BOTTOM_RIGHT);
         referencesLayout.addComponents(referencesPanel, controlsLayout);
         referencesLayout.setExpandRatio(referencesPanel, 1f);
