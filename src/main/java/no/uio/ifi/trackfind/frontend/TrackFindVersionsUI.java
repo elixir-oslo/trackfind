@@ -12,6 +12,7 @@ import elemental.json.JsonValue;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.pojo.TfHub;
 import no.uio.ifi.trackfind.backend.pojo.TfVersion;
+import no.uio.ifi.trackfind.backend.repositories.HubRepository;
 import no.uio.ifi.trackfind.backend.services.MetamodelService;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -30,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class TrackFindVersionsUI extends AbstractUI {
 
     private MetamodelService metamodelService;
+    private HubRepository hubRepository;
 
     @Override
     protected void init(VaadinRequest vaadinRequest) {
@@ -67,7 +69,9 @@ public class TrackFindVersionsUI extends AbstractUI {
                 }
             });
             ButtonRenderer buttonRenderer = new ButtonRenderer((ClickableRenderer.RendererClickListener<TfVersion>) event -> {
-                grid.setItems(hub.getVersions());
+                metamodelService.activateVersion(event.getItem());
+                TfHub updatedHub = hubRepository.findByRepositoryAndName(hub.getRepository(), hub.getName());
+                grid.setItems(updatedHub.getVersions());
             }) {
                 @Override
                 public JsonValue encode(Object value) {
@@ -76,11 +80,18 @@ public class TrackFindVersionsUI extends AbstractUI {
             };
             grid.getColumn("id").setRenderer(buttonRenderer).setCaption("Operations");
             grid.setColumnOrder("version", "operation", "username", "time", "id");
+            grid.sort("id");
             grid.setData(hub);
             grid.setItems(hub.getVersions());
             versionsTabSheet.addTab(grid, hub.getRepository() + ": " + hub.getName()).getComponent().setSizeFull();
         }
-        versionsLayout.addComponents(versionsPanel);
+        Label legend = new Label("Legend: ");
+        Label green = new Label("Current version");
+        green.setStyleName("green");
+        Label yellow = new Label("Previous version");
+        yellow.setStyleName("yellow");
+        HorizontalLayout legendLayout = new HorizontalLayout(legend, green, yellow);
+        versionsLayout.addComponents(versionsPanel, legendLayout);
         versionsLayout.setExpandRatio(versionsPanel, 1f);
         return versionsLayout;
     }
@@ -95,6 +106,11 @@ public class TrackFindVersionsUI extends AbstractUI {
     @Autowired
     public void setMetamodelService(MetamodelService metamodelService) {
         this.metamodelService = metamodelService;
+    }
+
+    @Autowired
+    public void setHubRepository(HubRepository hubRepository) {
+        this.hubRepository = hubRepository;
     }
 
 }

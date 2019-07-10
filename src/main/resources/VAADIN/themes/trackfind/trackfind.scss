@@ -16,16 +16,24 @@
     background: none;
   }
 
-  .v-grid-row.green>td {
+  .v-grid-row.green > td {
     background-color: #9eff61;
   }
 
-  .v-grid-row.yellow>td {
+  .v-grid-row.yellow > td {
     background-color: #ffff59;
   }
 
-  .v-grid-row.white>td {
+  .v-grid-row.white > td {
     background-color: ghostwhite;
+  }
+
+  .green {
+    background-color: #9eff61;
+  }
+
+  .yellow {
+    background-color: #ffff59;
   }
 
 }

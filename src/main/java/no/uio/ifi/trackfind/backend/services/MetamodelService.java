@@ -9,6 +9,7 @@ import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
 import no.uio.ifi.trackfind.backend.pojo.*;
 import no.uio.ifi.trackfind.backend.repositories.HubRepository;
 import no.uio.ifi.trackfind.backend.repositories.ReferenceRepository;
+import no.uio.ifi.trackfind.backend.repositories.VersionRepository;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
@@ -31,6 +32,7 @@ public class MetamodelService {
     private TrackFindProperties properties;
     private JdbcTemplate jdbcTemplate;
     private HubRepository hubRepository;
+    private VersionRepository versionRepository;
     private ReferenceRepository referenceRepository;
 
     @Cacheable(value = "metamodel-flat", sync = true)
@@ -206,6 +208,24 @@ public class MetamodelService {
         referenceRepository.delete(reference);
     }
 
+    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
+    public void activateVersion(TfVersion version) {
+        TfHub hub = version.getHub();
+        Optional<TfVersion> previousVersion = hub.getPreviousVersion();
+        previousVersion.ifPresent(pv -> {
+            pv.setPrevious(false);
+            versionRepository.saveAndFlush(pv);
+        });
+        Optional<TfVersion> currentVersion = hub.getCurrentVersion();
+        currentVersion.ifPresent(cv -> {
+            cv.setCurrent(false);
+            cv.setPrevious(true);
+            versionRepository.saveAndFlush(cv);
+        });
+        version.setCurrent(true);
+        versionRepository.saveAndFlush(version);
+    }
+
     @Autowired
     public void setProperties(TrackFindProperties properties) {
         this.properties = properties;
@@ -219,6 +239,11 @@ public class MetamodelService {
     @Autowired
     public void setHubRepository(HubRepository hubRepository) {
         this.hubRepository = hubRepository;
+    }
+
+    @Autowired
+    public void setVersionRepository(VersionRepository versionRepository) {
+        this.versionRepository = versionRepository;
     }
 
     @Autowired
