@@ -1,9 +1,6 @@
 package no.uio.ifi.trackfind.backend.pojo;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 import no.uio.ifi.trackfind.backend.operations.Operation;
 
 import javax.persistence.*;
@@ -17,6 +14,7 @@ import java.util.Set;
 @EqualsAndHashCode(of = {"id"})
 @ToString(exclude = "objectTypes")
 @NoArgsConstructor
+@AllArgsConstructor
 public class TfVersion implements Serializable {
 
     @Id
