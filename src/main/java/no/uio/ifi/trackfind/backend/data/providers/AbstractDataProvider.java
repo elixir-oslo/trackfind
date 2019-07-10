@@ -16,15 +16,15 @@ import no.uio.ifi.trackfind.backend.scripting.ScriptingEngine;
 import no.uio.ifi.trackfind.backend.services.CacheService;
 import no.uio.ifi.trackfind.backend.services.SearchService;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
-
 import org.springframework.transaction.annotation.Transactional;
+
 import java.util.*;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Abstract class for all data providers.
@@ -118,14 +118,20 @@ public abstract class AbstractDataProvider implements DataProvider {
     @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     protected void save(String hubName, Map<String, Collection<String>> objects) {
         TfHub hub = hubRepository.findByRepositoryAndName(getName(), hubName);
-        TfVersion version = hub.getCurrentVersion().orElseGet(() -> {
-            TfVersion tfVersion = new TfVersion();
-            tfVersion.setVersion(0L);
-            return tfVersion;
+        Optional<TfVersion> previousVersionOptional = hub.getPreviousVersion();
+        Optional<TfVersion> currentVersionOptional = hub.getCurrentVersion();
+        Optional<TfVersion> lastVersionOptional = hub.getLastVersion();
+        AtomicLong versionNumber = new AtomicLong(0);
+        lastVersionOptional.ifPresent(lv -> versionNumber.set(lv.getVersion()));
+        previousVersionOptional.ifPresent(pv -> pv.setPrevious(false));
+        currentVersionOptional.ifPresent(cv -> {
+            cv.setPrevious(true);
+            cv.setCurrent(false);
         });
-        version = SerializationUtils.clone(version);
-        version.setId(null);
-        version.setVersion(version.getVersion() + 1);
+        TfVersion version = new TfVersion();
+        version.setVersion(versionNumber.incrementAndGet());
+        version.setCurrent(true);
+        version.setPrevious(false);
         version.setOperation(Operation.CRAWLING);
         version.setUsername("admin");
         version.setTime(new Date());
