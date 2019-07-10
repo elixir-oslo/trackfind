@@ -23,6 +23,19 @@ CREATE TABLE IF NOT EXISTS tf_hubs
     UNIQUE (repository, name)
 );
 
+CREATE TABLE IF NOT EXISTS tf_versions
+(
+    id        BIGSERIAL PRIMARY KEY,
+    hub_id    BIGINT REFERENCES tf_hubs (id),
+    version   BIGINT  NOT NULL,
+    current   BOOLEAN NOT NULL,
+    previous  BOOLEAN NOT NULL,
+    operation VARCHAR NOT NULL,
+    username  VARCHAR NOT NULL,
+    time      TIMESTAMP,
+    UNIQUE (hub_id, version)
+);
+
 CREATE OR REPLACE FUNCTION check_current_version(hub_id BIGINT)
     RETURNS BOOLEAN
     LANGUAGE SQL AS
@@ -32,6 +45,8 @@ FROM tf_versions tfv
 WHERE tfv.hub_id = hub_id
   AND tfv.current = TRUE
 $$;
+
+ALTER TABLE tf_versions ADD CHECK ( check_current_version(hub_id) );
 
 CREATE OR REPLACE FUNCTION check_previous_version(hub_id BIGINT)
     RETURNS BOOLEAN
@@ -43,20 +58,7 @@ WHERE tfv.hub_id = hub_id
   AND tfv.previous = TRUE
 $$;
 
-CREATE TABLE IF NOT EXISTS tf_versions
-(
-    id        BIGSERIAL PRIMARY KEY,
-    hub_id    BIGINT REFERENCES tf_hubs (id),
-    version   BIGINT  NOT NULL,
-    current   BOOLEAN NOT NULL,
-    previous  BOOLEAN NOT NULL,
-    operation VARCHAR NOT NULL,
-    username  VARCHAR NOT NULL,
-    time      TIMESTAMP,
-    UNIQUE (hub_id, version),
-    CHECK ( check_current_version(hub_id) ),
-    CHECK ( check_previous_version(hub_id) )
-);
+ALTER TABLE tf_versions ADD CHECK ( check_previous_version(hub_id) );
 
 CREATE TABLE IF NOT EXISTS tf_object_types
 (
