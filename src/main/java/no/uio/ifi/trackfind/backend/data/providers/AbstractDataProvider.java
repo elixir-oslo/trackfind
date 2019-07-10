@@ -123,10 +123,14 @@ public abstract class AbstractDataProvider implements DataProvider {
         Optional<TfVersion> lastVersionOptional = hub.getLastVersion();
         AtomicLong versionNumber = new AtomicLong(0);
         lastVersionOptional.ifPresent(lv -> versionNumber.set(lv.getVersion()));
-        previousVersionOptional.ifPresent(pv -> pv.setPrevious(false));
+        previousVersionOptional.ifPresent(pv -> {
+            pv.setPrevious(false);
+            versionRepository.saveAndFlush(pv);
+        });
         currentVersionOptional.ifPresent(cv -> {
             cv.setPrevious(true);
             cv.setCurrent(false);
+            versionRepository.saveAndFlush(cv);
         });
         TfVersion version = new TfVersion();
         version.setVersion(versionNumber.incrementAndGet());

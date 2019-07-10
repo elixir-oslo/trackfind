@@ -40,7 +40,7 @@ CREATE OR REPLACE FUNCTION check_current_version(hub_id BIGINT)
     RETURNS BOOLEAN
     LANGUAGE SQL AS
 $$
-SELECT COUNT(tfv.id) = 1
+SELECT COUNT(tfv.id) <= 1
 FROM tf_versions tfv
 WHERE tfv.hub_id = hub_id
   AND tfv.current = TRUE
