@@ -6,6 +6,8 @@ import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
+import no.uio.ifi.trackfind.backend.events.DataReloadEvent;
+import no.uio.ifi.trackfind.backend.operations.Operation;
 import no.uio.ifi.trackfind.backend.pojo.*;
 import no.uio.ifi.trackfind.backend.repositories.HubRepository;
 import no.uio.ifi.trackfind.backend.repositories.ReferenceRepository;
@@ -14,6 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,11 +32,12 @@ import java.util.stream.Collectors;
 @Transactional
 public class MetamodelService {
 
-    private TrackFindProperties properties;
-    private JdbcTemplate jdbcTemplate;
-    private HubRepository hubRepository;
-    private VersionRepository versionRepository;
-    private ReferenceRepository referenceRepository;
+    protected TrackFindProperties properties;
+    protected JdbcTemplate jdbcTemplate;
+    protected HubRepository hubRepository;
+    protected VersionRepository versionRepository;
+    protected ReferenceRepository referenceRepository;
+    protected ApplicationEventPublisher applicationEventPublisher;
 
     @Cacheable(value = "metamodel-flat", sync = true)
     @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
@@ -203,11 +207,25 @@ public class MetamodelService {
         }
     }
 
+    @CacheEvict(cacheNames = {
+            "metamodel-references"
+    }, allEntries = true)
     @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     public void deleteReference(TfReference reference) {
         referenceRepository.delete(reference);
     }
 
+    @CacheEvict(cacheNames = {
+            "metamodel-array-of-objects-attributes",
+            "metamodel-flat",
+            "metamodel-tree",
+            "metamodel-categories",
+            "metamodel-attributes",
+            "metamodel-attributes-flat",
+            "metamodel-attribute-types",
+            "metamodel-values",
+            "metamodel-references"
+    }, allEntries = true)
     @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     public void activateVersion(TfVersion version) {
         TfHub hub = version.getHub();
@@ -224,6 +242,7 @@ public class MetamodelService {
         });
         version.setCurrent(true);
         versionRepository.saveAndFlush(version);
+        applicationEventPublisher.publishEvent(new DataReloadEvent(hub.getName(), Operation.VERSION_CHANGE));
     }
 
     @Autowired
@@ -249,6 +268,11 @@ public class MetamodelService {
     @Autowired
     public void setReferenceRepository(ReferenceRepository referenceRepository) {
         this.referenceRepository = referenceRepository;
+    }
+
+    @Autowired
+    public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+        this.applicationEventPublisher = applicationEventPublisher;
     }
 
 }

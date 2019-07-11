@@ -25,6 +25,10 @@ public class TfVersion implements Serializable {
     @Column(name = "version", nullable = false)
     private Long version;
 
+    @ManyToOne(cascade = {CascadeType.ALL})
+    @JoinColumn(name = "based_on")
+    private TfVersion basedOn;
+
     @Column(name = "current", nullable = false)
     private Boolean current;
 

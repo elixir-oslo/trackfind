@@ -98,7 +98,7 @@ public class SearchService {
         fullQuery.append("\nFROM ");
 
         for (TfObjectType objectType : objectTypesFromReferences) {
-            fullQuery.append("tf_latest_objects ").append(objectType.getName()).append(", ");
+            fullQuery.append("tf_current_objects ").append(objectType.getName()).append(", ");
         }
 
         fullQuery.setLength(fullQuery.length() - 2);

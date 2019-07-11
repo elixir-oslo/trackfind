@@ -28,12 +28,14 @@ CREATE TABLE IF NOT EXISTS tf_versions
     id        BIGSERIAL PRIMARY KEY,
     hub_id    BIGINT REFERENCES tf_hubs (id),
     version   BIGINT  NOT NULL,
+    based_on  BIGINT REFERENCES tf_versions (id),
     current   BOOLEAN NOT NULL,
     previous  BOOLEAN NOT NULL,
     operation VARCHAR NOT NULL,
     username  VARCHAR NOT NULL,
     time      TIMESTAMP,
-    UNIQUE (hub_id, version)
+    UNIQUE (hub_id, version),
+    CONSTRAINT mapping_should_have_based_on CHECK ( based_on IS NOT NULL OR operation = 'CRAWLING' )
 );
 
 CREATE OR REPLACE FUNCTION check_current_version(hub_id BIGINT)
@@ -46,7 +48,8 @@ WHERE tfv.hub_id = hub_id
   AND tfv.current = TRUE
 $$;
 
-ALTER TABLE tf_versions ADD CHECK ( check_current_version(hub_id) );
+ALTER TABLE tf_versions
+    ADD CHECK ( check_current_version(hub_id) );
 
 CREATE OR REPLACE FUNCTION check_previous_version(hub_id BIGINT)
     RETURNS BOOLEAN
@@ -58,7 +61,20 @@ WHERE tfv.hub_id = hub_id
   AND tfv.previous = TRUE
 $$;
 
-ALTER TABLE tf_versions ADD CHECK ( check_previous_version(hub_id) );
+ALTER TABLE tf_versions
+    ADD CHECK ( check_previous_version(hub_id) );
+
+CREATE OR REPLACE FUNCTION check_based_on_version(hub_id BIGINT, based_on BIGINT)
+    RETURNS BOOLEAN
+    LANGUAGE SQL AS
+$$
+SELECT tfv.hub_id = hub_id
+FROM tf_versions tfv
+WHERE tfv.id = based_on
+$$;
+
+ALTER TABLE tf_versions
+    ADD CHECK ( check_based_on_version(hub_id, based_on) );
 
 CREATE TABLE IF NOT EXISTS tf_object_types
 (
@@ -118,41 +134,36 @@ CREATE TABLE IF NOT EXISTS tf_scripts
     script     TEXT   NOT NULL
 );
 
-CREATE OR REPLACE VIEW tf_latest_versions AS
-    WITH max_versions AS (SELECT hub_id, MAX(version) "max_version"
-                          FROM tf_versions
-                          GROUP BY hub_id)
-    SELECT v.*
-    FROM max_versions m,
-         tf_versions v
-    WHERE m.hub_id = v.hub_id
-      AND m.max_version = v.version;
+CREATE OR REPLACE VIEW tf_current_versions AS
+SELECT *
+FROM tf_versions
+WHERE current = TRUE;
 
-CREATE MATERIALIZED VIEW IF NOT EXISTS tf_latest_objects AS
+CREATE MATERIALIZED VIEW IF NOT EXISTS tf_current_objects AS
 SELECT o.*
-FROM tf_latest_versions lv,
+FROM tf_current_versions lv,
      tf_object_types ot,
      tf_objects o
 WHERE lv.id = ot.version_id
   AND ot.id = o.object_type_id;
 
-CREATE INDEX IF NOT EXISTS tf_latest_objects_id_index
-    ON tf_latest_objects (id);
+CREATE INDEX IF NOT EXISTS tf_current_objects_id_index
+    ON tf_current_objects (id);
 
-CREATE INDEX IF NOT EXISTS tf_latest_objects_object_type_id_index
-    ON tf_latest_objects (object_type_id);
+CREATE INDEX IF NOT EXISTS tf_current_objects_object_type_id_index
+    ON tf_current_objects (object_type_id);
 
-CREATE INDEX IF NOT EXISTS tf_latest_objects_content_index
-    ON tf_latest_objects
+CREATE INDEX IF NOT EXISTS tf_current_objects_content_index
+    ON tf_current_objects
         USING gin (content);
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS tf_metamodel AS
-    WITH RECURSIVE collect_metadata AS (SELECT tf_latest_objects.object_type_id,
+    WITH RECURSIVE collect_metadata AS (SELECT tf_current_objects.object_type_id,
                                                first_level.key,
                                                first_level.value,
                                                jsonb_typeof(first_level.value) AS type
-                                        FROM tf_latest_objects,
-                                             jsonb_each(tf_latest_objects.content) first_level
+                                        FROM tf_current_objects,
+                                             jsonb_each(tf_current_objects.content) first_level
 
                                         UNION ALL
 
@@ -206,13 +217,13 @@ CREATE INDEX IF NOT EXISTS tf_attributes_object_type_id_attribute_index
     ON tf_attributes (object_type_id, attribute);
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS tf_array_of_objects AS
-    WITH RECURSIVE collect_metadata AS (SELECT tf_latest_objects.object_type_id,
+    WITH RECURSIVE collect_metadata AS (SELECT tf_current_objects.object_type_id,
                                                first_level.key,
                                                NULL                            AS prev_key,
                                                first_level.value,
                                                jsonb_typeof(first_level.value) AS type
-                                        FROM tf_latest_objects,
-                                             jsonb_each(tf_latest_objects.content) first_level
+                                        FROM tf_current_objects,
+                                             jsonb_each(tf_current_objects.content) first_level
 
                                         UNION ALL
 
