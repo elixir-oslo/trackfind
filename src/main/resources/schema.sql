@@ -38,31 +38,11 @@ CREATE TABLE IF NOT EXISTS tf_versions
     CONSTRAINT mapping_should_have_based_on CHECK ( based_on IS NOT NULL OR operation = 'CRAWLING' )
 );
 
-CREATE OR REPLACE FUNCTION check_current_version(hub_id BIGINT)
-    RETURNS BOOLEAN
-    LANGUAGE SQL AS
-$$
-SELECT COUNT(tfv.id) <= 1
-FROM tf_versions tfv
-WHERE tfv.hub_id = hub_id
-  AND tfv.current = TRUE
-$$;
+CREATE UNIQUE INDEX one_current_version_per_hub_idx on tf_versions (hub_id, current)
+    WHERE current = TRUE;
 
-ALTER TABLE tf_versions
-    ADD CHECK ( check_current_version(hub_id) );
-
-CREATE OR REPLACE FUNCTION check_previous_version(hub_id BIGINT)
-    RETURNS BOOLEAN
-    LANGUAGE SQL AS
-$$
-SELECT COUNT(tfv.id) <= 1
-FROM tf_versions tfv
-WHERE tfv.hub_id = hub_id
-  AND tfv.previous = TRUE
-$$;
-
-ALTER TABLE tf_versions
-    ADD CHECK ( check_previous_version(hub_id) );
+CREATE UNIQUE INDEX one_previous_version_per_hub_idx on tf_versions (hub_id, previous)
+    WHERE previous = TRUE;
 
 CREATE OR REPLACE FUNCTION check_based_on_version(hub_id BIGINT, based_on BIGINT)
     RETURNS BOOLEAN
@@ -74,7 +54,7 @@ WHERE tfv.id = based_on
 $$;
 
 ALTER TABLE tf_versions
-    ADD CHECK ( check_based_on_version(hub_id, based_on) );
+    ADD CONSTRAINT check_based_on_version CHECK ( check_based_on_version(hub_id, based_on) );
 
 CREATE TABLE IF NOT EXISTS tf_object_types
 (
@@ -123,7 +103,7 @@ CREATE TABLE IF NOT EXISTS tf_references
     to_object_type_id   BIGINT  NOT NULL REFERENCES tf_object_types (id),
     to_attribute        VARCHAR NOT NULL,
     UNIQUE (from_object_type_id, from_attribute, to_object_type_id, to_attribute),
-    CHECK ( check_reference(from_object_type_id, to_object_type_id) )
+    CONSTRAINT check_reference CHECK ( check_reference(from_object_type_id, to_object_type_id) )
 );
 
 CREATE TABLE IF NOT EXISTS tf_scripts
