@@ -1,11 +1,14 @@
 package no.uio.ifi.trackfind.backend.services;
 
-import com.google.gson.Gson;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
-import org.apache.commons.collections.MapUtils;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.everit.json.schema.*;
 import org.everit.json.schema.loader.SchemaLoader;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -13,63 +16,89 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
+import java.net.URL;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Service for loading JSON schema and for validating JSON objects.
  */
-// TODO: cover with tests
 @Slf4j
 @Service
 public class SchemaService {
 
-    private TrackFindProperties properties;
+    public static final String SCHEMA_URL = "https://raw.githubusercontent.com/fairtracks/fairtracks_standard/master/json/schema/fairtracks.schema.json";
+    protected TrackFindProperties properties;
 
-    private org.everit.json.schema.Schema schema;
-    private List<String> attributes;
+    private Schema schema;
+    private Multimap<String, String> attributes = HashMultimap.create();
 
     @Autowired
-    @SuppressWarnings("unchecked")
     public SchemaService(TrackFindProperties properties) {
         this.properties = properties;
-        try {
-            try (InputStreamReader inputStreamReader = new InputStreamReader(getClass().getResourceAsStream("/schema.json"))) {
-                Map<String, Object> schemaMap = new Gson().fromJson(inputStreamReader, Map.class);
-                attributes = new ArrayList<>();
-                gatherAttributes("", schemaMap);
-            }
-            try (InputStream inputStream = getClass().getResourceAsStream("/schema.json")) {
-                JSONObject rawSchema = new JSONObject(new JSONTokener(inputStream));
-                this.schema = SchemaLoader.load(rawSchema);
-            }
-            attributes = Collections.unmodifiableList(attributes);
+        try (InputStream inputStream = new URL(SCHEMA_URL).openStream()) {
+            JSONObject rawSchema = new JSONObject(new JSONTokener(inputStream));
+            this.schema = SchemaLoader.load(rawSchema);
+            gatherAttributes(null, "", schema);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             throw new RuntimeException(e.getMessage(), e);
         }
     }
 
-    @SuppressWarnings("unchecked")
     @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
-    private void gatherAttributes(String path, Map object) {
-        String type = String.valueOf(object.get("type"));
-        if ("object".equals(type)) {
-            for (Object properties : MapUtils.getMap(object, "properties").entrySet()) {
-                Map.Entry<String, Map> entry = (Map.Entry<String, Map>) properties;
-                gatherAttributes(path + this.properties.getLevelsSeparator() + entry.getKey(), entry.getValue());
+    private void gatherAttributes(String objectType, String path, Schema schema) {
+        if (schema instanceof ObjectSchema) {
+            Map<String, Schema> propertySchemas = ((ObjectSchema) schema).getPropertySchemas();
+            Set<Map.Entry<String, Schema>> entries = propertySchemas.entrySet();
+            if (CollectionUtils.isNotEmpty(entries)) {
+                for (Map.Entry<String, Schema> entry : entries) {
+                    if (StringUtils.isNotEmpty(objectType)) {
+                        gatherAttributes(objectType,
+                                path.isEmpty() ? entry.getKey() : path + properties.getLevelsSeparator() + entry.getKey(),
+                                entry.getValue());
+                    } else {
+                        gatherAttributes(entry.getKey(),
+                                path.isEmpty() ? entry.getKey() : path,
+                                entry.getValue());
+                    }
+                }
             }
-        } else if ("array".equals(type)) {
-            for (Object properties : MapUtils.getMap(MapUtils.getMap(object, "items"), "properties").entrySet()) {
-                Map.Entry<String, Map> entry = (Map.Entry<String, Map>) properties;
-                gatherAttributes(path + this.properties.getLevelsSeparator() + entry.getKey(), entry.getValue());
-            }
-        } else {
-            attributes.add(path.substring(this.properties.getLevelsSeparator().length()));
+            return;
         }
+        if (schema instanceof ArraySchema) {
+            Schema allItemSchema = ((ArraySchema) schema).getAllItemSchema();
+            if (allItemSchema != null) {
+                gatherAttributes(objectType, path, allItemSchema);
+            }
+            Schema containedItemSchema = ((ArraySchema) schema).getContainedItemSchema();
+            if (containedItemSchema != null) {
+                gatherAttributes(objectType, path, containedItemSchema);
+            }
+            return;
+        }
+        if (schema instanceof CombinedSchema) {
+            Collection<Schema> subschemas = ((CombinedSchema) schema).getSubschemas();
+            if (CollectionUtils.isNotEmpty(subschemas)) {
+                for (Schema subschema : subschemas) {
+                    gatherAttributes(objectType, path, subschema);
+                }
+            }
+            return;
+        }
+        if (schema instanceof ReferenceSchema) {
+            gatherAttributes(objectType, path, ((ReferenceSchema) schema).getReferredSchema());
+            return;
+        }
+        if (StringUtils.isNotEmpty(objectType)) {
+            attributes.put(objectType, path);
+        }
+    }
+
+    public Schema getSchema() {
+        return schema;
     }
 
     /**
@@ -78,8 +107,8 @@ public class SchemaService {
      * @return Collection of attributes.
      */
     @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
-    public List<String> getAttributes() {
-        return attributes;
+    public Map<String, Collection<String>> getAttributes() {
+        return Collections.unmodifiableMap(attributes.asMap());
     }
 
     /**
