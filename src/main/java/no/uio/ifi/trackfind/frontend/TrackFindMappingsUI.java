@@ -3,6 +3,9 @@ package no.uio.ifi.trackfind.frontend;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Title;
 import com.vaadin.annotations.Widgetset;
+import com.vaadin.data.HasValue;
+import com.vaadin.event.selection.SelectionEvent;
+import com.vaadin.event.selection.SelectionListener;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.spring.annotation.SpringUI;
 import com.vaadin.ui.*;
@@ -16,7 +19,9 @@ import no.uio.ifi.trackfind.backend.repositories.ScriptRepository;
 import no.uio.ifi.trackfind.backend.services.MetamodelService;
 import no.uio.ifi.trackfind.frontend.components.TrackFindTree;
 import no.uio.ifi.trackfind.frontend.filters.TreeFilter;
+import no.uio.ifi.trackfind.frontend.listeners.TreeSelectionListener;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.aceeditor.AceEditor;
 import org.vaadin.aceeditor.AceMode;
@@ -24,6 +29,8 @@ import org.vaadin.aceeditor.AceTheme;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.Collection;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * Mappings Vaadin UI of the application.
@@ -42,6 +49,10 @@ public class TrackFindMappingsUI extends AbstractUI {
     private MetamodelService metamodelService;
     private ScriptRepository scriptRepository;
     private HubRepository hubRepository;
+
+    private Button addMappingButton = new Button("Add mapping");
+    private ComboBox<String> attributesComboBox = new ComboBox<>();
+    private ComboBox<String> categoriesComboBox = new ComboBox<>();
 
     private AceEditor script;
 
@@ -63,6 +74,15 @@ public class TrackFindMappingsUI extends AbstractUI {
 
         for (TfHub hub : trackFindService.getTrackHubs(true)) {
             TrackFindTree<TreeNode> tree = buildTree(hub);
+            tree.addSelectionListener((SelectionListener<TreeNode>) event -> {
+                Optional<String> value = attributesComboBox.getSelectedItem();
+                Optional<TreeNode> item = event.getFirstSelectedItem();
+                if (value.isPresent() && item.isPresent()) {
+                    addMappingButton.setEnabled(true);
+                } else {
+                    addMappingButton.setEnabled(false);
+                }
+            });
             tabSheet.addTab(tree, hub.getName());
         }
 
@@ -73,7 +93,39 @@ public class TrackFindMappingsUI extends AbstractUI {
 
 //        TextField attributesFilterTextField = createFilter(true);
 
-        VerticalLayout treeLayout = new VerticalLayout(treePanel);
+        addMappingButton = new Button("Add mapping");
+        addMappingButton.setEnabled(false);
+        addMappingButton.setWidth("100%");
+
+        attributesComboBox = new ComboBox<>();
+        attributesComboBox.setEnabled(false);
+        attributesComboBox.setWidth("100%");
+        attributesComboBox.addValueChangeListener((HasValue.ValueChangeListener<String>) event -> {
+            String value = event.getValue();
+            TrackFindTree<TreeNode> currentTree = getCurrentTree();
+            if (StringUtils.isNotEmpty(value) && CollectionUtils.isNotEmpty(currentTree.getSelectedItems())) {
+                addMappingButton.setEnabled(true);
+            } else {
+                addMappingButton.setEnabled(false);
+            }
+        });
+
+        categoriesComboBox = new ComboBox<>();
+        categoriesComboBox.setWidth("100%");
+        categoriesComboBox.setItems(schemaService.getAttributes().keySet());
+        categoriesComboBox.addValueChangeListener((HasValue.ValueChangeListener<String>) event -> {
+            String value = event.getValue();
+            attributesComboBox.clear();
+            addMappingButton.setEnabled(false);
+            if (StringUtils.isEmpty(value)) {
+                attributesComboBox.setEnabled(false);
+            } else {
+                attributesComboBox.setEnabled(true);
+                attributesComboBox.setItems(schemaService.getAttributes().get(value));
+            }
+        });
+
+        VerticalLayout treeLayout = new VerticalLayout(treePanel, categoriesComboBox, attributesComboBox, addMappingButton);
         treeLayout.setSizeFull();
         treeLayout.setExpandRatio(treePanel, 1f);
         return treeLayout;
