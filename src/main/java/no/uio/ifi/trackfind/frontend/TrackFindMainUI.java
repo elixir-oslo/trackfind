@@ -187,7 +187,6 @@ public class TrackFindMainUI extends AbstractUI {
         return resultsLayout;
     }
 
-    @SuppressWarnings("ResultOfMethodCallIgnored")
     private VerticalLayout buildQueryLayout() {
         queryTextArea = new TextArea();
         queryTextArea.setSizeFull();

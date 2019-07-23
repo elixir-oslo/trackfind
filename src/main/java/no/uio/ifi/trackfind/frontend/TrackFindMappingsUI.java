@@ -71,9 +71,9 @@ public class TrackFindMappingsUI extends AbstractUI {
         Panel treePanel = new Panel("Model browser", tabSheet);
         treePanel.setSizeFull();
 
-        TextField attributesFilterTextField = createFilter(true);
+//        TextField attributesFilterTextField = createFilter(true);
 
-        VerticalLayout treeLayout = new VerticalLayout(treePanel, attributesFilterTextField);
+        VerticalLayout treeLayout = new VerticalLayout(treePanel);
         treeLayout.setSizeFull();
         treeLayout.setExpandRatio(treePanel, 1f);
         return treeLayout;
@@ -101,7 +101,6 @@ public class TrackFindMappingsUI extends AbstractUI {
         return mainLayout;
     }
 
-    @SuppressWarnings("PMD.NPathComplexity")
     private VerticalLayout buildAttributesMappingLayout() {
         script = new AceEditor();
         script.setSizeFull();

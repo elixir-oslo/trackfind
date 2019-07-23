@@ -57,11 +57,11 @@ public class SchemaService {
                 for (Map.Entry<String, Schema> entry : entries) {
                     if (StringUtils.isNotEmpty(objectType)) {
                         gatherAttributes(objectType,
-                                path.isEmpty() ? entry.getKey() : path + properties.getLevelsSeparator() + entry.getKey(),
+                                path + properties.getLevelsSeparator() + entry.getKey(),
                                 entry.getValue());
                     } else {
                         gatherAttributes(entry.getKey(),
-                                path.isEmpty() ? entry.getKey() : path,
+                                path,
                                 entry.getValue());
                     }
                 }
@@ -93,7 +93,8 @@ public class SchemaService {
             return;
         }
         if (StringUtils.isNotEmpty(objectType)) {
-            attributes.put(objectType, path);
+            int separatorLength = properties.getLevelsSeparator().length();
+            attributes.put(objectType, path.isEmpty() ? path : path.substring(separatorLength));
         }
     }
 
