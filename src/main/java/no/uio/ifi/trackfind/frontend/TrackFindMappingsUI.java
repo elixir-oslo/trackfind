@@ -72,9 +72,8 @@ public class TrackFindMappingsUI extends AbstractUI {
         treePanel.setSizeFull();
 
         TextField attributesFilterTextField = createFilter(true);
-        TextField valuesFilterTextField = createFilter(false);
 
-        VerticalLayout treeLayout = new VerticalLayout(treePanel, attributesFilterTextField, valuesFilterTextField);
+        VerticalLayout treeLayout = new VerticalLayout(treePanel, attributesFilterTextField);
         treeLayout.setSizeFull();
         treeLayout.setExpandRatio(treePanel, 1f);
         return treeLayout;

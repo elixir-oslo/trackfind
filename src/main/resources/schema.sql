@@ -38,10 +38,10 @@ CREATE TABLE IF NOT EXISTS tf_versions
     CONSTRAINT mapping_should_have_based_on CHECK ( based_on IS NOT NULL OR operation = 'CRAWLING' )
 );
 
-CREATE UNIQUE INDEX one_current_version_per_hub_idx on tf_versions (hub_id, current)
+CREATE UNIQUE INDEX IF NOT EXISTS one_current_version_per_hub_idx on tf_versions (hub_id, current)
     WHERE current = TRUE;
 
-CREATE UNIQUE INDEX one_previous_version_per_hub_idx on tf_versions (hub_id, previous)
+CREATE UNIQUE INDEX IF NOT EXISTS one_previous_version_per_hub_idx on tf_versions (hub_id, previous)
     WHERE previous = TRUE;
 
 CREATE OR REPLACE FUNCTION check_based_on_version(hub_id BIGINT, based_on BIGINT)
@@ -52,6 +52,9 @@ SELECT tfv.hub_id = hub_id
 FROM tf_versions tfv
 WHERE tfv.id = based_on
 $$;
+
+ALTER TABLE tf_versions
+    DROP CONSTRAINT IF EXISTS check_based_on_version;
 
 ALTER TABLE tf_versions
     ADD CONSTRAINT check_based_on_version CHECK ( check_based_on_version(hub_id, based_on) );
