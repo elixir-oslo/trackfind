@@ -109,6 +109,7 @@ public class TrackFindMappingsUI extends AbstractUI {
             TfObjectType objectType = objectTypes.stream().filter(ot -> ot.getName().equalsIgnoreCase(objectTypeName)).findAny().orElseThrow(RuntimeException::new);
             metamodelService.addMapping(new TfMapping(null, treeNode.getSQLPath(), objectType, attributesComboBox.getSelectedItem().orElseThrow(RuntimeException::new)));
             grid.setItems(metamodelService.getMappings(currentHub.getRepository(), currentHub.getName()));
+            grid.recalculateColumnWidths();
         });
 
         attributesComboBox = new ComboBox<>();
@@ -181,6 +182,7 @@ public class TrackFindMappingsUI extends AbstractUI {
         ButtonRenderer buttonRenderer = new ButtonRenderer((ClickableRenderer.RendererClickListener<TfMapping>) event -> {
             metamodelService.deleteMapping(event.getItem());
             grid.setItems(metamodelService.getMappings(currentHub.getRepository(), currentHub.getName()));
+            grid.recalculateColumnWidths();
         }) {
             @Override
             public JsonValue encode(Object value) {
@@ -190,6 +192,7 @@ public class TrackFindMappingsUI extends AbstractUI {
         grid.getColumn("id").setRenderer(buttonRenderer).setCaption("Action");
         grid.setColumnOrder("0", "1", "2", "id");
         grid.setItems(metamodelService.getMappings(currentHub.getRepository(), currentHub.getName()));
+        grid.recalculateColumnWidths();
 
         Panel mappingsPanel = new Panel("Mappings", grid);
         mappingsPanel.setSizeFull();
