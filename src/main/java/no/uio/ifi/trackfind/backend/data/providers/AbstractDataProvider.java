@@ -94,7 +94,8 @@ public abstract class AbstractDataProvider implements DataProvider {
             "metamodel-attributes-flat",
             "metamodel-attribute-types",
             "metamodel-values",
-            "metamodel-references"
+            "metamodel-references",
+            "metamodel-mappings"
     }, allEntries = true)
     @Override
     public synchronized void crawlRemoteRepository(String hubName) {
@@ -190,7 +191,8 @@ public abstract class AbstractDataProvider implements DataProvider {
             "metamodel-attributes-flat",
             "metamodel-attribute-types",
             "metamodel-values",
-            "metamodel-references"
+            "metamodel-references",
+            "metamodel-mappings"
     }, allEntries = true)
     @Override
     public synchronized void applyMappings(String hubName) {

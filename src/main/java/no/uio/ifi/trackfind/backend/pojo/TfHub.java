@@ -5,10 +5,10 @@ import org.springframework.util.CollectionUtils;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Optional;
+import java.util.Set;
 
 @Entity
 @Table(name = "tf_hubs")
@@ -33,7 +33,7 @@ public class TfHub implements Serializable {
     private String name;
 
     @OneToMany(mappedBy = "hub", fetch = FetchType.EAGER)
-    private Collection<TfVersion> versions;
+    private Set<TfVersion> versions;
 
     public Optional<TfVersion> getCurrentVersion() {
         if (CollectionUtils.isEmpty(versions)) {

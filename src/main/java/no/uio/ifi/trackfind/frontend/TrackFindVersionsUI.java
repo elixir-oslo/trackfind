@@ -78,7 +78,7 @@ public class TrackFindVersionsUI extends AbstractUI {
                     return super.encode("Set current");
                 }
             };
-            grid.getColumn("id").setRenderer(buttonRenderer).setCaption("Operations");
+            grid.getColumn("id").setRenderer(buttonRenderer).setCaption("Action");
             grid.setColumnOrder("version", "operation", "username", "time", "id");
             grid.sort("id");
             grid.setData(hub);

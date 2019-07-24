@@ -75,7 +75,7 @@ public class TrackFindReferencesUI extends AbstractUI {
                     return super.encode("Delete");
                 }
             };
-            grid.getColumn("id").setRenderer(buttonRenderer).setCaption("Operations");
+            grid.getColumn("id").setRenderer(buttonRenderer).setCaption("Action");
             grid.setColumnOrder("0", "1", "2", "3", "id");
             grid.setData(hub);
             grid.setItems(metamodelService.getReferences(hub.getRepository(), hub.getName()));
@@ -124,7 +124,7 @@ public class TrackFindReferencesUI extends AbstractUI {
             Grid selectedTab = (Grid) referencesTabSheet.getSelectedTab();
             TfHub hub = (TfHub) selectedTab.getData();
             try {
-                metamodelService.copyFromPreviousVersion(hub.getRepository(), hub.getName());
+                metamodelService.copyReferencesFromPreviousVersion(hub.getRepository(), hub.getName());
                 selectedTab.setItems(metamodelService.getReferences(hub.getRepository(), hub.getName()));
             } catch (Exception ignored) {
             }

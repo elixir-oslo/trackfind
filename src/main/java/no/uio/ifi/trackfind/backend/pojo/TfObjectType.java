@@ -7,7 +7,7 @@ import lombok.ToString;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.util.Collection;
+import java.util.Set;
 
 @Entity
 @Table(name = "tf_object_types")
@@ -29,7 +29,10 @@ public class TfObjectType implements Serializable {
     @JoinColumn(name = "version_id", referencedColumnName = "id")
     private TfVersion version;
 
-    @OneToMany(mappedBy = "fromObjectType", fetch = FetchType.EAGER)
-    private Collection<TfReference> references;
+    @OneToMany(mappedBy = "toObjectType", fetch = FetchType.EAGER)
+    private Set<TfReference> references;
+
+    @OneToMany(mappedBy = "toObjectType", fetch = FetchType.EAGER)
+    private Set<TfMapping> mappings;
 
 }

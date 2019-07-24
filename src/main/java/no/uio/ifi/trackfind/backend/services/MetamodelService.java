@@ -10,6 +10,7 @@ import no.uio.ifi.trackfind.backend.events.DataReloadEvent;
 import no.uio.ifi.trackfind.backend.operations.Operation;
 import no.uio.ifi.trackfind.backend.pojo.*;
 import no.uio.ifi.trackfind.backend.repositories.HubRepository;
+import no.uio.ifi.trackfind.backend.repositories.MappingsRepository;
 import no.uio.ifi.trackfind.backend.repositories.ReferenceRepository;
 import no.uio.ifi.trackfind.backend.repositories.VersionRepository;
 import org.apache.commons.lang3.StringUtils;
@@ -37,6 +38,7 @@ public class MetamodelService {
     protected HubRepository hubRepository;
     protected VersionRepository versionRepository;
     protected ReferenceRepository referenceRepository;
+    protected MappingsRepository mappingsRepository;
     protected ApplicationEventPublisher applicationEventPublisher;
 
     @Cacheable(value = "metamodel-flat", sync = true)
@@ -189,7 +191,15 @@ public class MetamodelService {
             "metamodel-references"
     }, allEntries = true)
     @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
-    public void copyFromPreviousVersion(String repository, String hub) {
+    public void deleteReference(TfReference reference) {
+        referenceRepository.delete(reference);
+    }
+
+    @CacheEvict(cacheNames = {
+            "metamodel-references"
+    }, allEntries = true)
+    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
+    public void copyReferencesFromPreviousVersion(String repository, String hub) {
         TfHub currentHub = hubRepository.findByRepositoryAndName(repository, hub);
         Collection<TfObjectType> currentObjectTypes = getObjectTypes(repository, hub);
         Collection<String> currentObjectTypeNames = currentObjectTypes.stream().map(TfObjectType::getName).collect(Collectors.toSet());
@@ -207,12 +217,33 @@ public class MetamodelService {
         }
     }
 
+    @Cacheable(value = "metamodel-mappings", sync = true)
+    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
+    public Collection<TfMapping> getMappings(String repository, String hub) {
+        TfHub currentHub = hubRepository.findByRepositoryAndName(repository, hub);
+        TfVersion currentVersion = currentHub.getCurrentVersion().orElseThrow(RuntimeException::new);
+        Collection<TfObjectType> objectTypes = currentVersion.getObjectTypes();
+        Collection<TfMapping> mappings = new HashSet<>();
+        for (TfObjectType objectType : objectTypes) {
+            mappings.addAll(objectType.getMappings());
+        }
+        return mappings;
+    }
+
     @CacheEvict(cacheNames = {
-            "metamodel-references"
+            "metamodel-mappings"
     }, allEntries = true)
     @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
-    public void deleteReference(TfReference reference) {
-        referenceRepository.delete(reference);
+    public void addMapping(TfMapping mapping) {
+        mappingsRepository.save(mapping);
+    }
+
+    @CacheEvict(cacheNames = {
+            "metamodel-mappings"
+    }, allEntries = true)
+    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
+    public void deleteMapping(TfMapping mapping) {
+        mappingsRepository.delete(mapping);
     }
 
     @CacheEvict(cacheNames = {
@@ -224,7 +255,8 @@ public class MetamodelService {
             "metamodel-attributes-flat",
             "metamodel-attribute-types",
             "metamodel-values",
-            "metamodel-references"
+            "metamodel-references",
+            "metamodel-mappings"
     }, allEntries = true)
     @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     public void activateVersion(TfVersion version) {
@@ -268,6 +300,11 @@ public class MetamodelService {
     @Autowired
     public void setReferenceRepository(ReferenceRepository referenceRepository) {
         this.referenceRepository = referenceRepository;
+    }
+
+    @Autowired
+    public void setMappingsRepository(MappingsRepository mappingsRepository) {
+        this.mappingsRepository = mappingsRepository;
     }
 
     @Autowired

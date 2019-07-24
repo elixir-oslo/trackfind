@@ -4,22 +4,25 @@ import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Title;
 import com.vaadin.annotations.Widgetset;
 import com.vaadin.data.HasValue;
-import com.vaadin.event.selection.SelectionEvent;
 import com.vaadin.event.selection.SelectionListener;
 import com.vaadin.server.VaadinRequest;
+import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.spring.annotation.SpringUI;
 import com.vaadin.ui.*;
+import com.vaadin.ui.renderers.ButtonRenderer;
+import com.vaadin.ui.renderers.ClickableRenderer;
+import elemental.json.JsonValue;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.data.TreeNode;
 import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
 import no.uio.ifi.trackfind.backend.pojo.TfHub;
+import no.uio.ifi.trackfind.backend.pojo.TfMapping;
 import no.uio.ifi.trackfind.backend.pojo.TfScript;
 import no.uio.ifi.trackfind.backend.repositories.HubRepository;
 import no.uio.ifi.trackfind.backend.repositories.ScriptRepository;
 import no.uio.ifi.trackfind.backend.services.MetamodelService;
 import no.uio.ifi.trackfind.frontend.components.TrackFindTree;
 import no.uio.ifi.trackfind.frontend.filters.TreeFilter;
-import no.uio.ifi.trackfind.frontend.listeners.TreeSelectionListener;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +33,6 @@ import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.Collection;
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * Mappings Vaadin UI of the application.
@@ -54,14 +56,16 @@ public class TrackFindMappingsUI extends AbstractUI {
     private ComboBox<String> attributesComboBox = new ComboBox<>();
     private ComboBox<String> categoriesComboBox = new ComboBox<>();
 
-    private AceEditor script;
+    private Grid<TfMapping> grid = new Grid<>(TfMapping.class);
+    private AceEditor script = new AceEditor();
 
     @Override
     protected void init(VaadinRequest vaadinRequest) {
         HorizontalLayout headerLayout = buildHeaderLayout();
-        VerticalLayout attributesMappingOuterLayout = buildAttributesMappingLayout();
         VerticalLayout treeLayout = buildTreeLayout();
-        HorizontalLayout mainLayout = buildMainLayout(treeLayout, attributesMappingOuterLayout);
+        VerticalLayout mappingsLayout = buildMappingsLayout();
+        VerticalLayout scriptsLayout = buildScriptsLayout();
+        HorizontalLayout mainLayout = buildMainLayout(treeLayout, mappingsLayout, scriptsLayout);
         HorizontalLayout footerLayout = buildFooterLayout();
         VerticalLayout outerLayout = buildOuterLayout(headerLayout, mainLayout, footerLayout);
         setContent(outerLayout);
@@ -145,55 +149,95 @@ public class TrackFindMappingsUI extends AbstractUI {
         return tree;
     }
 
-    private HorizontalLayout buildMainLayout(VerticalLayout treeLayout, VerticalLayout attributesMappingOuterLayout) {
-        HorizontalLayout mainLayout = new HorizontalLayout(treeLayout, attributesMappingOuterLayout);
+    private HorizontalLayout buildMainLayout(VerticalLayout treeLayout, VerticalLayout mappingsLayout, VerticalLayout scriptsLayout) {
+        HorizontalLayout mainLayout = new HorizontalLayout(treeLayout, mappingsLayout, scriptsLayout);
         mainLayout.setExpandRatio(treeLayout, 0.33f);
-        mainLayout.setExpandRatio(attributesMappingOuterLayout, 0.66f);
+        mainLayout.setExpandRatio(mappingsLayout, 0.33f);
+        mainLayout.setExpandRatio(scriptsLayout, 0.33f);
         mainLayout.setSizeFull();
         return mainLayout;
     }
 
-    private VerticalLayout buildAttributesMappingLayout() {
-        script = new AceEditor();
+    @SuppressWarnings("unchecked")
+    private VerticalLayout buildMappingsLayout() {
+        TfHub hub = getCurrentHub();
+        grid.setSizeFull();
+        grid.addColumn(TfMapping::getFromAttribute).setCaption("From attribute").setId("0");
+        grid.addColumn(m -> m.getToObjectType().getName()).setCaption("To category").setId("1");
+        grid.addColumn(TfMapping::getToAttribute).setCaption("To attribute").setId("2");
+        grid.removeColumn("fromAttribute");
+        grid.removeColumn("toObjectType");
+        grid.removeColumn("toAttribute");
+        ButtonRenderer buttonRenderer = new ButtonRenderer((ClickableRenderer.RendererClickListener<TfMapping>) event -> {
+            metamodelService.deleteMapping(event.getItem());
+            grid.setItems(metamodelService.getMappings(hub.getRepository(), hub.getName()));
+        }) {
+            @Override
+            public JsonValue encode(Object value) {
+                return super.encode("Delete");
+            }
+        };
+        grid.getColumn("id").setRenderer(buttonRenderer).setCaption("Action");
+        grid.setColumnOrder("0", "1", "2", "id");
+        grid.setItems(metamodelService.getMappings(hub.getRepository(), hub.getName()));
+
+        Panel mappingsPanel = new Panel("Mappings", grid);
+        mappingsPanel.setSizeFull();
+
+        VerticalLayout mappingsLayout = new VerticalLayout(mappingsPanel);
+        mappingsLayout.setSizeFull();
+        mappingsLayout.setExpandRatio(mappingsPanel, 1f);
+        mappingsLayout.setMargin(new MarginInfo(true, false, true, false));
+        return mappingsLayout;
+    }
+
+    private VerticalLayout buildScriptsLayout() {
         script.setSizeFull();
         script.setTheme(AceTheme.github);
         script.setMode(AceMode.coffee);
 
-        TabSheet mappingsTabSheet = new TabSheet();
-        mappingsTabSheet.setSizeFull();
-        mappingsTabSheet.addTab(script, "Script 1");
+        TabSheet scriptsTabSheet = new TabSheet();
+        scriptsTabSheet.setSizeFull();
+        scriptsTabSheet.addTab(script, "Script 1");
 
-        mappingsTabSheet.addSelectedTabChangeListener((TabSheet.SelectedTabChangeListener) event -> {
+        scriptsTabSheet.addSelectedTabChangeListener((TabSheet.SelectedTabChangeListener) event -> {
             if (event.getTabSheet().getSelectedTab().equals(script)) {
                 script.focus();
             }
         });
 
-        Panel attributesMappingPanel = new Panel("Scripts", mappingsTabSheet);
-        attributesMappingPanel.setSizeFull();
+        Panel scriptsPanel = new Panel("Scripts", scriptsTabSheet);
+        scriptsPanel.setSizeFull();
         Button saveButton = new Button("Save");
         saveButton.setSizeFull();
         saveButton.addClickListener((Button.ClickListener) event -> saveConfiguration());
         Button applyMappingsButton = new Button("Apply mappings");
         applyMappingsButton.setSizeFull();
-        applyMappingsButton.addClickListener((Button.ClickListener) event -> ConfirmDialog.show(getUI(),
-                "Are you sure? " +
-                        "Applying attribute scripts is time-consuming process and will lead to changing the data in the database.",
-                (ConfirmDialog.Listener) dialog -> {
-                    if (dialog.isConfirmed()) {
-                        TfHub currentHub = getCurrentHub();
-                        DataProvider dataProvider = trackFindService.getDataProvider(currentHub.getRepository());
-                        dataProvider.applyMappings(currentHub.getName());
-                    }
-                }));
+        applyMappingsButton.addClickListener((Button.ClickListener) event -> {
+            TfHub currentHub = getCurrentHub();
+            Collection<TfScript> scripts = metamodelService.getScripts(currentHub.getRepository(), currentHub.getName());
+            if (!grid.iterator().hasNext() || CollectionUtils.isEmpty(scripts)) {
+                Notification.show("You should have either mappings or scripts in order to proceed.", Notification.Type.WARNING_MESSAGE);
+                return;
+            }
+            ConfirmDialog.show(getUI(),
+                    "Are you sure? " +
+                            "Applying attribute scripts is time-consuming process and will lead to changing the data in the database.",
+                    (ConfirmDialog.Listener) dialog -> {
+                        if (dialog.isConfirmed()) {
+                            DataProvider dataProvider = trackFindService.getDataProvider(currentHub.getRepository());
+                            dataProvider.applyMappings(currentHub.getName());
+                        }
+                    });
+        });
 
         HorizontalLayout buttonsLayout = new HorizontalLayout(saveButton, applyMappingsButton);
         buttonsLayout.setWidth(100, Unit.PERCENTAGE);
         buttonsLayout.setEnabled(!properties.isDemoMode());
-        VerticalLayout attributesMappingOuterLayout = new VerticalLayout(attributesMappingPanel, buttonsLayout);
-        attributesMappingOuterLayout.setSizeFull();
-        attributesMappingOuterLayout.setExpandRatio(attributesMappingPanel, 1f);
-        return attributesMappingOuterLayout;
+        VerticalLayout scriptsLayout = new VerticalLayout(scriptsPanel, buttonsLayout);
+        scriptsLayout.setSizeFull();
+        scriptsLayout.setExpandRatio(scriptsPanel, 1f);
+        return scriptsLayout;
     }
 
     private void loadConfiguration() {
