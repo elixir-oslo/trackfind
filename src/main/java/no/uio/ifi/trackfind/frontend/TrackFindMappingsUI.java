@@ -17,6 +17,7 @@ import no.uio.ifi.trackfind.backend.data.TreeNode;
 import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
 import no.uio.ifi.trackfind.backend.pojo.TfHub;
 import no.uio.ifi.trackfind.backend.pojo.TfMapping;
+import no.uio.ifi.trackfind.backend.pojo.TfObjectType;
 import no.uio.ifi.trackfind.backend.pojo.TfScript;
 import no.uio.ifi.trackfind.backend.repositories.HubRepository;
 import no.uio.ifi.trackfind.backend.repositories.ScriptRepository;
@@ -100,6 +101,15 @@ public class TrackFindMappingsUI extends AbstractUI {
         addMappingButton = new Button("Add mapping");
         addMappingButton.setEnabled(false);
         addMappingButton.setWidth("100%");
+        addMappingButton.addClickListener((Button.ClickListener) event -> {
+            TfHub currentHub = getCurrentHub();
+            TreeNode treeNode = getCurrentTree().getSelectedItems().iterator().next();
+            String objectTypeName = categoriesComboBox.getSelectedItem().orElseThrow(RuntimeException::new);
+            Collection<TfObjectType> objectTypes = metamodelService.getObjectTypes(currentHub.getRepository(), currentHub.getName());
+            TfObjectType objectType = objectTypes.stream().filter(ot -> ot.getName().equalsIgnoreCase(objectTypeName)).findAny().orElseThrow(RuntimeException::new);
+            metamodelService.addMapping(new TfMapping(null, treeNode.getSQLPath(), objectType, attributesComboBox.getSelectedItem().orElseThrow(RuntimeException::new)));
+            grid.setItems(metamodelService.getMappings(currentHub.getRepository(), currentHub.getName()));
+        });
 
         attributesComboBox = new ComboBox<>();
         attributesComboBox.setEnabled(false);
@@ -160,7 +170,7 @@ public class TrackFindMappingsUI extends AbstractUI {
 
     @SuppressWarnings("unchecked")
     private VerticalLayout buildMappingsLayout() {
-        TfHub hub = getCurrentHub();
+        TfHub currentHub = getCurrentHub();
         grid.setSizeFull();
         grid.addColumn(TfMapping::getFromAttribute).setCaption("From attribute").setId("0");
         grid.addColumn(m -> m.getToObjectType().getName()).setCaption("To category").setId("1");
@@ -170,7 +180,7 @@ public class TrackFindMappingsUI extends AbstractUI {
         grid.removeColumn("toAttribute");
         ButtonRenderer buttonRenderer = new ButtonRenderer((ClickableRenderer.RendererClickListener<TfMapping>) event -> {
             metamodelService.deleteMapping(event.getItem());
-            grid.setItems(metamodelService.getMappings(hub.getRepository(), hub.getName()));
+            grid.setItems(metamodelService.getMappings(currentHub.getRepository(), currentHub.getName()));
         }) {
             @Override
             public JsonValue encode(Object value) {
@@ -179,7 +189,7 @@ public class TrackFindMappingsUI extends AbstractUI {
         };
         grid.getColumn("id").setRenderer(buttonRenderer).setCaption("Action");
         grid.setColumnOrder("0", "1", "2", "id");
-        grid.setItems(metamodelService.getMappings(hub.getRepository(), hub.getName()));
+        grid.setItems(metamodelService.getMappings(currentHub.getRepository(), currentHub.getName()));
 
         Panel mappingsPanel = new Panel("Mappings", grid);
         mappingsPanel.setSizeFull();
