@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.data.providers.AbstractDataProvider;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import javax.net.ssl.*;
@@ -30,6 +31,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Component
+@Transactional
 public class IHECDataProvider extends AbstractDataProvider {
 
     private static final String RELEASES_URL = "https://epigenomesportal.ca/cgi-bin/api/getReleases.py";

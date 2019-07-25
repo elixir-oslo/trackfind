@@ -4,6 +4,7 @@ import com.google.common.collect.HashMultimap;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.data.providers.AbstractDataProvider;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -18,6 +19,7 @@ import java.util.Map;
  */
 @Slf4j
 @Component
+@Transactional
 public class TrackHubRegistryDataProvider extends AbstractDataProvider {
 
     //    private static final String HUBS_URL = "https://www.trackhubregistry.org/api/info/trackhubs";

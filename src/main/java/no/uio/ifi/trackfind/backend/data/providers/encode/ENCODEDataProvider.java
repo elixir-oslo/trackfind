@@ -4,6 +4,7 @@ import com.google.common.collect.HashMultimap;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.data.providers.AbstractDataProvider;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -20,6 +21,7 @@ import java.util.concurrent.CountDownLatch;
  */
 @Slf4j
 @Component
+@Transactional
 public class ENCODEDataProvider extends AbstractDataProvider {
 
     private static final String FETCH_URL = "https://www.encodeproject.org/search/?type=%s&limit=all&format=json";

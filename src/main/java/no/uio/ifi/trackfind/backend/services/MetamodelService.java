@@ -68,9 +68,13 @@ public class MetamodelService {
     public Map<String, Map<String, Object>> getMetamodelTree(String repository, String hub) {
         Map<String, Map<String, Object>> result = new HashMap<>();
         Collection<TfObjectType> objectTypes = getObjectTypes(repository, hub);
+        Map<String, Multimap<String, String>> fullMetamodelFlat = getMetamodelFlat(repository, hub);
         for (TfObjectType objectType : objectTypes) {
+            if (!fullMetamodelFlat.containsKey(objectType.getName())) {
+                continue;
+            }
             Map<String, Object> fullMetamodel = new HashMap<>();
-            Multimap<String, String> metamodelFlat = getMetamodelFlat(repository, hub).get(objectType.getName());
+            Multimap<String, String> metamodelFlat = fullMetamodelFlat.get(objectType.getName());
             for (Map.Entry<String, Collection<String>> entry : metamodelFlat.asMap().entrySet()) {
                 String attribute = entry.getKey();
                 Map<String, Object> metamodel = fullMetamodel;
@@ -166,7 +170,6 @@ public class MetamodelService {
         return currentHub.getCurrentVersion().orElseThrow(RuntimeException::new).getScripts();
     }
 
-    @Cacheable(value = "metamodel-references", sync = true)
     @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     public Collection<TfReference> getReferences(String repository, String hub) {
         TfHub currentHub = hubRepository.findByRepositoryAndName(repository, hub);
@@ -179,25 +182,16 @@ public class MetamodelService {
         return references;
     }
 
-    @CacheEvict(cacheNames = {
-            "metamodel-references"
-    }, allEntries = true)
     @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     public void addReference(TfReference reference) {
         referenceRepository.save(reference);
     }
 
-    @CacheEvict(cacheNames = {
-            "metamodel-references"
-    }, allEntries = true)
     @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     public void deleteReference(TfReference reference) {
         referenceRepository.delete(reference);
     }
 
-    @CacheEvict(cacheNames = {
-            "metamodel-references"
-    }, allEntries = true)
     @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     public void copyReferencesFromPreviousVersion(String repository, String hub) {
         TfHub currentHub = hubRepository.findByRepositoryAndName(repository, hub);
@@ -217,7 +211,6 @@ public class MetamodelService {
         }
     }
 
-    @Cacheable(value = "metamodel-mappings", sync = true)
     @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     public Collection<TfMapping> getMappings(String repository, String hub) {
         TfHub currentHub = hubRepository.findByRepositoryAndName(repository, hub);
@@ -230,17 +223,11 @@ public class MetamodelService {
         return mappings;
     }
 
-    @CacheEvict(cacheNames = {
-            "metamodel-mappings"
-    }, allEntries = true)
     @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     public void addMapping(TfMapping mapping) {
         mappingsRepository.save(mapping);
     }
 
-    @CacheEvict(cacheNames = {
-            "metamodel-mappings"
-    }, allEntries = true)
     @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     public void deleteMapping(TfMapping mapping) {
         mappingsRepository.delete(mapping);
@@ -254,9 +241,7 @@ public class MetamodelService {
             "metamodel-attributes",
             "metamodel-attributes-flat",
             "metamodel-attribute-types",
-            "metamodel-values",
-            "metamodel-references",
-            "metamodel-mappings"
+            "metamodel-values"
     }, allEntries = true)
     @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     public void activateVersion(TfVersion version) {

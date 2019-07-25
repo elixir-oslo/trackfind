@@ -8,6 +8,7 @@ import no.uio.ifi.trackfind.backend.events.DataReloadEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 /**
@@ -16,6 +17,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 // TODO: cover with tests
 @Slf4j
 @Service
+@Transactional
 public class CacheService {
 
     protected TrackFindService trackFindService;
