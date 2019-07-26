@@ -1,20 +1,14 @@
 package no.uio.ifi.trackfind.backend.services;
 
 import com.google.gson.Gson;
-import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
-import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
 import no.uio.ifi.trackfind.backend.pojo.SearchResult;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 import java.util.function.Function;
 
 /**
@@ -35,8 +29,7 @@ public class GSuiteService implements Function<Collection<SearchResult>, String>
      * @param searchResults Datasets to convert.
      * @return GSuite string.
      */
-    @SuppressWarnings("unchecked")
-    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
+//    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     @Override
     public String apply(Collection<SearchResult> searchResults) {
 //        sortJSON(searchResults);

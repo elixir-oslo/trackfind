@@ -1,7 +1,5 @@
 package no.uio.ifi.trackfind.backend.data.providers;
 
-import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
-import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
 import no.uio.ifi.trackfind.backend.pojo.TfHub;
 
 import java.util.Collection;
@@ -18,7 +16,7 @@ public interface DataProvider {
      *
      * @return Data provider name.
      */
-    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
+//    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     String getName();
 
     /**
@@ -26,7 +24,7 @@ public interface DataProvider {
      *
      * @return All Track Hubs list.
      */
-    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
+//    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     Collection<TfHub> getAllTrackHubs();
 
     /**
@@ -34,7 +32,7 @@ public interface DataProvider {
      *
      * @return Active Track Hubs list.
      */
-    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
+//    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     Collection<TfHub> getActiveTrackHubs();
 
     /**
@@ -42,7 +40,7 @@ public interface DataProvider {
      *
      * @param hubName TfHub name.
      */
-    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
+//    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     void crawlRemoteRepository(String hubName);
 
     /**
@@ -50,7 +48,7 @@ public interface DataProvider {
      *
      * @param hubName TfHub name.
      */
-    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
+//    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     void applyMappings(String hubName);
 
 }

@@ -1,8 +1,6 @@
 package no.uio.ifi.trackfind.backend.data.providers;
 
 import com.google.gson.Gson;
-import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
-import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
 import no.uio.ifi.trackfind.backend.events.DataReloadEvent;
@@ -23,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
 
 /**
  * Abstract class for all data providers.
@@ -80,7 +77,7 @@ public abstract class AbstractDataProvider implements DataProvider {
      *
      * @throws Exception in case of some problems.
      */
-    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
+//    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     protected abstract void fetchData(String hubName) throws Exception;
 
     /**
@@ -96,7 +93,7 @@ public abstract class AbstractDataProvider implements DataProvider {
             "metamodel-attribute-types",
             "metamodel-values"
     }, allEntries = true)
-    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
+//    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     @Override
     public synchronized void crawlRemoteRepository(String hubName) {
         log.info("Fetching data for {}: {}", getName(), hubName);
@@ -116,7 +113,7 @@ public abstract class AbstractDataProvider implements DataProvider {
      * @param hubName Hub name.
      * @param objects Object-type to object map.
      */
-    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
+//    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     protected void save(String hubName, Map<String, Collection<String>> objects) {
         TfHub hub = hubRepository.findByRepositoryAndName(getName(), hubName);
         Optional<TfVersion> previousVersionOptional = hub.getPreviousVersion();
@@ -142,8 +139,10 @@ public abstract class AbstractDataProvider implements DataProvider {
         version.setTime(new Date());
         version.setHub(hub);
         version = versionRepository.save(version);
+        Set<String> standardObjectTypeNames = new HashSet<>(schemaService.getAttributes().keySet());
         Collection<TfObject> objectsToSave = new ArrayList<>();
         for (String objectTypeName : objects.keySet()) {
+            standardObjectTypeNames.remove(objectTypeName);
             TfObjectType objectType = new TfObjectType();
             objectType.setName(objectTypeName);
             objectType.setVersion(version);
@@ -155,22 +154,14 @@ public abstract class AbstractDataProvider implements DataProvider {
                 objectsToSave.add(tfObject);
             }
         }
-        objectRepository.saveAll(objectsToSave);
-        createStandardObjectTypes(version);
-    }
-
-    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
-    protected void createStandardObjectTypes(TfVersion version) {
-        Set<String> standardObjectTypeNames = new HashSet<>(schemaService.getAttributes().keySet());
-        TfHub hub = version.getHub();
-        Collection<String> objectTypeNames = metamodelService.getObjectTypes(hub.getRepository(), hub.getName()).stream().map(TfObjectType::getName).collect(Collectors.toSet());
-        standardObjectTypeNames.removeAll(objectTypeNames);
+        // create standard object-types, if not present yet
         for (String objectTypeName : standardObjectTypeNames) {
             TfObjectType objectType = new TfObjectType();
             objectType.setName(objectTypeName);
             objectType.setVersion(version);
             objectTypeRepository.save(objectType);
         }
+        objectRepository.saveAll(objectsToSave);
     }
 
     /**
@@ -186,7 +177,7 @@ public abstract class AbstractDataProvider implements DataProvider {
             "metamodel-attribute-types",
             "metamodel-values"
     }, allEntries = true)
-    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
+//    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     @Override
     public synchronized void applyMappings(String hubName) {
         log.info("Applying mappings for {}: {}", getName(), hubName);
