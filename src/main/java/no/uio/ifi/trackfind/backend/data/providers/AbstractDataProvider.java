@@ -77,7 +77,6 @@ public abstract class AbstractDataProvider implements DataProvider {
      *
      * @throws Exception in case of some problems.
      */
-//    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     protected abstract void fetchData(String hubName) throws Exception;
 
     /**
@@ -93,7 +92,6 @@ public abstract class AbstractDataProvider implements DataProvider {
             "metamodel-attribute-types",
             "metamodel-values"
     }, allEntries = true)
-//    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     @Override
     public synchronized void crawlRemoteRepository(String hubName) {
         log.info("Fetching data for {}: {}", getName(), hubName);
@@ -113,7 +111,6 @@ public abstract class AbstractDataProvider implements DataProvider {
      * @param hubName Hub name.
      * @param objects Object-type to object map.
      */
-//    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     protected void save(String hubName, Map<String, Collection<String>> objects) {
         TfHub hub = hubRepository.findByRepositoryAndName(getName(), hubName);
         Optional<TfVersion> previousVersionOptional = hub.getPreviousVersion();

@@ -52,7 +52,6 @@ public class SearchService {
      * @param limit      Max number of entries to return. 0 for unlimited.
      * @return Found entries.
      */
-//    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     public Collection<SearchResult> search(String repository, String hub, String query, Collection<String> categories, int limit) throws SQLException {
         Collection<TfReference> references = metamodelService.getReferences(repository, hub);
 
@@ -82,7 +81,6 @@ public class SearchService {
         return results;
     }
 
-    //    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     protected String buildQuery(Collection<TfReference> references, Collection<TfObjectType> objectTypesFromReferences, Collection<String> objectTypesToSelect, String query, int limit) {
         String separator = properties.getLevelsSeparator();
 

@@ -25,7 +25,6 @@ public class CacheService {
      * Refreshes materialized views in the database.
      */
     @TransactionalEventListener(classes = DataReloadEvent.class)
-//    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     public void resetCaches(DataReloadEvent dataReloadEvent) {
         log.info("Event {} received.", dataReloadEvent.getSource());
         jdbcTemplate.execute(Queries.REFRESH_MATERIALIZED_VIEWS);

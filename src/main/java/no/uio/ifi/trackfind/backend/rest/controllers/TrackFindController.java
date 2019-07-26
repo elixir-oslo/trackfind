@@ -40,7 +40,6 @@ public class TrackFindController {
      *
      * @return Collection of repositories.
      */
-//    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     @GetMapping(path = "/repositories", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Collection<String>> getRepositories() {
         return ResponseEntity.ok(trackFindService.getTrackHubs(true).stream().map(TfHub::getRepository).collect(Collectors.toSet()));
@@ -51,7 +50,6 @@ public class TrackFindController {
      *
      * @return Collection of Track Hub names.
      */
-//    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     @GetMapping(path = "/hubs/{repository}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Collection<String>> getHubs(
             @PathVariable String repository
@@ -66,7 +64,6 @@ public class TrackFindController {
      * @param hub        Track hub name.
      * @return Metamodel in tree form.
      */
-//    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     @GetMapping(path = "/metamodel/{repository}/{hub}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Map> getMetamodel(
             @PathVariable String repository,
@@ -91,7 +88,6 @@ public class TrackFindController {
      * @param hub        Track Hub name.
      * @return List of attributes.
      */
-//    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     @GetMapping(path = "/categories/{repository}/{hub}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Collection<String>> getCategories(
             @PathVariable String repository,
@@ -108,7 +104,6 @@ public class TrackFindController {
      * @param path       Path to the attribute to get sub-attributes for (optional).
      * @return List of attributes.
      */
-//    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     @GetMapping(path = "/attributes/{repository}/{hub}/{category}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Collection<String>> getAttributes(
             @PathVariable String repository,
@@ -128,7 +123,6 @@ public class TrackFindController {
      * @param filter     Optional filter for values (case-insensitive).
      * @return List of values.
      */
-//    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     @GetMapping(path = "/values/{repository}/{hub}/{category}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Collection<String>> getValues(
             @PathVariable String repository,
@@ -149,7 +143,6 @@ public class TrackFindController {
      * @param limit      Max number of entries to return.
      * @return Search results by version.
      */
-//    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     @GetMapping(path = "/search/{repository}/{hub}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Collection<SearchResult>> searchJSON(
             @PathVariable String repository,
@@ -174,7 +167,6 @@ public class TrackFindController {
      * @param limit      Max number of entries to return. 0 for unlimited.
      * @return Search results by version.
      */
-//    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     @GetMapping(path = "/search/{repository}/{hub}", produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> searchGSuite(
             @PathVariable String repository,

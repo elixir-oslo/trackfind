@@ -16,7 +16,6 @@ public interface DataProvider {
      *
      * @return Data provider name.
      */
-//    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     String getName();
 
     /**
@@ -24,7 +23,6 @@ public interface DataProvider {
      *
      * @return All Track Hubs list.
      */
-//    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     Collection<TfHub> getAllTrackHubs();
 
     /**
@@ -32,7 +30,6 @@ public interface DataProvider {
      *
      * @return Active Track Hubs list.
      */
-//    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     Collection<TfHub> getActiveTrackHubs();
 
     /**
@@ -40,7 +37,6 @@ public interface DataProvider {
      *
      * @param hubName TfHub name.
      */
-//    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     void crawlRemoteRepository(String hubName);
 
     /**
@@ -48,7 +44,6 @@ public interface DataProvider {
      *
      * @param hubName TfHub name.
      */
-//    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     void applyMappings(String hubName);
 
 }

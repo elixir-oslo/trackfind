@@ -29,7 +29,6 @@ public class GSuiteService implements Function<Collection<SearchResult>, String>
      * @param searchResults Datasets to convert.
      * @return GSuite string.
      */
-//    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     @Override
     public String apply(Collection<SearchResult> searchResults) {
 //        sortJSON(searchResults);

@@ -25,7 +25,6 @@ public class ExampleHubInitializer implements ApplicationListener<ApplicationRea
     private ExampleDataProvider exampleDataProvider;
     private MetamodelService metamodelService;
 
-    //    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     @Override
     public void onApplicationEvent(ApplicationReadyEvent event) {
         String testEnv = System.getenv(TEST_ENV);

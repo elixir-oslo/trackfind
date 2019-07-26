@@ -46,7 +46,6 @@ public class SchemaService {
         }
     }
 
-    //    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     private void gatherAttributes(String objectType, String path, Schema schema) {
         if (schema instanceof ObjectSchema) {
             Map<String, Schema> propertySchemas = ((ObjectSchema) schema).getPropertySchemas();
@@ -105,7 +104,6 @@ public class SchemaService {
      *
      * @return Collection of attributes.
      */
-//    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     public Map<String, Collection<String>> getAttributes() {
         return Collections.unmodifiableMap(attributes.asMap());
     }
@@ -115,7 +113,6 @@ public class SchemaService {
      *
      * @param object Object to validate.
      */
-//    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     public void validate(Object object) {
         this.schema.validate(object);
     }

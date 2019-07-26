@@ -29,7 +29,6 @@ public class TrackFindService {
      *
      * @return Collection of DataProviders.
      */
-//    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     public Collection<DataProvider> getDataProviders() {
         return dataProviders;
     }
@@ -39,7 +38,6 @@ public class TrackFindService {
      *
      * @return Track Hubs.
      */
-//    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     public Collection<TfHub> getTrackHubs(boolean active) {
         return active ?
                 dataProviders.stream().flatMap(dp -> dp.getActiveTrackHubs().stream()).collect(Collectors.toList())
@@ -52,7 +50,6 @@ public class TrackFindService {
      *
      * @return Track Hubs by repository.
      */
-//    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     public Collection<TfHub> getTrackHubs(String repositoryName, boolean active) {
         return active ? getDataProvider(repositoryName).getActiveTrackHubs()
                 :
@@ -64,7 +61,6 @@ public class TrackFindService {
      *
      * @param hubs Hubs to activate.
      */
-//    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     public void activateHubs(Collection<TfHub> hubs) {
         hubRepository.saveAll(hubs);
     }
@@ -74,7 +70,6 @@ public class TrackFindService {
      *
      * @param hubs Hubs to deactivate.
      */
-//    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     public void deactivateHubs(Collection<TfHub> hubs) {
         hubRepository.deleteAll(hubs);
     }
@@ -85,7 +80,6 @@ public class TrackFindService {
      * @param dataProviderName DataProvider's name.
      * @return DataProvider.
      */
-//    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     public DataProvider getDataProvider(String dataProviderName) {
         return getDataProviders().parallelStream().filter(dp -> dp.getName().equals(dataProviderName)).findAny().orElseThrow(RuntimeException::new);
     }
