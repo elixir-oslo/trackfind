@@ -229,7 +229,7 @@ public class TrackFindMappingsUI extends AbstractUI {
         applyMappingsButton.addClickListener((Button.ClickListener) event -> {
             TfHub currentHub = getCurrentHub();
             Collection<TfScript> scripts = metamodelService.getScripts(currentHub.getRepository(), currentHub.getName());
-            if (!grid.iterator().hasNext() || CollectionUtils.isEmpty(scripts)) {
+            if (!grid.iterator().hasNext() || CollectionUtils.isNotEmpty(scripts)) {
                 Notification.show("You should have either mappings or scripts in order to proceed.", Notification.Type.WARNING_MESSAGE);
                 return;
             }
