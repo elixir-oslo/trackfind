@@ -102,6 +102,9 @@ public class TrackFindReferencesUI extends AbstractUI {
         toCategoryComboBox.setItemCaptionGenerator(TfObjectType::getName);
         toCategoryComboBox.setDataProvider(dataProvider);
         TextField toAttributeTextField = new TextField("To attribute");
+        referencesTabSheet.addSelectedTabChangeListener((TabSheet.SelectedTabChangeListener) event -> {
+            dataProvider.refreshAll();
+        });
         Button addButton = new Button("Add", (Button.ClickListener) event -> {
             TfReference reference = new TfReference(
                     null,
