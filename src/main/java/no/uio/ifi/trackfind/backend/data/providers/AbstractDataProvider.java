@@ -1,5 +1,7 @@
 package no.uio.ifi.trackfind.backend.data.providers;
 
+import alexh.weak.Dynamic;
+import com.google.common.collect.HashMultimap;
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
@@ -12,6 +14,7 @@ import no.uio.ifi.trackfind.backend.services.CacheService;
 import no.uio.ifi.trackfind.backend.services.MetamodelService;
 import no.uio.ifi.trackfind.backend.services.SchemaService;
 import no.uio.ifi.trackfind.backend.services.SearchService;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.ApplicationEventPublisher;
@@ -180,7 +183,36 @@ public abstract class AbstractDataProvider implements DataProvider {
         log.info("Applying mappings for {}: {}", getName(), hubName);
         try {
             Collection<TfMapping> mappings = metamodelService.getMappings(getName(), hubName);
-
+            HashMultimap<TfObjectType, TfMapping> mappingsByCategories = HashMultimap.create();
+            mappings.forEach(m -> mappingsByCategories.put(m.getToObjectType(), m));
+            Collection<SearchResult> allEntries = searchService.search(getName(), hubName, Boolean.TRUE.toString(), Collections.emptySet(), 0);
+            for (SearchResult entry : allEntries) {
+                Collection<TfObject> objectsToSave = new ArrayList<>();
+                Map<String, Map> rawMap = entry.getContent();
+                for (Map.Entry<TfObjectType, Collection<TfMapping>> categoryToMappings : mappingsByCategories.asMap().entrySet()) {
+                    Map<String, Object> standardMap = new HashMap<>();
+                    for (TfMapping mapping : categoryToMappings.getValue()) {
+                        Collection<String> values;
+                        Dynamic dynamicValues = Dynamic.from(rawMap).get(mapping.getFromAttribute(), properties.getLevelsSeparator());
+                        if (dynamicValues.isPresent()) {
+                            if (dynamicValues.isList()) {
+                                values = dynamicValues.asList();
+                            } else {
+                                values = Collections.singletonList(dynamicValues.asString());
+                            }
+                        } else {
+                            values = Collections.emptyList();
+                        }
+                        String[] path = mapping.getToAttribute().split(properties.getLevelsSeparator());
+                        putValueByPath(standardMap, path, values);
+                    }
+                    TfObject standardObject = new TfObject();
+                    standardObject.setContent(gson.toJson(standardMap));
+                    standardObject.setObjectType(categoryToMappings.getKey());
+                    objectsToSave.add(standardObject);
+                }
+                objectRepository.saveAll(objectsToSave);
+            }
             applicationEventPublisher.publishEvent(new DataReloadEvent(hubName, Operation.MAPPING));
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -189,18 +221,18 @@ public abstract class AbstractDataProvider implements DataProvider {
         log.info("Success!");
     }
 
-//    @SuppressWarnings("unchecked")
-//    private void putValueByPath(Map<String, Object> standardMap, String[] path, Collection<String> values) {
-//        Map<String, Object> nestedMap = standardMap;
-//        for (int i = 0; i < path.length - 1; i++) {
-//            nestedMap = (Map<String, Object>) nestedMap.computeIfAbsent(path[i], k -> new HashMap<String, Object>());
-//        }
-//        if (CollectionUtils.size(values) == 1) {
-//            nestedMap.put(path[path.length - 1], values.iterator().next());
-//        } else {
-//            nestedMap.put(path[path.length - 1], values);
-//        }
-//    }
+    @SuppressWarnings("unchecked")
+    private void putValueByPath(Map<String, Object> standardMap, String[] path, Collection<String> values) {
+        Map<String, Object> nestedMap = standardMap;
+        for (int i = 0; i < path.length - 1; i++) {
+            nestedMap = (Map<String, Object>) nestedMap.computeIfAbsent(path[i], k -> new HashMap<String, Object>());
+        }
+        if (CollectionUtils.size(values) == 1) {
+            nestedMap.put(path[path.length - 1], values.iterator().next());
+        } else {
+            nestedMap.put(path[path.length - 1], values);
+        }
+    }
 
     @Autowired
     public void setProperties(TrackFindProperties properties) {
