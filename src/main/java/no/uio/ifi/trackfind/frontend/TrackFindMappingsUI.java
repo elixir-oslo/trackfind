@@ -107,7 +107,7 @@ public class TrackFindMappingsUI extends AbstractUI {
             String objectTypeName = categoriesComboBox.getSelectedItem().orElseThrow(RuntimeException::new);
             Collection<TfObjectType> objectTypes = metamodelService.getObjectTypes(currentHub.getRepository(), currentHub.getName());
             TfObjectType objectType = objectTypes.stream().filter(ot -> ot.getName().equalsIgnoreCase(objectTypeName)).findAny().orElseThrow(RuntimeException::new);
-            metamodelService.addMapping(new TfMapping(null, treeNode.getSQLPath(), objectType, attributesComboBox.getSelectedItem().orElseThrow(RuntimeException::new)));
+            metamodelService.addMapping(new TfMapping(null, treeNode.getPath(), objectType, attributesComboBox.getSelectedItem().orElseThrow(RuntimeException::new)));
             grid.setItems(metamodelService.getMappings(currentHub.getRepository(), currentHub.getName()));
             grid.recalculateColumnWidths();
         });
@@ -255,6 +255,7 @@ public class TrackFindMappingsUI extends AbstractUI {
 
     private void loadConfiguration() {
         TfHub currentHub = getCurrentHub();
+        grid.setItems(metamodelService.getMappings(currentHub.getRepository(), currentHub.getName()));
         Collection<TfScript> scripts = metamodelService.getScripts(currentHub.getRepository(), currentHub.getName());
         if (CollectionUtils.isNotEmpty(scripts)) {
             script.setValue(scripts.iterator().next().getScript());

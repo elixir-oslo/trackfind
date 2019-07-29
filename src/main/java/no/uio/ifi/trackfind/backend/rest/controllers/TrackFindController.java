@@ -149,7 +149,7 @@ public class TrackFindController {
             @PathVariable String hub,
             @RequestParam String query,
             @RequestParam(required = false, defaultValue = "") String categories,
-            @RequestParam(required = false, defaultValue = "0") int limit) {
+            @RequestParam(required = false, defaultValue = "0") long limit) {
         try {
             return ResponseEntity.ok(searchService.search(repository, hub, query, Arrays.stream(StringUtils.split(categories, ",")).map(String::trim).collect(Collectors.toSet()), limit));
         } catch (SQLException e) {
@@ -173,7 +173,7 @@ public class TrackFindController {
             @PathVariable String hub,
             @RequestParam String query,
             @RequestParam(required = false, defaultValue = "") String categories,
-            @RequestParam(required = false, defaultValue = "0") int limit) {
+            @RequestParam(required = false, defaultValue = "0") long limit) {
         try {
             Collection<SearchResult> datasets = searchService.search(repository, hub, query, Arrays.stream(StringUtils.split(categories, ",")).map(String::trim).collect(Collectors.toSet()), limit);
             return ResponseEntity.ok(gSuiteService.apply(datasets));

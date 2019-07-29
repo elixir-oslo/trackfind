@@ -52,7 +52,7 @@ public class SearchService {
      * @param limit      Max number of entries to return. 0 for unlimited.
      * @return Found entries.
      */
-    public Collection<SearchResult> search(String repository, String hub, String query, Collection<String> categories, int limit) throws SQLException {
+    public Collection<SearchResult> search(String repository, String hub, String query, Collection<String> categories, long limit) throws SQLException {
         Collection<TfReference> references = metamodelService.getReferences(repository, hub);
 
         Collection<TfObjectType> objectTypesFromReferences = new HashSet<>();
@@ -81,7 +81,7 @@ public class SearchService {
         return results;
     }
 
-    protected String buildQuery(Collection<TfReference> references, Collection<TfObjectType> objectTypesFromReferences, Collection<String> objectTypesToSelect, String query, int limit) {
+    protected String buildQuery(Collection<TfReference> references, Collection<TfObjectType> objectTypesFromReferences, Collection<String> objectTypesToSelect, String query, long limit) {
         String separator = properties.getLevelsSeparator();
 
         StringBuilder fullQuery = new StringBuilder("SELECT DISTINCT ");
@@ -130,7 +130,7 @@ public class SearchService {
 
         fullQuery.append(query);
 
-        limit = limit == 0 ? Integer.MAX_VALUE : limit;
+        limit = limit == 0 ? Long.MAX_VALUE : limit;
         fullQuery.append(" LIMIT ").append(limit);
 
         return fullQuery.toString().replaceAll("\\?", "\\?\\?");
