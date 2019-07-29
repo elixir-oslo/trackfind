@@ -130,8 +130,9 @@ public class SearchService {
 
         fullQuery.append(query);
 
-        limit = limit == 0 ? Long.MAX_VALUE : limit;
-        fullQuery.append(" LIMIT ").append(limit);
+        if (limit != 0) {
+            fullQuery.append(" LIMIT ").append(limit);
+        }
 
         return fullQuery.toString().replaceAll("\\?", "\\?\\?");
     }
