@@ -4,6 +4,7 @@ import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Title;
 import com.vaadin.annotations.Widgetset;
 import com.vaadin.data.HasValue;
+import com.vaadin.data.provider.Query;
 import com.vaadin.event.selection.SelectionListener;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.shared.ui.MarginInfo;
@@ -229,7 +230,8 @@ public class TrackFindMappingsUI extends AbstractUI {
         applyMappingsButton.addClickListener((Button.ClickListener) event -> {
             TfHub currentHub = getCurrentHub();
             Collection<TfScript> scripts = metamodelService.getScripts(currentHub.getRepository(), currentHub.getName());
-            if (!grid.iterator().hasNext() && CollectionUtils.isEmpty(scripts)) {
+            long count = grid.getDataProvider().fetch(new Query<>()).count();
+            if (count == 0 && CollectionUtils.isEmpty(scripts)) {
                 Notification.show("You should have either mappings or scripts in order to proceed.", Notification.Type.WARNING_MESSAGE);
                 return;
             }
