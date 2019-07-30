@@ -65,7 +65,7 @@ public class TrackFindMainUI extends AbstractUI {
 
     private int numberOfResults;
 
-    private CheckBoxGroup<String> categoriesChecklist = new CheckBoxGroup<>("Categories: ");
+    private CheckBoxGroup<String> categoriesChecklist = new CheckBoxGroup<>();
     private TextArea queryTextArea;
     private TextField limitTextField;
     private TextArea resultsTextArea;
@@ -144,7 +144,6 @@ public class TrackFindMainUI extends AbstractUI {
     private HorizontalLayout buildMainLayout(VerticalLayout treeLayout, VerticalLayout queryLayout, VerticalLayout resultsLayout) {
         MarginInfo marginInfo = new MarginInfo(true, true, false, true);
         treeLayout.setMargin(marginInfo);
-        queryLayout.setMargin(marginInfo);
         resultsLayout.setMargin(marginInfo);
         HorizontalLayout mainLayout = new HorizontalLayout(treeLayout, queryLayout, resultsLayout);
         mainLayout.setSizeFull();
@@ -239,7 +238,12 @@ public class TrackFindMainUI extends AbstractUI {
         searchLayout.setWidth("100%");
         searchLayout.setComponentAlignment(searchButton, Alignment.BOTTOM_RIGHT);
 
-        VerticalLayout queryLayout = new VerticalLayout(queryPanel, categoriesChecklist, searchLayout);
+        Panel categoriesChecklistPanel = new Panel("Categories", new VerticalLayout(categoriesChecklist));
+        categoriesChecklistPanel.setSizeFull();
+        VerticalLayout queryLayout = new VerticalLayout(queryPanel, categoriesChecklistPanel, searchLayout);
+        queryLayout.setExpandRatio(queryPanel, 0.5f);
+        queryLayout.setExpandRatio(categoriesChecklistPanel, 0.4f);
+        queryLayout.setExpandRatio(searchLayout, 0.1f);
         queryLayout.setSizeFull();
         queryLayout.setExpandRatio(queryPanel, 1f);
         return queryLayout;
