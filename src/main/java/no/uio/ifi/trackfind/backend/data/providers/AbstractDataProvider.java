@@ -47,6 +47,7 @@ public abstract class AbstractDataProvider implements DataProvider {
     protected VersionRepository versionRepository;
     protected ObjectRepository objectRepository;
     protected ScriptRepository scriptRepository;
+    protected ReferenceRepository referenceRepository;
     protected ExecutorService executorService;
     protected Gson gson;
     protected Collection<ScriptingEngine> scriptingEngines;
@@ -191,9 +192,14 @@ public abstract class AbstractDataProvider implements DataProvider {
                 Map<String, Map> rawMap = entry.getContent();
                 for (Map.Entry<TfObjectType, Collection<TfMapping>> categoryToMappings : mappingsByCategories.asMap().entrySet()) {
                     Map<String, Object> standardMap = new HashMap<>();
+                    TfObjectType toObjectType = categoryToMappings.getKey();
                     for (TfMapping mapping : categoryToMappings.getValue()) {
+                        String fromObjectTypeName = mapping.getFromObjectType().getName();
                         Collection<String> values;
-                        Dynamic dynamicValues = Dynamic.from(rawMap).get(mapping.getFromAttribute(), properties.getLevelsSeparator());
+                        String separator = properties.getLevelsSeparator();
+                        Dynamic dynamicValues = Dynamic
+                                .from(rawMap)
+                                .get(fromObjectTypeName + separator + mapping.getFromAttribute().replace("'", ""), separator);
                         if (dynamicValues.isPresent()) {
                             if (dynamicValues.isList()) {
                                 values = dynamicValues.asList();
@@ -203,15 +209,23 @@ public abstract class AbstractDataProvider implements DataProvider {
                         } else {
                             values = Collections.emptyList();
                         }
-                        String[] path = mapping.getToAttribute().split(properties.getLevelsSeparator());
+                        String[] path = mapping.getToAttribute().replace("'", "").split(separator);
                         putValueByPath(standardMap, path, values);
                     }
                     TfObject standardObject = new TfObject();
                     standardObject.setContent(gson.toJson(standardMap));
-                    standardObject.setObjectType(categoryToMappings.getKey());
+                    standardObject.setObjectType(toObjectType);
                     objectsToSave.add(standardObject);
                 }
                 objectRepository.saveAll(objectsToSave);
+            }
+            for (TfMapping mapping : mappings) {
+                TfReference reference = new TfReference();
+                reference.setFromObjectType(mapping.getFromObjectType());
+                reference.setFromAttribute(mapping.getFromAttribute());
+                reference.setToObjectType(mapping.getToObjectType());
+                reference.setToAttribute(mapping.getToAttribute());
+                referenceRepository.save(reference);
             }
             applicationEventPublisher.publishEvent(new DataReloadEvent(hubName, Operation.MAPPING));
         } catch (Exception e) {
@@ -292,6 +306,11 @@ public abstract class AbstractDataProvider implements DataProvider {
     @Autowired
     public void setScriptRepository(ScriptRepository scriptRepository) {
         this.scriptRepository = scriptRepository;
+    }
+
+    @Autowired
+    public void setReferenceRepository(ReferenceRepository referenceRepository) {
+        this.referenceRepository = referenceRepository;
     }
 
     @Autowired

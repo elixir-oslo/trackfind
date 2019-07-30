@@ -54,7 +54,7 @@ public class SchemaService {
                 for (Map.Entry<String, Schema> entry : entries) {
                     if (StringUtils.isNotEmpty(objectType)) {
                         gatherAttributes(objectType,
-                                path + properties.getLevelsSeparator() + entry.getKey(),
+                                path + properties.getLevelsSeparator() + "'" + entry.getKey() + "'",
                                 entry.getValue());
                     } else {
                         gatherAttributes(entry.getKey(),

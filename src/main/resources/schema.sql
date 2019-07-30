@@ -112,10 +112,11 @@ CREATE TABLE IF NOT EXISTS tf_references
 CREATE TABLE IF NOT EXISTS tf_mappings
 (
     id                  BIGSERIAL PRIMARY KEY,
+    from_object_type_id BIGINT  NOT NULL REFERENCES tf_object_types (id),
     from_attribute      VARCHAR NOT NULL,
     to_object_type_id   BIGINT  NOT NULL REFERENCES tf_object_types (id),
     to_attribute        VARCHAR NOT NULL,
-    UNIQUE (from_attribute, to_object_type_id, to_attribute)
+    UNIQUE (from_object_type_id, from_attribute, to_object_type_id, to_attribute)
 );
 
 CREATE TABLE IF NOT EXISTS tf_scripts
