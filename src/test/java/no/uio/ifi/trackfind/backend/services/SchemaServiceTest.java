@@ -24,55 +24,55 @@ public class SchemaServiceTest {
                     "    \"\"\n" +
                     "  ],\n" +
                     "  \"experiments\": [\n" +
-                    "    \"aggregated_from\",\n" +
-                    "    \"@schema\",\n" +
-                    "    \"tech_type->term_iri\",\n" +
-                    "    \"target->term_iri\",\n" +
-                    "    \"sample_ref\",\n" +
-                    "    \"compute_protocol_description\",\n" +
-                    "    \"local_id\",\n" +
-                    "    \"study_ref\",\n" +
-                    "    \"global_id\",\n" +
-                    "    \"tech_type->term_value\",\n" +
-                    "    \"lab_protocol_description\",\n" +
-                    "    \"target->term_value\"\n" +
+                    "    \"'@schema'\",\n" +
+                    "    \"'aggregated_from'\",\n" +
+                    "    \"'sample_ref'\",\n" +
+                    "    \"'target'->'term_iri'\",\n" +
+                    "    \"'tech_type'->'term_iri'\",\n" +
+                    "    \"'study_ref'\",\n" +
+                    "    \"'global_id'\",\n" +
+                    "    \"'target'->'term_value'\",\n" +
+                    "    \"'compute_protocol_description'\",\n" +
+                    "    \"'local_id'\",\n" +
+                    "    \"'tech_type'->'term_value'\",\n" +
+                    "    \"'lab_protocol_description'\"\n" +
                     "  ],\n" +
                     "  \"studies\": [\n" +
-                    "    \"study_name\",\n" +
-                    "    \"@schema\",\n" +
-                    "    \"phenotype->term_iri\",\n" +
-                    "    \"local_id\",\n" +
-                    "    \"contact->name\",\n" +
-                    "    \"global_id\",\n" +
-                    "    \"contact->orcid_id\",\n" +
-                    "    \"phenotype->term_value\",\n" +
-                    "    \"contact->e-mail\",\n" +
-                    "    \"publications\"\n" +
+                    "    \"'@schema'\",\n" +
+                    "    \"'contact'->'e-mail'\",\n" +
+                    "    \"'contact'->'orcid_id'\",\n" +
+                    "    \"'phenotype'->'term_value'\",\n" +
+                    "    \"'study_name'\",\n" +
+                    "    \"'phenotype'->'term_iri'\",\n" +
+                    "    \"'contact'->'name'\",\n" +
+                    "    \"'global_id'\",\n" +
+                    "    \"'publications'\",\n" +
+                    "    \"'local_id'\"\n" +
                     "  ],\n" +
                     "  \"samples\": [\n" +
-                    "    \"global_id\",\n" +
-                    "    \"@schema\",\n" +
-                    "    \"sample_type->term_value\",\n" +
-                    "    \"biomaterial_type\",\n" +
-                    "    \"local_id\",\n" +
-                    "    \"sample_type->term_iri\"\n" +
+                    "    \"'@schema'\",\n" +
+                    "    \"'sample_type'->'term_value'\",\n" +
+                    "    \"'global_id'\",\n" +
+                    "    \"'biomaterial_type'\",\n" +
+                    "    \"'sample_type'->'term_iri'\",\n" +
+                    "    \"'local_id'\"\n" +
                     "  ],\n" +
                     "  \"tracks\": [\n" +
-                    "    \"file_format->term_iri\",\n" +
-                    "    \"local_id\",\n" +
-                    "    \"file_name\",\n" +
-                    "    \"global_id\",\n" +
-                    "    \"label_short\",\n" +
-                    "    \"file_format->term_value\",\n" +
-                    "    \"label_long\",\n" +
-                    "    \"checksum->cs_hash\",\n" +
-                    "    \"experiment_ref\",\n" +
-                    "    \"file_iri\",\n" +
-                    "    \"@schema\",\n" +
-                    "    \"genome_assembly\",\n" +
-                    "    \"content_type->term_value\",\n" +
-                    "    \"content_type->term_iri\",\n" +
-                    "    \"checksum->cs_method\"\n" +
+                    "    \"'file_format'->'term_iri'\",\n" +
+                    "    \"'genome_assembly'\",\n" +
+                    "    \"'experiment_ref'\",\n" +
+                    "    \"'checksum'->'cs_hash'\",\n" +
+                    "    \"'checksum'->'cs_method'\",\n" +
+                    "    \"'local_id'\",\n" +
+                    "    \"'file_format'->'term_value'\",\n" +
+                    "    \"'@schema'\",\n" +
+                    "    \"'file_iri'\",\n" +
+                    "    \"'content_type'->'term_iri'\",\n" +
+                    "    \"'label_long'\",\n" +
+                    "    \"'file_name'\",\n" +
+                    "    \"'global_id'\",\n" +
+                    "    \"'label_short'\",\n" +
+                    "    \"'content_type'->'term_value'\"\n" +
                     "  ]\n" +
                     "}";
 
@@ -91,7 +91,7 @@ public class SchemaServiceTest {
     }
 
     @Test
-    public void getDataProvidersTest() {
+    public void getAttributesTest() {
         Map<String, Collection<String>> attributes = schemaService.getAttributes();
         String actual = gson.toJson(attributes);
         assertEquals(ATTRIBUTES, actual);
