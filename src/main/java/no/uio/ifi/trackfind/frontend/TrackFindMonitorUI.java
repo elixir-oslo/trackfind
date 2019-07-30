@@ -11,11 +11,7 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.VerticalLayout;
 import lombok.extern.slf4j.Slf4j;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.URL;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Hystrix Vaadin UI of the application.
@@ -44,22 +40,18 @@ public class TrackFindMonitorUI extends AbstractUI {
     private VerticalLayout buildHystrixLayout() {
         VerticalLayout layout = new VerticalLayout();
         layout.setSizeFull();
-        try (BufferedReader in = new BufferedReader(new InputStreamReader(new URL("http://checkip.amazonaws.com").openStream()))) {
-            String host = "localhost";
-            String implementationVersion = getClass().getPackage().getImplementationVersion();
-            if (implementationVersion != null) {
-                host = in.readLine();
-            }
-            BrowserFrame browser = new BrowserFrame("Browser",
-                    new ExternalResource("http://" + host + "/hystrix/monitor?stream=http%3A%2F%2Flocalhost%2Factuator%2Fhystrix.stream&title=TrackFind"));
-            browser.setSizeFull();
-            Panel panel = new Panel("Circuits status", browser);
-            panel.setSizeFull();
-            layout.addComponents(panel);
-            layout.setExpandRatio(panel, 1f);
-        } catch (IOException e) {
-            log.error(e.getMessage(), e);
-        }
+        String host = System.getenv("SERVER_NAME");
+        host = StringUtils.isEmpty(host) ? "localhost" : host;
+        BrowserFrame browser = new BrowserFrame("Browser",
+                new ExternalResource(
+                        "http://" + host + "/hystrix/monitor?stream=http%3A%2F%2F" + host + "%2Factuator%2Fhystrix.stream&title=TrackFind"
+                ));
+        browser.setSizeFull();
+        Panel panel = new Panel("Circuits status", browser);
+        panel.setSizeFull();
+        layout.addComponents(panel);
+        layout.setExpandRatio(panel, 1f);
+
         return layout;
     }
 

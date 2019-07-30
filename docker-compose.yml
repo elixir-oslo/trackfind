@@ -21,6 +21,7 @@ services:
       - db
     environment:
       - TEST_ENV
+      - SERVER_NAME
       - DB_INSTANCE=db
       - POSTGRES_DB=trackfind
       - POSTGRES_USER
