@@ -37,7 +37,7 @@ services:
       - ELIXIR_AAI_CLIENT_ID
       - ELIXIR_AAI_CLIENT_SECRET
       - SCOPES="openid"
-      - PROTECTED_RESOURCES=/admin,/monitor
+      - PROTECTED_RESOURCES=/admin
 #      - SSL_ENGINE=on
 #    volumes:
 #      - /etc/letsencrypt/live/<site>/fullchain.pem:/etc/ssl/certs/fullchain.pem
