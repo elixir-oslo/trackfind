@@ -42,9 +42,11 @@ public class TrackFindMonitorUI extends AbstractUI {
         layout.setSizeFull();
         String host = System.getenv("SERVER_NAME");
         host = StringUtils.isEmpty(host) ? "localhost" : host;
+        String protocol = System.getenv("SSL_ENGINE");
+        protocol = "on".equalsIgnoreCase(protocol) ? "https" : "http";
         BrowserFrame browser = new BrowserFrame("Browser",
                 new ExternalResource(
-                        "http://" + host + "/hystrix/monitor?stream=http%3A%2F%2F" + host + "%2Factuator%2Fhystrix.stream&title=TrackFind"
+                        protocol + "://" + host + "/hystrix/monitor?stream=http%3A%2F%2F" + host + "%2Factuator%2Fhystrix.stream&title=TrackFind"
                 ));
         browser.setSizeFull();
         Panel panel = new Panel("Circuits status", browser);

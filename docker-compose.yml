@@ -22,6 +22,7 @@ services:
     environment:
       - TEST_ENV
       - SERVER_NAME
+      - SSL_ENGINE
       - DB_INSTANCE=db
       - POSTGRES_DB=trackfind
       - POSTGRES_USER
@@ -39,7 +40,7 @@ services:
       - ELIXIR_AAI_CLIENT_SECRET
       - SCOPES="openid"
       - PROTECTED_RESOURCES=/admin
-#      - SSL_ENGINE=on
+      - SSL_ENGINE
 #    volumes:
 #      - /etc/letsencrypt/live/<site>/fullchain.pem:/etc/ssl/certs/fullchain.pem
 #      - /etc/letsencrypt/live/<site>/privkey.pem:/etc/ssl/private/privkey.pem
