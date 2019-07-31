@@ -43,9 +43,10 @@ public class TrackFindMonitorUI extends AbstractUI {
     private VerticalLayout buildHystrixLayout() {
         VerticalLayout layout = new VerticalLayout();
         layout.setSizeFull();
+        String host = instanceServiceURL.replace(":8080", "");
         BrowserFrame browser = new BrowserFrame("Browser",
                 new ExternalResource(
-                        instanceServiceURL + "/hystrix/monitor?stream=" + instanceServiceURL + "%2Factuator%2Fhystrix.stream&title=TrackFind"
+                        host + "/hystrix/monitor?stream=" + host + "%2Factuator%2Fhystrix.stream&title=TrackFind"
                 ));
         browser.setSizeFull();
         Panel panel = new Panel("Circuits status", browser);
