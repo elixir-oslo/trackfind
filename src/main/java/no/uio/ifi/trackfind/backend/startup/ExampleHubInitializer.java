@@ -17,7 +17,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 @Component
-@Profile("dev")
+@Profile("!prod")
 public class ExampleHubInitializer implements ApplicationListener<ApplicationReadyEvent> {
 
     public static final String EXAMPLE = "Example";
