@@ -11,7 +11,7 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.VerticalLayout;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * Hystrix Vaadin UI of the application.
@@ -27,6 +27,9 @@ import org.apache.commons.lang3.StringUtils;
 @Slf4j
 public class TrackFindMonitorUI extends AbstractUI {
 
+    @Value("${spring.boot.admin.client.instance.service-url}")
+    private String instanceServiceURL;
+
     @Override
     protected void init(VaadinRequest vaadinRequest) {
         HorizontalLayout headerLayout = buildHeaderLayout();
@@ -40,14 +43,9 @@ public class TrackFindMonitorUI extends AbstractUI {
     private VerticalLayout buildHystrixLayout() {
         VerticalLayout layout = new VerticalLayout();
         layout.setSizeFull();
-        String host = System.getenv("SERVER_NAME");
-        host = StringUtils.isEmpty(host) ? "localhost" : host;
-        String ssl = System.getenv("SSL_ENGINE");
-        String protocol = "on".equalsIgnoreCase(ssl) ? "https" : "http";
-        String port = "on".equalsIgnoreCase(ssl) ? "443" : "8080";
         BrowserFrame browser = new BrowserFrame("Browser",
                 new ExternalResource(
-                        protocol + "://" + host + ":" + port + "/hystrix/monitor?stream=" + protocol + "%3A%2F%2F" + host + ":" + port + "%2Factuator%2Fhystrix.stream&title=TrackFind"
+                        instanceServiceURL + "/hystrix/monitor?stream=" + instanceServiceURL + "%2Factuator%2Fhystrix.stream&title=TrackFind"
                 ));
         browser.setSizeFull();
         Panel panel = new Panel("Circuits status", browser);

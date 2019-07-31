@@ -9,6 +9,7 @@ import no.uio.ifi.trackfind.backend.services.TrackFindService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -16,9 +17,9 @@ import java.util.Collection;
 import java.util.Collections;
 
 @Component
+@Profile("dev")
 public class ExampleHubInitializer implements ApplicationListener<ApplicationReadyEvent> {
 
-    public static final String TEST_ENV = "TEST_ENV";
     public static final String EXAMPLE = "Example";
 
     private TrackFindService trackFindService;
@@ -27,11 +28,6 @@ public class ExampleHubInitializer implements ApplicationListener<ApplicationRea
 
     @Override
     public void onApplicationEvent(ApplicationReadyEvent event) {
-        String testEnv = System.getenv(TEST_ENV);
-        if (!"true".equalsIgnoreCase(testEnv)) {
-            return;
-        }
-
         Collection<TfHub> trackHubs = trackFindService.getTrackHubs(EXAMPLE, true);
         if (CollectionUtils.isEmpty(trackHubs)) {
             trackFindService.activateHubs(Collections.singleton(new TfHub(EXAMPLE, EXAMPLE)));

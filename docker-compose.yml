@@ -20,9 +20,8 @@ services:
     depends_on:
       - db
     environment:
-      - TEST_ENV
+      - SPRING_PROFILES_ACTIVE
       - SERVER_NAME
-      - SSL_ENGINE
       - DB_INSTANCE=db
       - POSTGRES_DB=trackfind
       - POSTGRES_USER
