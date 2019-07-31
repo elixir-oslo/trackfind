@@ -5,7 +5,9 @@ logging:
     org.hibernate: ERROR
   file: console.log
 
-server.port: 8080
+server:
+  port: 8080
+  use-forward-headers: true
 
 management.endpoints.web.exposure.include: "*"
 
