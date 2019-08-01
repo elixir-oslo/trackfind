@@ -2,18 +2,15 @@ package no.uio.ifi.trackfind.backend.services;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Collection;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
 public class SchemaServiceTest {
@@ -78,16 +75,12 @@ public class SchemaServiceTest {
 
     private Gson gson;
 
-    @Mock
-    private TrackFindProperties properties;
-
     private SchemaService schemaService;
 
     @Before
     public void setUp() {
         gson = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
-        when(properties.getLevelsSeparator()).thenReturn("->");
-        schemaService = new SchemaService(properties);
+        schemaService = new SchemaService("->");
     }
 
     @Test

@@ -112,7 +112,7 @@ public class TrackFindMainUI extends AbstractUI {
 //        TextField attributesFilterTextField = createFilter(true);
         TextField valuesFilterTextField = createFilter(false);
 
-        AddToQueryButtonClickListener addToQueryButtonClickListener = new AddToQueryButtonClickListener(this, properties.getLevelsSeparator());
+        AddToQueryButtonClickListener addToQueryButtonClickListener = new AddToQueryButtonClickListener(this, separator);
         Button addToQueryButton = new Button("Add to query ➚", addToQueryButtonClickListener);
         addToQueryButton.setWidth(100, Unit.PERCENTAGE);
 
@@ -206,7 +206,7 @@ public class TrackFindMainUI extends AbstractUI {
         queryTextArea.addStyleName("scrollable-text-area");
         DropTargetExtension<TextArea> dropTarget = new DropTargetExtension<>(queryTextArea);
         dropTarget.setDropEffect(DropEffect.COPY);
-        TextAreaDropListener textAreaDropListener = new TextAreaDropListener(queryTextArea, properties.getLevelsSeparator());
+        TextAreaDropListener textAreaDropListener = new TextAreaDropListener(queryTextArea, separator);
         dropTarget.addDropListener(textAreaDropListener);
         Panel queryPanel = new Panel("Search query", queryTextArea);
         queryPanel.setSizeFull();

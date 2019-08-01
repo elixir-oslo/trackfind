@@ -2,7 +2,6 @@ package no.uio.ifi.trackfind.backend.services;
 
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
-import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
 import no.uio.ifi.trackfind.backend.pojo.Queries;
 import no.uio.ifi.trackfind.backend.pojo.SearchResult;
 import no.uio.ifi.trackfind.backend.pojo.TfObjectType;
@@ -25,9 +24,11 @@ import java.util.stream.Collectors;
 @Service
 public class SearchService {
 
+    @Value("${trackfind.separator}")
+    protected String separator;
+
     private String jdbcUrl;
 
-    private TrackFindProperties properties;
     private JdbcTemplate jdbcTemplate;
     private MetamodelService metamodelService;
     private Gson gson;
@@ -82,8 +83,6 @@ public class SearchService {
     }
 
     protected String buildQuery(Collection<TfReference> references, Collection<TfObjectType> objectTypesFromReferences, Collection<String> objectTypesToSelect, String query, long limit) {
-        String separator = properties.getLevelsSeparator();
-
         StringBuilder fullQuery = new StringBuilder("SELECT DISTINCT ");
 
         for (String objectTypeName : objectTypesToSelect) {
@@ -140,11 +139,6 @@ public class SearchService {
     @Value("${spring.datasource.url}")
     public void setJdbcUrl(String jdbcUrl) {
         this.jdbcUrl = jdbcUrl;
-    }
-
-    @Autowired
-    public void setProperties(TrackFindProperties properties) {
-        this.properties = properties;
     }
 
     @Autowired

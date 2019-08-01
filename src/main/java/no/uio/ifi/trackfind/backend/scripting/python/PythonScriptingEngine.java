@@ -49,9 +49,9 @@ public class PythonScriptingEngine extends AbstractScriptingEngine {
      */
     public String execute(String script, String content) throws Exception {
         PythonInterpreter localInterpreter = new PythonInterpreter();
-        localInterpreter.set(properties.getScriptingDatasetVariableName(), content);
+        localInterpreter.set(datasetVariable, content);
         localInterpreter.eval(scripts.get(script));
-        return String.valueOf(localInterpreter.get(properties.getScriptingResultVariableName()));
+        return String.valueOf(localInterpreter.get(resultVariable));
     }
 
     @Autowired

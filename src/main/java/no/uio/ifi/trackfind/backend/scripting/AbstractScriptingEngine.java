@@ -1,7 +1,6 @@
 package no.uio.ifi.trackfind.backend.scripting;
 
-import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * Common methods holder for all Scripting Engines.
@@ -10,11 +9,10 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public abstract class AbstractScriptingEngine implements ScriptingEngine {
 
-    protected TrackFindProperties properties;
+    @Value("${trackfind.scripting.variables.dataset}")
+    protected String datasetVariable;
 
-    @Autowired
-    public void setProperties(TrackFindProperties properties) {
-        this.properties = properties;
-    }
+    @Value("${trackfind.scripting.variables.result}")
+    protected String resultVariable;
 
 }

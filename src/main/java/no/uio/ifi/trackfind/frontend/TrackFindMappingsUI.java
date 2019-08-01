@@ -112,7 +112,7 @@ public class TrackFindMappingsUI extends AbstractUI {
             TfObjectType fromObjectType = objectTypes.stream().filter(ot -> ot.getName().equalsIgnoreCase(fromObjectTypeName)).findAny().orElseThrow(RuntimeException::new);
             metamodelService.addMapping(new TfMapping(null,
                     fromObjectType,
-                    treeNode.getSQLPath().replace(fromObjectTypeName + ".content" + properties.getLevelsSeparator(), ""),
+                    treeNode.getSQLPath().replace(fromObjectTypeName + ".content" + separator, ""),
                     toObjectType,
                     attributesComboBox.getSelectedItem().orElseThrow(RuntimeException::new))
             );
@@ -257,7 +257,6 @@ public class TrackFindMappingsUI extends AbstractUI {
 
         HorizontalLayout buttonsLayout = new HorizontalLayout(saveButton, applyMappingsButton);
         buttonsLayout.setWidth(100, Unit.PERCENTAGE);
-        buttonsLayout.setEnabled(!properties.isDemoMode());
         VerticalLayout scriptsLayout = new VerticalLayout(scriptsPanel, buttonsLayout);
         scriptsLayout.setSizeFull();
         scriptsLayout.setExpandRatio(scriptsPanel, 1f);

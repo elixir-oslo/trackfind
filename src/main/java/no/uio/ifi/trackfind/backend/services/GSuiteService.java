@@ -1,7 +1,6 @@
 package no.uio.ifi.trackfind.backend.services;
 
 import com.google.gson.Gson;
-import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
 import no.uio.ifi.trackfind.backend.pojo.SearchResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
@@ -18,7 +17,6 @@ import java.util.function.Function;
 @Service
 public class GSuiteService implements Function<Collection<SearchResult>, String> {
 
-    private TrackFindProperties properties;
     private Gson gson;
     private SchemaService schemaService;
     private RestTemplate restTemplate;
@@ -78,11 +76,6 @@ public class GSuiteService implements Function<Collection<SearchResult>, String>
 //        }
 //        return sortedMap;
 //    }
-
-    @Autowired
-    public void setProperties(TrackFindProperties properties) {
-        this.properties = properties;
-    }
 
     @Autowired
     public void setGson(Gson gson) {

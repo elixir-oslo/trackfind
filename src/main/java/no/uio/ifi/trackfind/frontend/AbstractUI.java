@@ -7,7 +7,6 @@ import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.shared.ui.ValueChangeMode;
 import com.vaadin.ui.*;
 import lombok.extern.slf4j.Slf4j;
-import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
 import no.uio.ifi.trackfind.backend.data.TreeNode;
 import no.uio.ifi.trackfind.backend.pojo.TfHub;
 import no.uio.ifi.trackfind.backend.services.SchemaService;
@@ -16,6 +15,7 @@ import no.uio.ifi.trackfind.frontend.components.TrackFindTree;
 import no.uio.ifi.trackfind.frontend.filters.TreeFilter;
 import no.uio.ifi.trackfind.frontend.providers.TrackFindDataProvider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * Main Vaadin UI of the application.
@@ -28,8 +28,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 @Slf4j
 public abstract class AbstractUI extends UI {
 
+    @Value("${trackfind.separator}")
+    protected String separator;
+
     protected SchemaService schemaService;
-    protected TrackFindProperties properties;
     protected TrackFindService trackFindService;
     protected TrackFindDataProvider trackFindDataProvider;
 
@@ -99,11 +101,6 @@ public abstract class AbstractUI extends UI {
     @Autowired
     public void setSchemaService(SchemaService schemaService) {
         this.schemaService = schemaService;
-    }
-
-    @Autowired
-    public void setProperties(TrackFindProperties properties) {
-        this.properties = properties;
     }
 
     @Autowired

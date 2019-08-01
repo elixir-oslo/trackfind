@@ -4,7 +4,6 @@ import alexh.weak.Dynamic;
 import com.google.common.collect.HashMultimap;
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
-import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
 import no.uio.ifi.trackfind.backend.events.DataReloadEvent;
 import no.uio.ifi.trackfind.backend.operations.Operation;
 import no.uio.ifi.trackfind.backend.pojo.*;
@@ -16,6 +15,7 @@ import no.uio.ifi.trackfind.backend.services.SchemaService;
 import no.uio.ifi.trackfind.backend.services.SearchService;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -35,7 +35,9 @@ import java.util.concurrent.atomic.AtomicLong;
 @Transactional
 public abstract class AbstractDataProvider implements DataProvider {
 
-    protected TrackFindProperties properties;
+    @Value("${trackfind.separator}")
+    protected String separator;
+
     protected ApplicationEventPublisher applicationEventPublisher;
     protected MetamodelService metamodelService;
     protected SchemaService schemaService;
@@ -196,7 +198,6 @@ public abstract class AbstractDataProvider implements DataProvider {
                     for (TfMapping mapping : categoryToMappings.getValue()) {
                         String fromObjectTypeName = mapping.getFromObjectType().getName();
                         Collection<String> values;
-                        String separator = properties.getLevelsSeparator();
                         Dynamic dynamicValues = Dynamic
                                 .from(rawMap)
                                 .get(fromObjectTypeName + separator + mapping.getFromAttribute().replace("'", ""), separator);
@@ -246,11 +247,6 @@ public abstract class AbstractDataProvider implements DataProvider {
         } else {
             nestedMap.put(path[path.length - 1], values);
         }
-    }
-
-    @Autowired
-    public void setProperties(TrackFindProperties properties) {
-        this.properties = properties;
     }
 
     @Autowired

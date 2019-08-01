@@ -43,7 +43,6 @@ public class CoffeeScriptScriptingEngine extends AbstractScriptingEngine {
     /**
      * {@inheritDoc}
      */
-    @SuppressWarnings("NonStaticInitializer")
     @Override
     /*
         Example:
@@ -54,7 +53,7 @@ public class CoffeeScriptScriptingEngine extends AbstractScriptingEngine {
     public String execute(String script, String content) throws Exception {
         CompiledScript compiledScript = scripts.get(script);
         Object result = compiledScript.eval(new SimpleBindings(new HashMap<String, Object>() {{
-            put(properties.getScriptingDatasetVariableName(), content);
+            put(datasetVariable, content);
         }}));
         return String.valueOf(result);
     }

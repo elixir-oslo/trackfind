@@ -31,3 +31,11 @@ spring:
 
 gsuite:
   listOfServers: ${GSUITE_SERVERS:gsuite:5000}
+
+trackfind:
+  separator: ->
+  scripting:
+    language: CoffeeScript
+    variables:
+      dataset: dataset
+      result: result

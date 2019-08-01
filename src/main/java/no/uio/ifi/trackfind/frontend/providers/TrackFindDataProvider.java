@@ -5,12 +5,12 @@ import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
 import com.vaadin.data.provider.AbstractBackEndHierarchicalDataProvider;
 import com.vaadin.data.provider.HierarchicalQuery;
 import com.vaadin.server.SerializablePredicate;
-import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
 import no.uio.ifi.trackfind.backend.data.TreeNode;
 import no.uio.ifi.trackfind.backend.pojo.TfHub;
 import no.uio.ifi.trackfind.backend.services.MetamodelService;
 import no.uio.ifi.trackfind.frontend.filters.TreeFilter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -22,7 +22,9 @@ import java.util.stream.Stream;
 @Service
 public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvider<TreeNode, SerializablePredicate<TreeNode>> {
 
-    private TrackFindProperties properties;
+    @Value("${trackfind.separator}")
+    protected String separator;
+
     private MetamodelService metamodelService;
 
     /**
@@ -33,7 +35,6 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
     })
     @Override
     protected Stream<TreeNode> fetchChildrenFromBackEnd(HierarchicalQuery<TreeNode, SerializablePredicate<TreeNode>> query) {
-        String levelsSeparator = properties.getLevelsSeparator();
         TreeFilter treeFilter = (TreeFilter) query.getFilter().orElseThrow(RuntimeException::new);
         TfHub hub = treeFilter.getHub();
         String repository = hub.getRepository();
@@ -47,7 +48,7 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
                 treeNode.setCategory(c);
                 treeNode.setValue(c);
                 treeNode.setParent(null);
-                treeNode.setSeparator(levelsSeparator);
+                treeNode.setSeparator(separator);
                 treeNode.setLevel(0);
                 treeNode.setChildren(metamodelTree.get(c).keySet());
                 treeNode.setAttribute(true);
@@ -65,14 +66,14 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
             Collection<String> arrayOfObjectsAttributes = metamodelService.getArrayOfObjectsAttributes(repository, hubName, category);
             Map<String, String> attributeTypes = metamodelService.getAttributeTypes(repository, hubName, category);
             Collection<String> children = parent.getChildren();
-            String prefix = category + levelsSeparator;
+            String prefix = category + separator;
             return children.stream().map(c -> {
                 TreeNode treeNode = new TreeNode();
                 treeNode.setTreeFilter(treeFilter);
                 treeNode.setCategory(category);
                 treeNode.setValue(c);
                 treeNode.setParent(parent);
-                treeNode.setSeparator(levelsSeparator);
+                treeNode.setSeparator(separator);
                 treeNode.setLevel(parent.getLevel() + 1);
                 String path = treeNode.getPath().replace(prefix, "");
                 treeNode.setAttribute(attributes.parallelStream().anyMatch(a -> a.startsWith(path)));
@@ -118,11 +119,6 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
 
     public boolean fallbackHasChildren(TreeNode item) {
         return false;
-    }
-
-    @Autowired
-    public void setProperties(TrackFindProperties properties) {
-        this.properties = properties;
     }
 
     @Autowired

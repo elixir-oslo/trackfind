@@ -3,7 +3,6 @@ package no.uio.ifi.trackfind.backend.services;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import lombok.extern.slf4j.Slf4j;
-import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.everit.json.schema.*;
@@ -11,6 +10,7 @@ import org.everit.json.schema.loader.SchemaLoader;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
@@ -28,14 +28,15 @@ import java.util.Set;
 public class SchemaService {
 
     public static final String SCHEMA_URL = "https://raw.githubusercontent.com/fairtracks/fairtracks_standard/master/json/schema/fairtracks.schema.json";
-    protected TrackFindProperties properties;
+
+    protected String separator;
 
     private Schema schema;
     private Multimap<String, String> attributes = HashMultimap.create();
 
     @Autowired
-    public SchemaService(TrackFindProperties properties) {
-        this.properties = properties;
+    public SchemaService(@Value("${trackfind.separator}") String separator) {
+        this.separator = separator;
         try (InputStream inputStream = new URL(SCHEMA_URL).openStream()) {
             JSONObject rawSchema = new JSONObject(new JSONTokener(inputStream));
             this.schema = SchemaLoader.load(rawSchema);
@@ -54,7 +55,7 @@ public class SchemaService {
                 for (Map.Entry<String, Schema> entry : entries) {
                     if (StringUtils.isNotEmpty(objectType)) {
                         gatherAttributes(objectType,
-                                path + properties.getLevelsSeparator() + "'" + entry.getKey() + "'",
+                                path + separator + "'" + entry.getKey() + "'",
                                 entry.getValue());
                     } else {
                         gatherAttributes(entry.getKey(),
@@ -90,7 +91,7 @@ public class SchemaService {
             return;
         }
         if (StringUtils.isNotEmpty(objectType)) {
-            int separatorLength = properties.getLevelsSeparator().length();
+            int separatorLength = separator.length();
             attributes.put(objectType, path.isEmpty() ? path : path.substring(separatorLength));
         }
     }

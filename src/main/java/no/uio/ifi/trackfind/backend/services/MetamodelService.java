@@ -3,7 +3,6 @@ package no.uio.ifi.trackfind.backend.services;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import lombok.extern.slf4j.Slf4j;
-import no.uio.ifi.trackfind.backend.configuration.TrackFindProperties;
 import no.uio.ifi.trackfind.backend.events.DataReloadEvent;
 import no.uio.ifi.trackfind.backend.operations.Operation;
 import no.uio.ifi.trackfind.backend.pojo.*;
@@ -13,6 +12,7 @@ import no.uio.ifi.trackfind.backend.repositories.ReferenceRepository;
 import no.uio.ifi.trackfind.backend.repositories.VersionRepository;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
@@ -31,7 +31,9 @@ import java.util.stream.Collectors;
 @Transactional
 public class MetamodelService {
 
-    protected TrackFindProperties properties;
+    @Value("${trackfind.separator}")
+    protected String separator;
+
     protected JdbcTemplate jdbcTemplate;
     protected HubRepository hubRepository;
     protected VersionRepository versionRepository;
@@ -74,7 +76,7 @@ public class MetamodelService {
             for (Map.Entry<String, Collection<String>> entry : metamodelFlat.asMap().entrySet()) {
                 String attribute = entry.getKey();
                 Map<String, Object> metamodel = fullMetamodel;
-                String[] path = attribute.split(properties.getLevelsSeparator());
+                String[] path = attribute.split(separator);
                 for (int i = 0; i < path.length - 1; i++) {
                     String part = path[i];
                     metamodel = (Map<String, Object>) metamodel.computeIfAbsent(part, k -> new HashMap<String, Object>());
@@ -136,7 +138,6 @@ public class MetamodelService {
 
     @Cacheable(value = "metamodel-attributes", sync = true)
     public Collection<String> getAttributes(String repository, String hub, String category, String path) {
-        String separator = properties.getLevelsSeparator();
         return getAttributesFlat(repository, hub, category, path).stream()
                 .map(a -> {
                     if (a.contains(separator)) {
@@ -242,11 +243,6 @@ public class MetamodelService {
         version.setCurrent(true);
         versionRepository.save(version);
         applicationEventPublisher.publishEvent(new DataReloadEvent(hub.getName(), Operation.VERSION_CHANGE));
-    }
-
-    @Autowired
-    public void setProperties(TrackFindProperties properties) {
-        this.properties = properties;
     }
 
     @Autowired
