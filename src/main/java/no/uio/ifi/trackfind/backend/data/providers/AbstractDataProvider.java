@@ -220,14 +220,14 @@ public abstract class AbstractDataProvider implements DataProvider {
                 }
                 objectRepository.saveAll(objectsToSave);
             }
-            for (TfMapping mapping : mappings) {
-                TfReference reference = new TfReference();
-                reference.setFromObjectType(mapping.getFromObjectType());
-                reference.setFromAttribute(mapping.getFromAttribute());
-                reference.setToObjectType(mapping.getToObjectType());
-                reference.setToAttribute(mapping.getToAttribute());
-                referenceRepository.save(reference);
-            }
+//            for (TfMapping mapping : mappings) {
+//                TfReference reference = new TfReference();
+//                reference.setFromObjectType(mapping.getFromObjectType());
+//                reference.setFromAttribute(mapping.getFromAttribute());
+//                reference.setToObjectType(mapping.getToObjectType());
+//                reference.setToAttribute(mapping.getToAttribute());
+//                referenceRepository.save(reference);
+//            }
             applicationEventPublisher.publishEvent(new DataReloadEvent(hubName, Operation.MAPPING));
         } catch (Exception e) {
             log.error(e.getMessage(), e);
