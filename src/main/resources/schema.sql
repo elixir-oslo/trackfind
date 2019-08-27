@@ -30,7 +30,6 @@ CREATE TABLE IF NOT EXISTS tf_versions
     version   BIGINT  NOT NULL,
     based_on  BIGINT REFERENCES tf_versions (id),
     current   BOOLEAN NOT NULL,
-    previous  BOOLEAN NOT NULL,
     operation VARCHAR NOT NULL,
     username  VARCHAR NOT NULL,
     time      TIMESTAMP,
@@ -40,9 +39,6 @@ CREATE TABLE IF NOT EXISTS tf_versions
 
 CREATE UNIQUE INDEX IF NOT EXISTS one_current_version_per_hub_idx on tf_versions (hub_id, current)
     WHERE current = TRUE;
-
-CREATE UNIQUE INDEX IF NOT EXISTS one_previous_version_per_hub_idx on tf_versions (hub_id, previous)
-    WHERE previous = TRUE;
 
 CREATE OR REPLACE FUNCTION check_based_on_version(hub_id BIGINT, based_on BIGINT)
     RETURNS BOOLEAN

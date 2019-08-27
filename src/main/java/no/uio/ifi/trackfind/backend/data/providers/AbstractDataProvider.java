@@ -119,24 +119,17 @@ public abstract class AbstractDataProvider implements DataProvider {
      */
     protected void save(String hubName, Map<String, Collection<String>> objects) {
         TfHub hub = hubRepository.findByRepositoryAndName(getName(), hubName);
-        Optional<TfVersion> previousVersionOptional = hub.getPreviousVersion();
         Optional<TfVersion> currentVersionOptional = hub.getCurrentVersion();
         Optional<TfVersion> lastVersionOptional = hub.getLastVersion();
         AtomicLong versionNumber = new AtomicLong(0);
         lastVersionOptional.ifPresent(lv -> versionNumber.set(lv.getVersion()));
-        previousVersionOptional.ifPresent(pv -> {
-            pv.setPrevious(false);
-            versionRepository.saveAndFlush(pv);
-        });
         currentVersionOptional.ifPresent(cv -> {
-            cv.setPrevious(true);
             cv.setCurrent(false);
             versionRepository.saveAndFlush(cv);
         });
         TfVersion version = new TfVersion();
         version.setVersion(versionNumber.incrementAndGet());
         version.setCurrent(true);
-        version.setPrevious(false);
         version.setOperation(Operation.CRAWLING);
         version.setUsername("admin");
         version.setTime(new Date());

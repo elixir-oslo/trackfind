@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.pojo.TfHub;
 import no.uio.ifi.trackfind.backend.pojo.TfObjectType;
 import no.uio.ifi.trackfind.backend.pojo.TfReference;
+import no.uio.ifi.trackfind.backend.pojo.TfVersion;
 import no.uio.ifi.trackfind.backend.services.MetamodelService;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -36,6 +37,8 @@ import java.util.stream.Stream;
 public class TrackFindReferencesUI extends AbstractUI {
 
     private MetamodelService metamodelService;
+
+    private Button copyButton;
 
     @Override
     protected void init(VaadinRequest vaadinRequest) {
@@ -81,9 +84,26 @@ public class TrackFindReferencesUI extends AbstractUI {
             grid.setItems(metamodelService.getReferences(hub.getRepository(), hub.getName()));
             referencesTabSheet.addTab(grid, hub.getRepository() + ": " + hub.getName()).getComponent().setSizeFull();
         }
+        ComboBox<TfVersion> versionComboBox = new ComboBox<>("Version");
+        AbstractBackEndDataProvider<TfVersion, String> versionDataProvider = new AbstractBackEndDataProvider<TfVersion, String>() {
+            @Override
+            protected Stream<TfVersion> fetchFromBackEnd(Query<TfVersion, String> query) {
+                Grid selectedTab = (Grid) referencesTabSheet.getSelectedTab();
+                TfHub hub = (TfHub) selectedTab.getData();
+                return hub.getVersions().stream();
+            }
+
+            @Override
+            protected int sizeInBackEnd(Query<TfVersion, String> query) {
+                return (int) fetchFromBackEnd(query).count();
+            }
+        };
+        versionComboBox.setDataProvider(versionDataProvider);
+        versionComboBox.setItemCaptionGenerator((ItemCaptionGenerator<TfVersion>) item -> item.getVersion() + ": " + item.getTime());
+        versionComboBox.addValueChangeListener((HasValue.ValueChangeListener<TfVersion>) event -> copyButton.setEnabled(event.getValue() != null));
         ComboBox<TfObjectType> fromCategoryComboBox = new ComboBox<>("From category");
         fromCategoryComboBox.setItemCaptionGenerator(TfObjectType::getName);
-        AbstractBackEndDataProvider<TfObjectType, String> dataProvider = new AbstractBackEndDataProvider<TfObjectType, String>() {
+        AbstractBackEndDataProvider<TfObjectType, String> categoryDataProvider = new AbstractBackEndDataProvider<TfObjectType, String>() {
             @Override
             protected Stream<TfObjectType> fetchFromBackEnd(Query<TfObjectType, String> query) {
                 Grid selectedTab = (Grid) referencesTabSheet.getSelectedTab();
@@ -96,14 +116,15 @@ public class TrackFindReferencesUI extends AbstractUI {
                 return (int) fetchFromBackEnd(query).count();
             }
         };
-        fromCategoryComboBox.setDataProvider(dataProvider);
+        fromCategoryComboBox.setDataProvider(categoryDataProvider);
         TextField fromAttributeTextField = new TextField("From attribute");
         ComboBox<TfObjectType> toCategoryComboBox = new ComboBox<>("To category");
         toCategoryComboBox.setItemCaptionGenerator(TfObjectType::getName);
-        toCategoryComboBox.setDataProvider(dataProvider);
+        toCategoryComboBox.setDataProvider(categoryDataProvider);
         TextField toAttributeTextField = new TextField("To attribute");
         referencesTabSheet.addSelectedTabChangeListener((TabSheet.SelectedTabChangeListener) event -> {
-            dataProvider.refreshAll();
+            versionDataProvider.refreshAll();
+            categoryDataProvider.refreshAll();
         });
         Button addButton = new Button("Add", (Button.ClickListener) event -> {
             TfReference reference = new TfReference(
@@ -123,16 +144,18 @@ public class TrackFindReferencesUI extends AbstractUI {
         fromAttributeTextField.addValueChangeListener(valueChangeListener);
         toCategoryComboBox.addValueChangeListener(valueChangeListener);
         toAttributeTextField.addValueChangeListener(valueChangeListener);
-        Button copyButton = new Button("Copy from previous version", (Button.ClickListener) event -> {
+        copyButton = new Button("Copy from another version", (Button.ClickListener) event -> {
             Grid selectedTab = (Grid) referencesTabSheet.getSelectedTab();
             TfHub hub = (TfHub) selectedTab.getData();
             try {
-                metamodelService.copyReferencesFromPreviousVersion(hub.getRepository(), hub.getName());
+                TfVersion version = versionComboBox.getSelectedItem().orElseThrow(RuntimeException::new);
+                metamodelService.copyReferencesFromAnotherVersion(hub.getRepository(), hub.getName(), version);
                 selectedTab.setItems(metamodelService.getReferences(hub.getRepository(), hub.getName()));
             } catch (Exception ignored) {
             }
         });
-        HorizontalLayout controlsLayout = new HorizontalLayout(copyButton, fromCategoryComboBox, fromAttributeTextField, toCategoryComboBox, toAttributeTextField, addButton);
+        copyButton.setEnabled(false);
+        HorizontalLayout controlsLayout = new HorizontalLayout(versionComboBox, copyButton, fromCategoryComboBox, fromAttributeTextField, toCategoryComboBox, toAttributeTextField, addButton);
         controlsLayout.setComponentAlignment(copyButton, Alignment.BOTTOM_RIGHT);
         controlsLayout.setComponentAlignment(addButton, Alignment.BOTTOM_RIGHT);
         referencesLayout.addComponents(referencesPanel, controlsLayout);

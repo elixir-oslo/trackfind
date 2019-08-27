@@ -55,15 +55,12 @@ public class TrackFindVersionsUI extends AbstractUI {
             Grid<TfVersion> grid = new Grid<>(TfVersion.class);
             grid.setSizeFull();
             grid.removeColumn("current");
-            grid.removeColumn("previous");
             grid.removeColumn("hub");
             grid.removeColumn("objectTypes");
             grid.removeColumn("scripts");
             grid.setStyleGenerator((StyleGenerator<TfVersion>) item -> {
                 if (item.getCurrent()) {
                     return "green";
-                } else if (item.getPrevious()) {
-                    return "yellow";
                 } else {
                     return "white";
                 }
@@ -85,13 +82,7 @@ public class TrackFindVersionsUI extends AbstractUI {
             grid.setItems(hub.getVersions());
             versionsTabSheet.addTab(grid, hub.getRepository() + ": " + hub.getName()).getComponent().setSizeFull();
         }
-        Label legend = new Label("Legend: ");
-        Label green = new Label("Current version");
-        green.setStyleName("green");
-        Label yellow = new Label("Previous version");
-        yellow.setStyleName("yellow");
-        HorizontalLayout legendLayout = new HorizontalLayout(legend, green, yellow);
-        versionsLayout.addComponents(versionsPanel, legendLayout);
+        versionsLayout.addComponents(versionsPanel);
         versionsLayout.setExpandRatio(versionsPanel, 1f);
         return versionsLayout;
     }

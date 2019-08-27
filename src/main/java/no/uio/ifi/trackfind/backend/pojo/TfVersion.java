@@ -32,9 +32,6 @@ public class TfVersion implements Serializable {
     @Column(name = "current", nullable = false)
     private Boolean current;
 
-    @Column(name = "previous", nullable = false)
-    private Boolean previous;
-
     @Column(name = "operation", nullable = false)
     @Enumerated(EnumType.STRING)
     private Operation operation;
