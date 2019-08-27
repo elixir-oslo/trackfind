@@ -13,7 +13,7 @@ import java.util.Set;
 @Table(name = "tf_object_types")
 @Data
 @EqualsAndHashCode(of = {"id"})
-@ToString(exclude = "references")
+@ToString(of = {"id", "name"})
 @NoArgsConstructor
 public class TfObjectType implements Serializable {
 

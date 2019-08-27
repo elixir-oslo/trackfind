@@ -108,19 +108,13 @@ CREATE TABLE IF NOT EXISTS tf_references
 CREATE TABLE IF NOT EXISTS tf_mappings
 (
     id                  BIGSERIAL PRIMARY KEY,
-    from_object_type_id BIGINT  NOT NULL REFERENCES tf_object_types (id),
-    from_attribute      VARCHAR NOT NULL,
-    to_object_type_id   BIGINT  NOT NULL REFERENCES tf_object_types (id),
-    to_attribute        VARCHAR NOT NULL,
-    UNIQUE (from_object_type_id, from_attribute, to_object_type_id, to_attribute)
-);
-
-CREATE TABLE IF NOT EXISTS tf_scripts
-(
-    id         BIGSERIAL PRIMARY KEY,
-    version_id BIGINT NOT NULL REFERENCES tf_versions (id),
-    index      BIGINT NOT NULL,
-    script     TEXT   NOT NULL
+    order_number        BIGINT NOT NULL,
+    version_id          BIGINT NOT NULL REFERENCES tf_versions (id),
+    from_object_type_id BIGINT REFERENCES tf_object_types (id),
+    from_attribute      VARCHAR,
+    to_object_type_id   BIGINT REFERENCES tf_object_types (id),
+    to_attribute        VARCHAR,
+    script              TEXT
 );
 
 CREATE OR REPLACE VIEW tf_current_versions AS

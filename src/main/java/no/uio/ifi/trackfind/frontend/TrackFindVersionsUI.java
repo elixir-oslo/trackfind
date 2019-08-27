@@ -57,7 +57,7 @@ public class TrackFindVersionsUI extends AbstractUI {
             grid.removeColumn("current");
             grid.removeColumn("hub");
             grid.removeColumn("objectTypes");
-            grid.removeColumn("scripts");
+            grid.removeColumn("mappings");
             grid.setStyleGenerator((StyleGenerator<TfVersion>) item -> {
                 if (item.getCurrent()) {
                     return "green";

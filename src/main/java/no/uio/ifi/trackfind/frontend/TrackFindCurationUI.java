@@ -7,21 +7,18 @@ import com.vaadin.data.HasValue;
 import com.vaadin.data.provider.Query;
 import com.vaadin.event.selection.SelectionListener;
 import com.vaadin.server.VaadinRequest;
+import com.vaadin.shared.data.sort.SortDirection;
 import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.spring.annotation.SpringUI;
 import com.vaadin.ui.*;
-import com.vaadin.ui.renderers.ButtonRenderer;
-import com.vaadin.ui.renderers.ClickableRenderer;
-import elemental.json.JsonValue;
+import com.vaadin.ui.renderers.TextRenderer;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.data.TreeNode;
 import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
 import no.uio.ifi.trackfind.backend.pojo.TfHub;
 import no.uio.ifi.trackfind.backend.pojo.TfMapping;
 import no.uio.ifi.trackfind.backend.pojo.TfObjectType;
-import no.uio.ifi.trackfind.backend.pojo.TfScript;
-import no.uio.ifi.trackfind.backend.repositories.HubRepository;
-import no.uio.ifi.trackfind.backend.repositories.ScriptRepository;
+import no.uio.ifi.trackfind.backend.pojo.TfVersion;
 import no.uio.ifi.trackfind.backend.services.MetamodelService;
 import no.uio.ifi.trackfind.frontend.components.TrackFindTree;
 import no.uio.ifi.trackfind.frontend.filters.TreeFilter;
@@ -37,23 +34,24 @@ import java.util.Collection;
 import java.util.Optional;
 
 /**
- * Mappings Vaadin UI of the application.
+ * Curation Vaadin UI of the application.
  * Uses custom theme (VAADIN/themes/trackfind/trackfind.scss).
  * Uses custom WidgetSet (TrackFindWidgetSet.gwt.xml).
  *
  * @author Dmytro Titov
  */
-@SpringUI(path = "/mappings")
+@SpringUI(path = "/curation")
 @Widgetset("TrackFindWidgetSet")
-@Title("Mappings")
+@Title("Curation")
 @Theme("trackfind")
 @Slf4j
-public class TrackFindMappingsUI extends AbstractUI {
+public class TrackFindCurationUI extends AbstractUI {
 
     private MetamodelService metamodelService;
-    private ScriptRepository scriptRepository;
-    private HubRepository hubRepository;
 
+    private Button moveMappingUpButton = new Button("Move up ↑");
+    private Button moveMappingDownButton = new Button("Move down ↓");
+    private Button deleteMappingButton = new Button("Delete ✕");
     private Button addMappingButton = new Button("Add mapping");
     private ComboBox<String> attributesComboBox = new ComboBox<>();
     private ComboBox<String> categoriesComboBox = new ComboBox<>();
@@ -71,7 +69,7 @@ public class TrackFindMappingsUI extends AbstractUI {
         HorizontalLayout footerLayout = buildFooterLayout();
         VerticalLayout outerLayout = buildOuterLayout(headerLayout, mainLayout, footerLayout);
         setContent(outerLayout);
-        loadConfiguration();
+        loadMappings();
     }
 
     protected VerticalLayout buildTreeLayout() {
@@ -92,32 +90,35 @@ public class TrackFindMappingsUI extends AbstractUI {
             tabSheet.addTab(tree, hub.getName());
         }
 
-        tabSheet.addSelectedTabChangeListener((TabSheet.SelectedTabChangeListener) event -> loadConfiguration());
+        tabSheet.addSelectedTabChangeListener((TabSheet.SelectedTabChangeListener) event -> loadMappings());
 
         Panel treePanel = new Panel("Model browser", tabSheet);
         treePanel.setSizeFull();
-
-//        TextField attributesFilterTextField = createFilter(true);
 
         addMappingButton = new Button("Add mapping");
         addMappingButton.setEnabled(false);
         addMappingButton.setWidth("100%");
         addMappingButton.addClickListener((Button.ClickListener) event -> {
             TfHub currentHub = getCurrentHub();
+            TfVersion currentVersion = currentHub.getCurrentVersion().orElseThrow(RuntimeException::new);
             TreeNode treeNode = getCurrentTree().getSelectedItems().iterator().next();
             String fromObjectTypeName = treeNode.getCategory();
             String toObjectTypeName = categoriesComboBox.getSelectedItem().orElseThrow(RuntimeException::new);
             Collection<TfObjectType> objectTypes = metamodelService.getObjectTypes(currentHub.getRepository(), currentHub.getName());
             TfObjectType toObjectType = objectTypes.stream().filter(ot -> ot.getName().equalsIgnoreCase(toObjectTypeName)).findAny().orElseThrow(RuntimeException::new);
             TfObjectType fromObjectType = objectTypes.stream().filter(ot -> ot.getName().equalsIgnoreCase(fromObjectTypeName)).findAny().orElseThrow(RuntimeException::new);
-            metamodelService.addMapping(new TfMapping(null,
+            TfMapping mapping = metamodelService.addMapping(new TfMapping(null,
+                    null,
+                    currentVersion,
                     fromObjectType,
                     treeNode.getSQLPath().replace(fromObjectTypeName + ".content" + separator, ""),
                     toObjectType,
-                    attributesComboBox.getSelectedItem().orElseThrow(RuntimeException::new))
+                    attributesComboBox.getSelectedItem().orElseThrow(RuntimeException::new),
+                    null)
             );
             grid.setItems(metamodelService.getMappings(currentHub.getRepository(), currentHub.getName()));
             grid.recalculateColumnWidths();
+            grid.select(mapping);
         });
 
         attributesComboBox = new ComboBox<>();
@@ -155,7 +156,7 @@ public class TrackFindMappingsUI extends AbstractUI {
     }
 
     @SuppressWarnings("unchecked")
-    protected TrackFindTree<TreeNode> buildTree(TfHub hub) {
+    private TrackFindTree<TreeNode> buildTree(TfHub hub) {
         TrackFindTree<TreeNode> tree = new TrackFindTree<>(hub);
         tree.setDataProvider(trackFindDataProvider);
         tree.setSelectionMode(Grid.SelectionMode.SINGLE);
@@ -177,41 +178,72 @@ public class TrackFindMappingsUI extends AbstractUI {
         return mainLayout;
     }
 
-    @SuppressWarnings("unchecked")
     private VerticalLayout buildMappingsLayout() {
         TfHub currentHub = getCurrentHub();
         grid.setSizeFull();
-        grid.addColumn(m -> m.getFromObjectType().getName()).setCaption("From category").setId("0");
-        grid.addColumn(TfMapping::getFromAttribute).setCaption("From attribute").setId("1");
-        grid.addColumn(m -> m.getToObjectType().getName()).setCaption("To category").setId("2");
-        grid.addColumn(TfMapping::getToAttribute).setCaption("To attribute").setId("3");
+        grid.addColumn(TfMapping::getOrderNumber).setCaption("Order").setId("0");
+        grid.addColumn(m -> m.getFromObjectType().getName()).setRenderer(new TextRenderer("Scripted")).setCaption("From category").setId("1");
+        grid.addColumn(TfMapping::getFromAttribute).setRenderer(new TextRenderer("Scripted")).setCaption("From attribute").setId("2");
+        grid.addColumn(m -> m.getToObjectType().getName()).setRenderer(new TextRenderer("Scripted")).setCaption("To category").setId("3");
+        grid.addColumn(TfMapping::getToAttribute).setRenderer(new TextRenderer("Scripted")).setCaption("To attribute").setId("4");
+        grid.removeColumn("orderNumber");
+        grid.removeColumn("version");
         grid.removeColumn("fromObjectType");
         grid.removeColumn("fromAttribute");
         grid.removeColumn("toObjectType");
         grid.removeColumn("toAttribute");
-        ButtonRenderer buttonRenderer = new ButtonRenderer((ClickableRenderer.RendererClickListener<TfMapping>) event -> {
-            metamodelService.deleteMapping(event.getItem());
-            grid.setItems(metamodelService.getMappings(currentHub.getRepository(), currentHub.getName()));
-            grid.recalculateColumnWidths();
-        }) {
-            @Override
-            public JsonValue encode(Object value) {
-                return super.encode("Delete");
-            }
-        };
-        grid.getColumn("id").setRenderer(buttonRenderer).setCaption("Action");
-        grid.setColumnOrder("0", "1", "2", "3", "id");
+        grid.removeColumn("script");
+        grid.removeColumn("id");
+        grid.setColumnOrder("0", "1", "2", "3", "4");
+        grid.sort("0", SortDirection.ASCENDING);
         grid.setItems(metamodelService.getMappings(currentHub.getRepository(), currentHub.getName()));
         grid.recalculateColumnWidths();
+        grid.addSelectionListener((SelectionListener<TfMapping>) event -> {
+            moveMappingUpButton.setEnabled(event.getFirstSelectedItem().isPresent());
+            moveMappingDownButton.setEnabled(event.getFirstSelectedItem().isPresent());
+            deleteMappingButton.setEnabled(event.getFirstSelectedItem().isPresent());
+        });
 
-        Panel mappingsPanel = new Panel("Mappings", grid);
+        moveMappingUpButton.setEnabled(false);
+        moveMappingUpButton.setSizeFull();
+        moveMappingUpButton.addClickListener((Button.ClickListener) event -> moveSelectedMapping(true));
+        moveMappingDownButton.setEnabled(false);
+        moveMappingDownButton.setSizeFull();
+        moveMappingDownButton.addClickListener((Button.ClickListener) event -> moveSelectedMapping(false));
+        deleteMappingButton.setEnabled(false);
+        deleteMappingButton.setSizeFull();
+        deleteMappingButton.addClickListener((Button.ClickListener) event -> deleteSelectedMapping());
+        HorizontalLayout gridButtonsLayout = new HorizontalLayout(moveMappingUpButton, moveMappingDownButton, deleteMappingButton);
+        gridButtonsLayout.setSizeFull();
+        gridButtonsLayout.setExpandRatio(moveMappingUpButton, 0.33f);
+        gridButtonsLayout.setExpandRatio(moveMappingDownButton, 0.33f);
+        gridButtonsLayout.setExpandRatio(deleteMappingButton, 0.33f);
+
+        Panel mappingsPanel = new Panel("Mappings and Scripts", grid);
         mappingsPanel.setSizeFull();
 
-        VerticalLayout mappingsLayout = new VerticalLayout(mappingsPanel);
+        VerticalLayout mappingsLayout = new VerticalLayout(mappingsPanel, gridButtonsLayout);
         mappingsLayout.setSizeFull();
-        mappingsLayout.setExpandRatio(mappingsPanel, 1f);
+        mappingsLayout.setExpandRatio(mappingsPanel, 0.95f);
+        mappingsLayout.setExpandRatio(gridButtonsLayout, 0.05f);
         mappingsLayout.setMargin(new MarginInfo(true, false, true, false));
         return mappingsLayout;
+    }
+
+    private void moveSelectedMapping(boolean up) {
+        TfHub currentHub = getCurrentHub();
+        TfMapping mapping = grid.getSelectedItems().iterator().next();
+        metamodelService.moveMapping(mapping, up);
+        grid.setItems(metamodelService.getMappings(currentHub.getRepository(), currentHub.getName()));
+        grid.recalculateColumnWidths();
+        grid.select(mapping);
+    }
+
+    private void deleteSelectedMapping() {
+        TfHub currentHub = getCurrentHub();
+        metamodelService.deleteMapping(grid.getSelectedItems().iterator().next());
+        grid.setItems(metamodelService.getMappings(currentHub.getRepository(), currentHub.getName()));
+        grid.recalculateColumnWidths();
     }
 
     private VerticalLayout buildScriptsLayout() {
@@ -233,24 +265,22 @@ public class TrackFindMappingsUI extends AbstractUI {
         scriptsPanel.setSizeFull();
         Button saveButton = new Button("Save");
         saveButton.setSizeFull();
-        saveButton.addClickListener((Button.ClickListener) event -> saveConfiguration());
+        saveButton.addClickListener((Button.ClickListener) event -> saveScript());
         Button applyMappingsButton = new Button("Apply mappings");
         applyMappingsButton.setSizeFull();
         applyMappingsButton.addClickListener((Button.ClickListener) event -> {
             TfHub currentHub = getCurrentHub();
-            Collection<TfScript> scripts = metamodelService.getScripts(currentHub.getRepository(), currentHub.getName());
-            long count = grid.getDataProvider().fetch(new Query<>()).count();
-            if (count == 0 && CollectionUtils.isEmpty(scripts)) {
-                Notification.show("You should have either mappings or scripts in order to proceed.", Notification.Type.WARNING_MESSAGE);
+            if (grid.getDataProvider().fetch(new Query<>()).count() == 0) {
+                Notification.show("You should have at least one mapping in order to proceed.", Notification.Type.WARNING_MESSAGE);
                 return;
             }
             ConfirmDialog.show(getUI(),
                     "Are you sure? " +
-                            "Applying attribute scripts is time-consuming process and will lead to changing the data in the database.",
+                            "Data curation is time-consuming process and will lead to changing the data in the database.",
                     (ConfirmDialog.Listener) dialog -> {
                         if (dialog.isConfirmed()) {
                             DataProvider dataProvider = trackFindService.getDataProvider(currentHub.getRepository());
-                            dataProvider.applyMappings(currentHub.getName());
+                            dataProvider.runCuration(currentHub.getName());
                         }
                     });
         });
@@ -263,43 +293,17 @@ public class TrackFindMappingsUI extends AbstractUI {
         return scriptsLayout;
     }
 
-    private void loadConfiguration() {
+    private void loadMappings() {
         TfHub currentHub = getCurrentHub();
         grid.setItems(metamodelService.getMappings(currentHub.getRepository(), currentHub.getName()));
-        Collection<TfScript> scripts = metamodelService.getScripts(currentHub.getRepository(), currentHub.getName());
-        if (CollectionUtils.isNotEmpty(scripts)) {
-            script.setValue(scripts.iterator().next().getScript());
-        }
     }
 
-    private void saveConfiguration() {
-        TfHub currentHub = getCurrentHub();
-        Collection<TfScript> scripts = metamodelService.getScripts(currentHub.getRepository(), currentHub.getName());
-        scriptRepository.deleteInBatch(scripts);
-        script.getOptionalValue().ifPresent(s -> {
-            TfScript script = new TfScript();
-            script.setIndex(0L);
-            script.setVersion(currentHub.getCurrentVersion().orElseThrow(RuntimeException::new));
-            script.setScript(s);
-            scriptRepository.save(script);
-        });
-        hubRepository.save(currentHub);
-        Notification.show("Scripts saved. Press \"Apply\" for changes to take effect.");
+    private void saveScript() {
     }
 
     @Autowired
     public void setMetamodelService(MetamodelService metamodelService) {
         this.metamodelService = metamodelService;
-    }
-
-    @Autowired
-    public void setScriptRepository(ScriptRepository scriptRepository) {
-        this.scriptRepository = scriptRepository;
-    }
-
-    @Autowired
-    public void setHubRepository(HubRepository hubRepository) {
-        this.hubRepository = hubRepository;
     }
 
 }

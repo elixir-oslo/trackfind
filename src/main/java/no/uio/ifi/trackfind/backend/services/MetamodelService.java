@@ -156,11 +156,6 @@ public class MetamodelService {
         return metamodel.get(path).parallelStream().collect(Collectors.toSet());
     }
 
-    public Collection<TfScript> getScripts(String repository, String hub) {
-        TfHub currentHub = hubRepository.findByRepositoryAndName(repository, hub);
-        return currentHub.getCurrentVersion().orElseThrow(RuntimeException::new).getScripts();
-    }
-
     public Collection<TfReference> getReferences(String repository, String hub) {
         TfHub currentHub = hubRepository.findByRepositoryAndName(repository, hub);
         TfVersion currentVersion = currentHub.getCurrentVersion().orElseThrow(RuntimeException::new);
@@ -207,12 +202,46 @@ public class MetamodelService {
         return mappings;
     }
 
-    public void addMapping(TfMapping mapping) {
+    public TfMapping addMapping(TfMapping mapping) {
+        if (mapping.getOrderNumber() == null) {
+            TfHub hub = mapping.getVersion().getHub();
+            Collection<TfMapping> mappings = getMappings(hub.getRepository(), hub.getName());
+            TfMapping lastMapping = mappings.stream().max(Comparator.comparing(TfMapping::getOrderNumber)).orElse(new TfMapping(null, 0L, null, null, null, null, null, null));
+            mapping.setOrderNumber(lastMapping.getOrderNumber() + 1L);
+        }
+        return mappingsRepository.save(mapping);
+    }
+
+    public void moveMapping(TfMapping mapping, boolean up) {
+        TfVersion version = mapping.getVersion();
+        TfMapping neighbour;
+        if (up) {
+            Optional<TfMapping> optionalNeighbour = mappingsRepository.findByVersionAndOrderNumber(version, mapping.getOrderNumber() - 1);
+            if (!optionalNeighbour.isPresent()) {
+                return;
+            }
+            neighbour = optionalNeighbour.get();
+            neighbour.setOrderNumber(neighbour.getOrderNumber() + 1);
+            mapping.setOrderNumber(mapping.getOrderNumber() - 1);
+        } else {
+            Optional<TfMapping> optionalNeighbour = mappingsRepository.findByVersionAndOrderNumber(version, mapping.getOrderNumber() + 1);
+            if (!optionalNeighbour.isPresent()) {
+                return;
+            }
+            neighbour = optionalNeighbour.get();
+            neighbour.setOrderNumber(neighbour.getOrderNumber() - 1);
+            mapping.setOrderNumber(mapping.getOrderNumber() + 1);
+        }
+        mappingsRepository.save(neighbour);
         mappingsRepository.save(mapping);
     }
 
     public void deleteMapping(TfMapping mapping) {
+        TfHub hub = mapping.getVersion().getHub();
+        Collection<TfMapping> mappings = getMappings(hub.getRepository(), hub.getName());
+        List<TfMapping> mappingsAfter = mappings.stream().filter(m -> m.getOrderNumber() > mapping.getOrderNumber()).peek(tfMapping -> tfMapping.setOrderNumber(tfMapping.getOrderNumber() - 1)).collect(Collectors.toList());
         mappingsRepository.delete(mapping);
+        mappingsRepository.saveAll(mappingsAfter);
     }
 
     @CacheEvict(cacheNames = {

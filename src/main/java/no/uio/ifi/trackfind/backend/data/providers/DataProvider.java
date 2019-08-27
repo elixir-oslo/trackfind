@@ -44,6 +44,6 @@ public interface DataProvider {
      *
      * @param hubName TfHub name.
      */
-    void applyMappings(String hubName);
+    void runCuration(String hubName);
 
 }

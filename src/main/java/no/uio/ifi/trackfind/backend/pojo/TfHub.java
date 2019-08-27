@@ -14,7 +14,7 @@ import java.util.Set;
 @Table(name = "tf_hubs")
 @Data
 @EqualsAndHashCode(of = {"id", "repository", "name"})
-@ToString(exclude = "versions")
+@ToString(of = {"id", "repository", "name"})
 @RequiredArgsConstructor
 @NoArgsConstructor
 public class TfHub implements Serializable {

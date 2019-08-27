@@ -12,7 +12,7 @@ import java.util.Set;
 @Table(name = "tf_versions")
 @Data
 @EqualsAndHashCode(of = {"id"})
-@ToString(exclude = "objectTypes")
+@ToString(exclude = {"objectTypes", "mappings"})
 @NoArgsConstructor
 @AllArgsConstructor
 public class TfVersion implements Serializable {
@@ -50,6 +50,6 @@ public class TfVersion implements Serializable {
     private Set<TfObjectType> objectTypes;
 
     @OneToMany(mappedBy = "version", fetch = FetchType.EAGER)
-    private Set<TfScript> scripts;
+    private Set<TfMapping> mappings;
 
 }

@@ -48,7 +48,6 @@ public abstract class AbstractDataProvider implements DataProvider {
     protected ObjectTypeRepository objectTypeRepository;
     protected VersionRepository versionRepository;
     protected ObjectRepository objectRepository;
-    protected ScriptRepository scriptRepository;
     protected ReferenceRepository referenceRepository;
     protected ExecutorService executorService;
     protected Gson gson;
@@ -175,7 +174,7 @@ public abstract class AbstractDataProvider implements DataProvider {
     }, allEntries = true)
 //    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     @Override
-    public synchronized void applyMappings(String hubName) {
+    public synchronized void runCuration(String hubName) {
         log.info("Applying mappings for {}: {}", getName(), hubName);
         try {
             Collection<TfMapping> mappings = metamodelService.getMappings(getName(), hubName);
@@ -213,14 +212,6 @@ public abstract class AbstractDataProvider implements DataProvider {
                 }
                 objectRepository.saveAll(objectsToSave);
             }
-//            for (TfMapping mapping : mappings) {
-//                TfReference reference = new TfReference();
-//                reference.setFromObjectType(mapping.getFromObjectType());
-//                reference.setFromAttribute(mapping.getFromAttribute());
-//                reference.setToObjectType(mapping.getToObjectType());
-//                reference.setToAttribute(mapping.getToAttribute());
-//                referenceRepository.save(reference);
-//            }
             applicationEventPublisher.publishEvent(new DataReloadEvent(hubName, Operation.MAPPING));
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -290,11 +281,6 @@ public abstract class AbstractDataProvider implements DataProvider {
     @Autowired
     public void setObjectRepository(ObjectRepository objectRepository) {
         this.objectRepository = objectRepository;
-    }
-
-    @Autowired
-    public void setScriptRepository(ScriptRepository scriptRepository) {
-        this.scriptRepository = scriptRepository;
     }
 
     @Autowired

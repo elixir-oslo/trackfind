@@ -144,7 +144,7 @@ public class TrackFindReferencesUI extends AbstractUI {
         fromAttributeTextField.addValueChangeListener(valueChangeListener);
         toCategoryComboBox.addValueChangeListener(valueChangeListener);
         toAttributeTextField.addValueChangeListener(valueChangeListener);
-        copyButton = new Button("Copy from another version", (Button.ClickListener) event -> {
+        copyButton = new Button("Import from another version", (Button.ClickListener) event -> {
             Grid selectedTab = (Grid) referencesTabSheet.getSelectedTab();
             TfHub hub = (TfHub) selectedTab.getData();
             try {
