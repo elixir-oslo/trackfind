@@ -264,37 +264,6 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>com.spotify</groupId>
-                <artifactId>docker-maven-plugin</artifactId>
-                <version>1.0.0</version>
-                <configuration>
-                    <imageName>nels/trackfind</imageName>
-                    <baseImage>openjdk:8-jdk-alpine</baseImage>
-                    <!-- Next line needs to be a single line, otherwise plugin crashes-->
-                    <entryPoint>["java", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005", "-jar",
-                        "/${project.build.finalName}.jar", "-XX:+UnlockExperimentalVMOptions",
-                        "-XX:+UseCGroupMemoryLimitForHeap"]
-                    </entryPoint>
-                    <!-- copy the service's jar fileDescriptor from target into the root directory of the image -->
-                    <resources>
-                        <resource>
-                            <targetPath>/</targetPath>
-                            <directory>${project.build.directory}</directory>
-                            <include>${project.build.finalName}.jar</include>
-                        </resource>
-                    </resources>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>build-image</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>build</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
         </plugins>
     </build>
 

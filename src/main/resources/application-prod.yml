@@ -1,7 +1,0 @@
-spring:
-  application.name: trackfind
-  boot.admin:
-    client:
-      url: https://${SERVER_NAME}/admin
-      instance.service-url: https://${SERVER_NAME}
-    context-path: /admin

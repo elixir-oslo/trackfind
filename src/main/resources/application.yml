@@ -13,12 +13,15 @@ management.endpoints.web.exposure.include: "*"
 
 spring:
   main.banner-mode: 'off'
-  application.name: trackfind
+  application.name: TrackFind
   boot.admin:
+    context-path: /admin
     client:
       url: http://localhost:8080/admin
-      instance.service-url: http://localhost:8080
-    context-path: /admin
+      instance:
+        name: TrackFind
+        management-base-url: http://localhost:8080
+        service-base-url: http://localhost:8080
   jackson.serialization.indent-output: true
   datasource:
     url: jdbc:postgresql://${DB_INSTANCE:localhost}:${DB_PORT:5432}/${POSTGRES_DB:trackfind}?stringtype=unspecified
