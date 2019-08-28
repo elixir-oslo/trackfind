@@ -105,17 +105,17 @@
         <dependency>
             <groupId>de.codecentric</groupId>
             <artifactId>spring-boot-admin-server</artifactId>
-            <version>2.1.5</version>
+            <version>2.1.6</version>
         </dependency>
         <dependency>
             <groupId>de.codecentric</groupId>
             <artifactId>spring-boot-admin-server-ui</artifactId>
-            <version>2.1.5</version>
+            <version>2.1.6</version>
         </dependency>
         <dependency>
             <groupId>de.codecentric</groupId>
             <artifactId>spring-boot-admin-starter-client</artifactId>
-            <version>2.1.5</version>
+            <version>2.1.6</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
@@ -272,7 +272,10 @@
                     <imageName>nels/trackfind</imageName>
                     <baseImage>openjdk:8-jdk-alpine</baseImage>
                     <!-- Next line needs to be a single line, otherwise plugin crashes-->
-                    <entryPoint>["java", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005", "-jar", "/${project.build.finalName}.jar", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseCGroupMemoryLimitForHeap"]</entryPoint>
+                    <entryPoint>["java", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005", "-jar",
+                        "/${project.build.finalName}.jar", "-XX:+UnlockExperimentalVMOptions",
+                        "-XX:+UseCGroupMemoryLimitForHeap"]
+                    </entryPoint>
                     <!-- copy the service's jar fileDescriptor from target into the root directory of the image -->
                     <resources>
                         <resource>
