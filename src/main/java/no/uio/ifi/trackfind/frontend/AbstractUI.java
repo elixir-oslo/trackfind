@@ -63,18 +63,32 @@ public abstract class AbstractUI extends UI {
         elixir.setIcon(new ThemeResource("images/elixir.png"));
         Link uio = new Link(null, new ExternalResource("https://www.mn.uio.no/ifi/english/research/groups/bmi/"));
         uio.setIcon(new ThemeResource("images/uio.png"));
-        HorizontalLayout footerLayout = new HorizontalLayout(nels, elixir, uio);
-        footerLayout.setHeight("100%");
-        footerLayout.setComponentAlignment(nels, Alignment.MIDDLE_LEFT);
-        footerLayout.setComponentAlignment(elixir, Alignment.MIDDLE_LEFT);
-        footerLayout.setComponentAlignment(uio, Alignment.MIDDLE_LEFT);
-        footerLayout.setMargin(new MarginInfo(false, false, false, true));
+
+        HorizontalLayout leftFooterLayout = new HorizontalLayout(nels, elixir, uio);
+        leftFooterLayout.setHeight("100%");
+        leftFooterLayout.setComponentAlignment(nels, Alignment.MIDDLE_LEFT);
+        leftFooterLayout.setComponentAlignment(elixir, Alignment.MIDDLE_LEFT);
+        leftFooterLayout.setComponentAlignment(uio, Alignment.MIDDLE_LEFT);
+
+        Link gdpr = new Link("GDPR", new ExternalResource("/GDPR"));
+        Link pp = new Link("Privacy Policy", new ExternalResource("/pp"));
+        Link tos = new Link("Terms of Use", new ExternalResource("/tos"));
+        HorizontalLayout rightFooterLayout = new HorizontalLayout(gdpr, pp, tos);
+        rightFooterLayout.setHeight("100%");
+        rightFooterLayout.setComponentAlignment(gdpr, Alignment.MIDDLE_RIGHT);
+        rightFooterLayout.setComponentAlignment(pp, Alignment.MIDDLE_RIGHT);
+        rightFooterLayout.setComponentAlignment(tos, Alignment.MIDDLE_RIGHT);
+        HorizontalLayout footerLayout = new HorizontalLayout(leftFooterLayout, rightFooterLayout);
+        footerLayout.setSizeFull();
+        footerLayout.setComponentAlignment(leftFooterLayout, Alignment.BOTTOM_LEFT);
+        footerLayout.setComponentAlignment(rightFooterLayout, Alignment.BOTTOM_RIGHT);
+        footerLayout.setMargin(new MarginInfo(false, true, false, true));
         return footerLayout;
     }
 
     protected HorizontalLayout buildHeaderLayout() {
-        ThemeResource resource = new ThemeResource("images/logo.png");
-        Image logo = new Image(null, resource);
+        Link logo = new Link(null, new ExternalResource("/"));
+        logo.setIcon(new ThemeResource("images/logo.png"));
         HorizontalLayout headerLayout = new HorizontalLayout(logo);
         headerLayout.setSizeFull();
         headerLayout.setComponentAlignment(logo, Alignment.BOTTOM_CENTER);

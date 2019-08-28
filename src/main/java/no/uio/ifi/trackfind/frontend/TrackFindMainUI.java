@@ -90,9 +90,9 @@ public class TrackFindMainUI extends AbstractUI {
         implementationVersion = implementationVersion == null ? "dev" : implementationVersion;
         Page currentPage = Page.getCurrent();
         currentPage.setTitle("TrackFind: " + implementationVersion);
-        GoogleAnalyticsTracker tracker = new GoogleAnalyticsTracker("UA-143208550-1");
-        tracker.trackPageview("/");
-        tracker.extend(getUI());
+//        GoogleAnalyticsTracker tracker = new GoogleAnalyticsTracker("UA-143208550-1");
+//        tracker.trackPageview("/");
+//        tracker.extend(getUI());
     }
 
     protected VerticalLayout buildTreeLayout() {
