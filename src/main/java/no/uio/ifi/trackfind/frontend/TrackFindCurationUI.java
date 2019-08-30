@@ -82,11 +82,11 @@ public class TrackFindCurationUI extends AbstractUI {
             tree.addSelectionListener((SelectionListener<TreeNode>) event -> {
                 Optional<String> value = attributesComboBox.getSelectedItem();
                 Optional<TreeNode> item = event.getFirstSelectedItem();
-                if (value.isPresent() && item.isPresent()) {
-                    addMappingButton.setEnabled(true);
-                } else {
-                    addMappingButton.setEnabled(false);
-                }
+                addMappingButton.setEnabled(value.isPresent()
+                        && item.isPresent()
+                        && item.get().isAttribute()
+                        && item.get().getLevel() != 0
+                );
             });
             tabSheet.addTab(tree, hub.getName());
         }
