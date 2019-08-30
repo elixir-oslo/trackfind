@@ -58,6 +58,7 @@ public class TrackFindCurationUI extends AbstractUI {
 
     private Grid<TfMapping> grid = new Grid<>(TfMapping.class);
     private AceEditor script = new AceEditor();
+    private Panel scriptsPanel = new Panel("Script", script);
 
     @Override
     protected void init(VaadinRequest vaadinRequest) {
@@ -202,6 +203,7 @@ public class TrackFindCurationUI extends AbstractUI {
             moveMappingUpButton.setEnabled(event.getFirstSelectedItem().isPresent());
             moveMappingDownButton.setEnabled(event.getFirstSelectedItem().isPresent());
             deleteMappingButton.setEnabled(event.getFirstSelectedItem().isPresent());
+            script.setVisible(event.getFirstSelectedItem().isPresent() && StringUtils.isEmpty(event.getFirstSelectedItem().get().getFromAttribute()));
         });
 
         moveMappingUpButton.setEnabled(false);
@@ -250,18 +252,8 @@ public class TrackFindCurationUI extends AbstractUI {
         script.setSizeFull();
         script.setTheme(AceTheme.github);
         script.setMode(AceMode.coffee);
+        script.setVisible(false);
 
-        TabSheet scriptsTabSheet = new TabSheet();
-        scriptsTabSheet.setSizeFull();
-        scriptsTabSheet.addTab(script, "Script 1");
-
-        scriptsTabSheet.addSelectedTabChangeListener((TabSheet.SelectedTabChangeListener) event -> {
-            if (event.getTabSheet().getSelectedTab().equals(script)) {
-                script.focus();
-            }
-        });
-
-        Panel scriptsPanel = new Panel("Scripts", scriptsTabSheet);
         scriptsPanel.setSizeFull();
         Button saveButton = new Button("Save");
         saveButton.setSizeFull();
