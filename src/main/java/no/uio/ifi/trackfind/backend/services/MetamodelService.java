@@ -194,12 +194,7 @@ public class MetamodelService {
     public Collection<TfMapping> getMappings(String repository, String hub) {
         TfHub currentHub = hubRepository.findByRepositoryAndName(repository, hub);
         TfVersion currentVersion = currentHub.getCurrentVersion().orElseThrow(RuntimeException::new);
-        Collection<TfObjectType> objectTypes = currentVersion.getObjectTypes();
-        Collection<TfMapping> mappings = new HashSet<>();
-        for (TfObjectType objectType : objectTypes) {
-            mappings.addAll(objectType.getMappings());
-        }
-        return mappings;
+        return currentVersion.getMappings();
     }
 
     public TfMapping addMapping(TfMapping mapping) {

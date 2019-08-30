@@ -52,7 +52,9 @@ public class TrackFindCurationUI extends AbstractUI {
     private Button moveMappingUpButton = new Button("Move up ↑");
     private Button moveMappingDownButton = new Button("Move down ↓");
     private Button deleteMappingButton = new Button("Delete ✕");
-    private Button addMappingButton = new Button("Add mapping");
+    private Button addStaticMappingButton = new Button("Add static mapping");
+    private Button addDynamicMappingButton = new Button("Add dynamic mapping");
+    private Button saveButton = new Button("Save");
     private ComboBox<String> attributesComboBox = new ComboBox<>();
     private ComboBox<String> categoriesComboBox = new ComboBox<>();
 
@@ -82,7 +84,7 @@ public class TrackFindCurationUI extends AbstractUI {
             tree.addSelectionListener((SelectionListener<TreeNode>) event -> {
                 Optional<String> value = attributesComboBox.getSelectedItem();
                 Optional<TreeNode> item = event.getFirstSelectedItem();
-                addMappingButton.setEnabled(value.isPresent()
+                addStaticMappingButton.setEnabled(value.isPresent()
                         && item.isPresent()
                         && item.get().isAttribute()
                         && item.get().getLevel() != 0
@@ -96,10 +98,9 @@ public class TrackFindCurationUI extends AbstractUI {
         Panel treePanel = new Panel("Model browser", tabSheet);
         treePanel.setSizeFull();
 
-        addMappingButton = new Button("Add mapping");
-        addMappingButton.setEnabled(false);
-        addMappingButton.setWidth("100%");
-        addMappingButton.addClickListener((Button.ClickListener) event -> {
+        addStaticMappingButton.setEnabled(false);
+        addStaticMappingButton.setWidth("100%");
+        addStaticMappingButton.addClickListener((Button.ClickListener) event -> {
             TfHub currentHub = getCurrentHub();
             TfVersion currentVersion = currentHub.getCurrentVersion().orElseThrow(RuntimeException::new);
             TreeNode treeNode = getCurrentTree().getSelectedItems().iterator().next();
@@ -117,9 +118,7 @@ public class TrackFindCurationUI extends AbstractUI {
                     attributesComboBox.getSelectedItem().orElseThrow(RuntimeException::new),
                     null)
             );
-            grid.setItems(metamodelService.getMappings(currentHub.getRepository(), currentHub.getName()));
-            grid.recalculateColumnWidths();
-            grid.select(mapping);
+            saveMapping(mapping);
         });
 
         attributesComboBox = new ComboBox<>();
@@ -129,9 +128,9 @@ public class TrackFindCurationUI extends AbstractUI {
             String value = event.getValue();
             TrackFindTree<TreeNode> currentTree = getCurrentTree();
             if (StringUtils.isNotEmpty(value) && CollectionUtils.isNotEmpty(currentTree.getSelectedItems())) {
-                addMappingButton.setEnabled(true);
+                addStaticMappingButton.setEnabled(true);
             } else {
-                addMappingButton.setEnabled(false);
+                addStaticMappingButton.setEnabled(false);
             }
         });
 
@@ -141,7 +140,7 @@ public class TrackFindCurationUI extends AbstractUI {
         categoriesComboBox.addValueChangeListener((HasValue.ValueChangeListener<String>) event -> {
             String value = event.getValue();
             attributesComboBox.clear();
-            addMappingButton.setEnabled(false);
+            addStaticMappingButton.setEnabled(false);
             if (StringUtils.isEmpty(value)) {
                 attributesComboBox.setEnabled(false);
             } else {
@@ -150,10 +149,26 @@ public class TrackFindCurationUI extends AbstractUI {
             }
         });
 
-        VerticalLayout treeLayout = new VerticalLayout(treePanel, categoriesComboBox, attributesComboBox, addMappingButton);
+        addDynamicMappingButton.setWidth("100%");
+        addDynamicMappingButton.addClickListener((Button.ClickListener) event -> {
+            TfHub currentHub = getCurrentHub();
+            TfMapping mapping = new TfMapping();
+            mapping.setVersion(currentHub.getCurrentVersion().orElseThrow(RuntimeException::new));
+            saveMapping(mapping);
+        });
+
+        VerticalLayout treeLayout = new VerticalLayout(treePanel, categoriesComboBox, attributesComboBox, addStaticMappingButton, addDynamicMappingButton);
         treeLayout.setSizeFull();
         treeLayout.setExpandRatio(treePanel, 1f);
         return treeLayout;
+    }
+
+    private void saveMapping(TfMapping mapping) {
+        TfHub currentHub = getCurrentHub();
+        mapping = metamodelService.addMapping(mapping);
+        grid.setItems(metamodelService.getMappings(currentHub.getRepository(), currentHub.getName()));
+        grid.recalculateColumnWidths();
+        grid.select(mapping);
     }
 
     @SuppressWarnings("unchecked")
@@ -183,9 +198,9 @@ public class TrackFindCurationUI extends AbstractUI {
         TfHub currentHub = getCurrentHub();
         grid.setSizeFull();
         grid.addColumn(TfMapping::getOrderNumber).setCaption("Order").setId("0");
-        grid.addColumn(m -> m.getFromObjectType().getName()).setCaption("From category").setId("1").setRenderer(new TextRenderer("Scripted"));
+        grid.addColumn(m -> m.getFromObjectType() == null ? null : m.getFromObjectType().getName()).setCaption("From category").setId("1").setRenderer(new TextRenderer("Scripted"));
         grid.addColumn(TfMapping::getFromAttribute).setCaption("From attribute").setId("2").setRenderer(new TextRenderer("Scripted"));
-        grid.addColumn(m -> m.getToObjectType().getName()).setCaption("To category").setId("3").setRenderer(new TextRenderer("Scripted"));
+        grid.addColumn(m -> m.getToObjectType() == null ? null : m.getToObjectType().getName()).setCaption("To category").setId("3").setRenderer(new TextRenderer("Scripted"));
         grid.addColumn(TfMapping::getToAttribute).setCaption("To attribute").setId("4").setRenderer(new TextRenderer("Scripted"));
         grid.removeColumn("orderNumber");
         grid.removeColumn("version");
@@ -203,7 +218,12 @@ public class TrackFindCurationUI extends AbstractUI {
             moveMappingUpButton.setEnabled(event.getFirstSelectedItem().isPresent());
             moveMappingDownButton.setEnabled(event.getFirstSelectedItem().isPresent());
             deleteMappingButton.setEnabled(event.getFirstSelectedItem().isPresent());
-            script.setVisible(event.getFirstSelectedItem().isPresent() && StringUtils.isEmpty(event.getFirstSelectedItem().get().getFromAttribute()));
+            boolean isScript = event.getFirstSelectedItem().isPresent() && StringUtils.isEmpty(event.getFirstSelectedItem().get().getFromAttribute());
+            script.setVisible(isScript);
+            saveButton.setEnabled(isScript);
+            if (isScript) {
+                script.setValue(event.getFirstSelectedItem().get().getScript());
+            }
         });
 
         moveMappingUpButton.setEnabled(false);
@@ -234,7 +254,7 @@ public class TrackFindCurationUI extends AbstractUI {
 
     private void moveSelectedMapping(boolean up) {
         TfHub currentHub = getCurrentHub();
-        TfMapping mapping = grid.getSelectedItems().iterator().next();
+        TfMapping mapping = getSelectedMapping().orElseThrow(RuntimeException::new);
         metamodelService.moveMapping(mapping, up);
         grid.setItems(metamodelService.getMappings(currentHub.getRepository(), currentHub.getName()));
         grid.recalculateColumnWidths();
@@ -243,9 +263,13 @@ public class TrackFindCurationUI extends AbstractUI {
 
     private void deleteSelectedMapping() {
         TfHub currentHub = getCurrentHub();
-        metamodelService.deleteMapping(grid.getSelectedItems().iterator().next());
+        metamodelService.deleteMapping(getSelectedMapping().orElseThrow(RuntimeException::new));
         grid.setItems(metamodelService.getMappings(currentHub.getRepository(), currentHub.getName()));
         grid.recalculateColumnWidths();
+    }
+
+    private Optional<TfMapping> getSelectedMapping() {
+        return CollectionUtils.isEmpty(grid.getSelectedItems()) ? Optional.empty() : Optional.ofNullable(grid.getSelectedItems().iterator().next());
     }
 
     private VerticalLayout buildScriptsLayout() {
@@ -255,7 +279,7 @@ public class TrackFindCurationUI extends AbstractUI {
         script.setVisible(false);
 
         scriptsPanel.setSizeFull();
-        Button saveButton = new Button("Save");
+        saveButton.setEnabled(false);
         saveButton.setSizeFull();
         saveButton.addClickListener((Button.ClickListener) event -> saveScript());
         Button applyMappingsButton = new Button("Apply mappings");
@@ -291,6 +315,11 @@ public class TrackFindCurationUI extends AbstractUI {
     }
 
     private void saveScript() {
+        Optional<TfMapping> selectedMapping = getSelectedMapping();
+        selectedMapping.ifPresent(mapping -> {
+            mapping.setScript(script.getValue());
+            saveMapping(mapping);
+        });
     }
 
     @Autowired
