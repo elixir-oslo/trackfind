@@ -183,10 +183,10 @@ public class TrackFindCurationUI extends AbstractUI {
         TfHub currentHub = getCurrentHub();
         grid.setSizeFull();
         grid.addColumn(TfMapping::getOrderNumber).setCaption("Order").setId("0");
-        grid.addColumn(m -> m.getFromObjectType().getName()).setRenderer(new TextRenderer("Scripted")).setCaption("From category").setId("1");
-        grid.addColumn(TfMapping::getFromAttribute).setRenderer(new TextRenderer("Scripted")).setCaption("From attribute").setId("2");
-        grid.addColumn(m -> m.getToObjectType().getName()).setRenderer(new TextRenderer("Scripted")).setCaption("To category").setId("3");
-        grid.addColumn(TfMapping::getToAttribute).setRenderer(new TextRenderer("Scripted")).setCaption("To attribute").setId("4");
+        grid.addColumn(m -> m.getFromObjectType().getName()).setCaption("From category").setId("1").setRenderer(new TextRenderer("Scripted"));
+        grid.addColumn(TfMapping::getFromAttribute).setCaption("From attribute").setId("2").setRenderer(new TextRenderer("Scripted"));
+        grid.addColumn(m -> m.getToObjectType().getName()).setCaption("To category").setId("3").setRenderer(new TextRenderer("Scripted"));
+        grid.addColumn(TfMapping::getToAttribute).setCaption("To attribute").setId("4").setRenderer(new TextRenderer("Scripted"));
         grid.removeColumn("orderNumber");
         grid.removeColumn("version");
         grid.removeColumn("fromObjectType");
