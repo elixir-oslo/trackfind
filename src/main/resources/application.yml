@@ -40,5 +40,5 @@ trackfind:
   scripting:
     language: CoffeeScript
     variables:
-      dataset: dataset
-      result: result
+      input: input
+      output: output

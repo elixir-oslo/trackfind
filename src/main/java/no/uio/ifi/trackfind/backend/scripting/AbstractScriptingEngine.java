@@ -9,10 +9,10 @@ import org.springframework.beans.factory.annotation.Value;
  */
 public abstract class AbstractScriptingEngine implements ScriptingEngine {
 
-    @Value("${trackfind.scripting.variables.dataset}")
-    protected String datasetVariable;
+    @Value("${trackfind.scripting.variables.input}")
+    protected String input;
 
-    @Value("${trackfind.scripting.variables.result}")
-    protected String resultVariable;
+    @Value("${trackfind.scripting.variables.output}")
+    protected String output;
 
 }

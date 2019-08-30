@@ -46,14 +46,14 @@ public class CoffeeScriptScriptingEngine extends AbstractScriptingEngine {
     @Override
     /*
         Example:
-            source = JSON.parse(dataset)
+            source = JSON.parse(input)
             source['test'] = 'test'
             return JSON.stringify(source)
      */
     public String execute(String script, String content) throws Exception {
         CompiledScript compiledScript = scripts.get(script);
         Object result = compiledScript.eval(new SimpleBindings(new HashMap<String, Object>() {{
-            put(datasetVariable, content);
+            put(input, content);
         }}));
         return String.valueOf(result);
     }

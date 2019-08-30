@@ -43,15 +43,15 @@ public class PythonScriptingEngine extends AbstractScriptingEngine {
     /*
         Example:
             import json
-            source = json.loads(dataset)
+            source = json.loads(input)
             source['test'] = 'test'
-            result = json.dumps(source)
+            output = json.dumps(source)
      */
     public String execute(String script, String content) throws Exception {
         PythonInterpreter localInterpreter = new PythonInterpreter();
-        localInterpreter.set(datasetVariable, content);
+        localInterpreter.set(input, content);
         localInterpreter.eval(scripts.get(script));
-        return String.valueOf(localInterpreter.get(resultVariable));
+        return String.valueOf(localInterpreter.get(output));
     }
 
     @Autowired
