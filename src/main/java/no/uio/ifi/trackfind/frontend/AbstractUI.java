@@ -87,11 +87,25 @@ public abstract class AbstractUI extends UI {
     }
 
     protected HorizontalLayout buildHeaderLayout() {
+        HorizontalLayout leftHeaderLayout = new HorizontalLayout();
+        leftHeaderLayout.setSizeFull();
         Link logo = new Link(null, new ExternalResource("/"));
         logo.setIcon(new ThemeResource("images/logo.png"));
-        HorizontalLayout headerLayout = new HorizontalLayout(logo);
+        HorizontalLayout middleHeaderLayout = new HorizontalLayout(logo);
+        middleHeaderLayout.setSizeFull();
+        middleHeaderLayout.setComponentAlignment(logo, Alignment.BOTTOM_CENTER);
+        String serverName = System.getenv("SERVER_NAME");
+        Link login = new Link(null, new ExternalResource("/"));
+        login.setIcon(new ThemeResource("images/login.png"));
+        HorizontalLayout rightHeaderLayout = new HorizontalLayout(login);
+        rightHeaderLayout.setMargin(new MarginInfo(false, true, false, false));
+        rightHeaderLayout.setSizeFull();
+        rightHeaderLayout.setComponentAlignment(login, Alignment.TOP_RIGHT);
+        HorizontalLayout headerLayout = new HorizontalLayout(leftHeaderLayout, middleHeaderLayout, rightHeaderLayout);
         headerLayout.setSizeFull();
-        headerLayout.setComponentAlignment(logo, Alignment.BOTTOM_CENTER);
+        headerLayout.setExpandRatio(leftHeaderLayout, 0.33f);
+        headerLayout.setExpandRatio(middleHeaderLayout, 0.33f);
+        headerLayout.setExpandRatio(rightHeaderLayout, 0.33f);
         return headerLayout;
     }
 
