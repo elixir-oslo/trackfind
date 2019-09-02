@@ -22,6 +22,7 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE
       - SERVER_NAME
+      - SSL_ENGINE
       - DB_INSTANCE=db
       - POSTGRES_DB=trackfind
       - POSTGRES_USER
@@ -38,7 +39,7 @@ services:
       - ELIXIR_AAI_CLIENT_ID
       - ELIXIR_AAI_CLIENT_SECRET
       - SCOPES="openid profile email"
-      - PROTECTED_RESOURCES=/admin
+      - PROTECTED_RESOURCES=/login,/admin
       - SSL_ENGINE
 #    volumes:
 #      - /etc/letsencrypt/live/<site>/fullchain.pem:/etc/ssl/certs/fullchain.pem

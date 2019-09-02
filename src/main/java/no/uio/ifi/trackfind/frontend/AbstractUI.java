@@ -94,8 +94,7 @@ public abstract class AbstractUI extends UI {
         HorizontalLayout middleHeaderLayout = new HorizontalLayout(logo);
         middleHeaderLayout.setSizeFull();
         middleHeaderLayout.setComponentAlignment(logo, Alignment.BOTTOM_CENTER);
-        String serverName = System.getenv("SERVER_NAME");
-        Link login = new Link(null, new ExternalResource("/"));
+        Link login = new Link(null, new ExternalResource("/login"));
         login.setIcon(new ThemeResource("images/login.png"));
         HorizontalLayout rightHeaderLayout = new HorizontalLayout(login);
         rightHeaderLayout.setMargin(new MarginInfo(false, true, false, false));
