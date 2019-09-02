@@ -175,7 +175,7 @@ public abstract class AbstractDataProvider implements DataProvider {
 //    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     @Override
     public synchronized void runCuration(String hubName) {
-        log.info("Applying mappings for {}: {}", getName(), hubName);
+        log.info("Curating {} - {}...", getName(), hubName);
         try {
             Collection<TfMapping> mappings = metamodelService.getMappings(getName(), hubName);
             HashMultimap<TfObjectType, TfMapping> mappingsByCategories = HashMultimap.create();

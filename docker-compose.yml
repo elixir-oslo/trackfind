@@ -37,7 +37,7 @@ services:
       - PROXY_PASS=http://trackfind:8080/
       - ELIXIR_AAI_CLIENT_ID
       - ELIXIR_AAI_CLIENT_SECRET
-      - SCOPES="openid, profile, email"
+      - SCOPES="openid profile email"
       - PROTECTED_RESOURCES=/admin
       - SSL_ENGINE
 #    volumes:
