@@ -114,9 +114,7 @@ public abstract class AbstractUI extends UI {
         } else {
             UserInfo userInfo = authentication.get();
             Label label = new Label(userInfo.getFullName());
-            label.setWidth("30%");
             Link link = new Link("(Log out)", new ExternalResource("/logout"));
-            link.setWidth("30%");
             rightHeaderLayout.addComponents(label, link);
             rightHeaderLayout.setComponentAlignment(label, Alignment.TOP_RIGHT);
             rightHeaderLayout.setComponentAlignment(link, Alignment.TOP_RIGHT);
