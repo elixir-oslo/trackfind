@@ -117,6 +117,16 @@ CREATE TABLE IF NOT EXISTS tf_mappings
     script              TEXT
 );
 
+CREATE TABLE IF NOT EXISTS tf_users
+(
+    id        BIGSERIAL PRIMARY KEY,
+    elixir_id VARCHAR NOT NULL UNIQUE,
+    username  VARCHAR NOT NULL,
+    full_name VARCHAR NOT NULL,
+    email     VARCHAR NOT NULL,
+    admin     BOOLEAN NOT NULL
+);
+
 CREATE OR REPLACE VIEW tf_current_versions AS
 SELECT *
 FROM tf_versions

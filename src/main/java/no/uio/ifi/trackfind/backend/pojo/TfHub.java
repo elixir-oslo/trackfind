@@ -13,7 +13,7 @@ import java.util.Set;
 @Entity
 @Table(name = "tf_hubs")
 @Data
-@EqualsAndHashCode(of = {"id", "repository", "name"})
+@EqualsAndHashCode(of = {"id"})
 @ToString(of = {"id", "repository", "name"})
 @RequiredArgsConstructor
 @NoArgsConstructor
