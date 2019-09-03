@@ -12,7 +12,6 @@ server:
 management.endpoints.web.exposure.include: "*"
 
 spring:
-  main.banner-mode: 'off'
   application.name: TrackFind
   boot.admin:
     context-path: /admin
