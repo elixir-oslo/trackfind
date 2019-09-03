@@ -3,6 +3,8 @@ package no.uio.ifi.trackfind.frontend;
 import com.vaadin.data.HasValue;
 import com.vaadin.server.ExternalResource;
 import com.vaadin.server.ThemeResource;
+import com.vaadin.server.VaadinRequest;
+import com.vaadin.server.VaadinService;
 import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.shared.ui.ValueChangeMode;
 import com.vaadin.ui.*;
@@ -11,11 +13,15 @@ import no.uio.ifi.trackfind.backend.data.TreeNode;
 import no.uio.ifi.trackfind.backend.pojo.TfHub;
 import no.uio.ifi.trackfind.backend.services.SchemaService;
 import no.uio.ifi.trackfind.backend.services.TrackFindService;
+import no.uio.ifi.trackfind.frontend.auth.UserInfo;
 import no.uio.ifi.trackfind.frontend.components.TrackFindTree;
 import no.uio.ifi.trackfind.frontend.filters.TreeFilter;
 import no.uio.ifi.trackfind.frontend.providers.TrackFindDataProvider;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+
+import java.util.Optional;
 
 /**
  * Main Vaadin UI of the application.
@@ -53,6 +59,7 @@ public abstract class AbstractUI extends UI {
         outerLayout.setExpandRatio(mainLayout, 0.8f);
         outerLayout.setExpandRatio(footerLayout, 0.10f);
         outerLayout.setMargin(false);
+        getAuthentication();
         return outerLayout;
     }
 
@@ -94,12 +101,27 @@ public abstract class AbstractUI extends UI {
         HorizontalLayout middleHeaderLayout = new HorizontalLayout(logo);
         middleHeaderLayout.setSizeFull();
         middleHeaderLayout.setComponentAlignment(logo, Alignment.BOTTOM_CENTER);
-        Link login = new Link(null, new ExternalResource("/login"));
-        login.setIcon(new ThemeResource("images/login.png"));
-        HorizontalLayout rightHeaderLayout = new HorizontalLayout(login);
+        HorizontalLayout rightHeaderLayout = new HorizontalLayout();
         rightHeaderLayout.setMargin(new MarginInfo(false, true, false, false));
         rightHeaderLayout.setSizeFull();
-        rightHeaderLayout.setComponentAlignment(login, Alignment.TOP_RIGHT);
+
+        Optional<UserInfo> authentication = getAuthentication();
+        if (!authentication.isPresent()) {
+            Link login = new Link(null, new ExternalResource("/login"));
+            login.setIcon(new ThemeResource("images/login.png"));
+            rightHeaderLayout.addComponent(login);
+            rightHeaderLayout.setComponentAlignment(login, Alignment.TOP_RIGHT);
+        } else {
+            UserInfo userInfo = authentication.get();
+            Label label = new Label(userInfo.getFullName());
+            label.setWidth("30%");
+            Link link = new Link("(Log out)", new ExternalResource("/logout"));
+            link.setWidth("30%");
+            rightHeaderLayout.addComponents(label, link);
+            rightHeaderLayout.setComponentAlignment(label, Alignment.TOP_RIGHT);
+            rightHeaderLayout.setComponentAlignment(link, Alignment.TOP_RIGHT);
+        }
+
         HorizontalLayout headerLayout = new HorizontalLayout(leftHeaderLayout, middleHeaderLayout, rightHeaderLayout);
         headerLayout.setSizeFull();
         headerLayout.setExpandRatio(leftHeaderLayout, 0.33f);
@@ -123,6 +145,20 @@ public abstract class AbstractUI extends UI {
         attributesFilterTextField.setValueChangeMode(ValueChangeMode.EAGER);
         attributesFilterTextField.setWidth(100, Unit.PERCENTAGE);
         return attributesFilterTextField;
+    }
+
+    protected Optional<UserInfo> getAuthentication() {
+        VaadinRequest currentRequest = VaadinService.getCurrentRequest();
+        String id = currentRequest.getHeader("oidc_claim_sub");
+        if (StringUtils.isEmpty(id)) {
+            return Optional.empty();
+        }
+        return Optional.of(new UserInfo(
+                id,
+                currentRequest.getHeader("oidc_claim_preferred_username"),
+                currentRequest.getHeader("oidc_claim_name"),
+                currentRequest.getHeader("oidc_claim_email")
+        ));
     }
 
     @Autowired
