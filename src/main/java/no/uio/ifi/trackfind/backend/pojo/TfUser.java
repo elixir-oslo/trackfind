@@ -5,6 +5,7 @@ import org.springframework.security.core.AuthenticatedPrincipal;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.Set;
 
 @Entity
 @Table(name = "tf_users")
@@ -34,6 +35,9 @@ public class TfUser implements Serializable, AuthenticatedPrincipal {
 
     @Column(name = "admin", nullable = false)
     private boolean admin;
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
+    private Set<TfVersion> versions;
 
     @Override
     public String getName() {

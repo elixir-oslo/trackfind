@@ -36,8 +36,9 @@ public class TfVersion implements Serializable {
     @Enumerated(EnumType.STRING)
     private Operation operation;
 
-    @Column(name = "username", nullable = false)
-    private String username;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    private TfUser user;
 
     @Column(name = "time", nullable = false)
     private Date time;

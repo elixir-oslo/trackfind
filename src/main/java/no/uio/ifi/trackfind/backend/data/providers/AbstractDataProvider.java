@@ -19,6 +19,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedCredentialsNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
@@ -130,7 +133,13 @@ public abstract class AbstractDataProvider implements DataProvider {
         version.setVersion(versionNumber.incrementAndGet());
         version.setCurrent(true);
         version.setOperation(Operation.CRAWLING);
-        version.setUsername("admin");
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null) {
+            if (!authentication.isAuthenticated()) {
+                throw new PreAuthenticatedCredentialsNotFoundException("Unauthorized attempt to create new version!");
+            }
+            version.setUser((TfUser) authentication.getPrincipal());
+        }
         version.setTime(new Date());
         version.setHub(hub);
         version = versionRepository.save(version);

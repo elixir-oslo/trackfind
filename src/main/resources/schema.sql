@@ -15,6 +15,16 @@ FROM jsonb_each(a) e1(ka, va)
          FULL JOIN jsonb_each(b) e2(kb, vb) ON ka = kb
 $$;
 
+CREATE TABLE IF NOT EXISTS tf_users
+(
+    id        BIGSERIAL PRIMARY KEY,
+    elixir_id VARCHAR NOT NULL UNIQUE,
+    username  VARCHAR NOT NULL,
+    full_name VARCHAR NOT NULL,
+    email     VARCHAR NOT NULL,
+    admin     BOOLEAN NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS tf_hubs
 (
     id         BIGSERIAL PRIMARY KEY,
@@ -31,7 +41,7 @@ CREATE TABLE IF NOT EXISTS tf_versions
     based_on  BIGINT REFERENCES tf_versions (id),
     current   BOOLEAN NOT NULL,
     operation VARCHAR NOT NULL,
-    username  VARCHAR NOT NULL,
+    user_id   BIGINT REFERENCES tf_users (id),
     time      TIMESTAMP,
     UNIQUE (hub_id, version),
     CONSTRAINT mapping_should_have_based_on CHECK ( based_on IS NOT NULL OR operation = 'CRAWLING' )
@@ -115,16 +125,6 @@ CREATE TABLE IF NOT EXISTS tf_mappings
     to_object_type_id   BIGINT REFERENCES tf_object_types (id),
     to_attribute        VARCHAR,
     script              TEXT
-);
-
-CREATE TABLE IF NOT EXISTS tf_users
-(
-    id        BIGSERIAL PRIMARY KEY,
-    elixir_id VARCHAR NOT NULL UNIQUE,
-    username  VARCHAR NOT NULL,
-    full_name VARCHAR NOT NULL,
-    email     VARCHAR NOT NULL,
-    admin     BOOLEAN NOT NULL
 );
 
 CREATE OR REPLACE VIEW tf_current_versions AS

@@ -45,7 +45,8 @@ public class SecurityFilter implements Filter {
                     httpServletRequest.getHeader("oidc_claim_preferred_username"),
                     httpServletRequest.getHeader("oidc_claim_name"),
                     httpServletRequest.getHeader("oidc_claim_email"),
-                    true
+                    false,
+                    null
             );
             user = userRepository.save(user);
             log.info("New user saved: {}", user);

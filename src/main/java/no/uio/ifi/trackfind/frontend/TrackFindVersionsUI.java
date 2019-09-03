@@ -3,14 +3,17 @@ package no.uio.ifi.trackfind.frontend;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Title;
 import com.vaadin.annotations.Widgetset;
+import com.vaadin.data.ValueProvider;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.spring.annotation.SpringUI;
 import com.vaadin.ui.*;
 import com.vaadin.ui.renderers.ButtonRenderer;
 import com.vaadin.ui.renderers.ClickableRenderer;
+import com.vaadin.ui.renderers.TextRenderer;
 import elemental.json.JsonValue;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.pojo.TfHub;
+import no.uio.ifi.trackfind.backend.pojo.TfUser;
 import no.uio.ifi.trackfind.backend.pojo.TfVersion;
 import no.uio.ifi.trackfind.backend.repositories.HubRepository;
 import no.uio.ifi.trackfind.backend.services.MetamodelService;
@@ -76,7 +79,11 @@ public class TrackFindVersionsUI extends AbstractUI {
                 }
             };
             grid.getColumn("id").setRenderer(buttonRenderer).setCaption("Action");
-            grid.setColumnOrder("version", "operation", "username", "time", "id");
+            grid.getColumn("user").setRenderer((ValueProvider) user -> {
+                TfUser tfUser = (TfUser) user;
+                return tfUser == null ? null : tfUser.getFullName();
+            }, new TextRenderer("Auto-crawled"));
+            grid.setColumnOrder("version", "operation", "user", "time", "id");
             grid.sort("id");
             grid.setData(hub);
             grid.setItems(hub.getVersions());
