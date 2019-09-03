@@ -1,7 +1,6 @@
 package no.uio.ifi.trackfind.backend.rest.controllers;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -22,11 +21,10 @@ public class AuthController {
      * Redirects to the referrer page.
      */
     @GetMapping(path = "/login")
-    public RedirectView login(@RequestHeader(value = "referer", required = false) String referer,
-                              @RequestHeader(value = "oidc_claim_name", required = false) String userFullName,
+    public RedirectView login(@RequestHeader(value = "oidc_claim_name", required = false) String userFullName,
                               @RequestHeader(value = "oidc_claim_sub", required = false) String userId) {
         log.info("User {} ({}) logged in.", userFullName, userId);
-        return new RedirectView(StringUtils.isEmpty(referer) ? "/" : referer);
+        return new RedirectView("/");
     }
 
     /**
