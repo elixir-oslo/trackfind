@@ -1,6 +1,7 @@
-package no.uio.ifi.trackfind.backend.rest.controllers;
+package no.uio.ifi.trackfind.backend.rest;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -35,6 +36,7 @@ public class AuthController {
                                @RequestHeader(value = "oidc_claim_name", required = false) String userFullName,
                                @RequestHeader(value = "oidc_claim_sub", required = false) String userId) {
         log.info("User {} ({}) attempted to log out.", userFullName, userId);
+        SecurityContextHolder.clearContext();
         return new RedirectView("/oidc-protected?logout=" + referer);
     }
 

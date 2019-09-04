@@ -16,6 +16,7 @@ import no.uio.ifi.trackfind.frontend.filters.TreeFilter;
 import no.uio.ifi.trackfind.frontend.providers.TrackFindDataProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -101,7 +102,7 @@ public abstract class AbstractUI extends UI {
         rightHeaderLayout.setSizeFull();
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
+        if (authentication instanceof AnonymousAuthenticationToken) {
             Link login = new Link(null, new ExternalResource("/login"));
             login.setIcon(new ThemeResource("images/login.png"));
             rightHeaderLayout.addComponent(login);

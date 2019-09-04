@@ -22,7 +22,8 @@ CREATE TABLE IF NOT EXISTS tf_users
     username  VARCHAR NOT NULL,
     full_name VARCHAR NOT NULL,
     email     VARCHAR NOT NULL,
-    admin     BOOLEAN NOT NULL
+    admin     BOOLEAN NOT NULL,
+    active     BOOLEAN NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS tf_hubs

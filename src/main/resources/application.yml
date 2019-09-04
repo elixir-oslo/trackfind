@@ -35,6 +35,7 @@ gsuite:
   listOfServers: ${GSUITE_SERVERS:gsuite:5000}
 
 trackfind:
+  admin: ${ADMIN_ELIXIR_ID}
   separator: ->
   scripting:
     language: CoffeeScript

@@ -1,10 +1,13 @@
 package no.uio.ifi.trackfind.backend.pojo;
 
 import lombok.*;
-import org.springframework.security.core.AuthenticatedPrincipal;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.Set;
 
 @Entity
@@ -14,7 +17,7 @@ import java.util.Set;
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
-public class TfUser implements Serializable, AuthenticatedPrincipal {
+public class TfUser implements Serializable, UserDetails {
 
     @Id
     @Column(name = "id", nullable = false)
@@ -36,12 +39,40 @@ public class TfUser implements Serializable, AuthenticatedPrincipal {
     @Column(name = "admin", nullable = false)
     private boolean admin;
 
+    @Column(name = "active", nullable = false)
+    private boolean active;
+
     @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
     private Set<TfVersion> versions;
 
     @Override
-    public String getName() {
-        return fullName;
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return isAdmin() ? AuthorityUtils.createAuthorityList("ROLE_ADMIN") : AuthorityUtils.createAuthorityList("ROLE_USER");
+    }
+
+    @Override
+    public String getPassword() {
+        return null;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return isActive();
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return isActive();
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return isActive();
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return isActive();
     }
 
 }

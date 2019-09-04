@@ -1,67 +1,59 @@
 package no.uio.ifi.trackfind.backend.filters;
 
+import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
-import no.uio.ifi.trackfind.backend.pojo.TfUser;
-import no.uio.ifi.trackfind.backend.repositories.UserRepository;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.annotation.Order;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
-import org.springframework.stereotype.Component;
+import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.savedrequest.RequestCache;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 
-import javax.servlet.*;
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
-@Component
-@Order(1)
-public class SecurityFilter implements Filter {
+public class SecurityFilter extends AbstractAuthenticationProcessingFilter {
 
-    private UserRepository userRepository;
+    private RequestCache requestCache;
 
-    @Override
-    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
-        SecurityContext context = SecurityContextHolder.getContext();
-        if (context.getAuthentication() != null && context.getAuthentication().isAuthenticated()) {
-            filterChain.doFilter(servletRequest, servletResponse);
-            return;
-        }
-        HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
-        String elixirId = httpServletRequest.getHeader("oidc_claim_sub");
-        if (StringUtils.isEmpty(elixirId)) {
-            filterChain.doFilter(servletRequest, servletResponse);
-            return;
-        }
-        TfUser user = userRepository.findByElixirId(elixirId);
-        if (user == null) {
-            user = new TfUser(
-                    null,
-                    elixirId,
-                    httpServletRequest.getHeader("oidc_claim_preferred_username"),
-                    httpServletRequest.getHeader("oidc_claim_name"),
-                    httpServletRequest.getHeader("oidc_claim_email"),
-                    false,
-                    null
-            );
-            user = userRepository.save(user);
-            log.info("New user saved: {}", user);
-        }
-        context.setAuthentication(new PreAuthenticatedAuthenticationToken(
-                user,
-                null,
-                Collections.singleton((GrantedAuthority) () -> "user")
-        ));
-        filterChain.doFilter(servletRequest, servletResponse);
+    public SecurityFilter(AuthenticationManager authenticationManager,
+                          RequestCache requestCache,
+                          AuthenticationSuccessHandler authenticationSuccessHandler,
+                          RequestMatcher requiresAuthenticationRequestMatcher) {
+        super(requiresAuthenticationRequestMatcher);
+        this.requestCache = requestCache;
+        setAuthenticationSuccessHandler(authenticationSuccessHandler);
+        setAuthenticationManager(authenticationManager);
     }
 
-    @Autowired
-    public void setUserRepository(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    @Override
+    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException, IOException, ServletException {
+        Map<String, String> userDetails = new HashMap<>();
+        userDetails.put("oidc_claim_sub", request.getHeader("oidc_claim_sub"));
+        userDetails.put("oidc_claim_preferred_username", request.getHeader("oidc_claim_preferred_username"));
+        userDetails.put("oidc_claim_name", request.getHeader("oidc_claim_name"));
+        userDetails.put("oidc_claim_email", request.getHeader("oidc_claim_email"));
+
+        UsernamePasswordAuthenticationToken authRequest = new UsernamePasswordAuthenticationToken(new Gson().toJson(userDetails), null);
+        requestCache.saveRequest(request, response);
+        return getAuthenticationManager().authenticate(authRequest);
+    }
+
+    @Override
+    protected boolean requiresAuthentication(HttpServletRequest request, HttpServletResponse response) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication == null && super.requiresAuthentication(request, response);
     }
 
 }
