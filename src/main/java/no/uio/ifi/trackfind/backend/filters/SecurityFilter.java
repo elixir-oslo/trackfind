@@ -12,10 +12,7 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
-import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -53,7 +50,7 @@ public class SecurityFilter extends AbstractAuthenticationProcessingFilter {
     @Override
     protected boolean requiresAuthentication(HttpServletRequest request, HttpServletResponse response) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return authentication == null && super.requiresAuthentication(request, response);
+        return (authentication == null || !authentication.isAuthenticated()) && super.requiresAuthentication(request, response);
     }
 
 }
