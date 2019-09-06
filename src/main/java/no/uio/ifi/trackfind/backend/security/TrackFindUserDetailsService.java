@@ -14,6 +14,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
 import java.util.Map;
 
 @Slf4j
@@ -25,6 +26,7 @@ public class TrackFindUserDetailsService implements UserDetailsService {
 
     private UserRepository userRepository;
 
+    // Note that username is not really a username here, it's a JSON serialized map of OIDC parameters
     @SuppressWarnings("unchecked")
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -39,6 +41,55 @@ public class TrackFindUserDetailsService implements UserDetailsService {
             log.info("New user saved: {}", user);
         }
         return user;
+    }
+
+    /**
+     * Gets all users.
+     *
+     * @return All users.
+     */
+    public Collection<TfUser> getAllUsers() {
+        return userRepository.findAll();
+    }
+
+    /**
+     * Activates user.
+     *
+     * @param user User to be activated.
+     */
+    public void activateUser(TfUser user) {
+        user.setActive(true);
+        userRepository.save(user);
+    }
+
+    /**
+     * Deactivates user.
+     *
+     * @param user User to be deactivated.
+     */
+    public void deactivateUser(TfUser user) {
+        user.setActive(false);
+        userRepository.save(user);
+    }
+
+    /**
+     * Grants a user with ADMIN authority.
+     *
+     * @param user Target user.
+     */
+    public void grantAdminAuthority(TfUser user) {
+        user.setAdmin(true);
+        userRepository.save(user);
+    }
+
+    /**
+     * Revokes ADMIN authority from the user.
+     *
+     * @param user Target user.
+     */
+    public void revokeAdminAuthority(TfUser user) {
+        user.setAdmin(false);
+        userRepository.save(user);
     }
 
     private TfUser generateNewUser(Map<String, String> userDetails, String elixirId) {

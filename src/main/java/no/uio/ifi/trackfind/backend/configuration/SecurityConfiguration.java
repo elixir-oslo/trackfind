@@ -33,6 +33,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
             "/monitor/**",
             "/references/**",
             "/versions/**",
+            "/users/**",
             "/admin/**"
     };
 

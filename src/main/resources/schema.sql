@@ -23,8 +23,25 @@ CREATE TABLE IF NOT EXISTS tf_users
     full_name VARCHAR NOT NULL,
     email     VARCHAR NOT NULL,
     admin     BOOLEAN NOT NULL,
-    active     BOOLEAN NOT NULL
+    active    BOOLEAN NOT NULL
 );
+
+CREATE OR REPLACE FUNCTION check_at_least_one_active_admin(user_id BIGINT, adm BOOLEAN, act BOOLEAN)
+    RETURNS BOOLEAN
+    LANGUAGE SQL AS
+$$
+SELECT (adm = TRUE AND act = TRUE) OR (COUNT(*) >= 1)
+FROM tf_users
+WHERE tf_users.admin = TRUE
+  AND tf_users.active = TRUE
+  AND tf_users.id <> user_id
+$$;
+
+ALTER TABLE tf_users
+    DROP CONSTRAINT IF EXISTS check_at_least_one_active_admin;
+
+ALTER TABLE tf_users
+    ADD CONSTRAINT check_at_least_one_active_admin CHECK ( check_at_least_one_active_admin(id, active, admin) );
 
 CREATE TABLE IF NOT EXISTS tf_hubs
 (
