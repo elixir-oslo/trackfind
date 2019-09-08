@@ -10,6 +10,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.BeanIds;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
@@ -18,14 +19,16 @@ import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 
-import java.util.Arrays;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
 
 @Configuration
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     public static String[] PROTECTED_RESOURCES = new String[]{
+            "/actuator/**",
             "/login/**",
             "/curation/**",
             "/hubs/**",
@@ -44,16 +47,25 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     }
 
     @Override
+    public void configure(WebSecurity web) {
+        web.ignoring().antMatchers(HttpMethod.OPTIONS, "/actuator/**").antMatchers(HttpMethod.GET, "/actuator/health/**");
+    }
+
+    @Override
     protected void configure(HttpSecurity http) throws Exception {
+        List<RequestMatcher> protectedMatchers = new ArrayList<>();
+        for (String protectedResource : PROTECTED_RESOURCES) {
+            for (HttpMethod httpMethod : HttpMethod.values()) {
+                protectedMatchers.add(new AntPathRequestMatcher(protectedResource, httpMethod.toString(), false));
+            }
+        }
         http
                 .csrf().disable()
                 .formLogin().disable().logout().disable()
                 .addFilterBefore(new SecurityFilter(authenticationManagerBean(),
                                 requestCache(),
                                 authenticationSuccessHandler(),
-                                new OrRequestMatcher(
-                                        Arrays.stream(PROTECTED_RESOURCES).map(pr -> new AntPathRequestMatcher(pr, HttpMethod.GET.toString())).collect(Collectors.toList())
-                                )),
+                                new OrRequestMatcher(protectedMatchers)),
                         BasicAuthenticationFilter.class)
                 .authorizeRequests()
                 .antMatchers(PROTECTED_RESOURCES).hasRole("ADMIN");

@@ -4,10 +4,14 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.netopyr.coffee4java.CoffeeScriptEngine;
 import com.netopyr.coffee4java.CoffeeScriptEngineFactory;
+import de.codecentric.boot.admin.client.config.ClientProperties;
+import de.codecentric.boot.admin.client.registration.ApplicationFactory;
+import de.codecentric.boot.admin.client.registration.ApplicationRegistrator;
 import de.codecentric.boot.admin.server.web.client.HttpHeadersProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.python.util.PythonInterpreter;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,10 +38,25 @@ public class BeanDefinitions {
     }
 
     @Bean
+    public ApplicationRegistrator registrator(ClientProperties client, ApplicationFactory applicationFactory) {
+        RestTemplateBuilder builder = new RestTemplateBuilder()
+                .setConnectTimeout(client.getConnectTimeout())
+                .setReadTimeout(client.getReadTimeout())
+                .additionalInterceptors((request, body, execution) -> {
+                    request.getHeaders().set("oidc_claim_sub", adminElixirId);
+                    return execution.execute(request, body);
+                });
+        if (client.getUsername() != null) {
+            builder = builder.basicAuthentication(client.getUsername(), client.getPassword());
+        }
+        return new ApplicationRegistrator(builder.build(), client, applicationFactory);
+    }
+
+    @Bean
     public HttpHeadersProvider oidcHttpHeadersProvider() {
         return instance -> {
             HttpHeaders httpHeaders = new HttpHeaders();
-            httpHeaders.add("oidc_claim_sub", adminElixirId);
+            httpHeaders.set("oidc_claim_sub", adminElixirId);
             return httpHeaders;
         };
     }

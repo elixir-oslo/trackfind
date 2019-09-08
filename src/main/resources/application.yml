@@ -9,7 +9,11 @@ server:
   port: 8080
   use-forward-headers: true
 
-management.endpoints.web.exposure.include: "*"
+management:
+  endpoints.web.exposure.include: "*"
+  endpoint:
+    jolokia:
+      enabled: false
 
 spring:
   application.name: TrackFind
