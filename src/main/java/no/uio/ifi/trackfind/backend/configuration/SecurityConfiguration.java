@@ -12,11 +12,7 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
-import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
-import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
@@ -62,25 +58,12 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         http
                 .csrf().disable()
                 .formLogin().disable().logout().disable()
-                .addFilterBefore(new SecurityFilter(authenticationManagerBean(),
-                                requestCache(),
-                                authenticationSuccessHandler(),
-                                new OrRequestMatcher(protectedMatchers)),
-                        BasicAuthenticationFilter.class)
+                .addFilterBefore(
+                        new SecurityFilter(authenticationManagerBean(), new OrRequestMatcher(protectedMatchers)),
+                        BasicAuthenticationFilter.class
+                )
                 .authorizeRequests()
                 .antMatchers(PROTECTED_RESOURCES).hasRole("ADMIN");
-    }
-
-    @Bean
-    public RequestCache requestCache() {
-        return new HttpSessionRequestCache();
-    }
-
-    @Bean
-    public AuthenticationSuccessHandler authenticationSuccessHandler() {
-        SavedRequestAwareAuthenticationSuccessHandler savedRequestAwareAuthenticationSuccessHandler = new SavedRequestAwareAuthenticationSuccessHandler();
-        savedRequestAwareAuthenticationSuccessHandler.setRequestCache(requestCache());
-        return savedRequestAwareAuthenticationSuccessHandler;
     }
 
     @Bean(name = BeanIds.AUTHENTICATION_MANAGER)
