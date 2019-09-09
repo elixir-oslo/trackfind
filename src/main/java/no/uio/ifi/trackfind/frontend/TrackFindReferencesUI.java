@@ -149,7 +149,7 @@ public class TrackFindReferencesUI extends AbstractUI {
             TfHub hub = (TfHub) selectedTab.getData();
             try {
                 TfVersion version = versionComboBox.getSelectedItem().orElseThrow(RuntimeException::new);
-                metamodelService.copyReferencesFromAnotherVersion(hub.getRepository(), hub.getName(), version);
+                metamodelService.copyReferencesFromAnotherVersionToCurrentVersion(hub.getRepository(), hub.getName(), version);
                 selectedTab.setItems(metamodelService.getReferences(hub.getRepository(), hub.getName()));
             } catch (Exception ignored) {
             }

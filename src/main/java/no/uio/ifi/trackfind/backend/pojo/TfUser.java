@@ -14,7 +14,7 @@ import java.util.Set;
 @Table(name = "tf_users")
 @Data
 @EqualsAndHashCode(of = {"id"})
-@ToString
+@ToString(exclude = {"versions"})
 @AllArgsConstructor
 @NoArgsConstructor
 public class TfUser implements Serializable, UserDetails {

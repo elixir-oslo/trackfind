@@ -175,15 +175,22 @@ public class MetamodelService {
         referenceRepository.delete(reference);
     }
 
-    public void copyReferencesFromAnotherVersion(String repository, String hub, TfVersion sourceVersion) {
-        Collection<TfObjectType> currentObjectTypes = getObjectTypes(repository, hub);
-        Collection<String> currentObjectTypeNames = currentObjectTypes.stream().map(TfObjectType::getName).collect(Collectors.toSet());
+    public void copyReferencesFromAnotherVersionToCurrentVersion(String repository, String hubName, TfVersion sourceVersion) {
+        TfHub hub = hubRepository.findByRepositoryAndName(repository, hubName);
+        Optional<TfVersion> currentVersion = hub.getCurrentVersion();
+        copyReferencesFromOneVersionToAnotherVersion(sourceVersion, currentVersion.orElseThrow(RuntimeException::new));
+    }
+
+    public void copyReferencesFromOneVersionToAnotherVersion(TfVersion sourceVersion, TfVersion targetVersion) {
+        log.info("Copying references from {} to {}", sourceVersion, targetVersion);
+        Collection<TfObjectType> targetObjectTypes = targetVersion.getObjectTypes();
+        Collection<String> targetObjectTypeNames = targetObjectTypes.stream().map(TfObjectType::getName).collect(Collectors.toSet());
         Collection<TfObjectType> sourceObjectTypes = sourceVersion.getObjectTypes();
         for (TfObjectType objectType : sourceObjectTypes) {
             for (TfReference reference : objectType.getReferences()) {
-                if (currentObjectTypeNames.contains(reference.getFromObjectType().getName()) && currentObjectTypeNames.contains(reference.getToObjectType().getName())) {
-                    TfObjectType newFromObjectType = currentObjectTypes.stream().filter(cot -> cot.getName().equalsIgnoreCase(reference.getFromObjectType().getName())).findAny().orElseThrow(RuntimeException::new);
-                    TfObjectType newToObjectType = currentObjectTypes.stream().filter(cot -> cot.getName().equalsIgnoreCase(reference.getToObjectType().getName())).findAny().orElseThrow(RuntimeException::new);
+                if (targetObjectTypeNames.contains(reference.getFromObjectType().getName()) && targetObjectTypeNames.contains(reference.getToObjectType().getName())) {
+                    TfObjectType newFromObjectType = targetObjectTypes.stream().filter(cot -> cot.getName().equalsIgnoreCase(reference.getFromObjectType().getName())).findAny().orElseThrow(RuntimeException::new);
+                    TfObjectType newToObjectType = targetObjectTypes.stream().filter(cot -> cot.getName().equalsIgnoreCase(reference.getToObjectType().getName())).findAny().orElseThrow(RuntimeException::new);
                     TfReference newReference = new TfReference(null, newFromObjectType, reference.getFromAttribute(), newToObjectType, reference.getToAttribute());
                     referenceRepository.save(newReference);
                 }

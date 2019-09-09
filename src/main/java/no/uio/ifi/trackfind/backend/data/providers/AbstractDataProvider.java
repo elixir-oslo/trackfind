@@ -14,19 +14,21 @@ import no.uio.ifi.trackfind.backend.services.MetamodelService;
 import no.uio.ifi.trackfind.backend.services.SchemaService;
 import no.uio.ifi.trackfind.backend.services.SearchService;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.preauth.PreAuthenticatedCredentialsNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 /**
  * Abstract class for all data providers.
@@ -40,6 +42,9 @@ public abstract class AbstractDataProvider implements DataProvider {
 
     @Value("${trackfind.separator}")
     protected String separator;
+
+    @Value("${trackfind.scripting.language}")
+    protected String scriptingLanguage;
 
     protected ApplicationEventPublisher applicationEventPublisher;
     protected MetamodelService metamodelService;
@@ -120,37 +125,13 @@ public abstract class AbstractDataProvider implements DataProvider {
      * @param objects Object-type to object map.
      */
     protected void save(String hubName, Map<String, Collection<String>> objects) {
-        TfHub hub = hubRepository.findByRepositoryAndName(getName(), hubName);
-        Optional<TfVersion> currentVersionOptional = hub.getCurrentVersion();
-        Optional<TfVersion> lastVersionOptional = hub.getLastVersion();
-        AtomicLong versionNumber = new AtomicLong(0);
-        lastVersionOptional.ifPresent(lv -> versionNumber.set(lv.getVersion()));
-        currentVersionOptional.ifPresent(cv -> {
-            cv.setCurrent(false);
-            versionRepository.saveAndFlush(cv);
-        });
-        TfVersion version = new TfVersion();
-        version.setVersion(versionNumber.incrementAndGet());
-        version.setCurrent(true);
-        version.setOperation(Operation.CRAWLING);
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null) {
-            if (!authentication.isAuthenticated()) {
-                throw new PreAuthenticatedCredentialsNotFoundException("Unauthorized attempt to create new version!");
-            }
-            version.setUser((TfUser) authentication.getPrincipal());
-        }
-        version.setTime(new Date());
-        version.setHub(hub);
-        version = versionRepository.save(version);
+        TfVersion version = createVersion(hubName, Operation.CRAWLING, false);
+
         Set<String> standardObjectTypeNames = new HashSet<>(schemaService.getAttributes().keySet());
         Collection<TfObject> objectsToSave = new ArrayList<>();
         for (String objectTypeName : objects.keySet()) {
             standardObjectTypeNames.remove(objectTypeName);
-            TfObjectType objectType = new TfObjectType();
-            objectType.setName(objectTypeName);
-            objectType.setVersion(version);
-            objectType = objectTypeRepository.save(objectType);
+            TfObjectType objectType = createObjectType(version, objectTypeName);
             for (String obj : objects.get(objectTypeName)) {
                 TfObject tfObject = new TfObject();
                 tfObject.setObjectType(objectType);
@@ -159,13 +140,56 @@ public abstract class AbstractDataProvider implements DataProvider {
             }
         }
         // create standard object-types, if not present yet
-        for (String objectTypeName : standardObjectTypeNames) {
-            TfObjectType objectType = new TfObjectType();
-            objectType.setName(objectTypeName);
-            objectType.setVersion(version);
-            objectTypeRepository.save(objectType);
-        }
+        standardObjectTypeNames.forEach(sotn -> objectTypeRepository.save(createObjectType(version, sotn)));
         objectRepository.saveAll(objectsToSave);
+    }
+
+    protected TfObjectType createObjectType(TfVersion version, String objectTypeName) {
+        TfObjectType objectType = new TfObjectType();
+        objectType.setName(objectTypeName);
+        objectType.setVersion(version);
+        objectType = objectTypeRepository.save(objectType);
+        return objectType;
+    }
+
+    protected TfVersion createVersion(String hubName, Operation operation, boolean copyReferences) {
+        log.info("Creating new version. Hub name: {}, operation: {}, copy references: {}", hubName, operation, copyReferences);
+        TfHub hub = hubRepository.findByRepositoryAndName(getName(), hubName);
+        Optional<TfVersion> currentVersionOptional = hub.getCurrentVersion();
+        Optional<TfVersion> lastVersionOptional = hub.getLastVersion();
+        AtomicLong versionNumber = new AtomicLong(0);
+        lastVersionOptional.ifPresent(lv -> versionNumber.set(lv.getVersion()));
+        currentVersionOptional.ifPresent(cv -> {
+            log.info("Current version: {}", cv);
+            cv.setCurrent(false);
+            versionRepository.saveAndFlush(cv);
+        });
+
+        TfVersion newVersion = new TfVersion();
+        newVersion.setVersion(versionNumber.incrementAndGet());
+        newVersion.setCurrent(true);
+        newVersion.setOperation(operation);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null) {
+            if (!authentication.isAuthenticated()) {
+                throw new AuthenticationServiceException("Unauthorized attempt to create new version!");
+            }
+            newVersion.setUser((TfUser) authentication.getPrincipal());
+        }
+        newVersion.setTime(new Date());
+        newVersion.setHub(hub);
+        if (Operation.CURATION.equals(operation) && currentVersionOptional.isPresent()) {
+            newVersion.setBasedOn(currentVersionOptional.get());
+        }
+
+        newVersion = versionRepository.saveAndFlush(newVersion);
+        log.info("New version: {}", newVersion);
+
+        if (copyReferences && currentVersionOptional.isPresent()) {
+            metamodelService.copyReferencesFromOneVersionToAnotherVersion(currentVersionOptional.get(), newVersion);
+        }
+
+        return newVersion;
     }
 
     /**
@@ -181,7 +205,6 @@ public abstract class AbstractDataProvider implements DataProvider {
             "metamodel-attribute-types",
             "metamodel-values"
     }, allEntries = true)
-//    @HystrixCommand(commandProperties = {@HystrixProperty(name = "execution.timeout.enabled", value = "false")})
     @Override
     public synchronized void runCuration(String hubName) {
         log.info("Curating {} - {}...", getName(), hubName);
@@ -190,43 +213,83 @@ public abstract class AbstractDataProvider implements DataProvider {
             HashMultimap<TfObjectType, TfMapping> mappingsByCategories = HashMultimap.create();
             mappings.forEach(m -> mappingsByCategories.put(m.getToObjectType(), m));
             Collection<SearchResult> allEntries = searchService.search(getName(), hubName, Boolean.TRUE.toString(), Collections.emptySet(), 0);
-            for (SearchResult entry : allEntries) {
-                Collection<TfObject> objectsToSave = new ArrayList<>();
-                Map<String, Map> rawMap = entry.getContent();
-                for (Map.Entry<TfObjectType, Collection<TfMapping>> categoryToMappings : mappingsByCategories.asMap().entrySet()) {
-                    Map<String, Object> standardMap = new HashMap<>();
-                    TfObjectType toObjectType = categoryToMappings.getKey();
-                    for (TfMapping mapping : categoryToMappings.getValue()) {
-                        String fromObjectTypeName = mapping.getFromObjectType().getName();
-                        Collection<String> values;
-                        Dynamic dynamicValues = Dynamic
-                                .from(rawMap)
-                                .get(fromObjectTypeName + separator + mapping.getFromAttribute().replace("'", ""), separator);
-                        if (dynamicValues.isPresent()) {
-                            if (dynamicValues.isList()) {
-                                values = dynamicValues.asList();
-                            } else {
-                                values = Collections.singletonList(dynamicValues.asString());
-                            }
-                        } else {
-                            values = Collections.emptyList();
-                        }
-                        String[] path = mapping.getToAttribute().replace("'", "").split(separator);
-                        putValueByPath(standardMap, path, values);
+            for (TfMapping mapping : mappings) {
+                if (mapping.getFromObjectType() != null) {
+                    runStaticMappings(allEntries, mapping);
+                } else {
+                    Optional<ScriptingEngine> scriptingEngineOptional = getScriptingEngine();
+                    if (!scriptingEngineOptional.isPresent()) {
+                        log.warn("Scripting engine for {} language is not registered. Skipping mapping: {}", scriptingLanguage, mapping);
+                        continue;
                     }
-                    TfObject standardObject = new TfObject();
-                    standardObject.setContent(gson.toJson(standardMap));
-                    standardObject.setObjectType(toObjectType);
-                    objectsToSave.add(standardObject);
+                    ScriptingEngine scriptingEngine = scriptingEngineOptional.get();
+                    runDynamicMappings(allEntries, mapping, scriptingEngine);
                 }
-                objectRepository.saveAll(objectsToSave);
             }
-            applicationEventPublisher.publishEvent(new DataReloadEvent(hubName, Operation.MAPPING));
+            TfVersion newVersion = createVersion(hubName, Operation.CURATION, false);
+            storeMappedObjects(allEntries, newVersion);
+            applicationEventPublisher.publishEvent(new DataReloadEvent(hubName, Operation.CURATION));
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return;
         }
         log.info("Success!");
+    }
+
+    protected void storeMappedObjects(Collection<SearchResult> allEntries, TfVersion newVersion) {
+        List<TfObjectType> objectTypes = new ArrayList<>();
+        List<TfObject> objectsToSave = allEntries.stream().map(entry -> {
+            List<TfObject> result = new ArrayList<>();
+            for (String objectTypeName : entry.getContent().keySet()) {
+                TfObjectType objectType = objectTypes.stream().filter(ot -> ot.getName().equalsIgnoreCase(objectTypeName)).findAny().orElse(null);
+                if (objectType == null) {
+                    objectType = createObjectType(newVersion, objectTypeName);
+                    objectTypes.add(objectType);
+                }
+                TfObject tfObject = new TfObject();
+                tfObject.setObjectType(objectType);
+                tfObject.setContent(gson.toJson(entry.getContent().get(objectTypeName)));
+                result.add(tfObject);
+            }
+            return result;
+        }).flatMap(List::stream).collect(Collectors.toList());
+        objectRepository.saveAll(objectsToSave);
+    }
+
+    @SuppressWarnings("unchecked")
+    protected void runStaticMappings(Collection<SearchResult> allEntries, TfMapping mapping) {
+        for (SearchResult entry : allEntries) {
+            String fromObjectTypeName = mapping.getFromObjectType().getName();
+            String toObjectTypeName = mapping.getToObjectType().getName();
+            Collection<String> values;
+            Dynamic dynamicValues = Dynamic
+                    .from(entry.getContent())
+                    .get(fromObjectTypeName + separator + mapping.getFromAttribute().replace("'", ""), separator);
+            if (dynamicValues.isPresent()) {
+                if (dynamicValues.isList()) {
+                    values = dynamicValues.asList();
+                } else {
+                    values = Collections.singletonList(dynamicValues.asString());
+                }
+            } else {
+                values = Collections.emptyList();
+            }
+            String[] path = mapping.getToAttribute().replace("'", "").split(separator);
+            putValueByPath(entry.getContent().get(toObjectTypeName), path, values);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    protected void runDynamicMappings(Collection<SearchResult> allEntries, TfMapping mapping, ScriptingEngine scriptingEngine) throws Exception {
+        for (SearchResult entry : allEntries) {
+            String jsonContent = gson.toJson(entry.getContent());
+            String scriptResults = scriptingEngine.execute(mapping.getScript(), jsonContent);
+            entry.setContent(gson.fromJson(scriptResults, Map.class));
+        }
+    }
+
+    protected Optional<ScriptingEngine> getScriptingEngine() {
+        return scriptingEngines.stream().filter(se -> StringUtils.equals(scriptingLanguage, se.getLanguage())).findAny();
     }
 
     @SuppressWarnings("unchecked")

@@ -8,6 +8,6 @@ package no.uio.ifi.trackfind.backend.operations;
  */
 public enum Operation {
 
-    CRAWLING, CURATION, MAPPING, VERSION_CHANGE
+    CRAWLING, CURATION, VERSION_CHANGE
 
 }
