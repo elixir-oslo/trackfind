@@ -1,4 +1,4 @@
-package no.uio.ifi.trackfind.backend.rest.controllers;
+package no.uio.ifi.trackfind.backend.controllers.rest;
 
 import com.google.common.collect.Multimap;
 import no.uio.ifi.trackfind.backend.pojo.SearchResult;

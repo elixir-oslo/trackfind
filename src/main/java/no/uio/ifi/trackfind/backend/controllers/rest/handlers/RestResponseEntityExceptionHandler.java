@@ -1,4 +1,4 @@
-package no.uio.ifi.trackfind.backend.rest.handlers;
+package no.uio.ifi.trackfind.backend.controllers.rest.handlers;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;

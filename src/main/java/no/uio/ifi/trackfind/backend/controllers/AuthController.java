@@ -1,4 +1,4 @@
-package no.uio.ifi.trackfind.backend.rest;
+package no.uio.ifi.trackfind.backend.controllers;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
