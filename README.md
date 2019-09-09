@@ -19,8 +19,30 @@ We believe the TrackFind track search engine and metadata FAIRification service 
 TrackFind is written in **Java 8** and uses **Maven 3** as a build-tool.
 
 ## Deployment
+
+### Configuration
+The following environment variables must be set before launching the setup:
+
+| Variable name            | Default value   | Mandatory | Description                                                                                                                                                          |
+|--------------------------|-----------------|-----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| SERVER_NAME              |                 | x         | External domain name                                                                                                                                                 |
+| PROXY_PASS               |                 | x         | Internal (to Docker) host                                                                                                                                            |
+| ELIXIR_AAI_CLIENT_ID     |                 | x         | Elixir AAI client ID                                                                                                                                                 |
+| ELIXIR_AAI_CLIENT_SECRET |                 | x         | Elixir AAI client secret                                                                                                                                             |
+| REDIRECT_URI             | /oidc-protected |           | OIDC entry-point                                                                                                                                                     |
+| CRYPTO_PASSPHRASE        | salt            |           | Password for crypto purposes, this is used for either encryption of the (temporary) state cookie or encryption of cache entries, that may include the session cookie |
+| RESPONSE_TYPE            | code            |           | ["code"/"id_token"/"id_token token"/"code id_token"/"code token"/"code id_token token"]                                                                              |
+| REMOTE_USER_CLAIM        | sub             |           | The claim that is used when setting the REMOTE_USER variable on OpenID Connect protected paths                                                                       |
+| REQUEST_FIELD_SIZE       | 65536           |           | A server needs this value to be large enough to hold any one header field from a normal client request                                                               |
+| PROTECTED_RESOURCES      |                 | x         | A comma-separated list of protected endpoints, e.g.: /admin,/actuator                                                                                                |
+| SSL_ENGINE               | off             |           | Enables or disables TLS termination (if set to "on", the certificate chain and a private key should be injected)                                                     |
+| POSTGRES_USER            |                 | x         | PostgreSQL username                                                                                                                                                  |
+| POSTGRES_PASSWORD        |                 | x         | PostgreSQL password                                                                                                                                                  |
+| SPRING_PROFILES_ACTIVE   |                 | x         | ["dev"/"prod"]                                                                                                                                                       |
+| ADMIN_ELIXIR_ID          |                 | x         | Elixir AII ID of the TrackFind initial admin user                                                                                                                    |
+
 ### Docker Compose
-Simply execute `docker-compose up` and it will spin up the setup with PostgreSQL database, GSuite converter microservice and TrackFind microservice itself. Don't forget to specify all required environment variables: you can find them in the `docker-compose.yml` file.
+Simply execute `docker-compose up` and it will spin up the setup with PostgreSQL database, ElixirAAI-enabled Apache reverse-proxy, GSuite converter microservice and TrackFind microservice itself.
 
 ## Acknowledgments
 
