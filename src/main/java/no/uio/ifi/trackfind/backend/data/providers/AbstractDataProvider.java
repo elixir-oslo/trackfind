@@ -275,7 +275,7 @@ public abstract class AbstractDataProvider implements DataProvider {
                 values = Collections.emptyList();
             }
             String[] path = mapping.getToAttribute().replace("'", "").split(separator);
-            putValueByPath(entry.getContent().get(toObjectTypeName), path, values);
+            putValueByPath(entry.getContent().computeIfAbsent(toObjectTypeName, k -> new HashMap<String, Object>()), path, values);
         }
     }
 
