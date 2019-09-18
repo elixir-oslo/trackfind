@@ -15,7 +15,6 @@ import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
 import no.uio.ifi.trackfind.backend.pojo.TfHub;
 import org.vaadin.dialogs.ConfirmDialog;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -60,10 +59,7 @@ public class TrackFindHubsUI extends AbstractUI {
         comboBox.setDataProvider(new AbstractBackEndDataProvider<TfHub, String>() {
             @Override
             protected Stream<TfHub> fetchFromBackEnd(Query<TfHub, String> query) {
-                Collection<TfHub> allTrackHubs = trackFindService.getTrackHubs(false);
-                Collection<TfHub> activeTrackHubs = trackFindService.getTrackHubs(true);
-                allTrackHubs.removeAll(activeTrackHubs);
-                return allTrackHubs.stream();
+                return trackFindService.getAvailableTrackHubs().stream();
             }
 
             @Override

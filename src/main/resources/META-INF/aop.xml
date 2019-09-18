@@ -1,6 +1,0 @@
-<!DOCTYPE aspectj PUBLIC "-//AspectJ//DTD//EN" "http://www.eclipse.org/aspectj/dtd/aspectj.dtd">
-<aspectj>
-    <aspects>
-        <weaver options="-Xset:weaveJavaxPackages=true -Xlintfile:META-INF/Xlint.properties"/>
-    </aspects>
-</aspectj>

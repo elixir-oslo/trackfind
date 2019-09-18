@@ -24,7 +24,6 @@
         <java.version>1.8</java.version>
         <tomcat.version>9.0.8</tomcat.version>
         <vaadin.version>8.8.6</vaadin.version>
-        <aspectj.version>1.9.4</aspectj.version>
     </properties>
 
     <dependencies>
@@ -95,16 +94,6 @@
         <dependency>
             <groupId>com.github.ben-manes.caffeine</groupId>
             <artifactId>caffeine</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.aspectj</groupId>
-            <artifactId>aspectjweaver</artifactId>
-            <version>${aspectj.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>de.invesdwin</groupId>
-            <artifactId>invesdwin-instrument</artifactId>
-            <version>1.0.1</version>
         </dependency>
         <dependency>
             <groupId>de.codecentric</groupId>
@@ -272,10 +261,6 @@
     </build>
 
     <repositories>
-        <repository>
-            <id>invesdwin-oss-remote</id>
-            <url>http://invesdwin.de/artifactory/invesdwin-oss-remote</url>
-        </repository>
         <repository>
             <id>jitpack.io</id>
             <url>https://jitpack.io</url>

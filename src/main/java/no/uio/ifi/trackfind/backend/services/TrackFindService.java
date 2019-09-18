@@ -57,6 +57,18 @@ public class TrackFindService {
     }
 
     /**
+     * Gets Track Hubs.
+     *
+     * @return Track Hubs.
+     */
+    public Collection<TfHub> getAvailableTrackHubs() {
+        Collection<TfHub> allTrackHubs = getTrackHubs(false);
+        Collection<TfHub> activeTrackHubs = getTrackHubs(true);
+        allTrackHubs.removeAll(activeTrackHubs);
+        return allTrackHubs;
+    }
+
+    /**
      * Activates hub.
      *
      * @param hubs Hubs to activate.
