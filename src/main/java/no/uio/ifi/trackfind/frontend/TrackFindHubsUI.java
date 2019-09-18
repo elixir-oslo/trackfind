@@ -4,6 +4,7 @@ import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Title;
 import com.vaadin.annotations.Widgetset;
 import com.vaadin.data.HasValue;
+import com.vaadin.data.provider.AbstractBackEndDataProvider;
 import com.vaadin.data.provider.Query;
 import com.vaadin.event.selection.MultiSelectionListener;
 import com.vaadin.server.VaadinRequest;
@@ -18,6 +19,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Hubs Vaadin UI of the application.
@@ -55,10 +57,20 @@ public class TrackFindHubsUI extends AbstractUI {
         hubsLayout.setSizeFull();
         comboBox = new ComboBox<>("Available hubs");
         comboBox.setWidth(100, Unit.PERCENTAGE);
-        Collection<TfHub> allTrackHubs = trackFindService.getTrackHubs(false);
-        Collection<TfHub> activeTrackHubs = trackFindService.getTrackHubs(true);
-        allTrackHubs.removeAll(activeTrackHubs);
-        comboBox.setItems(allTrackHubs);
+        comboBox.setDataProvider(new AbstractBackEndDataProvider<TfHub, String>() {
+            @Override
+            protected Stream<TfHub> fetchFromBackEnd(Query<TfHub, String> query) {
+                Collection<TfHub> allTrackHubs = trackFindService.getTrackHubs(false);
+                Collection<TfHub> activeTrackHubs = trackFindService.getTrackHubs(true);
+                allTrackHubs.removeAll(activeTrackHubs);
+                return allTrackHubs.stream();
+            }
+
+            @Override
+            protected int sizeInBackEnd(Query<TfHub, String> query) {
+                return (int) fetchFromBackEnd(query).count();
+            }
+        });
         comboBox.setItemCaptionGenerator(h -> h.getRepository() + ": " + h.getName());
         comboBox.addValueChangeListener((HasValue.ValueChangeListener<TfHub>) event -> add.setEnabled(comboBox.getSelectedItem().isPresent()));
         Panel panel = new Panel("Hub selection", comboBox);
@@ -75,12 +87,10 @@ public class TrackFindHubsUI extends AbstractUI {
         add.setWidth(100, Unit.PERCENTAGE);
         add.addClickListener((Button.ClickListener) event -> comboBox.getSelectedItem().ifPresent(hub -> {
             trackFindService.activateHubs(Collections.singleton(hub));
-            listSelect.setItems(trackFindService.getTrackHubs(true));
             listSelect.getDataProvider().refreshAll();
             Set<TfHub> availableHubs = comboBox.getDataProvider().fetch(new Query<>()).collect(Collectors.toSet());
             availableHubs.remove(hub);
             comboBox.clear();
-            comboBox.setItems(availableHubs);
             comboBox.getDataProvider().refreshAll();
         }));
         remove = new Button("Deactivate ←");
@@ -94,11 +104,9 @@ public class TrackFindHubsUI extends AbstractUI {
                 log.error(e.getMessage(), e);
                 Notification.show("Error: " + e.getMessage(), Notification.Type.ERROR_MESSAGE);
             }
-            listSelect.setItems(trackFindService.getTrackHubs(true));
             listSelect.getDataProvider().refreshAll();
             Set<TfHub> availableHubs = comboBox.getDataProvider().fetch(new Query<>()).collect(Collectors.toSet());
             availableHubs.addAll(activeHubs);
-            comboBox.setItems(availableHubs);
             comboBox.getDataProvider().refreshAll();
         });
         crawl = new Button("Crawl");
@@ -132,7 +140,17 @@ public class TrackFindHubsUI extends AbstractUI {
         listSelect = new ListSelect<>();
         listSelect.setWidth(100, Unit.PERCENTAGE);
         listSelect.setHeight(100, Unit.PERCENTAGE);
-        listSelect.setItems(trackFindService.getTrackHubs(true));
+        listSelect.setDataProvider(new AbstractBackEndDataProvider<TfHub, String>() {
+            @Override
+            protected Stream<TfHub> fetchFromBackEnd(Query<TfHub, String> query) {
+                return trackFindService.getTrackHubs(true).stream();
+            }
+
+            @Override
+            protected int sizeInBackEnd(Query<TfHub, String> query) {
+                return (int) fetchFromBackEnd(query).count();
+            }
+        });
         listSelect.setItemCaptionGenerator(h -> h.getRepository() + ": " + h.getName());
         listSelect.addSelectionListener((MultiSelectionListener<TfHub>) event -> remove.setEnabled(!listSelect.getSelectedItems().isEmpty()));
         listSelect.addSelectionListener((MultiSelectionListener<TfHub>) event -> crawl.setEnabled(!listSelect.getSelectedItems().isEmpty()));
