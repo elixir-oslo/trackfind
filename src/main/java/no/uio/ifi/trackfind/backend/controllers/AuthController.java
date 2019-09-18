@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.view.RedirectView;
 
+import javax.servlet.http.HttpServletRequest;
+
 /**
  * Login controller.
  *
@@ -32,12 +34,17 @@ public class AuthController {
      * Signs out and redirects to the referrer page.
      */
     @GetMapping(path = "/logout")
-    public RedirectView logout(@RequestHeader(value = "referer") String referer,
+    public RedirectView logout(HttpServletRequest request,
                                @RequestHeader(value = "oidc_claim_name", required = false) String userFullName,
                                @RequestHeader(value = "oidc_claim_sub", required = false) String userId) {
         log.info("User {} ({}) attempted to log out.", userFullName, userId);
         SecurityContextHolder.clearContext();
-        return new RedirectView("/oidc-protected?logout=" + referer);
+        String redirectURL = String.format("%s://%s", request.getScheme(), request.getServerName());
+        int serverPort = request.getServerPort();
+        if (serverPort != 80 && serverPort != 443) {
+            redirectURL += ":" + serverPort;
+        }
+        return new RedirectView("/oidc-protected?logout=" + redirectURL);
     }
 
 }
