@@ -3,14 +3,16 @@ package no.uio.ifi.trackfind.backend.data.providers.trackhub;
 import com.google.common.collect.HashMultimap;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.data.providers.AbstractDataProvider;
+import no.uio.ifi.trackfind.backend.pojo.TfHub;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.util.Collection;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Draft of Data Provider for TrackHubRegistry.
@@ -22,22 +24,23 @@ import java.util.Map;
 @Transactional
 public class TrackHubRegistryDataProvider extends AbstractDataProvider {
 
-    //    private static final String HUBS_URL = "https://www.trackhubregistry.org/api/info/trackhubs";
-//    private static final String FETCH_URL = "https://hyperbrowser.uio.no/hb/static/hyperbrowser/files/trackfind/blueprint_hub.json";
-    private static final String FETCH_URL = "http://www-test.trackhubregistry.org/api/search/all";
+    private static final String HUBS_URL = "https://www.trackhubregistry.org/api/info/trackhubs";
 
-//    @SuppressWarnings("unchecked")
-//    @Override
-//    public Collection<TfHub> getAllTrackHubs() {
-//        try (InputStream inputStream = new URL(HUBS_URL).openStream();
-//             InputStreamReader reader = new InputStreamReader(inputStream)) {
-//            Collection<Map> hubs = gson.fromJson(reader, Collection.class);
-//            return hubs.stream().map(h -> new TfHub(getName(), String.valueOf(h.get("name")))).collect(Collectors.toSet());
-//        } catch (Exception e) {
-//            log.error(e.getMessage(), e);
-//            return Collections.emptyList();
-//        }
-//    }
+    @Cacheable(value = "thr-hubs", key = "#root.method.name", sync = true)
+    @SuppressWarnings("unchecked")
+    @Override
+    public Collection<TfHub> getAllTrackHubs() {
+        try (InputStream inputStream = new URL(HUBS_URL).openStream();
+             InputStreamReader reader = new InputStreamReader(inputStream)) {
+            Collection<Map> hubs = gson.fromJson(reader, Collection.class);
+            return hubs.stream().map(h -> new TfHub(getName(), String.valueOf(h.get("name"))))
+                    .filter(h -> h.getName().contains("Blueprint"))
+                    .collect(Collectors.toSet());
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return Collections.emptyList();
+        }
+    }
 
     /**
      * {@inheritDoc}
@@ -45,18 +48,45 @@ public class TrackHubRegistryDataProvider extends AbstractDataProvider {
     @SuppressWarnings("unchecked")
     @Override
     protected void fetchData(String hubName) {
+        Collection<String> fetchURLs = getFetchURLs(hubName);
         HashMultimap<String, String> mapToSave = HashMultimap.create();
-        try (InputStream inputStream = new URL(FETCH_URL).openStream();
+        for (String fetchURL : fetchURLs) {
+            try (InputStream inputStream = new URL(fetchURL).openStream();
+                 InputStreamReader reader = new InputStreamReader(inputStream)) {
+                Map<String, Object> hub = (Map<String, Object>) gson.fromJson(reader, Map.class);
+                Map<String, Object> source = (Map<String, Object>) hub.get("_source");
+                Collection<Map<String, Object>> data = (Collection<Map<String, Object>>) source.get("data");
+                for (Map<String, Object> entry : data) {
+                    mapToSave.put("data", gson.toJson(entry));
+                }
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+            }
+        }
+        save(hubName, mapToSave.asMap());
+    }
+
+    @SuppressWarnings("unchecked")
+    private Collection<String> getFetchURLs(String hubName) {
+        Collection<String> fetchURLs = new HashSet<>();
+        try (InputStream inputStream = new URL(HUBS_URL).openStream();
              InputStreamReader reader = new InputStreamReader(inputStream)) {
-            Collection entries = gson.fromJson(reader, Collection.class);
-            for (Object entry : entries) {
-                Map<String, Object> map = (Map<String, Object>) entry;
-                mapToSave.put("TrackHubRegistry_entry", gson.toJson(map.get("_source")));
+            Collection<Map> hubs = gson.fromJson(reader, Collection.class);
+            Optional<Map> hubOptional = hubs.stream().filter(h -> String.valueOf(h.get("name")).equalsIgnoreCase(hubName)).findAny();
+            if (!hubOptional.isPresent()) {
+                log.warn("No hubs found!");
+                return Collections.emptyList();
+            }
+            Map hub = hubOptional.get();
+            Collection<Map> trackDBs = (Collection<Map>) hub.get("trackdbs");
+            for (Map trackDB : trackDBs) {
+                fetchURLs.add(String.valueOf(trackDB.get("uri")));
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
+            return Collections.emptyList();
         }
-        save(hubName, mapToSave.asMap());
+        return fetchURLs;
     }
 
 }
