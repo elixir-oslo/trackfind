@@ -92,8 +92,14 @@ public class SearchService {
         fullQuery.setLength(fullQuery.length() - 2);
         fullQuery.append("\nFROM ");
 
-        for (TfObjectType objectType : objectTypesFromReferences) {
-            fullQuery.append("tf_current_objects ").append(objectType.getName()).append(", ");
+        if (CollectionUtils.isEmpty(objectTypesFromReferences) && CollectionUtils.isNotEmpty(objectTypesToSelect)) {
+            for (String objectTypeName : objectTypesToSelect) {
+                fullQuery.append("tf_current_objects ").append(objectTypeName).append(", ");
+            }
+        } else {
+            for (TfObjectType objectType : objectTypesFromReferences) {
+                fullQuery.append("tf_current_objects ").append(objectType.getName()).append(", ");
+            }
         }
 
         fullQuery.setLength(fullQuery.length() - 2);
