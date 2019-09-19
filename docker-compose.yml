@@ -16,16 +16,18 @@ services:
 
   trackfind:
     image: nels/trackfind:latest
-    init: true
     depends_on:
       - db
     environment:
       - SPRING_PROFILES_ACTIVE
       - DB_INSTANCE=db
-      - POSTGRES_DB=trackfind
       - POSTGRES_USER
       - POSTGRES_PASSWORD
       - ADMIN_ELIXIR_ID
+      - INFLUX_ENABLED
+      - INFLUX_URI
+      - INFLUX_USER
+      - INFLUX_PASSWORD
 
   apache:
     image: nels/apache-elixir-aai:latest

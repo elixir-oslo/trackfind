@@ -11,6 +11,13 @@ server:
 
 management:
   endpoints.web.exposure.include: "*"
+  metrics.export.influx:
+    enabled: ${INFLUX_ENABLED:false}
+    uri: ${INFLUX_URI:http://localhost:8086}
+    user-name: ${INFLUX_USER}
+    password: ${INFLUX_PASSWORD}
+    db: ${INFLUX_DB:trackfind}
+    step: ${INFLUX_STEP:10s}
   endpoint:
     jolokia:
       enabled: false
