@@ -51,6 +51,7 @@ public class TrackHubRegistryDataProvider extends AbstractDataProvider {
         Collection<String> fetchURLs = getFetchURLs(hubName);
         HashMultimap<String, String> mapToSave = HashMultimap.create();
         for (String fetchURL : fetchURLs) {
+            log.info("Fetch URL {}", fetchURL);
             try (InputStream inputStream = new URL(fetchURL).openStream();
                  InputStreamReader reader = new InputStreamReader(inputStream)) {
                 Map<String, Object> hub = (Map<String, Object>) gson.fromJson(reader, Map.class);
@@ -59,11 +60,40 @@ public class TrackHubRegistryDataProvider extends AbstractDataProvider {
                 for (Map<String, Object> entry : data) {
                     mapToSave.put("data", gson.toJson(entry));
                 }
+                Map<String, Object> dataMembersMap = findDataMembersMap((Map<String, Object>) source.get("configuration"));
+                if (dataMembersMap != null) {
+                    for (Object value : dataMembersMap.values()) {
+                        mapToSave.put("configuration", gson.toJson(value));
+                    }
+                }
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
             }
         }
         save(hubName, mapToSave.asMap());
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> findDataMembersMap(Map<String, Object> inputMap) {
+        if (inputMap.containsKey("members")) {
+            Map<String, Object> members = (Map<String, Object>) inputMap.get("members");
+            Collection<Object> memberValues = members.values();
+            for (Object member : memberValues) {
+                Map<String, Object> memberMap = (Map<String, Object>) member;
+                if (memberMap.containsKey("track") && memberMap.containsKey("bigDataUrl")) {
+                    return members;
+                }
+            }
+        }
+        for (Object value : inputMap.values()) {
+            if (value instanceof Map) {
+                Map<String, Object> dataMembersMap = findDataMembersMap((Map<String, Object>) value);
+                if (dataMembersMap != null) {
+                    return dataMembersMap;
+                }
+            }
+        }
+        return null;
     }
 
     @SuppressWarnings("unchecked")
