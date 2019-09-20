@@ -67,6 +67,7 @@ public class SearchService {
         }
 
         String fullQueryString = buildQuery(references, objectTypesFromReferences, objectTypesToSelect, query, limit);
+        log.info("Search with query: {}", fullQueryString);
 
         PreparedStatement preparedStatement = connection.prepareStatement(fullQueryString);
         ResultSet resultSet = preparedStatement.executeQuery();
@@ -102,7 +103,9 @@ public class SearchService {
             }
         }
 
-        fullQuery.setLength(fullQuery.length() - 2);
+        if (fullQuery.toString().endsWith(", ")) {
+            fullQuery.setLength(fullQuery.length() - 2);
+        }
         fullQuery.append("\nWHERE ");
 
         for (TfObjectType objectType : objectTypesFromReferences) {
