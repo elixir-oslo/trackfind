@@ -44,6 +44,15 @@ public class SecurityFilter extends AbstractAuthenticationProcessingFilter {
     }
 
     @Override
+    protected boolean requiresAuthentication(HttpServletRequest request, HttpServletResponse response) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if ((authentication instanceof UsernamePasswordAuthenticationToken) && authentication.isAuthenticated()) {
+            return false;
+        }
+        return super.requiresAuthentication(request, response);
+    }
+
+    @Override
     protected void successfulAuthentication(HttpServletRequest request,
                                             HttpServletResponse response,
                                             FilterChain chain,
