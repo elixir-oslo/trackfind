@@ -90,7 +90,10 @@ public class TrackFindReferencesUI extends AbstractUI {
             protected Stream<TfVersion> fetchFromBackEnd(Query<TfVersion, String> query) {
                 Grid selectedTab = (Grid) referencesTabSheet.getSelectedTab();
                 TfHub hub = (TfHub) selectedTab.getData();
-                return hub.getVersions().stream();
+                return query
+                        .getFilter()
+                        .map(s -> hub.getVersions().stream().filter(v -> v.toString().contains(s)))
+                        .orElseGet(() -> hub.getVersions().stream());
             }
 
             @Override
@@ -108,7 +111,10 @@ public class TrackFindReferencesUI extends AbstractUI {
             protected Stream<TfObjectType> fetchFromBackEnd(Query<TfObjectType, String> query) {
                 Grid selectedTab = (Grid) referencesTabSheet.getSelectedTab();
                 TfHub hub = (TfHub) selectedTab.getData();
-                return hub.getCurrentVersion().orElseThrow(RuntimeException::new).getObjectTypes().stream();
+                return query
+                        .getFilter()
+                        .map(s -> hub.getCurrentVersion().orElseThrow(RuntimeException::new).getObjectTypes().stream().filter(v -> v.getName().contains(s)))
+                        .orElseGet(() -> hub.getCurrentVersion().orElseThrow(RuntimeException::new).getObjectTypes().stream());
             }
 
             @Override

@@ -59,7 +59,10 @@ public class TrackFindHubsUI extends AbstractUI {
         comboBox.setDataProvider(new AbstractBackEndDataProvider<TfHub, String>() {
             @Override
             protected Stream<TfHub> fetchFromBackEnd(Query<TfHub, String> query) {
-                return trackFindService.getAvailableTrackHubs().stream();
+                return query
+                        .getFilter()
+                        .map(s -> trackFindService.getAvailableTrackHubs().stream().filter(th -> th.getName().contains(s)))
+                        .orElseGet(() -> trackFindService.getAvailableTrackHubs().stream());
             }
 
             @Override

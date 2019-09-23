@@ -5,6 +5,8 @@ import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
 import no.uio.ifi.trackfind.backend.pojo.TfHub;
 import no.uio.ifi.trackfind.backend.repositories.HubRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -61,6 +63,7 @@ public class TrackFindService {
      *
      * @return Track Hubs.
      */
+    @Cacheable(value = "available-track-hubs", key = "#root.method.name", sync = true)
     public Collection<TfHub> getAvailableTrackHubs() {
         Collection<TfHub> allTrackHubs = getTrackHubs(false);
         Collection<TfHub> activeTrackHubs = getTrackHubs(true);
@@ -73,6 +76,7 @@ public class TrackFindService {
      *
      * @param hubs Hubs to activate.
      */
+    @CacheEvict(cacheNames = {"available-track-hubs"}, allEntries = true)
     public void activateHubs(Collection<TfHub> hubs) {
         hubRepository.saveAll(hubs);
     }
@@ -82,6 +86,7 @@ public class TrackFindService {
      *
      * @param hubs Hubs to deactivate.
      */
+    @CacheEvict(cacheNames = {"available-track-hubs"}, allEntries = true)
     public void deactivateHubs(Collection<TfHub> hubs) {
         hubRepository.deleteAll(hubs);
     }

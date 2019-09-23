@@ -34,7 +34,6 @@ public class TrackHubRegistryDataProvider extends AbstractDataProvider {
              InputStreamReader reader = new InputStreamReader(inputStream)) {
             Collection<Map> hubs = gson.fromJson(reader, Collection.class);
             return hubs.stream().map(h -> new TfHub(getName(), String.valueOf(h.get("name"))))
-                    .filter(h -> h.getName().contains("Blueprint"))
                     .collect(Collectors.toSet());
         } catch (Exception e) {
             log.error(e.getMessage(), e);
