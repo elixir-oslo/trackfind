@@ -4,6 +4,7 @@ import com.google.common.collect.HashMultimap;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.data.providers.AbstractDataProvider;
 import no.uio.ifi.trackfind.backend.pojo.TfHub;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,10 +60,10 @@ public class TrackHubRegistryDataProvider extends AbstractDataProvider {
                 for (Map<String, Object> entry : data) {
                     mapToSave.put("data", gson.toJson(entry));
                 }
-                Map<String, Object> dataMembersMap = findDataMembersMap((Map<String, Object>) source.get("configuration"));
-                if (dataMembersMap != null) {
-                    for (Object value : dataMembersMap.values()) {
-                        mapToSave.put("configuration", gson.toJson(value));
+                Collection<Map<String, Object>> trackMaps = findTrackMaps((Map<String, Object>) source.get("configuration"));
+                if (CollectionUtils.isNotEmpty(trackMaps)) {
+                    for (Map<String, Object> trackMap : trackMaps) {
+                        mapToSave.put("configuration", gson.toJson(trackMap));
                     }
                 }
             } catch (Exception e) {
@@ -72,27 +73,22 @@ public class TrackHubRegistryDataProvider extends AbstractDataProvider {
         save(hubName, mapToSave.asMap());
     }
 
+    private Collection<Map<String, Object>> findTrackMaps(Map<String, Object> inputMap) {
+        Collection<Map<String, Object>> trackMaps = new ArrayList<>();
+        findTrackMapsRecursively(inputMap, trackMaps);
+        return trackMaps;
+    }
+
     @SuppressWarnings("unchecked")
-    private Map<String, Object> findDataMembersMap(Map<String, Object> inputMap) {
-        if (inputMap.containsKey("members")) {
-            Map<String, Object> members = (Map<String, Object>) inputMap.get("members");
-            Collection<Object> memberValues = members.values();
-            for (Object member : memberValues) {
-                Map<String, Object> memberMap = (Map<String, Object>) member;
-                if (memberMap.containsKey("track") && memberMap.containsKey("bigDataUrl")) {
-                    return members;
-                }
-            }
+    private void findTrackMapsRecursively(Map<String, Object> mapToTest, Collection<Map<String, Object>> trackMaps) {
+        if (mapToTest.containsKey("track") && mapToTest.containsKey("bigDataUrl")) {
+            trackMaps.add(mapToTest);
         }
-        for (Object value : inputMap.values()) {
+        for (Object value : mapToTest.values()) {
             if (value instanceof Map) {
-                Map<String, Object> dataMembersMap = findDataMembersMap((Map<String, Object>) value);
-                if (dataMembersMap != null) {
-                    return dataMembersMap;
-                }
+                findTrackMapsRecursively((Map<String, Object>) value, trackMaps);
             }
         }
-        return null;
     }
 
     @SuppressWarnings("unchecked")
