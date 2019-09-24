@@ -9,6 +9,7 @@ import com.vaadin.ui.*;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.data.TreeNode;
 import no.uio.ifi.trackfind.backend.pojo.TfHub;
+import no.uio.ifi.trackfind.backend.pojo.TfUser;
 import no.uio.ifi.trackfind.backend.services.SchemaService;
 import no.uio.ifi.trackfind.backend.services.TrackFindService;
 import no.uio.ifi.trackfind.frontend.components.TrackFindTree;
@@ -108,7 +109,8 @@ public abstract class AbstractUI extends UI {
             rightHeaderLayout.addComponent(login);
             rightHeaderLayout.setComponentAlignment(login, Alignment.TOP_RIGHT);
         } else {
-            Label label = new Label(authentication.getName());
+            TfUser user = (TfUser) authentication.getPrincipal();
+            Label label = new Label(user.getFullName());
             Link link = new Link("(Log out)", new ExternalResource("/logout"));
             rightHeaderLayout.addComponents(label, link);
             rightHeaderLayout.setComponentAlignment(label, Alignment.TOP_RIGHT);
