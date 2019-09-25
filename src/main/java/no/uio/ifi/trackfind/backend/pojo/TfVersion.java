@@ -2,12 +2,14 @@ package no.uio.ifi.trackfind.backend.pojo;
 
 import lombok.*;
 import no.uio.ifi.trackfind.backend.operations.Operation;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Set;
 
+@org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
 @Entity
 @Table(name = "tf_versions")
 @Data
@@ -47,9 +49,11 @@ public class TfVersion implements Serializable {
     @JoinColumn(name = "hub_id", referencedColumnName = "id")
     private TfHub hub;
 
+    @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
     @OneToMany(mappedBy = "version", fetch = FetchType.EAGER)
     private Set<TfObjectType> objectTypes;
 
+    @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
     @OneToMany(mappedBy = "version", fetch = FetchType.EAGER)
     private Set<TfMapping> mappings;
 

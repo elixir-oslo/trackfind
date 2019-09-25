@@ -40,6 +40,8 @@ spring:
     driver-class-name: org.postgresql.Driver
     initialization-mode: always
   jpa.properties.hibernate.dialect: org.hibernate.dialect.PostgreSQLDialect
+  jpa.properties.hibernate.cache.use_second_level_cache: true
+  jpa.properties.hibernate.cache.region.factory_class: org.hibernate.cache.ehcache.EhCacheRegionFactory
   cloud.refresh.refreshable: none
 
 gsuite:

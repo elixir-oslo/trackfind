@@ -1,15 +1,15 @@
 package no.uio.ifi.trackfind.backend.pojo;
 
 import lombok.*;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.springframework.util.CollectionUtils;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Optional;
 import java.util.Set;
 
+@org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
 @Entity
 @Table(name = "tf_hubs")
 @Data
@@ -44,13 +44,6 @@ public class TfHub implements Serializable {
             return Optional.empty();
         }
         return versions.stream().filter(v -> Boolean.TRUE.equals(v.getCurrent())).findAny();
-    }
-
-    public Optional<TfVersion> getLastVersion() {
-        if (CollectionUtils.isEmpty(versions)) {
-            return Optional.empty();
-        }
-        return Optional.ofNullable(Collections.max(versions, Comparator.comparing(TfVersion::getVersion)));
     }
 
 }

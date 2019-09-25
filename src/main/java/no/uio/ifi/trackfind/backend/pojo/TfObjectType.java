@@ -4,11 +4,13 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Set;
 
+@org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
 @Entity
 @Table(name = "tf_object_types")
 @Data
@@ -29,9 +31,11 @@ public class TfObjectType implements Serializable {
     @JoinColumn(name = "version_id", referencedColumnName = "id")
     private TfVersion version;
 
+    @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
     @OneToMany(mappedBy = "toObjectType", fetch = FetchType.EAGER)
     private Set<TfReference> references;
 
+    @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
     @OneToMany(mappedBy = "toObjectType", fetch = FetchType.EAGER)
     private Set<TfMapping> mappings;
 

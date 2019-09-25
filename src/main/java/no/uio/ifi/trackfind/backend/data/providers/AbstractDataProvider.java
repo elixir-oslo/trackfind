@@ -27,7 +27,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 /**
@@ -155,10 +154,8 @@ public abstract class AbstractDataProvider implements DataProvider {
     protected TfVersion createVersion(String hubName, Operation operation, boolean copyReferences) {
         log.info("Creating new version. Hub name: {}, operation: {}, copy references: {}", hubName, operation, copyReferences);
         TfHub hub = hubRepository.findByRepositoryAndName(getName(), hubName);
+        long totalVersions = CollectionUtils.size(hub.getVersions());
         Optional<TfVersion> currentVersionOptional = hub.getCurrentVersion();
-        Optional<TfVersion> lastVersionOptional = hub.getLastVersion();
-        AtomicLong versionNumber = new AtomicLong(0);
-        lastVersionOptional.ifPresent(lv -> versionNumber.set(lv.getVersion()));
         currentVersionOptional.ifPresent(cv -> {
             log.info("Current version: {}", cv);
             cv.setCurrent(false);
@@ -166,7 +163,7 @@ public abstract class AbstractDataProvider implements DataProvider {
         });
 
         TfVersion newVersion = new TfVersion();
-        newVersion.setVersion(versionNumber.incrementAndGet());
+        newVersion.setVersion(totalVersions + 1);
         newVersion.setCurrent(true);
         newVersion.setOperation(operation);
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

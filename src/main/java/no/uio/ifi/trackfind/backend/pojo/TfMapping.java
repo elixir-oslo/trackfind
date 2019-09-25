@@ -1,10 +1,12 @@
 package no.uio.ifi.trackfind.backend.pojo;
 
 import lombok.*;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import javax.persistence.*;
 import java.io.Serializable;
 
+@org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
 @Entity
 @Table(name = "tf_mappings")
 @Data

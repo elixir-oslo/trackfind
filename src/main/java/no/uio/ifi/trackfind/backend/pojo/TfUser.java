@@ -1,6 +1,7 @@
 package no.uio.ifi.trackfind.backend.pojo;
 
 import lombok.*;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -10,6 +11,7 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.Set;
 
+@org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
 @Entity
 @Table(name = "tf_users")
 @Data
@@ -42,6 +44,7 @@ public class TfUser implements Serializable, UserDetails {
     @Column(name = "active", nullable = false)
     private boolean active;
 
+    @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
     @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
     private Set<TfVersion> versions;
 
