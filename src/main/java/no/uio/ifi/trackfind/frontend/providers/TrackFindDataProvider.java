@@ -7,7 +7,7 @@ import com.vaadin.data.provider.HierarchicalQuery;
 import com.vaadin.server.SerializablePredicate;
 import no.uio.ifi.trackfind.backend.data.TreeNode;
 import no.uio.ifi.trackfind.backend.pojo.TfHub;
-import no.uio.ifi.trackfind.backend.services.MetamodelService;
+import no.uio.ifi.trackfind.backend.services.impl.MetamodelService;
 import no.uio.ifi.trackfind.frontend.filters.TreeFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

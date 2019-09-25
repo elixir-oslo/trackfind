@@ -16,7 +16,7 @@ import no.uio.ifi.trackfind.backend.pojo.TfHub;
 import no.uio.ifi.trackfind.backend.pojo.TfUser;
 import no.uio.ifi.trackfind.backend.pojo.TfVersion;
 import no.uio.ifi.trackfind.backend.repositories.HubRepository;
-import no.uio.ifi.trackfind.backend.services.MetamodelService;
+import no.uio.ifi.trackfind.backend.services.impl.MetamodelService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**

@@ -19,7 +19,7 @@ import no.uio.ifi.trackfind.backend.pojo.TfHub;
 import no.uio.ifi.trackfind.backend.pojo.TfMapping;
 import no.uio.ifi.trackfind.backend.pojo.TfObjectType;
 import no.uio.ifi.trackfind.backend.pojo.TfVersion;
-import no.uio.ifi.trackfind.backend.services.MetamodelService;
+import no.uio.ifi.trackfind.backend.services.impl.MetamodelService;
 import no.uio.ifi.trackfind.frontend.components.TrackFindTree;
 import no.uio.ifi.trackfind.frontend.filters.TreeFilter;
 import org.apache.commons.collections.CollectionUtils;

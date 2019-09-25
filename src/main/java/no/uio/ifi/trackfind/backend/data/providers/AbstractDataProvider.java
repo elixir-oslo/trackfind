@@ -9,10 +9,10 @@ import no.uio.ifi.trackfind.backend.operations.Operation;
 import no.uio.ifi.trackfind.backend.pojo.*;
 import no.uio.ifi.trackfind.backend.repositories.*;
 import no.uio.ifi.trackfind.backend.scripting.ScriptingEngine;
-import no.uio.ifi.trackfind.backend.services.CacheService;
-import no.uio.ifi.trackfind.backend.services.MetamodelService;
-import no.uio.ifi.trackfind.backend.services.SchemaService;
-import no.uio.ifi.trackfind.backend.services.SearchService;
+import no.uio.ifi.trackfind.backend.services.impl.CacheService;
+import no.uio.ifi.trackfind.backend.services.impl.MetamodelService;
+import no.uio.ifi.trackfind.backend.services.impl.SchemaService;
+import no.uio.ifi.trackfind.backend.services.impl.SearchService;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,7 +74,7 @@ public abstract class AbstractDataProvider implements DataProvider {
      */
     @Override
     public Collection<TfHub> getAllTrackHubs() {
-        return Collections.singleton(new TfHub(getName(), getName()));
+        return Collections.singleton(new TfHub(getName(), getName(), getFetchURI()));
     }
 
     /**

@@ -24,11 +24,18 @@ import java.util.concurrent.CountDownLatch;
 @Transactional
 public class ENCODEDataProvider extends AbstractDataProvider {
 
-    private static final String FETCH_URL = "https://www.encodeproject.org/search/?type=%s&limit=all&format=json";
     private static final Collection<String> AVAILABLE_TYPES = Arrays.asList("Annotation", "AntibodyLot", "Award",
             "Biosample", "BiosampleType", "Experiment", "File", "Gene", "Lab", "Library", "Organism", "Pipeline",
             "Platform", "Project", "Publication", "Reference", "ReferenceEpigenome", "Software", "Source", "Target",
             "Treatment", "User");
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getFetchURI() {
+        return "https://www.encodeproject.org/search/?type=%s&limit=all&format=json";
+    }
 
     /**
      * {@inheritDoc}
@@ -40,7 +47,7 @@ public class ENCODEDataProvider extends AbstractDataProvider {
         HashMultimap<String, String> mapToSave = HashMultimap.create();
         for (String type : AVAILABLE_TYPES) {
             executorService.submit(() -> {
-                try (InputStream inputStream = new URL(String.format(FETCH_URL, type)).openStream();
+                try (InputStream inputStream = new URL(String.format(getFetchURI(), type)).openStream();
                      InputStreamReader reader = new InputStreamReader(inputStream)) {
                     log.info("Processing type: {}", type);
                     Map all = gson.fromJson(reader, Map.class);

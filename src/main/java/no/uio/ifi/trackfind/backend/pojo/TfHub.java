@@ -32,6 +32,10 @@ public class TfHub implements Serializable {
     @Column(name = "name", nullable = false)
     private String name;
 
+    @NonNull
+    @Column(name = "uri", nullable = false)
+    private String uri;
+
     @OneToMany(mappedBy = "hub", fetch = FetchType.EAGER)
     private Set<TfVersion> versions;
 

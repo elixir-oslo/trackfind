@@ -1,4 +1,4 @@
-package no.uio.ifi.trackfind.backend.services;
+package no.uio.ifi.trackfind.backend.services.impl;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;

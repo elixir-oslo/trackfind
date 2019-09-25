@@ -48,7 +48,8 @@ CREATE TABLE IF NOT EXISTS tf_hubs
     id         BIGSERIAL PRIMARY KEY,
     repository VARCHAR NOT NULL,
     name       VARCHAR NOT NULL,
-    UNIQUE (repository, name)
+    uri       VARCHAR NOT NULL,
+    UNIQUE (repository, name, uri)
 );
 
 CREATE TABLE IF NOT EXISTS tf_versions

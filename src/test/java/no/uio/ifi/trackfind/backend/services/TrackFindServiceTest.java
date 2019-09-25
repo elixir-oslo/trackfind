@@ -1,8 +1,9 @@
 package no.uio.ifi.trackfind.backend.services;
 
-import no.uio.ifi.trackfind.backend.pojo.TfHub;
 import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
 import no.uio.ifi.trackfind.backend.data.providers.ihec.IHECDataProvider;
+import no.uio.ifi.trackfind.backend.pojo.TfHub;
+import no.uio.ifi.trackfind.backend.services.impl.TrackFindService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,8 +36,8 @@ public class TrackFindServiceTest {
     @Before
     public void setUp() {
         when(dataProvider.getName()).thenReturn(TEST_DATA_PROVIDER);
-        when(dataProvider.getActiveTrackHubs()).thenReturn(Collections.singleton(new TfHub(TEST_DATA_PROVIDER, "active")));
-        when(dataProvider.getAllTrackHubs()).thenReturn(Collections.singleton(new TfHub(TEST_DATA_PROVIDER, "inactive")));
+        when(dataProvider.getActiveTrackHubs()).thenReturn(Collections.singleton(new TfHub(TEST_DATA_PROVIDER, "active", "test")));
+        when(dataProvider.getAllTrackHubs()).thenReturn(Collections.singleton(new TfHub(TEST_DATA_PROVIDER, "inactive", "test")));
         dataProviders.add(dataProvider);
     }
 

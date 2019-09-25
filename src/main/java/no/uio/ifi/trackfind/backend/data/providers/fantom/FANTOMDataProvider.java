@@ -31,7 +31,13 @@ import java.util.stream.Collectors;
 @Transactional
 public class FANTOMDataProvider extends AbstractDataProvider {
 
-    private static final String METADATA_URL = "http://fantom.gsc.riken.jp/5/datafiles/latest/basic/";
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getFetchURI() {
+        return "http://fantom.gsc.riken.jp/5/datafiles/latest/basic/";
+    }
 
     /**
      * {@inheritDoc}
@@ -39,7 +45,8 @@ public class FANTOMDataProvider extends AbstractDataProvider {
     @Override
     protected void fetchData(String hubName) throws Exception {
         log.info("Collecting directories...");
-        Document root = Jsoup.parse(new URL(METADATA_URL), 10000);
+        String fetchURI = getFetchURI();
+        Document root = Jsoup.parse(new URL(fetchURI), 10000);
         Set<String> dirs = root.getElementsByTag("a").parallelStream().map(e -> e.attr("href")).filter(s -> s.contains(".") && s.endsWith("/")).collect(Collectors.toSet());
         int size = dirs.size();
         log.info(size + " directories to process");
@@ -48,13 +55,13 @@ public class FANTOMDataProvider extends AbstractDataProvider {
         for (String dir : dirs) {
             executorService.submit(() -> {
                 try {
-                    Document folder = Jsoup.parse(new URL(METADATA_URL + dir), 10000);
+                    Document folder = Jsoup.parse(new URL(fetchURI + dir), 10000);
                     Set<String> allFiles = folder.getElementsByTag("a").parallelStream().map(e -> e.attr("href")).collect(Collectors.toSet());
                     Optional<String> metadataFileOptional = allFiles.parallelStream().filter(s -> s.endsWith("_sdrf.txt")).findAny();
                     if (!metadataFileOptional.isPresent()) {
                         return;
                     }
-                    URL url = new URL(METADATA_URL + dir + metadataFileOptional.get());
+                    URL url = new URL(fetchURI + dir + metadataFileOptional.get());
                     try (InputStream inputStream = url.openStream();
                          Reader reader = new InputStreamReader(inputStream);
                          CSVParser parser = new CSVParser(reader, CSVFormat.newFormat('\t').withSkipHeaderRecord())) {

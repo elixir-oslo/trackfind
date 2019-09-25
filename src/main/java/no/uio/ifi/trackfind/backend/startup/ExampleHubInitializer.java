@@ -4,8 +4,8 @@ import no.uio.ifi.trackfind.backend.data.providers.example.ExampleDataProvider;
 import no.uio.ifi.trackfind.backend.pojo.TfHub;
 import no.uio.ifi.trackfind.backend.pojo.TfObjectType;
 import no.uio.ifi.trackfind.backend.pojo.TfReference;
-import no.uio.ifi.trackfind.backend.services.MetamodelService;
-import no.uio.ifi.trackfind.backend.services.TrackFindService;
+import no.uio.ifi.trackfind.backend.services.impl.MetamodelService;
+import no.uio.ifi.trackfind.backend.services.impl.TrackFindService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
@@ -30,7 +30,7 @@ public class ExampleHubInitializer implements ApplicationListener<ApplicationRea
     public void onApplicationEvent(ApplicationReadyEvent event) {
         Collection<TfHub> trackHubs = trackFindService.getTrackHubs(EXAMPLE, true);
         if (CollectionUtils.isEmpty(trackHubs)) {
-            trackFindService.activateHubs(Collections.singleton(new TfHub(EXAMPLE, EXAMPLE)));
+            trackFindService.activateHubs(Collections.singleton(new TfHub(EXAMPLE, EXAMPLE, exampleDataProvider.getFetchURI())));
         }
         exampleDataProvider.crawlRemoteRepository(EXAMPLE);
         Collection<TfObjectType> objectTypes = metamodelService.getObjectTypes(EXAMPLE, EXAMPLE);

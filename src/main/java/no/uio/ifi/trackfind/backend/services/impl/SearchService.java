@@ -1,4 +1,4 @@
-package no.uio.ifi.trackfind.backend.services;
+package no.uio.ifi.trackfind.backend.services.impl;
 
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;

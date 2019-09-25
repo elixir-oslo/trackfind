@@ -35,7 +35,6 @@ import java.util.stream.Collectors;
 public class IHECDataProvider extends AbstractDataProvider {
 
     private static final String RELEASES_URL = "https://epigenomesportal.ca/cgi-bin/api/getReleases.py";
-    private static final String FETCH_URL = "https://epigenomesportal.ca/cgi-bin/api/getDataHub.py?data_release_id=";
 
     // Temp hack for IHEC
     private void disableSSL() throws KeyManagementException, NoSuchAlgorithmException {
@@ -67,6 +66,14 @@ public class IHECDataProvider extends AbstractDataProvider {
     /**
      * {@inheritDoc}
      */
+    @Override
+    public String getFetchURI() {
+        return "https://epigenomesportal.ca/cgi-bin/api/getDataHub.py?data_release_id=";
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     @SuppressWarnings("unchecked")
     @Override
     protected void fetchData(String hubName) throws InterruptedException, NoSuchAlgorithmException, KeyManagementException {
@@ -91,7 +98,7 @@ public class IHECDataProvider extends AbstractDataProvider {
         HashMultimap<String, String> mapToSave = HashMultimap.create();
         for (int releaseId : releaseIds) {
             executorService.submit(() -> {
-                try (InputStream inputStream = new URL(FETCH_URL + releaseId).openStream();
+                try (InputStream inputStream = new URL(getFetchURI() + releaseId).openStream();
                      InputStreamReader reader = new InputStreamReader(inputStream)) {
                     Map grid = gson.fromJson(reader, Map.class);
                     Map<String, Map> datasetsMap = MapUtils.getMap(grid, "datasets");

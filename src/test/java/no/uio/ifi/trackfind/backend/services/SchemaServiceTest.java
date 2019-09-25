@@ -2,6 +2,7 @@ package no.uio.ifi.trackfind.backend.services;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import no.uio.ifi.trackfind.backend.services.impl.SchemaService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

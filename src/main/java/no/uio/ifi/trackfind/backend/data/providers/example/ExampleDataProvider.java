@@ -23,7 +23,13 @@ import java.util.Map;
 @Transactional
 public class ExampleDataProvider extends AbstractDataProvider {
 
-    private static final String FETCH_URL = "https://raw.githubusercontent.com/fairtracks/fairtracks_standard/master/json/examples/fairtracks.example.json";
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getFetchURI() {
+        return "https://raw.githubusercontent.com/fairtracks/fairtracks_standard/master/json/examples/fairtracks.example.json";
+    }
 
     /**
      * {@inheritDoc}
@@ -31,7 +37,7 @@ public class ExampleDataProvider extends AbstractDataProvider {
     @Override
     protected void fetchData(String hubName) {
         HashMultimap<String, String> mapToSave = HashMultimap.create();
-        try (InputStream inputStream = new URL(FETCH_URL).openStream();
+        try (InputStream inputStream = new URL(getFetchURI()).openStream();
              InputStreamReader reader = new InputStreamReader(inputStream)) {
             Map topMap = gson.fromJson(reader, Map.class);
             for (String category : Arrays.asList("studies", "experiments", "samples", "tracks")) {

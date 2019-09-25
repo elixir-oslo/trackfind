@@ -1,4 +1,4 @@
-package no.uio.ifi.trackfind.backend.services;
+package no.uio.ifi.trackfind.backend.services.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.data.providers.DataProvider;

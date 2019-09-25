@@ -19,6 +19,13 @@ public interface DataProvider {
     String getName();
 
     /**
+     * Gets the URI from where to crawl the data.
+     *
+     * @return fetch URI.
+     */
+    String getFetchURI();
+
+    /**
      * Gets the names of all Track Hubs by this data provider.
      *
      * @return All Track Hubs list.

@@ -13,6 +13,8 @@ import com.vaadin.ui.*;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
 import no.uio.ifi.trackfind.backend.pojo.TfHub;
+import no.uio.ifi.trackfind.backend.services.ValidationService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.Collections;
@@ -34,11 +36,14 @@ import java.util.stream.Stream;
 @Slf4j
 public class TrackFindHubsUI extends AbstractUI {
 
+    private ValidationService validationService;
+
     private ComboBox<TfHub> comboBox;
     private ListSelect<TfHub> listSelect;
     private Button add;
     private Button remove;
     private Button crawl;
+    private Button validate;
 
     @Override
     protected void init(VaadinRequest vaadinRequest) {
@@ -111,7 +116,8 @@ public class TrackFindHubsUI extends AbstractUI {
         crawl = new Button("Crawl");
         crawl.setEnabled(false);
         crawl.setWidth(100, Unit.PERCENTAGE);
-        crawl.addClickListener((Button.ClickListener) event -> ConfirmDialog.show(getUI(),
+        UI ui = getUI();
+        crawl.addClickListener((Button.ClickListener) event -> ConfirmDialog.show(ui,
                 "Are you sure? " +
                         "Crawling is time-consuming process and will lead to changing the data in the database.",
                 (ConfirmDialog.Listener) dialog -> {
@@ -129,8 +135,25 @@ public class TrackFindHubsUI extends AbstractUI {
                         }
                     }
                 }));
-        crawl.setWidth(100, Unit.PERCENTAGE);
-        verticalLayout.addComponents(add, remove, crawl);
+        validate = new Button("Validate");
+        validate.setEnabled(false);
+        validate.setWidth(100, Unit.PERCENTAGE);
+        validate.addClickListener((Button.ClickListener) event -> ConfirmDialog.show(ui,
+                "Are you sure? " +
+                        "Validation is time-consuming process.",
+                (ConfirmDialog.Listener) dialog -> {
+                    if (dialog.isConfirmed()) {
+                        try {
+                            String result = validationService.validate();
+                            ConfirmDialog.show(ui, result, (ConfirmDialog.Listener) d -> {
+                            });
+                        } catch (Exception e) {
+                            log.error(e.getMessage(), e);
+                            Notification.show("Error: " + e.getMessage(), Notification.Type.ERROR_MESSAGE);
+                        }
+                    }
+                }));
+        verticalLayout.addComponents(add, remove, crawl, validate);
         return verticalLayout;
     }
 
@@ -153,6 +176,7 @@ public class TrackFindHubsUI extends AbstractUI {
         listSelect.setItemCaptionGenerator(h -> h.getRepository() + ": " + h.getName());
         listSelect.addSelectionListener((MultiSelectionListener<TfHub>) event -> remove.setEnabled(!listSelect.getSelectedItems().isEmpty()));
         listSelect.addSelectionListener((MultiSelectionListener<TfHub>) event -> crawl.setEnabled(!listSelect.getSelectedItems().isEmpty()));
+        listSelect.addSelectionListener((MultiSelectionListener<TfHub>) event -> validate.setEnabled(!listSelect.getSelectedItems().isEmpty()));
         Panel panel = new Panel("Hub selection", listSelect);
         hubsLayout.addComponentsAndExpand(panel);
         return hubsLayout;
@@ -160,11 +184,16 @@ public class TrackFindHubsUI extends AbstractUI {
 
     private HorizontalLayout buildMainLayout(VerticalLayout leftLayout, VerticalLayout middleLayout, VerticalLayout rightLayout) {
         HorizontalLayout mainLayout = new HorizontalLayout(leftLayout, middleLayout, rightLayout);
-        mainLayout.setExpandRatio(leftLayout, 0.33f);
-        mainLayout.setExpandRatio(middleLayout, 0.33f);
-        mainLayout.setExpandRatio(rightLayout, 0.33f);
+        mainLayout.setExpandRatio(leftLayout, 0.4f);
+        mainLayout.setExpandRatio(middleLayout, 0.2f);
+        mainLayout.setExpandRatio(rightLayout, 0.4f);
         mainLayout.setSizeFull();
         return mainLayout;
+    }
+
+    @Autowired
+    public void setValidationService(ValidationService validationService) {
+        this.validationService = validationService;
     }
 
 }
