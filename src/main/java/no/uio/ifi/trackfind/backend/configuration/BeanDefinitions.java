@@ -31,9 +31,14 @@ public class BeanDefinitions {
     @Value("${trackfind.admin}")
     private String adminElixirId;
 
-    @LoadBalanced
     @Bean
     public RestTemplate restTemplate() {
+        return new RestTemplate();
+    }
+
+    @LoadBalanced
+    @Bean
+    public RestTemplate loadBalancedRestTemplate() {
         return new RestTemplate();
     }
 

@@ -144,9 +144,12 @@ public class TrackFindHubsUI extends AbstractUI {
                 (ConfirmDialog.Listener) dialog -> {
                     if (dialog.isConfirmed()) {
                         try {
-                            String result = validationService.validate();
-                            ConfirmDialog.show(ui, result, (ConfirmDialog.Listener) d -> {
-                            });
+                            Set<TfHub> activeHubs = listSelect.getSelectedItems();
+                            for (TfHub hub : activeHubs) {
+                                String result = validationService.validate(hub.getRepository(), hub.getName());
+                                ConfirmDialog.show(ui, result, (ConfirmDialog.Listener) d -> {
+                                });
+                            }
                         } catch (Exception e) {
                             log.error(e.getMessage(), e);
                             Notification.show("Error: " + e.getMessage(), Notification.Type.ERROR_MESSAGE);

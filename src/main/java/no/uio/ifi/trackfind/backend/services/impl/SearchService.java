@@ -67,20 +67,7 @@ public class SearchService {
         }
 
         String fullQueryString = buildQuery(references, objectTypesFromReferences, objectTypesToSelect, query, limit);
-        log.info("Search with query: {}", fullQueryString);
-
-        PreparedStatement preparedStatement = connection.prepareStatement(fullQueryString);
-        ResultSet resultSet = preparedStatement.executeQuery();
-        Collection<SearchResult> results = new ArrayList<>();
-        while (resultSet.next()) {
-            SearchResult searchResult = new SearchResult();
-            for (String objectTypeName : objectTypesToSelect) {
-                String json = resultSet.getString(objectTypeName + "_content");
-                searchResult.getContent().put(objectTypeName, gson.fromJson(json, Map.class));
-            }
-            results.add(searchResult);
-        }
-        return results;
+        return executeSearchQuery(fullQueryString);
     }
 
     protected String buildQuery(Collection<TfReference> references, Collection<TfObjectType> objectTypesFromReferences, Collection<String> objectTypesToSelect, String query, long limit) {
@@ -143,6 +130,28 @@ public class SearchService {
         }
 
         return fullQuery.toString().replaceAll("\\?", "\\?\\?");
+    }
+
+    protected Collection<SearchResult> executeSearchQuery(String fullQueryString) throws SQLException {
+        log.info("Executing search query: {}", fullQueryString);
+        PreparedStatement preparedStatement = connection.prepareStatement(fullQueryString);
+        ResultSet resultSet = preparedStatement.executeQuery();
+        ResultSetMetaData metaData = resultSet.getMetaData();
+        int columnCount = metaData.getColumnCount();
+        Collection<String> objectTypesToSelect = new HashSet<>();
+        for (int i = 1; i <= columnCount; i++) {
+            objectTypesToSelect.add(metaData.getColumnName(i));
+        }
+        Collection<SearchResult> results = new ArrayList<>();
+        while (resultSet.next()) {
+            SearchResult searchResult = new SearchResult();
+            for (String objectTypeName : objectTypesToSelect) {
+                String json = resultSet.getString(objectTypeName);
+                searchResult.getContent().put(objectTypeName.replace("_content", ""), gson.fromJson(json, Map.class));
+            }
+            results.add(searchResult);
+        }
+        return results;
     }
 
     @Value("${spring.datasource.url}")

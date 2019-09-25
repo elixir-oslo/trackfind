@@ -19,7 +19,7 @@ public class GSuiteService implements Function<Collection<SearchResult>, String>
 
     private Gson gson;
     private SchemaService schemaService;
-    private RestTemplate restTemplate;
+    private RestTemplate loadBalancedRestTemplate;
 
     /**
      * Convert searchResults to GSuite.
@@ -31,7 +31,7 @@ public class GSuiteService implements Function<Collection<SearchResult>, String>
     public String apply(Collection<SearchResult> searchResults) {
 //        sortJSON(searchResults);
         HttpEntity<Collection<SearchResult>> request = new HttpEntity<>(searchResults);
-        return restTemplate.postForObject("http://gsuite/togsuite", request, String.class);
+        return loadBalancedRestTemplate.postForObject("http://gsuite/togsuite", request, String.class);
     }
 
 //    protected void sortJSON(Collection<SearchResult> searchResults) {
@@ -88,8 +88,8 @@ public class GSuiteService implements Function<Collection<SearchResult>, String>
     }
 
     @Autowired
-    public void setRestTemplate(RestTemplate restTemplate) {
-        this.restTemplate = restTemplate;
+    public void setLoadBalancedRestTemplate(RestTemplate loadBalancedRestTemplate) {
+        this.loadBalancedRestTemplate = loadBalancedRestTemplate;
     }
 
 }

@@ -12,6 +12,6 @@ public interface ValidationService {
      *
      * @return Validation result.
      */
-    String validate();
+    String validate(String repository, String hub);
 
 }
