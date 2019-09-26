@@ -121,7 +121,7 @@ public class SearchService {
                     .append(" AND ");
         }
 
-        fullQuery.append("\n\n");
+        fullQuery.append("\n");
 
         fullQuery.append(query);
 

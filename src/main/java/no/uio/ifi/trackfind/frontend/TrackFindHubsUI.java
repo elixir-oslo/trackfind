@@ -66,7 +66,7 @@ public class TrackFindHubsUI extends AbstractUI {
             protected Stream<TfHub> fetchFromBackEnd(Query<TfHub, String> query) {
                 return query
                         .getFilter()
-                        .map(s -> trackFindService.getAvailableTrackHubs().stream().filter(th -> th.getName().contains(s)))
+                        .map(s -> trackFindService.getAvailableTrackHubs().stream().filter(th -> th.getName().toLowerCase().contains(s.toLowerCase())))
                         .orElseGet(() -> trackFindService.getAvailableTrackHubs().stream());
             }
 
