@@ -93,7 +93,11 @@ public class MetamodelService {
     @Cacheable(value = "metamodel-categories", sync = true)
     public Collection<TfObjectType> getObjectTypes(String repository, String hub) {
         TfHub hubEntity = hubRepository.findByRepositoryAndName(repository, hub);
-        TfVersion currentVersion = hubEntity.getCurrentVersion().orElseThrow(RuntimeException::new);
+        Optional<TfVersion> currentVersionOptional = hubEntity.getCurrentVersion();
+        if (!currentVersionOptional.isPresent()) {
+            return Collections.emptyList();
+        }
+        TfVersion currentVersion = currentVersionOptional.get();
         return currentVersion.getObjectTypes();
     }
 
@@ -159,7 +163,11 @@ public class MetamodelService {
 
     public Collection<TfReference> getReferences(String repository, String hub) {
         TfHub currentHub = hubRepository.findByRepositoryAndName(repository, hub);
-        TfVersion currentVersion = currentHub.getCurrentVersion().orElseThrow(RuntimeException::new);
+        Optional<TfVersion> currentVersionOptional = currentHub.getCurrentVersion();
+        if (!currentVersionOptional.isPresent()) {
+            return Collections.emptyList();
+        }
+        TfVersion currentVersion = currentVersionOptional.get();
         Collection<TfObjectType> objectTypes = currentVersion.getObjectTypes();
         Collection<TfReference> references = new HashSet<>();
         for (TfObjectType objectType : objectTypes) {
@@ -178,8 +186,12 @@ public class MetamodelService {
 
     public void copyReferencesFromAnotherVersionToCurrentVersion(String repository, String hubName, TfVersion sourceVersion) {
         TfHub hub = hubRepository.findByRepositoryAndName(repository, hubName);
-        Optional<TfVersion> currentVersion = hub.getCurrentVersion();
-        copyReferencesFromOneVersionToAnotherVersion(sourceVersion, currentVersion.orElseThrow(RuntimeException::new));
+        Optional<TfVersion> currentVersionOptional = hub.getCurrentVersion();
+        if (!currentVersionOptional.isPresent()) {
+            return;
+        }
+        TfVersion currentVersion = currentVersionOptional.get();
+        copyReferencesFromOneVersionToAnotherVersion(sourceVersion, currentVersion);
     }
 
     public void copyReferencesFromOneVersionToAnotherVersion(TfVersion sourceVersion, TfVersion targetVersion) {
@@ -201,7 +213,11 @@ public class MetamodelService {
 
     public Collection<TfMapping> getMappings(String repository, String hub) {
         TfHub currentHub = hubRepository.findByRepositoryAndName(repository, hub);
-        TfVersion currentVersion = currentHub.getCurrentVersion().orElseThrow(RuntimeException::new);
+        Optional<TfVersion> currentVersionOptional = currentHub.getCurrentVersion();
+        if (!currentVersionOptional.isPresent()) {
+            return Collections.emptyList();
+        }
+        TfVersion currentVersion = currentVersionOptional.get();
         return currentVersion.getMappings();
     }
 

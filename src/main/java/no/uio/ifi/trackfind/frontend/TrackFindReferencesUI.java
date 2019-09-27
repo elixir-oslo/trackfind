@@ -20,6 +20,7 @@ import no.uio.ifi.trackfind.backend.pojo.TfVersion;
 import no.uio.ifi.trackfind.backend.services.impl.MetamodelService;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Optional;
 import java.util.stream.Stream;
 
 /**
@@ -111,10 +112,15 @@ public class TrackFindReferencesUI extends AbstractUI {
             protected Stream<TfObjectType> fetchFromBackEnd(Query<TfObjectType, String> query) {
                 Grid selectedTab = (Grid) referencesTabSheet.getSelectedTab();
                 TfHub hub = (TfHub) selectedTab.getData();
+                Optional<TfVersion> currentVersionOptional = hub.getCurrentVersion();
+                if (!currentVersionOptional.isPresent()) {
+                    return Stream.empty();
+                }
+                TfVersion currentVersion = currentVersionOptional.get();
                 return query
                         .getFilter()
-                        .map(s -> hub.getCurrentVersion().orElseThrow(RuntimeException::new).getObjectTypes().stream().filter(v -> v.getName().contains(s)))
-                        .orElseGet(() -> hub.getCurrentVersion().orElseThrow(RuntimeException::new).getObjectTypes().stream());
+                        .map(s -> currentVersion.getObjectTypes().stream().filter(v -> v.getName().contains(s)))
+                        .orElseGet(() -> currentVersion.getObjectTypes().stream());
             }
 
             @Override
