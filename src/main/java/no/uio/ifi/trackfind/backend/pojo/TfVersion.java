@@ -45,8 +45,8 @@ public class TfVersion implements Serializable {
     @Column(name = "time", nullable = false)
     private Date time;
 
-    @Column(name = "validated", nullable = false)
-    private Boolean validated;
+    @Column(name = "validation")
+    private Boolean validation;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "hub_id", referencedColumnName = "id")

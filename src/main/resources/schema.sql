@@ -54,15 +54,15 @@ CREATE TABLE IF NOT EXISTS tf_hubs
 
 CREATE TABLE IF NOT EXISTS tf_versions
 (
-    id        BIGSERIAL PRIMARY KEY,
-    hub_id    BIGINT REFERENCES tf_hubs (id),
-    version   BIGINT    NOT NULL,
-    based_on  BIGINT REFERENCES tf_versions (id),
-    current   BOOLEAN   NOT NULL,
-    operation VARCHAR   NOT NULL,
-    user_id   BIGINT REFERENCES tf_users (id),
-    time      TIMESTAMP NOT NULL,
-    validated BOOLEAN   NOT NULL,
+    id         BIGSERIAL PRIMARY KEY,
+    hub_id     BIGINT REFERENCES tf_hubs (id),
+    version    BIGINT    NOT NULL,
+    based_on   BIGINT REFERENCES tf_versions (id),
+    current    BOOLEAN   NOT NULL,
+    operation  VARCHAR   NOT NULL,
+    user_id    BIGINT REFERENCES tf_users (id),
+    time       TIMESTAMP NOT NULL,
+    validation BOOLEAN,
     UNIQUE (hub_id, version),
     CONSTRAINT mapping_should_have_based_on CHECK ( based_on IS NOT NULL OR operation = 'CRAWLING' )
 );

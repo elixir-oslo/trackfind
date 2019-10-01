@@ -13,11 +13,13 @@ import com.vaadin.ui.*;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
 import no.uio.ifi.trackfind.backend.pojo.TfHub;
+import no.uio.ifi.trackfind.backend.pojo.TfVersion;
 import no.uio.ifi.trackfind.backend.services.ValidationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.Collections;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -133,6 +135,7 @@ public class TrackFindHubsUI extends AbstractUI {
                             log.error(e.getMessage(), e);
                             Notification.show("Error: " + e.getMessage(), Notification.Type.ERROR_MESSAGE);
                         }
+                        listSelect.getDataProvider().refreshAll();
                     }
                 }));
         validate = new Button("Validate");
@@ -147,8 +150,7 @@ public class TrackFindHubsUI extends AbstractUI {
                             Set<TfHub> activeHubs = listSelect.getSelectedItems();
                             for (TfHub hub : activeHubs) {
                                 String result = validationService.validate(hub.getRepository(), hub.getName());
-                                ConfirmDialog.show(ui, result, (ConfirmDialog.Listener) d -> {
-                                });
+                                ConfirmDialog.show(ui, result, (ConfirmDialog.Listener) d -> listSelect.getDataProvider().refreshAll());
                             }
                         } catch (Exception e) {
                             log.error(e.getMessage(), e);
@@ -176,7 +178,18 @@ public class TrackFindHubsUI extends AbstractUI {
                 return (int) fetchFromBackEnd(query).count();
             }
         });
-        listSelect.setItemCaptionGenerator(h -> h.getRepository() + ": " + h.getName());
+        listSelect.setItemCaptionGenerator(hub -> {
+            String caption = hub.getRepository() + ": " + hub.getName();
+            Optional<TfVersion> currentVersionOptional = hub.getCurrentVersion();
+            if (currentVersionOptional.isPresent()) {
+                caption += " ⬇️";
+                Boolean validation = currentVersionOptional.get().getValidation();
+                if (validation != null) {
+                    caption += (validation ? " ✅" : " ❌");
+                }
+            }
+            return caption;
+        });
         listSelect.addSelectionListener((MultiSelectionListener<TfHub>) event -> remove.setEnabled(!listSelect.getSelectedItems().isEmpty()));
         listSelect.addSelectionListener((MultiSelectionListener<TfHub>) event -> crawl.setEnabled(!listSelect.getSelectedItems().isEmpty()));
         listSelect.addSelectionListener((MultiSelectionListener<TfHub>) event -> validate.setEnabled(!listSelect.getSelectedItems().isEmpty()));
