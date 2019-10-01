@@ -31,11 +31,9 @@ public class TfObjectType implements Serializable {
     @JoinColumn(name = "version_id", referencedColumnName = "id")
     private TfVersion version;
 
-    @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
     @OneToMany(mappedBy = "toObjectType", fetch = FetchType.EAGER)
     private Set<TfReference> references;
 
-    @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
     @OneToMany(mappedBy = "toObjectType", fetch = FetchType.EAGER)
     private Set<TfMapping> mappings;
 

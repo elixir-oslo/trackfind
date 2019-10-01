@@ -44,7 +44,6 @@ public class TfUser implements Serializable, UserDetails {
     @Column(name = "active", nullable = false)
     private boolean active;
 
-    @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
     @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
     private Set<TfVersion> versions;
 

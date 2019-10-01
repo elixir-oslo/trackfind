@@ -49,11 +49,9 @@ public class TfVersion implements Serializable {
     @JoinColumn(name = "hub_id", referencedColumnName = "id")
     private TfHub hub;
 
-    @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
     @OneToMany(mappedBy = "version", fetch = FetchType.EAGER)
     private Set<TfObjectType> objectTypes;
 
-    @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
     @OneToMany(mappedBy = "version", fetch = FetchType.EAGER)
     private Set<TfMapping> mappings;
 
