@@ -83,7 +83,7 @@ public class TrackFindVersionsUI extends AbstractUI {
                 TfUser tfUser = (TfUser) user;
                 return tfUser == null ? null : tfUser.getFullName();
             }, new TextRenderer("Auto-crawled"));
-            grid.setColumnOrder("version", "operation", "user", "time", "id");
+            grid.setColumnOrder("version", "operation", "user", "time", "validated", "id");
             grid.sort("id");
             grid.setData(hub);
             grid.setItems(hub.getVersions());

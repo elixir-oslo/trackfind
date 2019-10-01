@@ -174,6 +174,7 @@ public abstract class AbstractDataProvider implements DataProvider {
             newVersion.setUser((TfUser) authentication.getPrincipal());
         }
         newVersion.setTime(new Date());
+        newVersion.setValidated(false);
         newVersion.setHub(hub);
         if (Operation.CURATION.equals(operation) && currentVersionOptional.isPresent()) {
             newVersion.setBasedOn(currentVersionOptional.get());
