@@ -18,7 +18,9 @@ import no.uio.ifi.trackfind.backend.pojo.TfObjectType;
 import no.uio.ifi.trackfind.backend.pojo.TfReference;
 import no.uio.ifi.trackfind.backend.pojo.TfVersion;
 import no.uio.ifi.trackfind.backend.services.impl.MetamodelService;
+import no.uio.ifi.trackfind.frontend.providers.AttributesDataProvider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -36,6 +38,9 @@ import java.util.stream.Stream;
 @Theme("trackfind")
 @Slf4j
 public class TrackFindReferencesUI extends AbstractUI {
+
+    @Value("${trackfind.separator}")
+    protected String separator;
 
     private MetamodelService metamodelService;
 
@@ -129,11 +134,15 @@ public class TrackFindReferencesUI extends AbstractUI {
             }
         };
         fromCategoryComboBox.setDataProvider(categoryDataProvider);
-        TextField fromAttributeTextField = new TextField("From attribute");
+        AbstractBackEndDataProvider<String, String> fromAttributesDataProvider = new AttributesDataProvider(referencesTabSheet, fromCategoryComboBox, separator, metamodelService);
+        ComboBox<String> fromAttributeComboBox = new ComboBox<>("From attribute");
+        fromAttributeComboBox.setDataProvider(fromAttributesDataProvider);
         ComboBox<TfObjectType> toCategoryComboBox = new ComboBox<>("To category");
         toCategoryComboBox.setItemCaptionGenerator(TfObjectType::getName);
         toCategoryComboBox.setDataProvider(categoryDataProvider);
-        TextField toAttributeTextField = new TextField("To attribute");
+        AbstractBackEndDataProvider<String, String> toAttributesDataProvider = new AttributesDataProvider(referencesTabSheet, toCategoryComboBox, separator, metamodelService);
+        ComboBox<String> toAttributeComboBox = new ComboBox<>("To attribute");
+        toAttributeComboBox.setDataProvider(toAttributesDataProvider);
         referencesTabSheet.addSelectedTabChangeListener((TabSheet.SelectedTabChangeListener) event -> {
             versionDataProvider.refreshAll();
             categoryDataProvider.refreshAll();
@@ -142,20 +151,20 @@ public class TrackFindReferencesUI extends AbstractUI {
             TfReference reference = new TfReference(
                     null,
                     fromCategoryComboBox.getSelectedItem().orElseThrow(RuntimeException::new),
-                    fromAttributeTextField.getValue(),
+                    fromAttributeComboBox.getValue(),
                     toCategoryComboBox.getSelectedItem().orElseThrow(RuntimeException::new),
-                    toAttributeTextField.getValue());
+                    toAttributeComboBox.getValue());
             metamodelService.addReference(reference);
             Grid selectedTab = (Grid) referencesTabSheet.getSelectedTab();
             TfHub hub = (TfHub) selectedTab.getData();
             selectedTab.setItems(metamodelService.getReferences(hub.getRepository(), hub.getName()));
         });
         addButton.setEnabled(false);
-        HasValue.ValueChangeListener valueChangeListener = event -> changeAddButtonState(fromCategoryComboBox, fromAttributeTextField, toCategoryComboBox, toAttributeTextField, addButton);
+        HasValue.ValueChangeListener valueChangeListener = event -> changeAddButtonState(fromCategoryComboBox, fromAttributeComboBox, toCategoryComboBox, toAttributeComboBox, addButton);
         fromCategoryComboBox.addValueChangeListener(valueChangeListener);
-        fromAttributeTextField.addValueChangeListener(valueChangeListener);
+        fromAttributeComboBox.addValueChangeListener(valueChangeListener);
         toCategoryComboBox.addValueChangeListener(valueChangeListener);
-        toAttributeTextField.addValueChangeListener(valueChangeListener);
+        toAttributeComboBox.addValueChangeListener(valueChangeListener);
         copyButton = new Button("Import from another version", (Button.ClickListener) event -> {
             Grid selectedTab = (Grid) referencesTabSheet.getSelectedTab();
             TfHub hub = (TfHub) selectedTab.getData();
@@ -167,19 +176,35 @@ public class TrackFindReferencesUI extends AbstractUI {
             }
         });
         copyButton.setEnabled(false);
-        HorizontalLayout controlsLayout = new HorizontalLayout(versionComboBox, copyButton, fromCategoryComboBox, fromAttributeTextField, toCategoryComboBox, toAttributeTextField, addButton);
-        controlsLayout.setComponentAlignment(copyButton, Alignment.BOTTOM_RIGHT);
-        controlsLayout.setComponentAlignment(addButton, Alignment.BOTTOM_RIGHT);
+        HorizontalLayout versionsLayout = new HorizontalLayout(versionComboBox, copyButton);
+        versionsLayout.setWidth("100%");
+        versionComboBox.setWidth("100%");
+        versionsLayout.setComponentAlignment(copyButton, Alignment.BOTTOM_LEFT);
+        versionsLayout.setMargin(false);
+        HorizontalLayout attributesLayout = new HorizontalLayout(fromCategoryComboBox, fromAttributeComboBox, toCategoryComboBox, toAttributeComboBox, addButton);
+        attributesLayout.setWidth("100%");
+        fromCategoryComboBox.setWidth("100%");
+        fromAttributeComboBox.setWidth("100%");
+        toCategoryComboBox.setWidth("100%");
+        toAttributeComboBox.setWidth("100%");
+        attributesLayout.setComponentAlignment(addButton, Alignment.BOTTOM_LEFT);
+        attributesLayout.setMargin(false);
+        VerticalLayout controlsLayout = new VerticalLayout(versionsLayout, attributesLayout);
+        controlsLayout.setMargin(false);
         referencesLayout.addComponents(referencesPanel, controlsLayout);
         referencesLayout.setExpandRatio(referencesPanel, 1f);
         return referencesLayout;
     }
 
-    private void changeAddButtonState(ComboBox<TfObjectType> fromCategoryComboBox, TextField fromAttributeTextField, ComboBox<TfObjectType> toCategoryComboBox, TextField toAttributeTextField, Button addButton) {
+    private void changeAddButtonState(ComboBox<TfObjectType> fromCategoryComboBox, ComboBox<String> fromAttributeTextField, ComboBox<TfObjectType> toCategoryComboBox, ComboBox<String> toAttributeTextField, Button addButton) {
         addButton.setEnabled(fromCategoryComboBox.getSelectedItem().isPresent()
                 && fromAttributeTextField.getOptionalValue().isPresent()
                 && toCategoryComboBox.getSelectedItem().isPresent()
                 && toAttributeTextField.getOptionalValue().isPresent());
+        fromCategoryComboBox.getDataProvider().refreshAll();
+        fromAttributeTextField.getDataProvider().refreshAll();
+        toCategoryComboBox.getDataProvider().refreshAll();
+        toAttributeTextField.getDataProvider().refreshAll();
     }
 
     private HorizontalLayout buildMainLayout(VerticalLayout leftLayout) {
