@@ -19,6 +19,7 @@ import no.uio.ifi.trackfind.backend.pojo.TfReference;
 import no.uio.ifi.trackfind.backend.pojo.TfVersion;
 import no.uio.ifi.trackfind.backend.services.impl.MetamodelService;
 import no.uio.ifi.trackfind.frontend.providers.AttributesDataProvider;
+import no.uio.ifi.trackfind.frontend.providers.VersionsDataProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -91,22 +92,7 @@ public class TrackFindReferencesUI extends AbstractUI {
             referencesTabSheet.addTab(grid, hub.getRepository() + ": " + hub.getName()).getComponent().setSizeFull();
         }
         ComboBox<TfVersion> versionComboBox = new ComboBox<>("Version");
-        AbstractBackEndDataProvider<TfVersion, String> versionDataProvider = new AbstractBackEndDataProvider<TfVersion, String>() {
-            @Override
-            protected Stream<TfVersion> fetchFromBackEnd(Query<TfVersion, String> query) {
-                Grid selectedTab = (Grid) referencesTabSheet.getSelectedTab();
-                TfHub hub = (TfHub) selectedTab.getData();
-                return query
-                        .getFilter()
-                        .map(s -> hub.getVersions().stream().filter(v -> v.toString().contains(s)))
-                        .orElseGet(() -> hub.getVersions().stream());
-            }
-
-            @Override
-            protected int sizeInBackEnd(Query<TfVersion, String> query) {
-                return (int) fetchFromBackEnd(query).count();
-            }
-        };
+        AbstractBackEndDataProvider<TfVersion, String> versionDataProvider = new VersionsDataProvider(referencesTabSheet);
         versionComboBox.setDataProvider(versionDataProvider);
         versionComboBox.setItemCaptionGenerator((ItemCaptionGenerator<TfVersion>) item -> item.getVersion() + ": " + item.getTime());
         versionComboBox.addValueChangeListener((HasValue.ValueChangeListener<TfVersion>) event -> copyButton.setEnabled(event.getValue() != null));

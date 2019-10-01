@@ -55,12 +55,12 @@ public class EPICOValidationService implements ValidationService {
             String resultJSON = restTemplate.postForObject(EPICO_VALIDATION_URL, hubContent, String.class);
             Map<String, Object> result = gson.fromJson(resultJSON, Map.class);
             version.setValidation(Boolean.TRUE.toString().equalsIgnoreCase(String.valueOf(result.get("validated"))));
-            versionRepository.saveAndFlush(version);
+            versionRepository.save(version);
             return gson.toJson(result);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             version.setValidation(false);
-            versionRepository.saveAndFlush(version);
+            versionRepository.save(version);
             return "Validation error: " + e.getMessage();
         }
     }

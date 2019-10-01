@@ -176,8 +176,8 @@ public class MetamodelService {
         return references;
     }
 
-    public void addReference(TfReference reference) {
-        referenceRepository.save(reference);
+    public TfReference addReference(TfReference reference) {
+        return referenceRepository.save(reference);
     }
 
     public void deleteReference(TfReference reference) {
@@ -205,15 +205,43 @@ public class MetamodelService {
                     TfObjectType newFromObjectType = targetObjectTypes.stream().filter(cot -> cot.getName().equalsIgnoreCase(reference.getFromObjectType().getName())).findAny().orElseThrow(RuntimeException::new);
                     TfObjectType newToObjectType = targetObjectTypes.stream().filter(cot -> cot.getName().equalsIgnoreCase(reference.getToObjectType().getName())).findAny().orElseThrow(RuntimeException::new);
                     TfReference newReference = new TfReference(null, newFromObjectType, reference.getFromAttribute(), newToObjectType, reference.getToAttribute());
-                    referenceRepository.save(newReference);
+                    addReference(newReference);
                 }
             }
         }
     }
 
-    public Collection<TfMapping> getMappings(String repository, String hub) {
-        TfHub currentHub = hubRepository.findByRepositoryAndName(repository, hub);
-        Optional<TfVersion> currentVersionOptional = currentHub.getCurrentVersion();
+    public void copyMappingsFromAnotherVersionToCurrentVersion(String repository, String hubName, TfVersion sourceVersion) {
+        TfHub hub = hubRepository.findByRepositoryAndName(repository, hubName);
+        Optional<TfVersion> currentVersionOptional = hub.getCurrentVersion();
+        if (!currentVersionOptional.isPresent()) {
+            return;
+        }
+        TfVersion currentVersion = currentVersionOptional.get();
+        copyMappingsFromOneVersionToAnotherVersion(sourceVersion, currentVersion);
+    }
+
+    public void copyMappingsFromOneVersionToAnotherVersion(TfVersion sourceVersion, TfVersion targetVersion) {
+        log.info("Copying mappings from {} to {}", sourceVersion, targetVersion);
+        Collection<TfObjectType> targetObjectTypes = targetVersion.getObjectTypes();
+        Collection<String> targetObjectTypeNames = targetObjectTypes.stream().map(TfObjectType::getName).collect(Collectors.toSet());
+        for (TfMapping mapping : sourceVersion.getMappings()) {
+            if (mapping.getFromObjectType() == null) {
+                addMapping(new TfMapping(null, null, targetVersion, null, null, null, null, mapping.getScript()));
+                continue;
+            }
+            if (targetObjectTypeNames.contains(mapping.getFromObjectType().getName()) && targetObjectTypeNames.contains(mapping.getToObjectType().getName())) {
+                TfObjectType newFromObjectType = targetObjectTypes.stream().filter(cot -> cot.getName().equalsIgnoreCase(mapping.getFromObjectType().getName())).findAny().orElseThrow(RuntimeException::new);
+                TfObjectType newToObjectType = targetObjectTypes.stream().filter(cot -> cot.getName().equalsIgnoreCase(mapping.getToObjectType().getName())).findAny().orElseThrow(RuntimeException::new);
+                TfMapping newMapping = new TfMapping(null, null, targetVersion, newFromObjectType, mapping.getFromAttribute(), newToObjectType, mapping.getToAttribute(), null);
+                addMapping(newMapping);
+            }
+        }
+    }
+
+    public Collection<TfMapping> getMappings(String repository, String hubName) {
+        TfHub hub = hubRepository.findByRepositoryAndName(repository, hubName);
+        Optional<TfVersion> currentVersionOptional = hub.getCurrentVersion();
         if (!currentVersionOptional.isPresent()) {
             return Collections.emptyList();
         }
@@ -222,13 +250,16 @@ public class MetamodelService {
     }
 
     public TfMapping addMapping(TfMapping mapping) {
+        TfVersion version = mapping.getVersion();
         if (mapping.getOrderNumber() == null) {
-            TfHub hub = mapping.getVersion().getHub();
-            Collection<TfMapping> mappings = getMappings(hub.getRepository(), hub.getName());
+            Collection<TfMapping> mappings = version.getMappings();
             TfMapping lastMapping = mappings.stream().max(Comparator.comparing(TfMapping::getOrderNumber)).orElse(new TfMapping(null, 0L, null, null, null, null, null, null));
             mapping.setOrderNumber(lastMapping.getOrderNumber() + 1L);
         }
-        return mappingsRepository.save(mapping);
+        TfMapping savedMapping = mappingsRepository.save(mapping);
+        version.getMappings().add(savedMapping);
+        versionRepository.save(version);
+        return savedMapping;
     }
 
     public void moveMapping(TfMapping mapping, boolean up) {

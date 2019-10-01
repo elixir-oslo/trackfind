@@ -4,6 +4,7 @@ import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Title;
 import com.vaadin.annotations.Widgetset;
 import com.vaadin.data.HasValue;
+import com.vaadin.data.provider.AbstractBackEndDataProvider;
 import com.vaadin.data.provider.Query;
 import com.vaadin.event.selection.SelectionListener;
 import com.vaadin.server.VaadinRequest;
@@ -22,6 +23,7 @@ import no.uio.ifi.trackfind.backend.pojo.TfVersion;
 import no.uio.ifi.trackfind.backend.services.impl.MetamodelService;
 import no.uio.ifi.trackfind.frontend.components.TrackFindTree;
 import no.uio.ifi.trackfind.frontend.filters.TreeFilter;
+import no.uio.ifi.trackfind.frontend.providers.VersionsDataProvider;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,8 +57,10 @@ public class TrackFindCurationUI extends AbstractUI {
     private Button addStaticMappingButton = new Button("Add static mapping");
     private Button addDynamicMappingButton = new Button("Add dynamic mapping");
     private Button saveButton = new Button("Save");
-    private ComboBox<String> attributesComboBox = new ComboBox<>();
-    private ComboBox<String> categoriesComboBox = new ComboBox<>();
+    private Button copyButton;
+    private ComboBox<TfVersion> versionComboBox = new ComboBox<>("Version");
+    private ComboBox<String> attributesComboBox = new ComboBox<>("Map to attribute");
+    private ComboBox<String> categoriesComboBox = new ComboBox<>("Map to category");
 
     private Grid<TfMapping> grid = new Grid<>(TfMapping.class);
     private AceEditor script = new AceEditor();
@@ -93,7 +97,10 @@ public class TrackFindCurationUI extends AbstractUI {
             tabSheet.addTab(tree, hub.getName());
         }
 
-        tabSheet.addSelectedTabChangeListener((TabSheet.SelectedTabChangeListener) event -> loadMappings());
+        tabSheet.addSelectedTabChangeListener((TabSheet.SelectedTabChangeListener) event -> {
+            versionComboBox.getDataProvider().refreshAll();
+            loadMappings();
+        });
 
         Panel treePanel = new Panel("Model browser", tabSheet);
         treePanel.setSizeFull();
@@ -109,7 +116,7 @@ public class TrackFindCurationUI extends AbstractUI {
             Collection<TfObjectType> objectTypes = metamodelService.getObjectTypes(currentHub.getRepository(), currentHub.getName());
             TfObjectType toObjectType = objectTypes.stream().filter(ot -> ot.getName().equalsIgnoreCase(toObjectTypeName)).findAny().orElseThrow(RuntimeException::new);
             TfObjectType fromObjectType = objectTypes.stream().filter(ot -> ot.getName().equalsIgnoreCase(fromObjectTypeName)).findAny().orElseThrow(RuntimeException::new);
-            TfMapping mapping = metamodelService.addMapping(new TfMapping(null,
+            saveMapping(new TfMapping(null,
                     null,
                     currentVersion,
                     fromObjectType,
@@ -118,10 +125,8 @@ public class TrackFindCurationUI extends AbstractUI {
                     attributesComboBox.getSelectedItem().orElseThrow(RuntimeException::new),
                     null)
             );
-            saveMapping(mapping);
         });
 
-        attributesComboBox = new ComboBox<>();
         attributesComboBox.setEnabled(false);
         attributesComboBox.setWidth("100%");
         attributesComboBox.addValueChangeListener((HasValue.ValueChangeListener<String>) event -> {
@@ -134,7 +139,6 @@ public class TrackFindCurationUI extends AbstractUI {
             }
         });
 
-        categoriesComboBox = new ComboBox<>();
         categoriesComboBox.setWidth("100%");
         categoriesComboBox.setItems(schemaService.getAttributes().keySet());
         categoriesComboBox.addValueChangeListener((HasValue.ValueChangeListener<String>) event -> {
@@ -244,7 +248,24 @@ public class TrackFindCurationUI extends AbstractUI {
         Panel mappingsPanel = new Panel("Mappings and Scripts", grid);
         mappingsPanel.setSizeFull();
 
-        VerticalLayout mappingsLayout = new VerticalLayout(mappingsPanel, gridButtonsLayout);
+        AbstractBackEndDataProvider<TfVersion, String> versionDataProvider = new VersionsDataProvider(tabSheet);
+        versionComboBox.setDataProvider(versionDataProvider);
+        versionComboBox.setItemCaptionGenerator((ItemCaptionGenerator<TfVersion>) item -> item.getVersion() + ": " + item.getTime());
+        versionComboBox.addValueChangeListener((HasValue.ValueChangeListener<TfVersion>) event -> copyButton.setEnabled(event.getValue() != null));
+        copyButton = new Button("Import from another version", (Button.ClickListener) event -> {
+            TrackFindTree tree = (TrackFindTree) tabSheet.getSelectedTab();
+            TfHub hub = tree.getHub();
+            try {
+                TfVersion version = versionComboBox.getSelectedItem().orElseThrow(RuntimeException::new);
+                metamodelService.copyMappingsFromAnotherVersionToCurrentVersion(hub.getRepository(), hub.getName(), version);
+                loadMappings();
+            } catch (Exception ignored) {
+            }
+        });
+        copyButton.setEnabled(false);
+        HorizontalLayout copyMappingsLayout = new HorizontalLayout(versionComboBox, copyButton);
+        copyMappingsLayout.setComponentAlignment(copyButton, Alignment.BOTTOM_LEFT);
+        VerticalLayout mappingsLayout = new VerticalLayout(mappingsPanel, gridButtonsLayout, copyMappingsLayout);
         mappingsLayout.setSizeFull();
         mappingsLayout.setExpandRatio(mappingsPanel, 0.95f);
         mappingsLayout.setExpandRatio(gridButtonsLayout, 0.05f);

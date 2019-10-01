@@ -13,6 +13,9 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+/**
+ * Vaadin data provider for flat attributes of current version.
+ */
 public class AttributesDataProvider extends AbstractBackEndDataProvider<String, String> {
 
     private TabSheet tabSheet;
