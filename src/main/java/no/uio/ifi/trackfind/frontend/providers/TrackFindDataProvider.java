@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
@@ -39,7 +40,12 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
         TfHub hub = treeFilter.getHub();
         String repository = hub.getRepository();
         String hubName = hub.getName();
-        Map<String, Map<String, Object>> metamodelTree = metamodelService.getMetamodelTree(repository, hubName);
+        Map<String, Map<String, Object>> metamodelTree;
+        try {
+            metamodelTree = metamodelService.getMetamodelTree(repository, hubName);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         Optional<TreeNode> parentOptional = query.getParentOptional();
         if (!parentOptional.isPresent()) {
             return metamodelTree.keySet().stream().map(c -> {
@@ -81,7 +87,12 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
                 treeNode.setType(attributeTypes.get(path));
                 if (treeNode.isAttribute()) {
                     if (attributes.contains(path)) {
-                        Collection<String> values = metamodelService.getValues(repository, hubName, category, path);
+                        Collection<String> values;
+                        try {
+                            values = metamodelService.getValues(repository, hubName, category, path, null);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
                         treeNode.setChildren(values.stream().filter(v -> v.toLowerCase().contains(treeFilter.getValuesFilter().toLowerCase())).collect(Collectors.toSet()));
                     } else {
                         Collection<String> subAttributes = metamodelService.getAttributesFlat(repository, hubName, category, path);

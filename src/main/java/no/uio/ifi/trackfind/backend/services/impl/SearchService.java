@@ -7,6 +7,7 @@ import no.uio.ifi.trackfind.backend.pojo.SearchResult;
 import no.uio.ifi.trackfind.backend.pojo.TfObjectType;
 import no.uio.ifi.trackfind.backend.pojo.TfReference;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -51,9 +52,9 @@ public class SearchService {
      * @param query      Search query.
      * @param categories Comma-separated categories.
      * @param limit      Max number of entries to return. 0 for unlimited.
-     * @return Found entries.
+     * @return Found entries with set of IDs.
      */
-    public Collection<SearchResult> search(String repository, String hub, String query, Collection<String> categories, long limit) throws SQLException {
+    public Pair<Set<Long>, Collection<SearchResult>> search(String repository, String hub, String query, Collection<String> categories, long limit) throws SQLException {
         Collection<TfReference> references = metamodelService.getReferences(repository, hub);
 
         Collection<TfObjectType> objectTypesFromReferences = new HashSet<>();
@@ -66,15 +67,16 @@ public class SearchService {
             objectTypesToSelect = categories;
         }
 
-        String fullQueryString = buildQuery(references, objectTypesFromReferences, objectTypesToSelect, query, limit);
+        String fullQueryString = buildSearchQuery(references, objectTypesFromReferences, objectTypesToSelect, query, limit);
         return executeSearchQuery(fullQueryString);
     }
 
-    protected String buildQuery(Collection<TfReference> references, Collection<TfObjectType> objectTypesFromReferences, Collection<String> objectTypesToSelect, String query, long limit) {
+    protected String buildSearchQuery(Collection<TfReference> references, Collection<TfObjectType> objectTypesFromReferences, Collection<String> objectTypesToSelect, String query, long limit) {
         StringBuilder fullQuery = new StringBuilder("SELECT DISTINCT ");
 
         for (String objectTypeName : objectTypesToSelect) {
             fullQuery.append(objectTypeName).append(".content ").append(objectTypeName).append("_content, ");
+            fullQuery.append(objectTypeName).append(".id ").append(objectTypeName).append("_id, ");
         }
 
         fullQuery.setLength(fullQuery.length() - 2);
@@ -132,7 +134,7 @@ public class SearchService {
         return fullQuery.toString().replaceAll("\\?", "\\?\\?");
     }
 
-    protected Collection<SearchResult> executeSearchQuery(String fullQueryString) throws SQLException {
+    protected Pair<Set<Long>, Collection<SearchResult>> executeSearchQuery(String fullQueryString) throws SQLException {
         log.info("Executing search query: {}", fullQueryString);
         PreparedStatement preparedStatement = connection.prepareStatement(fullQueryString);
         ResultSet resultSet = preparedStatement.executeQuery();
@@ -140,18 +142,23 @@ public class SearchService {
         int columnCount = metaData.getColumnCount();
         Collection<String> objectTypesToSelect = new HashSet<>();
         for (int i = 1; i <= columnCount; i++) {
-            objectTypesToSelect.add(metaData.getColumnName(i));
+            String columnName = metaData.getColumnName(i);
+            if (columnName.endsWith("_content")) {
+                objectTypesToSelect.add(columnName);
+            }
         }
+        Set<Long> ids = new HashSet<>();
         Collection<SearchResult> results = new ArrayList<>();
         while (resultSet.next()) {
             SearchResult searchResult = new SearchResult();
             for (String objectTypeName : objectTypesToSelect) {
                 String json = resultSet.getString(objectTypeName);
+                ids.add(resultSet.getLong(objectTypeName.replace("_content", "_id")));
                 searchResult.getContent().put(objectTypeName.replace("_content", ""), gson.fromJson(json, Map.class));
             }
             results.add(searchResult);
         }
-        return results;
+        return Pair.of(ids, results);
     }
 
     @Value("${spring.datasource.url}")

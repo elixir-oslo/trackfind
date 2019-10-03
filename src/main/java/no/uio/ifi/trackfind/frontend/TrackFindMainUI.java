@@ -258,7 +258,7 @@ public class TrackFindMainUI extends AbstractUI {
         String limit = limitTextField.getValue();
         limit = StringUtils.isEmpty(limit) ? "0" : limit;
         try {
-            results = searchService.search(hub.getRepository(), hub.getName(), query, categoriesChecklist.getSelectedItems(), Long.parseLong(limit));
+            results = searchService.search(hub.getRepository(), hub.getName(), query, categoriesChecklist.getSelectedItems(), Long.parseLong(limit)).getValue();
         } catch (SQLException e) {
             results = Collections.emptyList();
             log.error(e.getMessage(), e);

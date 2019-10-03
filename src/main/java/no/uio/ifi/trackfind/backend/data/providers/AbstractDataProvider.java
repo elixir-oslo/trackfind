@@ -209,7 +209,7 @@ public abstract class AbstractDataProvider implements DataProvider {
             Collection<TfMapping> mappings = metamodelService.getMappings(getName(), hubName);
             HashMultimap<TfObjectType, TfMapping> mappingsByCategories = HashMultimap.create();
             mappings.forEach(m -> mappingsByCategories.put(m.getToObjectType(), m));
-            Collection<SearchResult> allEntries = searchService.search(getName(), hubName, Boolean.TRUE.toString(), Collections.emptySet(), 0);
+            Collection<SearchResult> allEntries = searchService.search(getName(), hubName, Boolean.TRUE.toString(), Collections.emptySet(), 0).getValue();
             for (TfMapping mapping : mappings) {
                 if (mapping.getFromObjectType() != null) {
                     runStaticMappings(allEntries, mapping);

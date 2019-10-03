@@ -14,11 +14,9 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -68,9 +66,9 @@ public class TrackFindController {
     public ResponseEntity<Map> getMetamodel(
             @PathVariable String repository,
             @PathVariable String hub,
-            @RequestParam(required = false, defaultValue = "false") boolean flat) {
+            @RequestParam(required = false, defaultValue = "false") boolean flat) throws IOException {
         if (flat) {
-            Map<String, Multimap<String, String>> metamodelFlat = metamodelService.getMetamodelFlat(repository, hub);
+            Map<String, Multimap<String, String>> metamodelFlat = metamodelService.getMetamodelFlat(repository, hub, null);
             Map<String, Map<String, Collection<String>>> result = new HashMap<>();
             for (String key : metamodelFlat.keySet()) {
                 result.put(key, metamodelFlat.get(key).asMap());
@@ -121,6 +119,7 @@ public class TrackFindController {
      * @param category   Category name.
      * @param path       Path to the attribute to get values for.
      * @param filter     Optional filter for values (case-insensitive).
+     * @param query      Optional search query to filter out objects before collecting available values.
      * @return List of values.
      */
     @GetMapping(path = "/values/{repository}/{hub}/{category}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -129,8 +128,13 @@ public class TrackFindController {
             @PathVariable String hub,
             @PathVariable String category,
             @RequestParam String path,
-            @RequestParam(required = false, defaultValue = "") String filter) {
-        return ResponseEntity.ok(metamodelService.getValues(repository, hub, category, path).stream().filter(v -> v.toLowerCase().contains(filter.toLowerCase())).collect(Collectors.toSet()));
+            @RequestParam(required = false, defaultValue = "") String filter,
+            @RequestParam(required = false) String query) throws SQLException, IOException {
+        Set<Long> ids = null;
+        if (query != null) {
+            ids = searchService.search(repository, hub, query, null, 0).getKey();
+        }
+        return ResponseEntity.ok(metamodelService.getValues(repository, hub, category, path, ids).stream().filter(v -> v.toLowerCase().contains(filter.toLowerCase())).collect(Collectors.toSet()));
     }
 
     /**
@@ -151,7 +155,7 @@ public class TrackFindController {
             @RequestParam(required = false, defaultValue = "") String categories,
             @RequestParam(required = false, defaultValue = "0") long limit) {
         try {
-            return ResponseEntity.ok(searchService.search(repository, hub, query, Arrays.stream(StringUtils.split(categories, ",")).map(String::trim).collect(Collectors.toSet()), limit));
+            return ResponseEntity.ok(searchService.search(repository, hub, query, Arrays.stream(StringUtils.split(categories, ",")).map(String::trim).collect(Collectors.toSet()), limit).getValue());
         } catch (SQLException e) {
             return ResponseEntity.badRequest().body(null);
         }
@@ -175,7 +179,7 @@ public class TrackFindController {
             @RequestParam(required = false, defaultValue = "") String categories,
             @RequestParam(required = false, defaultValue = "0") long limit) {
         try {
-            Collection<SearchResult> datasets = searchService.search(repository, hub, query, Arrays.stream(StringUtils.split(categories, ",")).map(String::trim).collect(Collectors.toSet()), limit);
+            Collection<SearchResult> datasets = searchService.search(repository, hub, query, Arrays.stream(StringUtils.split(categories, ",")).map(String::trim).collect(Collectors.toSet()), limit).getValue();
             return ResponseEntity.ok(gSuiteService.apply(datasets));
         } catch (SQLException e) {
             return ResponseEntity.badRequest().body(null);

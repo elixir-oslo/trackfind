@@ -10,6 +10,8 @@ import no.uio.ifi.trackfind.backend.repositories.HubRepository;
 import no.uio.ifi.trackfind.backend.repositories.MappingsRepository;
 import no.uio.ifi.trackfind.backend.repositories.ReferenceRepository;
 import no.uio.ifi.trackfind.backend.repositories.VersionRepository;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,6 +22,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -43,11 +47,15 @@ public class MetamodelService {
     protected ApplicationEventPublisher applicationEventPublisher;
 
     @Cacheable(value = "metamodel-flat", sync = true)
-    public Map<String, Multimap<String, String>> getMetamodelFlat(String repository, String hub) {
+    public Map<String, Multimap<String, String>> getMetamodelFlat(String repository, String hub, Set<Long> ids) throws IOException {
+        String fromClause = "tf_metamodel";
+        if (CollectionUtils.isNotEmpty(ids)) {
+            fromClause = "(" + buildFilteredMetamodelQuery(ids) + ") AS foo";
+        }
         Collection<TfObjectType> objectTypes = metamodelService.getObjectTypes(repository, hub);
         Map<Long, String> objectTypesMap = objectTypes.stream().collect(Collectors.toMap(TfObjectType::getId, TfObjectType::getName));
         String objectTypeIds = objectTypes.stream().map(ot -> ot.getId().toString()).collect(Collectors.joining(","));
-        return jdbcTemplate.query(String.format("SELECT object_type_id, attribute, value FROM tf_metamodel WHERE object_type_id IN (%s)", objectTypeIds),
+        return jdbcTemplate.query(String.format("SELECT object_type_id, attribute, value FROM %s WHERE object_type_id IN (%s)", fromClause, objectTypeIds),
                 resultSet -> {
                     Map<String, Multimap<String, String>> result = new HashMap<>();
                     while (resultSet.next()) {
@@ -62,12 +70,21 @@ public class MetamodelService {
         );
     }
 
+    protected String buildFilteredMetamodelQuery(Set<Long> ids) throws IOException {
+        String schemaSQL = IOUtils.resourceToString("/schema.sql", Charset.defaultCharset());
+        String metamodelQuery = StringUtils.substringBetween(schemaSQL,
+                "CREATE MATERIALIZED VIEW IF NOT EXISTS tf_metamodel AS",
+                "WITH DATA;");
+        return metamodelQuery.replace("jsonb_each(tf_current_objects.content) first_level",
+                String.format("jsonb_each(tf_current_objects.content) first_level\nWHERE tf_current_objects.id IN (%s)\n", org.springframework.util.StringUtils.collectionToCommaDelimitedString(ids)));
+    }
+
     @SuppressWarnings("unchecked")
     @Cacheable(value = "metamodel-tree", sync = true)
-    public Map<String, Map<String, Object>> getMetamodelTree(String repository, String hub) {
+    public Map<String, Map<String, Object>> getMetamodelTree(String repository, String hub) throws IOException {
         Map<String, Map<String, Object>> result = new HashMap<>();
         Collection<TfObjectType> objectTypes = metamodelService.getObjectTypes(repository, hub);
-        Map<String, Multimap<String, String>> fullMetamodelFlat = metamodelService.getMetamodelFlat(repository, hub);
+        Map<String, Multimap<String, String>> fullMetamodelFlat = metamodelService.getMetamodelFlat(repository, hub, null);
         for (TfObjectType objectType : objectTypes) {
             if (!fullMetamodelFlat.containsKey(objectType.getName())) {
                 continue;
@@ -155,8 +172,8 @@ public class MetamodelService {
     }
 
     @Cacheable(value = "metamodel-values", sync = true)
-    public Collection<String> getValues(String repository, String hub, String category, String path) {
-        Map<String, Multimap<String, String>> metamodelFlat = metamodelService.getMetamodelFlat(repository, hub);
+    public Collection<String> getValues(String repository, String hub, String category, String path, Set<Long> ids) throws IOException {
+        Map<String, Multimap<String, String>> metamodelFlat = metamodelService.getMetamodelFlat(repository, hub, ids);
         Multimap<String, String> metamodel = metamodelFlat.get(category);
         return metamodel.get(path).parallelStream().collect(Collectors.toSet());
     }
