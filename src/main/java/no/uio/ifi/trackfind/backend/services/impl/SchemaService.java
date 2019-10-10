@@ -90,7 +90,7 @@ public class SchemaService {
             gatherAttributes(objectType, path, ((ReferenceSchema) schema).getReferredSchema());
             return;
         }
-        if (StringUtils.isNotEmpty(objectType) && !"@schema".equalsIgnoreCase(objectType)) {
+        if (StringUtils.isNotEmpty(objectType) && Character.isLetterOrDigit(objectType.charAt(0))) {
             int separatorLength = separator.length();
             attributes.put(objectType, path.isEmpty() ? path : path.substring(separatorLength));
         }
