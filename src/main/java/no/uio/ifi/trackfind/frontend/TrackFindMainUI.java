@@ -200,6 +200,11 @@ public class TrackFindMainUI extends AbstractUI {
                 executeQuery(queryTextArea.getValue());
             }
         });
+
+        Button clearAllButton = new Button("Clear all");
+        clearAllButton.setSizeFull();
+        clearAllButton.addClickListener((Button.ClickListener) event -> queryTextArea.clear());
+
         Button searchButton = new Button("Search ➚", (Button.ClickListener) clickEvent -> executeQuery(queryTextArea.getValue()));
         queryTextArea.addValueChangeListener((HasValue.ValueChangeListener<String>) event -> searchButton.setEnabled(StringUtils.isNotEmpty(queryTextArea.getValue())));
         queryTextArea.addStyleName("scrollable-text-area");
@@ -239,8 +244,9 @@ public class TrackFindMainUI extends AbstractUI {
 
         Panel categoriesChecklistPanel = new Panel("Categories", new VerticalLayout(categoriesChecklist));
         categoriesChecklistPanel.setSizeFull();
-        VerticalLayout queryLayout = new VerticalLayout(queryPanel, categoriesChecklistPanel, searchLayout);
-        queryLayout.setExpandRatio(queryPanel, 0.5f);
+        VerticalLayout queryLayout = new VerticalLayout(queryPanel, clearAllButton, categoriesChecklistPanel, searchLayout);
+        queryLayout.setExpandRatio(queryPanel, 0.4f);
+        queryLayout.setExpandRatio(clearAllButton, 0.1f);
         queryLayout.setExpandRatio(categoriesChecklistPanel, 0.4f);
         queryLayout.setExpandRatio(searchLayout, 0.1f);
         queryLayout.setSizeFull();

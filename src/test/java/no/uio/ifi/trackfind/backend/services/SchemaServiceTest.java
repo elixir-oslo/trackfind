@@ -18,9 +18,6 @@ public class SchemaServiceTest {
 
     public static final String ATTRIBUTES =
             "{\n" +
-                    "  \"@schema\": [\n" +
-                    "    \"\"\n" +
-                    "  ],\n" +
                     "  \"experiments\": [\n" +
                     "    \"'@schema'\",\n" +
                     "    \"'aggregated_from'\",\n" +

@@ -90,7 +90,7 @@ public abstract class MoveAttributeValueHandler {
     private void processDragAndDropSingle(TextArea textArea, boolean logicalOperation, boolean inversion, TreeNode item) {
         String condition = CONDITIONS.get(logicalOperation);
         String query = textArea.getValue();
-        if (StringUtils.isNoneEmpty(query)) {
+        if (StringUtils.isNoneEmpty(query.trim())) {
             query += condition;
         }
         if (inversion) {
