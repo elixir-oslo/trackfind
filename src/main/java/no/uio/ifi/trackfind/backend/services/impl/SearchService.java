@@ -81,7 +81,7 @@ public class SearchService {
         StringBuilder fullQuery = new StringBuilder("SELECT DISTINCT ");
 
         for (String objectTypeName : objectTypeNamesToSelect) {
-            fullQuery.append(objectTypeName).append(".content ").append(objectTypeName).append("_content, ");
+            fullQuery.append(objectTypeName).append(".content ").append("\"").append(objectTypeName).append("_content\", ");
             fullQuery.append(objectTypeName).append(".id ").append(objectTypeName).append("_id, ");
         }
 
