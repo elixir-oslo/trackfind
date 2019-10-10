@@ -8,6 +8,7 @@ logging:
 server:
   port: 8080
   use-forward-headers: true
+  error.whitelabel.enabled: false
 
 management:
   endpoints.web.exposure.include: "*"
