@@ -67,14 +67,20 @@ public class SearchService {
             objectTypesToSelect = categories;
         }
 
-        String fullQueryString = buildSearchQuery(references, objectTypesFromReferences, objectTypesToSelect, query, limit);
+        String fullQueryString = buildSearchQuery(repository, hub, references, objectTypesFromReferences, objectTypesToSelect, query, limit);
         return executeSearchQuery(fullQueryString);
     }
 
-    protected String buildSearchQuery(Collection<TfReference> references, Collection<TfObjectType> objectTypesFromReferences, Collection<String> objectTypesToSelect, String query, long limit) {
+    protected String buildSearchQuery(String repository,
+                                      String hub,
+                                      Collection<TfReference> references,
+                                      Collection<TfObjectType> objectTypesFromReferences,
+                                      Collection<String> objectTypeNamesToSelect,
+                                      String query,
+                                      long limit) {
         StringBuilder fullQuery = new StringBuilder("SELECT DISTINCT ");
 
-        for (String objectTypeName : objectTypesToSelect) {
+        for (String objectTypeName : objectTypeNamesToSelect) {
             fullQuery.append(objectTypeName).append(".content ").append(objectTypeName).append("_content, ");
             fullQuery.append(objectTypeName).append(".id ").append(objectTypeName).append("_id, ");
         }
@@ -82,11 +88,11 @@ public class SearchService {
         fullQuery.setLength(fullQuery.length() - 2);
         fullQuery.append("\nFROM ");
 
-        if (CollectionUtils.isEmpty(objectTypesFromReferences) && CollectionUtils.isNotEmpty(objectTypesToSelect)) {
-            for (String objectTypeName : objectTypesToSelect) {
+        if (CollectionUtils.isNotEmpty(objectTypeNamesToSelect)) {
+            for (String objectTypeName : objectTypeNamesToSelect) {
                 fullQuery.append("tf_current_objects ").append(objectTypeName).append(", ");
             }
-        } else {
+        } else if (CollectionUtils.isNotEmpty(objectTypesFromReferences)) {
             for (TfObjectType objectType : objectTypesFromReferences) {
                 fullQuery.append("tf_current_objects ").append(objectType.getName()).append(", ");
             }
@@ -97,16 +103,28 @@ public class SearchService {
         }
         fullQuery.append("\nWHERE ");
 
-        for (TfObjectType objectType : objectTypesFromReferences) {
-            fullQuery.append(objectType.getName()).append(".object_type_id = ").append(objectType.getId()).append(" AND ");
+        if (CollectionUtils.isNotEmpty(objectTypeNamesToSelect)) {
+            for (String objectTypeName : objectTypeNamesToSelect) {
+                Optional<TfObjectType> objectType = metamodelService.findObjectTypeByName(repository, hub, objectTypeName);
+                objectType.ifPresent(ot -> fullQuery.append(ot.getName()).append(".object_type_id = ").append(ot.getId()).append(" AND "));
+            }
+        } else if (CollectionUtils.isNotEmpty(objectTypesFromReferences)) {
+            for (TfObjectType objectType : objectTypesFromReferences) {
+                fullQuery.append(objectType.getName()).append(".object_type_id = ").append(objectType.getId()).append(" AND ");
+            }
         }
 
         fullQuery.append("\n");
 
         for (TfReference reference : references) {
             String fromObjectType = reference.getFromObjectType().getName();
-            String fromAttribute = reference.getFromAttribute();
             String toObjectType = reference.getToObjectType().getName();
+            if (CollectionUtils.isNotEmpty(objectTypeNamesToSelect)) {
+                if (!objectTypeNamesToSelect.contains(fromObjectType) || !objectTypeNamesToSelect.contains(toObjectType)) {
+                    continue;
+                }
+            }
+            String fromAttribute = reference.getFromAttribute();
             String toAttribute = reference.getToAttribute();
             fullQuery
                     .append(fromObjectType)

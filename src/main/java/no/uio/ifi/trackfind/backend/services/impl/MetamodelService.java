@@ -6,10 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.events.DataReloadEvent;
 import no.uio.ifi.trackfind.backend.operations.Operation;
 import no.uio.ifi.trackfind.backend.pojo.*;
-import no.uio.ifi.trackfind.backend.repositories.HubRepository;
-import no.uio.ifi.trackfind.backend.repositories.MappingsRepository;
-import no.uio.ifi.trackfind.backend.repositories.ReferenceRepository;
-import no.uio.ifi.trackfind.backend.repositories.VersionRepository;
+import no.uio.ifi.trackfind.backend.repositories.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -43,6 +40,7 @@ public class MetamodelService {
     protected HubRepository hubRepository;
     protected VersionRepository versionRepository;
     protected ReferenceRepository referenceRepository;
+    protected ObjectTypeRepository objectTypeRepository;
     protected MappingsRepository mappingsRepository;
     protected ApplicationEventPublisher applicationEventPublisher;
 
@@ -116,6 +114,16 @@ public class MetamodelService {
         }
         TfVersion currentVersion = currentVersionOptional.get();
         return currentVersion.getObjectTypes();
+    }
+
+    public Optional<TfObjectType> findObjectTypeByName(String repository, String hub, String objectTypeName) {
+        TfHub hubEntity = hubRepository.findByRepositoryAndName(repository, hub);
+        Optional<TfVersion> currentVersionOptional = hubEntity.getCurrentVersion();
+        if (!currentVersionOptional.isPresent()) {
+            return Optional.empty();
+        }
+        TfVersion currentVersion = currentVersionOptional.get();
+        return objectTypeRepository.findByVersionAndName(currentVersion, objectTypeName);
     }
 
     @Cacheable(value = "metamodel-array-of-objects-attributes", sync = true)
@@ -356,6 +364,11 @@ public class MetamodelService {
     @Autowired
     public void setReferenceRepository(ReferenceRepository referenceRepository) {
         this.referenceRepository = referenceRepository;
+    }
+
+    @Autowired
+    public void setObjectTypeRepository(ObjectTypeRepository objectTypeRepository) {
+        this.objectTypeRepository = objectTypeRepository;
     }
 
     @Autowired
