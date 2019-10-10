@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Service for loading JSON schema and for validating JSON objects.
+ * Service for loading JSON schema.
  */
 @Slf4j
 @Service
@@ -90,7 +90,7 @@ public class SchemaService {
             gatherAttributes(objectType, path, ((ReferenceSchema) schema).getReferredSchema());
             return;
         }
-        if (StringUtils.isNotEmpty(objectType)) {
+        if (StringUtils.isNotEmpty(objectType) && !"@schema".equalsIgnoreCase(objectType)) {
             int separatorLength = separator.length();
             attributes.put(objectType, path.isEmpty() ? path : path.substring(separatorLength));
         }
@@ -107,15 +107,6 @@ public class SchemaService {
      */
     public Map<String, Collection<String>> getAttributes() {
         return Collections.unmodifiableMap(attributes.asMap());
-    }
-
-    /**
-     * Validates JSON object against the schema. Throws the exception if the object is invalid.
-     *
-     * @param object Object to validate.
-     */
-    public void validate(Object object) {
-        this.schema.validate(object);
     }
 
 }
