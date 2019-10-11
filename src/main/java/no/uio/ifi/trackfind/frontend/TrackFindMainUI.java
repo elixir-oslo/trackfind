@@ -34,6 +34,9 @@ import no.uio.ifi.trackfind.frontend.listeners.TreeItemClickListener;
 import no.uio.ifi.trackfind.frontend.listeners.TreeSelectionListener;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.Charset;
@@ -133,8 +136,11 @@ public class TrackFindMainUI extends AbstractUI {
         tree.setSizeFull();
         tree.setStyleGenerator((StyleGenerator<TreeNode>) item -> item.isAttribute() ? null : "value-tree-node");
 
-        TreeGridDragSource<TreeNode> dragSource = new TreeGridDragSource<>(treeGrid);
-        dragSource.setEffectAllowed(EffectAllowed.COPY);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (!(authentication instanceof AnonymousAuthenticationToken)) {
+            TreeGridDragSource<TreeNode> dragSource = new TreeGridDragSource<>(treeGrid);
+            dragSource.setEffectAllowed(EffectAllowed.COPY);
+        }
 
         return tree;
     }
@@ -207,10 +213,14 @@ public class TrackFindMainUI extends AbstractUI {
         Button searchButton = new Button("Search ➚", (Button.ClickListener) clickEvent -> executeQuery(queryTextArea.getValue()));
         queryTextArea.addValueChangeListener((HasValue.ValueChangeListener<String>) event -> searchButton.setEnabled(StringUtils.isNotEmpty(queryTextArea.getValue())));
         queryTextArea.addStyleName("scrollable-text-area");
-        DropTargetExtension<TextArea> dropTarget = new DropTargetExtension<>(queryTextArea);
-        dropTarget.setDropEffect(DropEffect.COPY);
-        TextAreaDropListener textAreaDropListener = new TextAreaDropListener(queryTextArea, separator);
-        dropTarget.addDropListener(textAreaDropListener);
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (!(authentication instanceof AnonymousAuthenticationToken)) {
+            DropTargetExtension<TextArea> dropTarget = new DropTargetExtension<>(queryTextArea);
+            dropTarget.setDropEffect(DropEffect.COPY);
+            TextAreaDropListener textAreaDropListener = new TextAreaDropListener(queryTextArea, separator);
+            dropTarget.addDropListener(textAreaDropListener);
+        }
         Panel queryPanel = new Panel("Search query", queryTextArea);
         queryPanel.setSizeFull();
 
