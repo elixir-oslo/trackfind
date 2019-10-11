@@ -2,6 +2,7 @@ package no.uio.ifi.trackfind.frontend;
 
 import com.vaadin.data.HasValue;
 import com.vaadin.server.ExternalResource;
+import com.vaadin.server.Page;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.shared.ui.ValueChangeMode;
@@ -115,6 +116,19 @@ public abstract class AbstractUI extends UI {
             rightHeaderLayout.addComponents(label, link);
             rightHeaderLayout.setComponentAlignment(label, Alignment.TOP_RIGHT);
             rightHeaderLayout.setComponentAlignment(link, Alignment.TOP_RIGHT);
+
+            if (user.isAdmin()) {
+                MenuBar menuBar = new MenuBar();
+                MenuBar.MenuItem menu = menuBar.addItem("Menu");
+                menu.addItem("Home", (MenuBar.Command) selectedItem -> Page.getCurrent().setLocation("/"));
+                menu.addItem("Hubs", (MenuBar.Command) selectedItem -> Page.getCurrent().setLocation("/hubs"));
+                menu.addItem("Versions", (MenuBar.Command) selectedItem -> Page.getCurrent().setLocation("/versions"));
+                menu.addItem("References", (MenuBar.Command) selectedItem -> Page.getCurrent().setLocation("/references"));
+                menu.addItem("Curation", (MenuBar.Command) selectedItem -> Page.getCurrent().setLocation("/curation"));
+                menu.addItem("Users", (MenuBar.Command) selectedItem -> Page.getCurrent().setLocation("/users"));
+                leftHeaderLayout.addComponent(menuBar);
+                leftHeaderLayout.setMargin(true);
+            }
         }
 
         HorizontalLayout headerLayout = new HorizontalLayout(leftHeaderLayout, middleHeaderLayout, rightHeaderLayout);
