@@ -116,6 +116,7 @@ public class MetamodelService {
         return currentVersion.getObjectTypes();
     }
 
+    @Cacheable(value = "metamodel-categories-by-name", sync = true)
     public Optional<TfObjectType> findObjectTypeByName(String repository, String hub, String objectTypeName) {
         TfHub hubEntity = hubRepository.findByRepositoryAndName(repository, hub);
         Optional<TfVersion> currentVersionOptional = hubEntity.getCurrentVersion();
@@ -186,6 +187,7 @@ public class MetamodelService {
         return metamodel.get(path).parallelStream().collect(Collectors.toSet());
     }
 
+    @Cacheable(value = "metamodel-references", sync = true)
     public Collection<TfReference> getReferences(String repository, String hub) {
         TfHub currentHub = hubRepository.findByRepositoryAndName(repository, hub);
         Optional<TfVersion> currentVersionOptional = currentHub.getCurrentVersion();
@@ -201,14 +203,17 @@ public class MetamodelService {
         return references;
     }
 
+    @CacheEvict(cacheNames = {"metamodel-references"}, allEntries = true)
     public TfReference addReference(TfReference reference) {
         return referenceRepository.save(reference);
     }
 
+    @CacheEvict(cacheNames = {"metamodel-references"}, allEntries = true)
     public void deleteReference(TfReference reference) {
         referenceRepository.delete(reference);
     }
 
+    @CacheEvict(cacheNames = {"metamodel-references"}, allEntries = true)
     public void copyReferencesFromAnotherVersionToCurrentVersion(String repository, String hubName, TfVersion sourceVersion) {
         TfHub hub = hubRepository.findByRepositoryAndName(repository, hubName);
         Optional<TfVersion> currentVersionOptional = hub.getCurrentVersion();
@@ -219,6 +224,7 @@ public class MetamodelService {
         copyReferencesFromOneVersionToAnotherVersion(sourceVersion, currentVersion);
     }
 
+    @CacheEvict(cacheNames = {"metamodel-references"}, allEntries = true)
     public void copyReferencesFromOneVersionToAnotherVersion(TfVersion sourceVersion, TfVersion targetVersion) {
         log.info("Copying references from {} to {}", sourceVersion, targetVersion);
         Collection<TfObjectType> targetObjectTypes = targetVersion.getObjectTypes();
@@ -327,7 +333,9 @@ public class MetamodelService {
             "metamodel-attributes",
             "metamodel-attributes-flat",
             "metamodel-attribute-types",
-            "metamodel-values"
+            "metamodel-values",
+            "metamodel-references",
+            "metamodel-categories-by-name"
     }, allEntries = true)
     public void activateVersion(TfVersion version) {
         TfHub hub = version.getHub();

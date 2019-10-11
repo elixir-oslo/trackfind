@@ -70,7 +70,6 @@ public class TrackFindMainUI extends AbstractUI {
     private TextArea resultsTextArea;
     private Collection<SearchResult> results;
     private String jsonResult;
-    private String gSuiteResult;
     private FileDownloader gSuiteFileDownloader;
     private FileDownloader jsonFileDownloader;
 
@@ -277,13 +276,12 @@ public class TrackFindMainUI extends AbstractUI {
         numberOfResults = results.size();
         try {
             jsonResult = mapper.writeValueAsString(results);
-            gSuiteResult = gSuiteService.apply(results);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
         resultsTextArea.setValue(jsonResult);
 
-        gSuiteFileDownloader.setFileDownloadResource(getStreamResource(gSuiteResult, ".gsuite"));
+        gSuiteFileDownloader.setFileDownloadResource(getStreamResource(null, ".gsuite"));
         jsonFileDownloader.setFileDownloadResource(getStreamResource(jsonResult, ".json"));
     }
 
@@ -291,7 +289,12 @@ public class TrackFindMainUI extends AbstractUI {
         return new StreamResource(null, null) {
             @Override
             public StreamSource getStreamSource() {
-                return (StreamResource.StreamSource) () -> new ByteArrayInputStream(content.getBytes(Charset.defaultCharset()));
+                if (".json".equalsIgnoreCase(extension)) {
+                    return (StreamResource.StreamSource) () -> new ByteArrayInputStream(content.getBytes(Charset.defaultCharset()));
+                } else {
+                    String gSuiteResult = gSuiteService.apply(results);
+                    return (StreamResource.StreamSource) () -> new ByteArrayInputStream(gSuiteResult.getBytes(Charset.defaultCharset()));
+                }
             }
 
             @Override
