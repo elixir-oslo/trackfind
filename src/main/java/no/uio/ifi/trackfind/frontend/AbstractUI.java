@@ -116,6 +116,7 @@ public abstract class AbstractUI extends UI {
             rightHeaderLayout.addComponents(label, link);
             rightHeaderLayout.setComponentAlignment(label, Alignment.TOP_RIGHT);
             rightHeaderLayout.setComponentAlignment(link, Alignment.TOP_RIGHT);
+            rightHeaderLayout.setMargin(true);
 
             if (user.isAdmin()) {
                 MenuBar menuBar = new MenuBar();
