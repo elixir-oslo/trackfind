@@ -45,7 +45,7 @@ public class MetamodelService {
     protected ApplicationEventPublisher applicationEventPublisher;
 
     @Cacheable(value = "metamodel-flat", sync = true)
-    public Map<String, Multimap<String, String>> getMetamodelFlat(String repository, String hub, Set<Long> ids) throws IOException {
+    public Map<String, Multimap<String, String>> getMetamodelFlat(String repository, String hub, Set<Long> ids) {
         String fromClause = "tf_metamodel";
         if (CollectionUtils.isNotEmpty(ids)) {
             fromClause = "(" + buildFilteredMetamodelQuery(ids) + ") AS foo";
@@ -68,8 +68,13 @@ public class MetamodelService {
         );
     }
 
-    protected String buildFilteredMetamodelQuery(Set<Long> ids) throws IOException {
-        String schemaSQL = IOUtils.resourceToString("/schema.sql", Charset.defaultCharset());
+    protected String buildFilteredMetamodelQuery(Set<Long> ids) {
+        String schemaSQL = null;
+        try {
+            schemaSQL = IOUtils.resourceToString("/schema.sql", Charset.defaultCharset());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         String metamodelQuery = StringUtils.substringBetween(schemaSQL,
                 "CREATE MATERIALIZED VIEW IF NOT EXISTS tf_metamodel AS",
                 "WITH DATA;");
@@ -79,7 +84,7 @@ public class MetamodelService {
 
     @SuppressWarnings("unchecked")
     @Cacheable(value = "metamodel-tree", sync = true)
-    public Map<String, Map<String, Object>> getMetamodelTree(String repository, String hub) throws IOException {
+    public Map<String, Map<String, Object>> getMetamodelTree(String repository, String hub) {
         Map<String, Map<String, Object>> result = new HashMap<>();
         Collection<TfObjectType> objectTypes = metamodelService.getObjectTypes(repository, hub);
         Map<String, Multimap<String, String>> fullMetamodelFlat = metamodelService.getMetamodelFlat(repository, hub, null);
@@ -181,7 +186,7 @@ public class MetamodelService {
     }
 
     @Cacheable(value = "metamodel-values", sync = true)
-    public Collection<String> getValues(String repository, String hub, String category, String path, Set<Long> ids) throws IOException {
+    public Collection<String> getValues(String repository, String hub, String category, String path, Set<Long> ids) {
         Map<String, Multimap<String, String>> metamodelFlat = metamodelService.getMetamodelFlat(repository, hub, ids);
         Multimap<String, String> metamodel = metamodelFlat.get(category);
         return metamodel.get(path).parallelStream().collect(Collectors.toSet());

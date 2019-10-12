@@ -14,7 +14,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -66,7 +65,7 @@ public class TrackFindController {
     public ResponseEntity<Map> getMetamodel(
             @PathVariable String repository,
             @PathVariable String hub,
-            @RequestParam(required = false, defaultValue = "false") boolean flat) throws IOException {
+            @RequestParam(required = false, defaultValue = "false") boolean flat) {
         if (flat) {
             Map<String, Multimap<String, String>> metamodelFlat = metamodelService.getMetamodelFlat(repository, hub, null);
             Map<String, Map<String, Collection<String>>> result = new HashMap<>();
@@ -129,7 +128,7 @@ public class TrackFindController {
             @PathVariable String category,
             @RequestParam String path,
             @RequestParam(required = false, defaultValue = "") String filter,
-            @RequestParam(required = false) String query) throws SQLException, IOException {
+            @RequestParam(required = false) String query) throws SQLException {
         Set<Long> ids = null;
         if (query != null) {
             ids = searchService.search(repository, hub, query, null, 0).getKey();
