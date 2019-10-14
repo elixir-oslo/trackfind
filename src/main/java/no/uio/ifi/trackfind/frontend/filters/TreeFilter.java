@@ -20,10 +20,7 @@ public class TreeFilter implements SerializablePredicate<TreeNode> {
 
     @Override
     public boolean test(TreeNode treeNode) {
-        if (treeNode.isAttribute() && CollectionUtils.isEmpty(treeNode.getChildren())) {
-            return false;
-        }
-        return true;
+        return treeNode.isAttribute() || treeNode.getValue().toLowerCase().contains(valuesFilter.toLowerCase());
     }
 
 }

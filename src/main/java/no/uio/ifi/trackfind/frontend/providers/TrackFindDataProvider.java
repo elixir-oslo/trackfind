@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
@@ -51,7 +50,7 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
                 treeNode.setArray(false);
                 treeNode.setType("string");
                 return treeNode;
-            }).filter(treeFilter).sorted();
+            }).filter(treeFilter).skip(query.getOffset()).limit(query.getLimit()).sorted();
         } else {
             TreeNode parent = parentOptional.get();
             if (!parent.isAttribute()) {
@@ -77,16 +76,14 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
                 treeNode.setType(attributeTypes.get(path));
                 if (treeNode.isAttribute()) {
                     if (attributes.contains(path)) {
-                        Collection<String> values;
-                        values = metamodelService.getValues(repository, hubName, category, path, null);
-                        treeNode.setChildren(values.stream().filter(v -> v.toLowerCase().contains(treeFilter.getValuesFilter().toLowerCase())).collect(Collectors.toSet()));
+                        treeNode.setChildren(metamodelService.getValues(repository, hubName, category, path, null));
                     } else {
                         Collection<String> subAttributes = metamodelService.getAttributesFlat(repository, hubName, category, path);
                         treeNode.setChildren(subAttributes);
                     }
                 }
                 return treeNode;
-            }).filter(treeFilter).sorted();
+            }).filter(treeFilter).skip(query.getOffset()).limit(query.getLimit()).sorted();
         }
     }
 
