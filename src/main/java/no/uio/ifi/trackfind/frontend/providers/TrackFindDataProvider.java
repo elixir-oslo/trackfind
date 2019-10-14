@@ -1,7 +1,5 @@
 package no.uio.ifi.trackfind.frontend.providers;
 
-import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
-import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
 import com.vaadin.data.provider.AbstractBackEndHierarchicalDataProvider;
 import com.vaadin.data.provider.HierarchicalQuery;
 import com.vaadin.server.SerializablePredicate;
@@ -30,9 +28,6 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
     /**
      * {@inheritDoc}
      */
-    @HystrixCommand(fallbackMethod = "fallbackFetchChildrenFromBackEnd", commandProperties = {
-            @HystrixProperty(name = "execution.isolation.thread.timeoutInMilliseconds", value = "10000")
-    })
     @Override
     protected Stream<TreeNode> fetchChildrenFromBackEnd(HierarchicalQuery<TreeNode, SerializablePredicate<TreeNode>> query) {
         TreeFilter treeFilter = (TreeFilter) query.getFilter().orElseThrow(RuntimeException::new);
@@ -95,32 +90,14 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
         }
     }
 
-    protected Stream<TreeNode> fallbackFetchChildrenFromBackEnd(HierarchicalQuery<TreeNode, SerializablePredicate<TreeNode>> query) {
-        return Stream.empty();
-    }
-
-    @HystrixCommand(fallbackMethod = "fallbackGetChildCount", commandProperties = {
-            @HystrixProperty(name = "execution.isolation.thread.timeoutInMilliseconds", value = "10000")
-    })
     @Override
     public int getChildCount(HierarchicalQuery<TreeNode, SerializablePredicate<TreeNode>> query) {
         return (int) fetchChildrenFromBackEnd(query).count();
     }
 
-    public int fallbackGetChildCount(HierarchicalQuery<TreeNode, SerializablePredicate<TreeNode>> query) {
-        return 0;
-    }
-
-    @HystrixCommand(fallbackMethod = "fallbackHasChildren", commandProperties = {
-            @HystrixProperty(name = "execution.isolation.thread.timeoutInMilliseconds", value = "10000")
-    })
     @Override
     public boolean hasChildren(TreeNode item) {
         return getChildCount(new HierarchicalQuery<>(item.getTreeFilter(), item)) != 0;
-    }
-
-    public boolean fallbackHasChildren(TreeNode item) {
-        return false;
     }
 
     @Autowired
