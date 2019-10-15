@@ -20,25 +20,23 @@ public class SchemaServiceTest {
             "{\n" +
                     "  \"experiments\": [\n" +
                     "    \"'@schema'\",\n" +
+                    "    \"'technique'->'term_iri'\",\n" +
                     "    \"'aggregated_from'\",\n" +
                     "    \"'sample_ref'\",\n" +
                     "    \"'target'->'term_iri'\",\n" +
-                    "    \"'tech_type'->'term_iri'\",\n" +
                     "    \"'study_ref'\",\n" +
                     "    \"'global_id'\",\n" +
                     "    \"'target'->'term_value'\",\n" +
                     "    \"'compute_protocol_description'\",\n" +
+                    "    \"'technique'->'term_value'\",\n" +
                     "    \"'local_id'\",\n" +
-                    "    \"'tech_type'->'term_value'\",\n" +
                     "    \"'lab_protocol_description'\"\n" +
                     "  ],\n" +
                     "  \"studies\": [\n" +
                     "    \"'@schema'\",\n" +
                     "    \"'contact'->'e-mail'\",\n" +
-                    "    \"'contact'->'orcid_id'\",\n" +
-                    "    \"'phenotype'->'term_value'\",\n" +
                     "    \"'study_name'\",\n" +
-                    "    \"'phenotype'->'term_iri'\",\n" +
+                    "    \"'contact'->'orcid'\",\n" +
                     "    \"'contact'->'name'\",\n" +
                     "    \"'global_id'\",\n" +
                     "    \"'publications'\",\n" +
@@ -46,10 +44,14 @@ public class SchemaServiceTest {
                     "  ],\n" +
                     "  \"samples\": [\n" +
                     "    \"'@schema'\",\n" +
-                    "    \"'sample_type'->'term_value'\",\n" +
-                    "    \"'global_id'\",\n" +
+                    "    \"'tissue_type'->'term_iri'\",\n" +
                     "    \"'biomaterial_type'\",\n" +
                     "    \"'sample_type'->'term_iri'\",\n" +
+                    "    \"'phenotype'->'term_value'\",\n" +
+                    "    \"'tissue_type'->'term_value'\",\n" +
+                    "    \"'phenotype'->'term_iri'\",\n" +
+                    "    \"'sample_type'->'term_value'\",\n" +
+                    "    \"'global_id'\",\n" +
                     "    \"'local_id'\"\n" +
                     "  ],\n" +
                     "  \"tracks\": [\n" +
