@@ -104,7 +104,9 @@ public abstract class AbstractDataProvider implements DataProvider {
             "metamodel-attribute-types",
             "metamodel-values",
             "metamodel-references",
-            "metamodel-categories-by-name"
+            "metamodel-categories-by-name",
+            "search",
+            "gsuite"
     }, allEntries = true)
     @Override
     public synchronized void crawlRemoteRepository(String hubName) {
@@ -204,7 +206,9 @@ public abstract class AbstractDataProvider implements DataProvider {
             "metamodel-attribute-types",
             "metamodel-values",
             "metamodel-references",
-            "metamodel-categories-by-name"
+            "metamodel-categories-by-name",
+            "search",
+            "gsuite"
     }, allEntries = true)
     @Override
     public synchronized void runCuration(String hubName) {

@@ -208,17 +208,27 @@ public class MetamodelService {
         return references;
     }
 
-    @CacheEvict(cacheNames = {"metamodel-references"}, allEntries = true)
+    @CacheEvict(cacheNames = {
+            "metamodel-references",
+            "search",
+            "gsuite"
+    }, allEntries = true)
     public TfReference addReference(TfReference reference) {
         return referenceRepository.save(reference);
     }
 
-    @CacheEvict(cacheNames = {"metamodel-references"}, allEntries = true)
+    @CacheEvict(cacheNames = {
+            "metamodel-references", "search",
+            "gsuite"
+    }, allEntries = true)
     public void deleteReference(TfReference reference) {
         referenceRepository.delete(reference);
     }
 
-    @CacheEvict(cacheNames = {"metamodel-references"}, allEntries = true)
+    @CacheEvict(cacheNames = {
+            "metamodel-references", "search",
+            "gsuite"
+    }, allEntries = true)
     public void copyReferencesFromAnotherVersionToCurrentVersion(String repository, String hubName, TfVersion sourceVersion) {
         TfHub hub = hubRepository.findByRepositoryAndName(repository, hubName);
         Optional<TfVersion> currentVersionOptional = hub.getCurrentVersion();
@@ -229,7 +239,11 @@ public class MetamodelService {
         copyReferencesFromOneVersionToAnotherVersion(sourceVersion, currentVersion);
     }
 
-    @CacheEvict(cacheNames = {"metamodel-references"}, allEntries = true)
+    @CacheEvict(cacheNames = {
+            "metamodel-references",
+            "search",
+            "gsuite"
+    }, allEntries = true)
     public void copyReferencesFromOneVersionToAnotherVersion(TfVersion sourceVersion, TfVersion targetVersion) {
         log.info("Copying references from {} to {}", sourceVersion, targetVersion);
         Collection<TfObjectType> targetObjectTypes = targetVersion.getObjectTypes();
@@ -340,7 +354,9 @@ public class MetamodelService {
             "metamodel-attribute-types",
             "metamodel-values",
             "metamodel-references",
-            "metamodel-categories-by-name"
+            "metamodel-categories-by-name",
+            "search",
+            "gsuite"
     }, allEntries = true)
     public void activateVersion(TfVersion version) {
         TfHub hub = version.getHub();

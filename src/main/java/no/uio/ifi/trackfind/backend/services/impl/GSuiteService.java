@@ -3,6 +3,7 @@ package no.uio.ifi.trackfind.backend.services.impl;
 import com.google.gson.Gson;
 import no.uio.ifi.trackfind.backend.pojo.SearchResult;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -27,6 +28,7 @@ public class GSuiteService implements Function<Collection<SearchResult>, String>
      * @param searchResults Datasets to convert.
      * @return GSuite string.
      */
+    @Cacheable(value = "gsuite", sync = true)
     @Override
     public String apply(Collection<SearchResult> searchResults) {
 //        sortJSON(searchResults);

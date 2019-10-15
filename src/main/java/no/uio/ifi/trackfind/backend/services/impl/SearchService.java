@@ -10,6 +10,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -54,6 +55,7 @@ public class SearchService {
      * @param limit      Max number of entries to return. 0 for unlimited.
      * @return Found entries with set of IDs.
      */
+    @Cacheable(value = "search", sync = true)
     public Pair<Set<Long>, Collection<SearchResult>> search(String repository, String hub, String query, Collection<String> categories, long limit) throws SQLException {
         Collection<TfReference> references = metamodelService.getReferences(repository, hub);
 
