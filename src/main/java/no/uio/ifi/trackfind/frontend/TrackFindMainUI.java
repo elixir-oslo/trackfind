@@ -113,8 +113,10 @@ public class TrackFindMainUI extends AbstractUI {
 //        TextField attributesFilterTextField = createFilter(true);
         TextField valuesFilterTextField = createFilter(false);
 
-        AddToQueryButtonClickListener addToQueryButtonClickListener = new AddToQueryButtonClickListener(this, separator);
-        Button addToQueryButton = new Button("Add to query ➚", addToQueryButtonClickListener);
+        Button addToQueryButton = new Button("Add to query ➚");
+        KeyboardInterceptorExtension keyboardInterceptorExtension = new KeyboardInterceptorExtension(addToQueryButton);
+        AddToQueryButtonClickListener addToQueryButtonClickListener = new AddToQueryButtonClickListener(this, keyboardInterceptorExtension, separator);
+        addToQueryButton.addClickListener(addToQueryButtonClickListener);
         addToQueryButton.setWidth(100, Unit.PERCENTAGE);
 
         VerticalLayout treeLayout = new VerticalLayout(treePanel, valuesFilterTextField, addToQueryButton);

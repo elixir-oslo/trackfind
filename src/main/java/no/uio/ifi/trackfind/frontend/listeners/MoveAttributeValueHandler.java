@@ -28,7 +28,7 @@ public abstract class MoveAttributeValueHandler {
 
     private String levelsSeparator;
 
-    public MoveAttributeValueHandler(String levelsSeparator) {
+    protected MoveAttributeValueHandler(String levelsSeparator) {
         this.levelsSeparator = levelsSeparator;
     }
 
@@ -42,6 +42,10 @@ public abstract class MoveAttributeValueHandler {
     protected void processDragAndDrop(TextArea textArea, MouseEventDetails mouseEventDetails, Set<TreeNode> selectedItems) {
         boolean logicalOperation = mouseEventDetails == null || !mouseEventDetails.isAltKey();
         boolean inversion = mouseEventDetails != null && mouseEventDetails.isShiftKey();
+        processDragAndDrop(textArea, logicalOperation, inversion, selectedItems);
+    }
+
+    protected void processDragAndDrop(TextArea textArea, boolean logicalOperation, boolean inversion, Set<TreeNode> selectedItems) {
         int size = CollectionUtils.size(selectedItems);
         if (size == 1) {
             processDragAndDropSingle(textArea, logicalOperation, inversion, selectedItems.iterator().next());

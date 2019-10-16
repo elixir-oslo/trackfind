@@ -2,6 +2,7 @@ package no.uio.ifi.trackfind.frontend.listeners;
 
 import com.vaadin.ui.Button;
 import no.uio.ifi.trackfind.frontend.TrackFindMainUI;
+import no.uio.ifi.trackfind.frontend.components.KeyboardInterceptorExtension;
 
 /**
  * Listener for "Add to query" Button click.
@@ -11,6 +12,7 @@ import no.uio.ifi.trackfind.frontend.TrackFindMainUI;
 public class AddToQueryButtonClickListener extends MoveAttributeValueHandler implements Button.ClickListener {
 
     private TrackFindMainUI ui;
+    private KeyboardInterceptorExtension keyboardInterceptorExtension;
 
     /**
      * Constructor with binding to TrackFindMainUI.
@@ -18,9 +20,10 @@ public class AddToQueryButtonClickListener extends MoveAttributeValueHandler imp
      * @param ui              TrackFind UI.
      * @param levelsSeparator Levels separator.
      */
-    public AddToQueryButtonClickListener(TrackFindMainUI ui, String levelsSeparator) {
+    public AddToQueryButtonClickListener(TrackFindMainUI ui, KeyboardInterceptorExtension keyboardInterceptorExtension, String levelsSeparator) {
         super(levelsSeparator);
         this.ui = ui;
+        this.keyboardInterceptorExtension = keyboardInterceptorExtension;
     }
 
     /**
@@ -30,7 +33,9 @@ public class AddToQueryButtonClickListener extends MoveAttributeValueHandler imp
      */
     @Override
     public void buttonClick(Button.ClickEvent event) {
-        processDragAndDrop(ui.getQueryTextArea(), null, ui.getCurrentTree().getSelectedItems());
+        boolean logicalOperation = !keyboardInterceptorExtension.isAltKeyDown();
+        boolean inversion = keyboardInterceptorExtension.isShiftKeyDown();
+        processDragAndDrop(ui.getQueryTextArea(), logicalOperation, inversion, ui.getCurrentTree().getSelectedItems());
     }
 
 }
