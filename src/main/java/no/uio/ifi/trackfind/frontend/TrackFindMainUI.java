@@ -113,7 +113,7 @@ public class TrackFindMainUI extends AbstractUI {
 //        TextField attributesFilterTextField = createFilter(true);
         TextField valuesFilterTextField = createFilter(false);
 
-        Button addToQueryButton = new Button("Add to query ➚");
+        Button addToQueryButton = new Button("Add to query ➚ (⌥: OR, ⇧: NOT)");
         KeyboardInterceptorExtension keyboardInterceptorExtension = new KeyboardInterceptorExtension(addToQueryButton);
         AddToQueryButtonClickListener addToQueryButtonClickListener = new AddToQueryButtonClickListener(this, keyboardInterceptorExtension, separator);
         addToQueryButton.addClickListener(addToQueryButtonClickListener);
