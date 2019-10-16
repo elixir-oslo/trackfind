@@ -6,6 +6,7 @@ import com.vaadin.server.SerializablePredicate;
 import no.uio.ifi.trackfind.backend.data.TreeNode;
 import no.uio.ifi.trackfind.backend.pojo.TfHub;
 import no.uio.ifi.trackfind.backend.services.impl.MetamodelService;
+import no.uio.ifi.trackfind.backend.services.impl.SchemaService;
 import no.uio.ifi.trackfind.frontend.filters.TreeFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,6 +24,7 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
     protected String separator;
 
     private MetamodelService metamodelService;
+    private SchemaService schemaService;
 
     /**
      * {@inheritDoc}
@@ -35,6 +37,7 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
         String hubName = hub.getName();
         Map<String, Map<String, Object>> metamodelTree;
         metamodelTree = metamodelService.getMetamodelTree(repository, hubName);
+        Map<String, Collection<String>> schemaAttributes = schemaService.getAttributes();
         Optional<TreeNode> parentOptional = query.getParentOptional();
         if (!parentOptional.isPresent()) {
             return metamodelTree.keySet().stream().map(c -> {
@@ -47,6 +50,7 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
                 treeNode.setLevel(0);
                 treeNode.setChildren(metamodelTree.get(c).keySet());
                 treeNode.setAttribute(true);
+                treeNode.setStandard(schemaAttributes.containsKey(c));
                 treeNode.setArray(false);
                 treeNode.setType("string");
                 return treeNode;
@@ -72,6 +76,9 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
                 treeNode.setLevel(parent.getLevel() + 1);
                 String path = treeNode.getPath().replace(prefix, "");
                 treeNode.setAttribute(attributes.parallelStream().anyMatch(a -> a.startsWith(path)));
+                if (parent.isStandard()) {
+                    treeNode.setStandard(schemaAttributes.get(category).parallelStream().map(a -> a.replace("'", "")).anyMatch(a -> a.startsWith(path)));
+                }
                 treeNode.setArray(arrayOfObjectsAttributes.contains(path));
                 treeNode.setType(attributeTypes.get(path));
                 if (treeNode.isAttribute()) {
@@ -100,6 +107,11 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
     @Autowired
     public void setMetamodelService(MetamodelService metamodelService) {
         this.metamodelService = metamodelService;
+    }
+
+    @Autowired
+    public void setSchemaService(SchemaService schemaService) {
+        this.schemaService = schemaService;
     }
 
 }

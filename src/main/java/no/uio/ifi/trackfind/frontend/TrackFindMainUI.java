@@ -136,7 +136,17 @@ public class TrackFindMainUI extends AbstractUI {
         treeGrid.setFilter(filter);
         tree.addSelectionListener(new TreeSelectionListener(tree, filter, new KeyboardInterceptorExtension(tree)));
         tree.setSizeFull();
-        tree.setStyleGenerator((StyleGenerator<TreeNode>) item -> item.isAttribute() ? null : "value-tree-node");
+        tree.setStyleGenerator((StyleGenerator<TreeNode>) item -> {
+            if (item.isAttribute()) {
+                if (item.isStandard()) {
+                    return "standard-tree-node";
+                } else {
+                    return null;
+                }
+            } else {
+                return "value-tree-node";
+            }
+        });
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (!(authentication instanceof AnonymousAuthenticationToken)) {

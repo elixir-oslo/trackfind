@@ -181,7 +181,17 @@ public class TrackFindCurationUI extends AbstractUI {
         tree.setDataProvider(trackFindDataProvider);
         tree.setSelectionMode(Grid.SelectionMode.SINGLE);
         tree.setSizeFull();
-        tree.setStyleGenerator((StyleGenerator<TreeNode>) item -> item.isAttribute() ? null : "value-tree-node");
+        tree.setStyleGenerator((StyleGenerator<TreeNode>) item -> {
+            if (item.isAttribute()) {
+                if (item.isStandard()) {
+                    return "standard-tree-node";
+                } else {
+                    return null;
+                }
+            } else {
+                return "value-tree-node";
+            }
+        });
 
         TreeGrid<TreeNode> treeGrid = (TreeGrid<TreeNode>) tree.getCompositionRoot();
         treeGrid.setFilter(new TreeFilter(hub, "", ""));
