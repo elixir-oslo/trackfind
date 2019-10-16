@@ -96,6 +96,7 @@ public class TrackFindMainUI extends AbstractUI {
 //        tracker.extend(getUI());
     }
 
+    @SuppressWarnings("unchecked")
     protected VerticalLayout buildTreeLayout() {
         tabSheet = new TabSheet();
         tabSheet.setSizeFull();
@@ -113,13 +114,21 @@ public class TrackFindMainUI extends AbstractUI {
 //        TextField attributesFilterTextField = createFilter(true);
         TextField valuesFilterTextField = createFilter(false);
 
+        CheckBox standardCheckbox = new CheckBox("Show only FAIRtracks attributes");
+        standardCheckbox.addValueChangeListener((HasValue.ValueChangeListener<Boolean>) event -> {
+            TrackFindTree<TreeNode> currentTree = getCurrentTree();
+            TreeFilter filter = (TreeFilter) ((TreeGrid<TreeNode>) currentTree.getCompositionRoot()).getFilter();
+            filter.setStandard(event.getValue());
+            currentTree.getDataProvider().refreshAll();
+        });
+
         Button addToQueryButton = new Button("Add to query ➚ (⌥: OR, ⇧: NOT)");
         KeyboardInterceptorExtension keyboardInterceptorExtension = new KeyboardInterceptorExtension(addToQueryButton);
         AddToQueryButtonClickListener addToQueryButtonClickListener = new AddToQueryButtonClickListener(this, keyboardInterceptorExtension, separator);
         addToQueryButton.addClickListener(addToQueryButtonClickListener);
         addToQueryButton.setWidth(100, Unit.PERCENTAGE);
 
-        VerticalLayout treeLayout = new VerticalLayout(treePanel, valuesFilterTextField, addToQueryButton);
+        VerticalLayout treeLayout = new VerticalLayout(treePanel, standardCheckbox, valuesFilterTextField, addToQueryButton);
         treeLayout.setSizeFull();
         treeLayout.setExpandRatio(treePanel, 1f);
         return treeLayout;
@@ -132,7 +141,7 @@ public class TrackFindMainUI extends AbstractUI {
         tree.setSelectionMode(Grid.SelectionMode.MULTI);
         tree.addItemClickListener(new TreeItemClickListener(tree));
         TreeGrid<TreeNode> treeGrid = (TreeGrid<TreeNode>) tree.getCompositionRoot();
-        TreeFilter filter = new TreeFilter(hub, "", "");
+        TreeFilter filter = new TreeFilter(hub, false, "", "");
         treeGrid.setFilter(filter);
         tree.addSelectionListener(new TreeSelectionListener(tree, filter, new KeyboardInterceptorExtension(tree)));
         tree.setSizeFull();

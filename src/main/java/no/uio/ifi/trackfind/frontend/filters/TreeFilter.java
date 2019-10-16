@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import no.uio.ifi.trackfind.backend.data.TreeNode;
 import no.uio.ifi.trackfind.backend.pojo.TfHub;
-import org.apache.commons.collections.CollectionUtils;
 
 /**
  * Filter for the Vaadin tree.
@@ -15,12 +14,16 @@ import org.apache.commons.collections.CollectionUtils;
 public class TreeFilter implements SerializablePredicate<TreeNode> {
 
     private TfHub hub;
+    private boolean standard;
     private String valuesFilter;
     private String attributesFilter;
 
     @Override
     public boolean test(TreeNode treeNode) {
-        return treeNode.isAttribute() || treeNode.getValue().toLowerCase().contains(valuesFilter.toLowerCase());
+        if (!treeNode.isAttribute() && !treeNode.getValue().toLowerCase().contains(valuesFilter.toLowerCase())) {
+            return false;
+        }
+        return !standard || treeNode.isStandard();
     }
 
 }
