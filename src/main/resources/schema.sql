@@ -45,11 +45,13 @@ ALTER TABLE tf_users
 
 CREATE TABLE IF NOT EXISTS tf_hubs
 (
-    id         BIGSERIAL PRIMARY KEY,
-    repository VARCHAR NOT NULL,
-    name       VARCHAR NOT NULL,
-    uri        VARCHAR NOT NULL,
-    UNIQUE (repository, name, uri)
+    id           BIGSERIAL PRIMARY KEY,
+    repository   VARCHAR NOT NULL,
+    name         VARCHAR NOT NULL,
+    display_name VARCHAR,
+    uri          VARCHAR NOT NULL,
+    UNIQUE (repository, name, uri),
+    UNIQUE (display_name)
 );
 
 CREATE TABLE IF NOT EXISTS tf_versions

@@ -94,7 +94,7 @@ public class TrackFindCurationUI extends AbstractUI {
                         && item.get().getLevel() != 0
                 );
             });
-            tabSheet.addTab(tree, hub.getName());
+            tabSheet.addTab(tree, hub.getDisplayName() != null ? hub.getDisplayName() : hub.getName());
         }
 
         tabSheet.addSelectedTabChangeListener((TabSheet.SelectedTabChangeListener) event -> {

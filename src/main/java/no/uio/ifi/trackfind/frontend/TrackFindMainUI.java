@@ -104,7 +104,7 @@ public class TrackFindMainUI extends AbstractUI {
 
         for (TfHub hub : trackFindService.getTrackHubs(true)) {
             TrackFindTree<TreeNode> tree = buildMetamodelTree(hub);
-            tabSheet.addTab(tree, hub.getName());
+            tabSheet.addTab(tree, hub.getDisplayName() != null ? hub.getDisplayName() : hub.getName());
         }
 
         tabSheet.addSelectedTabChangeListener((TabSheet.SelectedTabChangeListener) event -> refreshCategoriesCheckList());

@@ -32,6 +32,9 @@ public class TfHub implements Serializable {
     @Column(name = "name", nullable = false)
     private String name;
 
+    @Column(name = "display_name", nullable = false)
+    private String displayName;
+
     @NonNull
     @Column(name = "uri", nullable = false)
     private String uri;

@@ -14,7 +14,10 @@ import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.data.providers.DataProvider;
 import no.uio.ifi.trackfind.backend.pojo.TfHub;
 import no.uio.ifi.trackfind.backend.pojo.TfVersion;
+import no.uio.ifi.trackfind.backend.repositories.HubRepository;
 import no.uio.ifi.trackfind.backend.services.ValidationService;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.dialogs.ConfirmDialog;
 
@@ -38,14 +41,17 @@ import java.util.stream.Stream;
 @Slf4j
 public class TrackFindHubsUI extends AbstractUI {
 
+    private HubRepository hubRepository;
     private ValidationService validationService;
 
-    private ComboBox<TfHub> comboBox;
-    private ListSelect<TfHub> listSelect;
-    private Button add;
-    private Button remove;
-    private Button crawl;
-    private Button validate;
+    private ComboBox<TfHub> comboBox = new ComboBox<>("Available hubs");
+    private ListSelect<TfHub> listSelect = new ListSelect<>();
+    private TextField displayNameTextField = new TextField("Hub display name (optional)");
+    private Button saveDisplayNameButton = new Button("Save");
+    private Button add = new Button("Activate →");
+    private Button remove = new Button("Deactivate ←");
+    private Button crawl = new Button("Crawl");
+    private Button validate = new Button("Validate");
 
     @Override
     protected void init(VaadinRequest vaadinRequest) {
@@ -61,7 +67,6 @@ public class TrackFindHubsUI extends AbstractUI {
     private VerticalLayout buildAvailableHubsLayout() {
         VerticalLayout hubsLayout = new VerticalLayout();
         hubsLayout.setSizeFull();
-        comboBox = new ComboBox<>("Available hubs");
         comboBox.setWidth(100, Unit.PERCENTAGE);
         comboBox.setDataProvider(new AbstractBackEndDataProvider<TfHub, String>() {
             @Override
@@ -88,7 +93,6 @@ public class TrackFindHubsUI extends AbstractUI {
 
     private VerticalLayout buildButtonsLayout() {
         VerticalLayout verticalLayout = new VerticalLayout();
-        add = new Button("Activate →");
         add.setEnabled(false);
         add.setWidth(100, Unit.PERCENTAGE);
         add.addClickListener((Button.ClickListener) event -> comboBox.getSelectedItem().ifPresent(hub -> {
@@ -99,7 +103,6 @@ public class TrackFindHubsUI extends AbstractUI {
             comboBox.clear();
             comboBox.getDataProvider().refreshAll();
         }));
-        remove = new Button("Deactivate ←");
         remove.setEnabled(false);
         remove.setWidth(100, Unit.PERCENTAGE);
         remove.addClickListener((Button.ClickListener) event -> {
@@ -115,7 +118,6 @@ public class TrackFindHubsUI extends AbstractUI {
             availableHubs.addAll(activeHubs);
             comboBox.getDataProvider().refreshAll();
         });
-        crawl = new Button("Crawl");
         crawl.setEnabled(false);
         crawl.setWidth(100, Unit.PERCENTAGE);
         UI ui = getUI();
@@ -138,7 +140,6 @@ public class TrackFindHubsUI extends AbstractUI {
                         listSelect.getDataProvider().refreshAll();
                     }
                 }));
-        validate = new Button("Validate");
         validate.setEnabled(false);
         validate.setWidth(100, Unit.PERCENTAGE);
         validate.addClickListener((Button.ClickListener) event -> ConfirmDialog.show(ui,
@@ -164,9 +165,7 @@ public class TrackFindHubsUI extends AbstractUI {
 
     private VerticalLayout buildActiveHubsLayout() {
         VerticalLayout hubsLayout = new VerticalLayout();
-        listSelect = new ListSelect<>();
-        listSelect.setWidth(100, Unit.PERCENTAGE);
-        listSelect.setHeight(100, Unit.PERCENTAGE);
+        listSelect.setSizeFull();
         listSelect.setDataProvider(new AbstractBackEndDataProvider<TfHub, String>() {
             @Override
             protected Stream<TfHub> fetchFromBackEnd(Query<TfHub, String> query) {
@@ -190,11 +189,36 @@ public class TrackFindHubsUI extends AbstractUI {
             }
             return caption;
         });
-        listSelect.addSelectionListener((MultiSelectionListener<TfHub>) event -> remove.setEnabled(!listSelect.getSelectedItems().isEmpty()));
-        listSelect.addSelectionListener((MultiSelectionListener<TfHub>) event -> crawl.setEnabled(!listSelect.getSelectedItems().isEmpty()));
-        listSelect.addSelectionListener((MultiSelectionListener<TfHub>) event -> validate.setEnabled(!listSelect.getSelectedItems().isEmpty()));
+        listSelect.addSelectionListener((MultiSelectionListener<TfHub>) event -> {
+            Set<TfHub> selectedItems = listSelect.getSelectedItems();
+            remove.setEnabled(CollectionUtils.isNotEmpty(selectedItems));
+            crawl.setEnabled(CollectionUtils.isNotEmpty(selectedItems));
+            validate.setEnabled(CollectionUtils.isNotEmpty(selectedItems));
+            saveDisplayNameButton.setEnabled(CollectionUtils.isNotEmpty(selectedItems));
+            displayNameTextField.setEnabled(CollectionUtils.isNotEmpty(selectedItems));
+            if (CollectionUtils.isNotEmpty(selectedItems)) {
+                String displayName = selectedItems.iterator().next().getDisplayName();
+                displayNameTextField.setValue(displayName != null ? displayName : "");
+            }
+        });
         Panel panel = new Panel("Hub selection", listSelect);
-        hubsLayout.addComponentsAndExpand(panel);
+        panel.setSizeFull();
+        displayNameTextField.setEnabled(false);
+        displayNameTextField.setHeightUndefined();
+        displayNameTextField.setWidth(100, Unit.PERCENTAGE);
+        saveDisplayNameButton.setEnabled(false);
+        saveDisplayNameButton.setHeightUndefined();
+        saveDisplayNameButton.setWidth(100, Unit.PERCENTAGE);
+        saveDisplayNameButton.addClickListener((Button.ClickListener) event -> {
+            TfHub hub = listSelect.getSelectedItems().iterator().next();
+            String value = displayNameTextField.getValue();
+            hub.setDisplayName(StringUtils.isEmpty(value) ? null : value);
+            hubRepository.save(hub);
+        });
+        hubsLayout.addComponentsAndExpand(panel, displayNameTextField, saveDisplayNameButton);
+        hubsLayout.setExpandRatio(panel, 0.80f);
+        hubsLayout.setExpandRatio(displayNameTextField, 0.13f);
+        hubsLayout.setExpandRatio(saveDisplayNameButton, 0.07f);
         return hubsLayout;
     }
 
@@ -205,6 +229,11 @@ public class TrackFindHubsUI extends AbstractUI {
         mainLayout.setExpandRatio(rightLayout, 0.4f);
         mainLayout.setSizeFull();
         return mainLayout;
+    }
+
+    @Autowired
+    public void setHubRepository(HubRepository hubRepository) {
+        this.hubRepository = hubRepository;
     }
 
     @Autowired
