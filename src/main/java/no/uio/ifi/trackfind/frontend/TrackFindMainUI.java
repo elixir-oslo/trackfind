@@ -5,6 +5,8 @@ import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Title;
 import com.vaadin.annotations.Widgetset;
 import com.vaadin.data.HasValue;
+import com.vaadin.data.TreeData;
+import com.vaadin.data.provider.TreeDataProvider;
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.event.ShortcutListener;
 import com.vaadin.server.*;
@@ -26,6 +28,7 @@ import no.uio.ifi.trackfind.backend.services.impl.GSuiteService;
 import no.uio.ifi.trackfind.backend.services.impl.MetamodelService;
 import no.uio.ifi.trackfind.backend.services.impl.SearchService;
 import no.uio.ifi.trackfind.frontend.components.KeyboardInterceptorExtension;
+import no.uio.ifi.trackfind.frontend.components.ResultTreeItemWrapper;
 import no.uio.ifi.trackfind.frontend.components.TrackFindTree;
 import no.uio.ifi.trackfind.frontend.filters.TreeFilter;
 import no.uio.ifi.trackfind.frontend.listeners.AddToQueryButtonClickListener;
@@ -41,9 +44,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.Charset;
 import java.sql.SQLException;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.*;
 
 /**
  * Main Vaadin UI of the application.
@@ -65,13 +66,13 @@ public class TrackFindMainUI extends AbstractUI {
     private GSuiteService gSuiteService;
     private SearchService searchService;
 
-    private int numberOfResults;
-
+    private Button exportGSuiteButton = new Button("Export as GSuite file");
+    private Button exportJSONButton = new Button("Export as JSON file");
     private CheckBoxGroup<String> categoriesChecklist = new CheckBoxGroup<>();
     private TextArea queryTextArea;
     private TextField limitTextField;
-    private TextArea resultsTextArea;
-    private Collection<SearchResult> results;
+    private Tree<ResultTreeItemWrapper> resultsTree = new Tree<>();
+    private Collection<SearchResult> results = new ArrayList<>();
     private String jsonResult;
     private FileDownloader gSuiteFileDownloader;
     private FileDownloader jsonFileDownloader;
@@ -102,7 +103,7 @@ public class TrackFindMainUI extends AbstractUI {
         tabSheet.setSizeFull();
 
         for (TfHub hub : trackFindService.getTrackHubs(true)) {
-            TrackFindTree<TreeNode> tree = buildTree(hub);
+            TrackFindTree<TreeNode> tree = buildMetamodelTree(hub);
             tabSheet.addTab(tree, hub.getName());
         }
 
@@ -135,7 +136,7 @@ public class TrackFindMainUI extends AbstractUI {
     }
 
     @SuppressWarnings("unchecked")
-    protected TrackFindTree<TreeNode> buildTree(TfHub hub) {
+    protected TrackFindTree<TreeNode> buildMetamodelTree(TfHub hub) {
         TrackFindTree<TreeNode> tree = new TrackFindTree<>(hub);
         tree.setDataProvider(trackFindDataProvider);
         tree.setSelectionMode(Grid.SelectionMode.MULTI);
@@ -176,34 +177,23 @@ public class TrackFindMainUI extends AbstractUI {
     }
 
     private VerticalLayout buildResultsLayout() {
-        Button exportGSuiteButton = new Button("Export as GSuite file");
         exportGSuiteButton.setEnabled(false);
         exportGSuiteButton.setWidth(100, Unit.PERCENTAGE);
-        Button exportJSONButton = new Button("Export as JSON file");
+
         exportJSONButton.setEnabled(false);
         exportJSONButton.setWidth(100, Unit.PERCENTAGE);
+
         gSuiteFileDownloader = new FileDownloader(new ExternalResource(""));
         gSuiteFileDownloader.extend(exportGSuiteButton);
+
         jsonFileDownloader = new FileDownloader(new ExternalResource(""));
         jsonFileDownloader.extend(exportJSONButton);
-        resultsTextArea = new TextArea();
-        resultsTextArea.setSizeFull();
-        resultsTextArea.setReadOnly(true);
-        resultsTextArea.addStyleName("scrollable-text-area");
-        resultsTextArea.addValueChangeListener((HasValue.ValueChangeListener<String>) event -> {
-            if (StringUtils.isEmpty(event.getValue())) {
-                exportGSuiteButton.setEnabled(false);
-                exportGSuiteButton.setCaption("Export as GSuite file");
-                exportJSONButton.setEnabled(false);
-                exportJSONButton.setCaption("Export as JSON file");
-            } else {
-                exportGSuiteButton.setEnabled(true);
-                exportGSuiteButton.setCaption("Export (" + numberOfResults + ") entries as GSuite file");
-                exportJSONButton.setEnabled(true);
-                exportJSONButton.setCaption("Export (" + numberOfResults + ") entries as JSON file");
-            }
-        });
-        Panel resultsPanel = new Panel("Data", resultsTextArea);
+
+        resultsTree.setSizeFull();
+        resultsTree.setItemCaptionGenerator((ItemCaptionGenerator<ResultTreeItemWrapper>) ResultTreeItemWrapper::getValue);
+        resultsTree.setStyleGenerator((StyleGenerator<ResultTreeItemWrapper>) item -> item.isLeaf() ? "value-tree-node" : null);
+
+        Panel resultsPanel = new Panel("Results", resultsTree);
         resultsPanel.setSizeFull();
         VerticalLayout resultsLayout = new VerticalLayout(resultsPanel, exportGSuiteButton, exportJSONButton);
         resultsLayout.setSizeFull();
@@ -300,20 +290,66 @@ public class TrackFindMainUI extends AbstractUI {
             log.error(e.getMessage(), e);
         }
         if (results.isEmpty()) {
-            resultsTextArea.setValue("");
+            resultsTree.setItems(Collections.emptyList());
+            exportGSuiteButton.setEnabled(false);
+            exportGSuiteButton.setCaption("Export as GSuite file");
+            exportJSONButton.setEnabled(false);
+            exportJSONButton.setCaption("Export as JSON file");
             Notification.show("Nothing found for such request");
             return;
         }
-        numberOfResults = results.size();
+        resultsTree.setDataProvider(new TreeDataProvider<>(getResultsTreeData()));
+        resultsTree.getDataProvider().refreshAll();
+        int numberOfResults = results.size();
         try {
             jsonResult = mapper.writeValueAsString(results);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
-        resultsTextArea.setValue(jsonResult);
+
+        exportGSuiteButton.setEnabled(true);
+        exportGSuiteButton.setCaption("Export (" + numberOfResults + ") entries as GSuite file");
+        exportJSONButton.setEnabled(true);
+        exportJSONButton.setCaption("Export (" + numberOfResults + ") entries as JSON file");
 
         gSuiteFileDownloader.setFileDownloadResource(getStreamResource(null, ".gsuite"));
         jsonFileDownloader.setFileDownloadResource(getStreamResource(jsonResult, ".json"));
+    }
+
+    @SuppressWarnings("unchecked")
+    private TreeData<ResultTreeItemWrapper> getResultsTreeData() {
+        TreeData<ResultTreeItemWrapper> treeData = new TreeData<>();
+        int i = 0;
+        for (SearchResult result : results) {
+            ResultTreeItemWrapper topLevelEntry = new ResultTreeItemWrapper(String.valueOf(++i), false);
+            treeData.addRootItems(topLevelEntry);
+            Map<String, Object> content = (Map) result.getContent();
+            fillResultTree(treeData, topLevelEntry, content);
+        }
+        return treeData;
+    }
+
+    @SuppressWarnings("unchecked")
+    private void fillResultTree(TreeData<ResultTreeItemWrapper> treeData, ResultTreeItemWrapper parent, Object content) {
+        if (content instanceof Map) {
+            Map<String, Object> map = (Map<String, Object>) content;
+            for (Map.Entry<String, Object> entry : map.entrySet()) {
+                ResultTreeItemWrapper child = new ResultTreeItemWrapper(entry.getKey(), false);
+                treeData.addItem(parent, child);
+                Object value = entry.getValue();
+                fillResultTree(treeData, child, value);
+            }
+        } else if (content instanceof Collection) {
+            Collection collection = (Collection) content;
+            int i = 0;
+            for (Object object : collection) {
+                ResultTreeItemWrapper arrayEntry = new ResultTreeItemWrapper(String.valueOf(++i), false);
+                treeData.addItem(parent, arrayEntry);
+                fillResultTree(treeData, arrayEntry, object);
+            }
+        } else {
+            treeData.addItem(parent, new ResultTreeItemWrapper(String.valueOf(content), true));
+        }
     }
 
     private Resource getStreamResource(String content, String extension) {
