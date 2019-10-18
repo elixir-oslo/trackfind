@@ -392,8 +392,8 @@
         "study_name",
         "local_id",
         "contact",
-        "global_id",
-        "publications"
+        "publication",
+        "global_id"
       ],
       "properties": {
         "study_name": {
@@ -483,6 +483,21 @@
             }
           }
         },
+        "publication": {
+          "$id": "#/properties/studies/properties/publication",
+          "type": "array",
+          "title": "The Publication Schema",
+          "items": {
+            "$id": "#/properties/studies/properties/publication/items",
+            "type": "string",
+            "title": "The Items Schema",
+            "default": "",
+            "examples": [
+              "22955617"
+            ],
+            "pattern": "^(.*)$"
+          }
+        },
         "global_id": {
           "$id": "#/properties/studies/properties/global_id",
           "type": "array",
@@ -494,21 +509,6 @@
             "default": "",
             "examples": [
               "GEO:GSE35583"
-            ],
-            "pattern": "^(.*)$"
-          }
-        },
-        "publications": {
-          "$id": "#/properties/studies/properties/publications",
-          "type": "array",
-          "title": "The Publications Schema",
-          "items": {
-            "$id": "#/properties/studies/properties/publications/items",
-            "type": "string",
-            "title": "The Items Schema",
-            "default": "",
-            "examples": [
-              "22955617"
             ],
             "pattern": "^(.*)$"
           }

@@ -308,7 +308,7 @@
           "local_id",
           "global_id",
           "study_name",
-          "publications"
+          "publication"
         ],
         "properties": {
           "contact": {
@@ -383,20 +383,15 @@
             ],
             "pattern": "^(.*)$"
           },
-          "publications": {
-            "$id": "#/items/properties/studies/properties/publications",
-            "type": "array",
-            "title": "The Publications Schema",
-            "items": {
-              "$id": "#/items/properties/studies/properties/publications/items",
-              "type": "string",
-              "title": "The Items Schema",
-              "default": "",
-              "examples": [
-                "22955617"
-              ],
-              "pattern": "^(.*)$"
-            }
+          "publication": {
+            "$id": "#/items/properties/studies/properties/publication",
+            "type": "string",
+            "title": "The Publication Schema",
+            "default": "",
+            "examples": [
+              "22955617"
+            ],
+            "pattern": "^(.*)$"
           }
         }
       },
