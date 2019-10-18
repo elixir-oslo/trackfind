@@ -39,7 +39,7 @@ public class SchemaServiceTest {
                     "    \"'contact'->'orcid'\",\n" +
                     "    \"'contact'->'name'\",\n" +
                     "    \"'global_id'\",\n" +
-                    "    \"'publications'\",\n" +
+                    "    \"'publication'\",\n" +
                     "    \"'local_id'\"\n" +
                     "  ],\n" +
                     "  \"samples\": [\n" +
