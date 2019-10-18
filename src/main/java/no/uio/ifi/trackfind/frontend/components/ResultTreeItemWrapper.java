@@ -1,5 +1,8 @@
 package no.uio.ifi.trackfind.frontend.components;
 
+/**
+ * Tree node for a results tree on main UI: holds the value itself and indicates whether it's a leaf node.
+ */
 public class ResultTreeItemWrapper {
 
     private String value;
@@ -14,16 +17,8 @@ public class ResultTreeItemWrapper {
         return value;
     }
 
-    public void setValue(String value) {
-        this.value = value;
-    }
-
     public boolean isLeaf() {
         return leaf;
-    }
-
-    public void setLeaf(boolean leaf) {
-        this.leaf = leaf;
     }
 
 }
