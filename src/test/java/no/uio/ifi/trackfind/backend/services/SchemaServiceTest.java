@@ -20,12 +20,12 @@ public class SchemaServiceTest {
             "{\n" +
                     "  \"experiments\": [\n" +
                     "    \"'@schema'\",\n" +
-                    "    \"'technique'->'term_iri'\",\n" +
                     "    \"'aggregated_from'\",\n" +
                     "    \"'sample_ref'\",\n" +
-                    "    \"'target'->'term_iri'\",\n" +
+                    "    \"'target'->'term_url'\",\n" +
                     "    \"'study_ref'\",\n" +
                     "    \"'global_id'\",\n" +
+                    "    \"'technique'->'term_url'\",\n" +
                     "    \"'target'->'term_value'\",\n" +
                     "    \"'compute_protocol_description'\",\n" +
                     "    \"'technique'->'term_value'\",\n" +
@@ -44,27 +44,27 @@ public class SchemaServiceTest {
                     "  ],\n" +
                     "  \"samples\": [\n" +
                     "    \"'@schema'\",\n" +
-                    "    \"'tissue_type'->'term_iri'\",\n" +
+                    "    \"'sample_type'->'term_url'\",\n" +
                     "    \"'biomaterial_type'\",\n" +
-                    "    \"'sample_type'->'term_iri'\",\n" +
                     "    \"'phenotype'->'term_value'\",\n" +
                     "    \"'tissue_type'->'term_value'\",\n" +
-                    "    \"'phenotype'->'term_iri'\",\n" +
+                    "    \"'phenotype'->'term_url'\",\n" +
                     "    \"'sample_type'->'term_value'\",\n" +
                     "    \"'global_id'\",\n" +
+                    "    \"'tissue_type'->'term_url'\",\n" +
                     "    \"'local_id'\"\n" +
                     "  ],\n" +
                     "  \"tracks\": [\n" +
-                    "    \"'file_format'->'term_iri'\",\n" +
+                    "    \"'content_type'->'term_url'\",\n" +
                     "    \"'genome_assembly'\",\n" +
                     "    \"'experiment_ref'\",\n" +
+                    "    \"'file_format'->'term_url'\",\n" +
                     "    \"'checksum'->'cs_hash'\",\n" +
                     "    \"'checksum'->'cs_method'\",\n" +
                     "    \"'local_id'\",\n" +
                     "    \"'file_format'->'term_value'\",\n" +
+                    "    \"'file_url'\",\n" +
                     "    \"'@schema'\",\n" +
-                    "    \"'file_iri'\",\n" +
-                    "    \"'content_type'->'term_iri'\",\n" +
                     "    \"'label_long'\",\n" +
                     "    \"'file_name'\",\n" +
                     "    \"'global_id'\",\n" +
