@@ -8,8 +8,8 @@
     "non_standard_samples",
     "experiments",
     "studies",
-    "samples",
-    "tracks"
+    "tracks",
+    "samples"
   ],
   "properties": {
     "non_standard_samples": {
@@ -31,7 +31,7 @@
           "title": "The Phenotype Schema",
           "required": [
             "term_value",
-            "term_iri"
+            "term_url"
           ],
           "properties": {
             "term_value": {
@@ -49,12 +49,12 @@
                 "pattern": "^(.*)$"
               }
             },
-            "term_iri": {
-              "$id": "#/properties/non_standard_samples/properties/phenotype/properties/term_iri",
+            "term_url": {
+              "$id": "#/properties/non_standard_samples/properties/phenotype/properties/term_url",
               "type": "array",
-              "title": "The Term_iri Schema",
+              "title": "The Term_url Schema",
               "items": {
-                "$id": "#/properties/non_standard_samples/properties/phenotype/properties/term_iri/items",
+                "$id": "#/properties/non_standard_samples/properties/phenotype/properties/term_url/items",
                 "type": "string",
                 "title": "The Items Schema",
                 "default": "",
@@ -117,7 +117,7 @@
           "title": "The Tissue_type Schema",
           "required": [
             "term_value",
-            "term_iri"
+            "term_url"
           ],
           "properties": {
             "term_value": {
@@ -135,12 +135,12 @@
                 "pattern": "^(.*)$"
               }
             },
-            "term_iri": {
-              "$id": "#/properties/non_standard_samples/properties/tissue_type/properties/term_iri",
+            "term_url": {
+              "$id": "#/properties/non_standard_samples/properties/tissue_type/properties/term_url",
               "type": "array",
-              "title": "The Term_iri Schema",
+              "title": "The Term_url Schema",
               "items": {
-                "$id": "#/properties/non_standard_samples/properties/tissue_type/properties/term_iri/items",
+                "$id": "#/properties/non_standard_samples/properties/tissue_type/properties/term_url/items",
                 "type": "string",
                 "title": "The Items Schema",
                 "default": "",
@@ -158,7 +158,7 @@
           "title": "The Sample_type Schema",
           "required": [
             "term_value",
-            "term_iri"
+            "term_url"
           ],
           "properties": {
             "term_value": {
@@ -176,12 +176,12 @@
                 "pattern": "^(.*)$"
               }
             },
-            "term_iri": {
-              "$id": "#/properties/non_standard_samples/properties/sample_type/properties/term_iri",
+            "term_url": {
+              "$id": "#/properties/non_standard_samples/properties/sample_type/properties/term_url",
               "type": "array",
-              "title": "The Term_iri Schema",
+              "title": "The Term_url Schema",
               "items": {
-                "$id": "#/properties/non_standard_samples/properties/sample_type/properties/term_iri/items",
+                "$id": "#/properties/non_standard_samples/properties/sample_type/properties/term_url/items",
                 "type": "string",
                 "title": "The Items Schema",
                 "default": "",
@@ -291,7 +291,7 @@
           "title": "The Technique Schema",
           "required": [
             "term_value",
-            "term_iri"
+            "term_url"
           ],
           "properties": {
             "term_value": {
@@ -309,12 +309,12 @@
                 "pattern": "^(.*)$"
               }
             },
-            "term_iri": {
-              "$id": "#/properties/experiments/properties/technique/properties/term_iri",
+            "term_url": {
+              "$id": "#/properties/experiments/properties/technique/properties/term_url",
               "type": "array",
-              "title": "The Term_iri Schema",
+              "title": "The Term_url Schema",
               "items": {
-                "$id": "#/properties/experiments/properties/technique/properties/term_iri/items",
+                "$id": "#/properties/experiments/properties/technique/properties/term_url/items",
                 "type": "string",
                 "title": "The Items Schema",
                 "default": "",
@@ -347,7 +347,7 @@
           "title": "The Target Schema",
           "required": [
             "term_value",
-            "term_iri"
+            "term_url"
           ],
           "properties": {
             "term_value": {
@@ -365,12 +365,12 @@
                 "pattern": "^(.*)$"
               }
             },
-            "term_iri": {
-              "$id": "#/properties/experiments/properties/target/properties/term_iri",
+            "term_url": {
+              "$id": "#/properties/experiments/properties/target/properties/term_url",
               "type": "array",
-              "title": "The Term_iri Schema",
+              "title": "The Term_url Schema",
               "items": {
-                "$id": "#/properties/experiments/properties/target/properties/term_iri/items",
+                "$id": "#/properties/experiments/properties/target/properties/term_url/items",
                 "type": "string",
                 "title": "The Items Schema",
                 "default": "",
@@ -515,195 +515,12 @@
         }
       }
     },
-    "samples": {
-      "$id": "#/properties/samples",
-      "type": "object",
-      "title": "The Samples Schema",
-      "required": [
-        "phenotype",
-        "local_id",
-        "global_id",
-        "biomaterial_type",
-        "tissue_type",
-        "sample_type"
-      ],
-      "properties": {
-        "phenotype": {
-          "$id": "#/properties/samples/properties/phenotype",
-          "type": "object",
-          "title": "The Phenotype Schema",
-          "required": [
-            "term_value",
-            "term_iri"
-          ],
-          "properties": {
-            "term_value": {
-              "$id": "#/properties/samples/properties/phenotype/properties/term_value",
-              "type": "array",
-              "title": "The Term_value Schema",
-              "items": {
-                "$id": "#/properties/samples/properties/phenotype/properties/term_value/items",
-                "type": "string",
-                "title": "The Items Schema",
-                "default": "",
-                "examples": [
-                  "normal"
-                ],
-                "pattern": "^(.*)$"
-              }
-            },
-            "term_iri": {
-              "$id": "#/properties/samples/properties/phenotype/properties/term_iri",
-              "type": "array",
-              "title": "The Term_iri Schema",
-              "items": {
-                "$id": "#/properties/samples/properties/phenotype/properties/term_iri/items",
-                "type": "string",
-                "title": "The Items Schema",
-                "default": "",
-                "examples": [
-                  "http://purl.obolibrary.org/obo/PATO_0000461"
-                ],
-                "pattern": "^(.*)$"
-              }
-            }
-          }
-        },
-        "local_id": {
-          "$id": "#/properties/samples/properties/local_id",
-          "type": "array",
-          "title": "The Local_id Schema",
-          "items": {
-            "$id": "#/properties/samples/properties/local_id/items",
-            "type": "string",
-            "title": "The Items Schema",
-            "default": "",
-            "examples": [
-              "GEO:GSM945229"
-            ],
-            "pattern": "^(.*)$"
-          }
-        },
-        "global_id": {
-          "$id": "#/properties/samples/properties/global_id",
-          "type": "array",
-          "title": "The Global_id Schema",
-          "items": {
-            "$id": "#/properties/samples/properties/global_id/items",
-            "type": "string",
-            "title": "The Items Schema",
-            "default": "",
-            "examples": [
-              "biosample:SAMN01731491"
-            ],
-            "pattern": "^(.*)$"
-          }
-        },
-        "biomaterial_type": {
-          "$id": "#/properties/samples/properties/biomaterial_type",
-          "type": "array",
-          "title": "The Biomaterial_type Schema",
-          "items": {
-            "$id": "#/properties/samples/properties/biomaterial_type/items",
-            "type": "string",
-            "title": "The Items Schema",
-            "default": "",
-            "examples": [
-              "primary cell"
-            ],
-            "pattern": "^(.*)$"
-          }
-        },
-        "tissue_type": {
-          "$id": "#/properties/samples/properties/tissue_type",
-          "type": "object",
-          "title": "The Tissue_type Schema",
-          "required": [
-            "term_value",
-            "term_iri"
-          ],
-          "properties": {
-            "term_value": {
-              "$id": "#/properties/samples/properties/tissue_type/properties/term_value",
-              "type": "array",
-              "title": "The Term_value Schema",
-              "items": {
-                "$id": "#/properties/samples/properties/tissue_type/properties/term_value/items",
-                "type": "string",
-                "title": "The Items Schema",
-                "default": "",
-                "examples": [
-                  "embryonic stem cell"
-                ],
-                "pattern": "^(.*)$"
-              }
-            },
-            "term_iri": {
-              "$id": "#/properties/samples/properties/tissue_type/properties/term_iri",
-              "type": "array",
-              "title": "The Term_iri Schema",
-              "items": {
-                "$id": "#/properties/samples/properties/tissue_type/properties/term_iri/items",
-                "type": "string",
-                "title": "The Items Schema",
-                "default": "",
-                "examples": [
-                  "http://purl.obolibrary.org/obo/CL_0002322"
-                ],
-                "pattern": "^(.*)$"
-              }
-            }
-          }
-        },
-        "sample_type": {
-          "$id": "#/properties/samples/properties/sample_type",
-          "type": "object",
-          "title": "The Sample_type Schema",
-          "required": [
-            "term_value",
-            "term_iri"
-          ],
-          "properties": {
-            "term_value": {
-              "$id": "#/properties/samples/properties/sample_type/properties/term_value",
-              "type": "array",
-              "title": "The Term_value Schema",
-              "items": {
-                "$id": "#/properties/samples/properties/sample_type/properties/term_value/items",
-                "type": "string",
-                "title": "The Items Schema",
-                "default": "",
-                "examples": [
-                  "H1-hESC"
-                ],
-                "pattern": "^(.*)$"
-              }
-            },
-            "term_iri": {
-              "$id": "#/properties/samples/properties/sample_type/properties/term_iri",
-              "type": "array",
-              "title": "The Term_iri Schema",
-              "items": {
-                "$id": "#/properties/samples/properties/sample_type/properties/term_iri/items",
-                "type": "string",
-                "title": "The Items Schema",
-                "default": "",
-                "examples": [
-                  "http://purl.obolibrary.org/obo/CL_0000236"
-                ],
-                "pattern": "^(.*)$"
-              }
-            }
-          }
-        }
-      }
-    },
     "tracks": {
       "$id": "#/properties/tracks",
       "type": "object",
       "title": "The Tracks Schema",
       "required": [
-        "file_iri",
+        "file_url",
         "content_type",
         "local_id",
         "file_name",
@@ -716,12 +533,12 @@
         "experiment_ref"
       ],
       "properties": {
-        "file_iri": {
-          "$id": "#/properties/tracks/properties/file_iri",
+        "file_url": {
+          "$id": "#/properties/tracks/properties/file_url",
           "type": "array",
-          "title": "The File_iri Schema",
+          "title": "The File_url Schema",
           "items": {
-            "$id": "#/properties/tracks/properties/file_iri/items",
+            "$id": "#/properties/tracks/properties/file_url/items",
             "type": "string",
             "title": "The Items Schema",
             "default": "",
@@ -740,7 +557,7 @@
           "title": "The Content_type Schema",
           "required": [
             "term_value",
-            "term_iri"
+            "term_url"
           ],
           "properties": {
             "term_value": {
@@ -758,12 +575,12 @@
                 "pattern": "^(.*)$"
               }
             },
-            "term_iri": {
-              "$id": "#/properties/tracks/properties/content_type/properties/term_iri",
+            "term_url": {
+              "$id": "#/properties/tracks/properties/content_type/properties/term_url",
               "type": "array",
-              "title": "The Term_iri Schema",
+              "title": "The Term_url Schema",
               "items": {
-                "$id": "#/properties/tracks/properties/content_type/properties/term_iri/items",
+                "$id": "#/properties/tracks/properties/content_type/properties/term_url/items",
                 "type": "string",
                 "title": "The Items Schema",
                 "default": "",
@@ -930,7 +747,7 @@
           "title": "The File_format Schema",
           "required": [
             "term_value",
-            "term_iri"
+            "term_url"
           ],
           "properties": {
             "term_value": {
@@ -950,12 +767,12 @@
                 "pattern": "^(.*)$"
               }
             },
-            "term_iri": {
-              "$id": "#/properties/tracks/properties/file_format/properties/term_iri",
+            "term_url": {
+              "$id": "#/properties/tracks/properties/file_format/properties/term_url",
               "type": "array",
-              "title": "The Term_iri Schema",
+              "title": "The Term_url Schema",
               "items": {
-                "$id": "#/properties/tracks/properties/file_format/properties/term_iri/items",
+                "$id": "#/properties/tracks/properties/file_format/properties/term_url/items",
                 "type": "string",
                 "title": "The Items Schema",
                 "default": "",
@@ -982,6 +799,189 @@
               "encode:ENCSR000DQP"
             ],
             "pattern": "^(.*)$"
+          }
+        }
+      }
+    },
+    "samples": {
+      "$id": "#/properties/samples",
+      "type": "object",
+      "title": "The Samples Schema",
+      "required": [
+        "phenotype",
+        "local_id",
+        "global_id",
+        "biomaterial_type",
+        "tissue_type",
+        "sample_type"
+      ],
+      "properties": {
+        "phenotype": {
+          "$id": "#/properties/samples/properties/phenotype",
+          "type": "object",
+          "title": "The Phenotype Schema",
+          "required": [
+            "term_value",
+            "term_url"
+          ],
+          "properties": {
+            "term_value": {
+              "$id": "#/properties/samples/properties/phenotype/properties/term_value",
+              "type": "array",
+              "title": "The Term_value Schema",
+              "items": {
+                "$id": "#/properties/samples/properties/phenotype/properties/term_value/items",
+                "type": "string",
+                "title": "The Items Schema",
+                "default": "",
+                "examples": [
+                  "normal"
+                ],
+                "pattern": "^(.*)$"
+              }
+            },
+            "term_url": {
+              "$id": "#/properties/samples/properties/phenotype/properties/term_url",
+              "type": "array",
+              "title": "The Term_url Schema",
+              "items": {
+                "$id": "#/properties/samples/properties/phenotype/properties/term_url/items",
+                "type": "string",
+                "title": "The Items Schema",
+                "default": "",
+                "examples": [
+                  "http://purl.obolibrary.org/obo/PATO_0000461"
+                ],
+                "pattern": "^(.*)$"
+              }
+            }
+          }
+        },
+        "local_id": {
+          "$id": "#/properties/samples/properties/local_id",
+          "type": "array",
+          "title": "The Local_id Schema",
+          "items": {
+            "$id": "#/properties/samples/properties/local_id/items",
+            "type": "string",
+            "title": "The Items Schema",
+            "default": "",
+            "examples": [
+              "GEO:GSM945229"
+            ],
+            "pattern": "^(.*)$"
+          }
+        },
+        "global_id": {
+          "$id": "#/properties/samples/properties/global_id",
+          "type": "array",
+          "title": "The Global_id Schema",
+          "items": {
+            "$id": "#/properties/samples/properties/global_id/items",
+            "type": "string",
+            "title": "The Items Schema",
+            "default": "",
+            "examples": [
+              "biosample:SAMN01731491"
+            ],
+            "pattern": "^(.*)$"
+          }
+        },
+        "biomaterial_type": {
+          "$id": "#/properties/samples/properties/biomaterial_type",
+          "type": "array",
+          "title": "The Biomaterial_type Schema",
+          "items": {
+            "$id": "#/properties/samples/properties/biomaterial_type/items",
+            "type": "string",
+            "title": "The Items Schema",
+            "default": "",
+            "examples": [
+              "primary cell"
+            ],
+            "pattern": "^(.*)$"
+          }
+        },
+        "tissue_type": {
+          "$id": "#/properties/samples/properties/tissue_type",
+          "type": "object",
+          "title": "The Tissue_type Schema",
+          "required": [
+            "term_value",
+            "term_url"
+          ],
+          "properties": {
+            "term_value": {
+              "$id": "#/properties/samples/properties/tissue_type/properties/term_value",
+              "type": "array",
+              "title": "The Term_value Schema",
+              "items": {
+                "$id": "#/properties/samples/properties/tissue_type/properties/term_value/items",
+                "type": "string",
+                "title": "The Items Schema",
+                "default": "",
+                "examples": [
+                  "embryonic stem cell"
+                ],
+                "pattern": "^(.*)$"
+              }
+            },
+            "term_url": {
+              "$id": "#/properties/samples/properties/tissue_type/properties/term_url",
+              "type": "array",
+              "title": "The Term_url Schema",
+              "items": {
+                "$id": "#/properties/samples/properties/tissue_type/properties/term_url/items",
+                "type": "string",
+                "title": "The Items Schema",
+                "default": "",
+                "examples": [
+                  "http://purl.obolibrary.org/obo/CL_0002322"
+                ],
+                "pattern": "^(.*)$"
+              }
+            }
+          }
+        },
+        "sample_type": {
+          "$id": "#/properties/samples/properties/sample_type",
+          "type": "object",
+          "title": "The Sample_type Schema",
+          "required": [
+            "term_value",
+            "term_url"
+          ],
+          "properties": {
+            "term_value": {
+              "$id": "#/properties/samples/properties/sample_type/properties/term_value",
+              "type": "array",
+              "title": "The Term_value Schema",
+              "items": {
+                "$id": "#/properties/samples/properties/sample_type/properties/term_value/items",
+                "type": "string",
+                "title": "The Items Schema",
+                "default": "",
+                "examples": [
+                  "H1-hESC"
+                ],
+                "pattern": "^(.*)$"
+              }
+            },
+            "term_url": {
+              "$id": "#/properties/samples/properties/sample_type/properties/term_url",
+              "type": "array",
+              "title": "The Term_url Schema",
+              "items": {
+                "$id": "#/properties/samples/properties/sample_type/properties/term_url/items",
+                "type": "string",
+                "title": "The Items Schema",
+                "default": "",
+                "examples": [
+                  "http://purl.obolibrary.org/obo/CL_0000236"
+                ],
+                "pattern": "^(.*)$"
+              }
+            }
           }
         }
       }

@@ -54,14 +54,14 @@
             "type": "object",
             "title": "The Phenotype Schema",
             "required": [
-              "term_iri",
+              "term_url",
               "term_value"
             ],
             "properties": {
-              "term_iri": {
-                "$id": "#/items/properties/non_standard_samples/properties/phenotype/properties/term_iri",
+              "term_url": {
+                "$id": "#/items/properties/non_standard_samples/properties/phenotype/properties/term_url",
                 "type": "string",
-                "title": "The Term_iri Schema",
+                "title": "The Term_url Schema",
                 "default": "",
                 "examples": [
                   "http://purl.obolibrary.org/obo/PATO_0000461"
@@ -85,14 +85,14 @@
             "type": "object",
             "title": "The Sample_type Schema",
             "required": [
-              "term_iri",
+              "term_url",
               "term_value"
             ],
             "properties": {
-              "term_iri": {
-                "$id": "#/items/properties/non_standard_samples/properties/sample_type/properties/term_iri",
+              "term_url": {
+                "$id": "#/items/properties/non_standard_samples/properties/sample_type/properties/term_url",
                 "type": "string",
-                "title": "The Term_iri Schema",
+                "title": "The Term_url Schema",
                 "default": "",
                 "examples": [
                   "http://purl.obolibrary.org/obo/CL_0000236"
@@ -116,14 +116,14 @@
             "type": "object",
             "title": "The Tissue_type Schema",
             "required": [
-              "term_iri",
+              "term_url",
               "term_value"
             ],
             "properties": {
-              "term_iri": {
-                "$id": "#/items/properties/non_standard_samples/properties/tissue_type/properties/term_iri",
+              "term_url": {
+                "$id": "#/items/properties/non_standard_samples/properties/tissue_type/properties/term_url",
                 "type": "string",
-                "title": "The Term_iri Schema",
+                "title": "The Term_url Schema",
                 "default": "",
                 "examples": [
                   "http://purl.obolibrary.org/obo/CL_0002322"
@@ -175,14 +175,14 @@
             "type": "object",
             "title": "The Target Schema",
             "required": [
-              "term_iri",
+              "term_url",
               "term_value"
             ],
             "properties": {
-              "term_iri": {
-                "$id": "#/items/properties/experiments/properties/target/properties/term_iri",
+              "term_url": {
+                "$id": "#/items/properties/experiments/properties/target/properties/term_url",
                 "type": "string",
-                "title": "The Term_iri Schema",
+                "title": "The Term_url Schema",
                 "default": "",
                 "examples": [
                   "http://purl.obolibrary.org/obo/SO_0001706"
@@ -236,14 +236,14 @@
             "type": "object",
             "title": "The Technique Schema",
             "required": [
-              "term_iri",
+              "term_url",
               "term_value"
             ],
             "properties": {
-              "term_iri": {
-                "$id": "#/items/properties/experiments/properties/technique/properties/term_iri",
+              "term_url": {
+                "$id": "#/items/properties/experiments/properties/technique/properties/term_url",
                 "type": "string",
-                "title": "The Term_iri Schema",
+                "title": "The Term_url Schema",
                 "default": "",
                 "examples": [
                   "http://purl.obolibrary.org/obo/OBI_0000716"
@@ -401,7 +401,7 @@
         "title": "The Tracks Schema",
         "required": [
           "checksum",
-          "file_iri",
+          "file_url",
           "local_id",
           "file_name",
           "global_id",
@@ -444,10 +444,10 @@
               }
             }
           },
-          "file_iri": {
-            "$id": "#/items/properties/tracks/properties/file_iri",
+          "file_url": {
+            "$id": "#/items/properties/tracks/properties/file_url",
             "type": "string",
-            "title": "The File_iri Schema",
+            "title": "The File_url Schema",
             "default": "",
             "examples": [
               "https://www.encodeproject.org/files/ENCFF625ZYB/@@download/ENCFF625ZYB.bed.gz"
@@ -499,14 +499,14 @@
             "type": "object",
             "title": "The File_format Schema",
             "required": [
-              "term_iri",
+              "term_url",
               "term_value"
             ],
             "properties": {
-              "term_iri": {
-                "$id": "#/items/properties/tracks/properties/file_format/properties/term_iri",
+              "term_url": {
+                "$id": "#/items/properties/tracks/properties/file_format/properties/term_url",
                 "type": "string",
-                "title": "The Term_iri Schema",
+                "title": "The Term_url Schema",
                 "default": "",
                 "examples": [
                   "http://edamontology.org/format_3613"
@@ -540,14 +540,14 @@
             "type": "object",
             "title": "The Content_type Schema",
             "required": [
-              "term_iri",
+              "term_url",
               "term_value"
             ],
             "properties": {
-              "term_iri": {
-                "$id": "#/items/properties/tracks/properties/content_type/properties/term_iri",
+              "term_url": {
+                "$id": "#/items/properties/tracks/properties/content_type/properties/term_url",
                 "type": "string",
-                "title": "The Term_iri Schema",
+                "title": "The Term_url Schema",
                 "default": "",
                 "examples": [
                   "http://edamontology.org/data_3002"
@@ -626,14 +626,14 @@
             "type": "object",
             "title": "The Phenotype Schema",
             "required": [
-              "term_iri",
+              "term_url",
               "term_value"
             ],
             "properties": {
-              "term_iri": {
-                "$id": "#/items/properties/samples/properties/phenotype/properties/term_iri",
+              "term_url": {
+                "$id": "#/items/properties/samples/properties/phenotype/properties/term_url",
                 "type": "string",
-                "title": "The Term_iri Schema",
+                "title": "The Term_url Schema",
                 "default": "",
                 "examples": [
                   "http://purl.obolibrary.org/obo/PATO_0000461"
@@ -657,14 +657,14 @@
             "type": "object",
             "title": "The Sample_type Schema",
             "required": [
-              "term_iri",
+              "term_url",
               "term_value"
             ],
             "properties": {
-              "term_iri": {
-                "$id": "#/items/properties/samples/properties/sample_type/properties/term_iri",
+              "term_url": {
+                "$id": "#/items/properties/samples/properties/sample_type/properties/term_url",
                 "type": "string",
-                "title": "The Term_iri Schema",
+                "title": "The Term_url Schema",
                 "default": "",
                 "examples": [
                   "http://purl.obolibrary.org/obo/CL_0000236"
@@ -688,14 +688,14 @@
             "type": "object",
             "title": "The Tissue_type Schema",
             "required": [
-              "term_iri",
+              "term_url",
               "term_value"
             ],
             "properties": {
-              "term_iri": {
-                "$id": "#/items/properties/samples/properties/tissue_type/properties/term_iri",
+              "term_url": {
+                "$id": "#/items/properties/samples/properties/tissue_type/properties/term_url",
                 "type": "string",
-                "title": "The Term_iri Schema",
+                "title": "The Term_url Schema",
                 "default": "",
                 "examples": [
                   "http://purl.obolibrary.org/obo/CL_0002322"

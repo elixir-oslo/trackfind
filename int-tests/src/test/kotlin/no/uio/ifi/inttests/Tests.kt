@@ -70,7 +70,7 @@ class Tests {
                 "",
                 hasItems(
                     "term_value",
-                    "term_iri"
+                    "term_url"
                 )
             )
     }
