@@ -18,6 +18,11 @@ public class SchemaServiceTest {
 
     public static final String ATTRIBUTES =
             "{\n" +
+                    "  \"doc_info\": [\n" +
+                    "    \"'doc_url'\",\n" +
+                    "    \"'doc_date'\",\n" +
+                    "    \"'doc_version'\"\n" +
+                    "  ],\n" +
                     "  \"experiments\": [\n" +
                     "    \"'@schema'\",\n" +
                     "    \"'aggregated_from'\",\n" +
@@ -56,8 +61,8 @@ public class SchemaServiceTest {
                     "  ],\n" +
                     "  \"tracks\": [\n" +
                     "    \"'content_type'->'term_url'\",\n" +
-                    "    \"'genome_assembly'\",\n" +
                     "    \"'experiment_ref'\",\n" +
+                    "    \"'genome_assembly'\",\n" +
                     "    \"'file_format'->'term_url'\",\n" +
                     "    \"'checksum'->'cs_hash'\",\n" +
                     "    \"'checksum'->'cs_method'\",\n" +
@@ -69,7 +74,19 @@ public class SchemaServiceTest {
                     "    \"'file_name'\",\n" +
                     "    \"'global_id'\",\n" +
                     "    \"'label_short'\",\n" +
+                    "    \"'raw_file_ids'\",\n" +
                     "    \"'content_type'->'term_value'\"\n" +
+                    "  ],\n" +
+                    "  \"collection_info\": [\n" +
+                    "    \"'orig_metadata_url'\",\n" +
+                    "    \"'contact'->'e-mail'\",\n" +
+                    "    \"'description_url'->'source_repo'->'local_id'\",\n" +
+                    "    \"'contact'->'orcid'\",\n" +
+                    "    \"'contact'->'name'\",\n" +
+                    "    \"'long_name'\",\n" +
+                    "    \"'description_url'->'source_repo'->'repo_url'\",\n" +
+                    "    \"'short_name'\",\n" +
+                    "    \"'description_url'\"\n" +
                     "  ]\n" +
                     "}";
 
