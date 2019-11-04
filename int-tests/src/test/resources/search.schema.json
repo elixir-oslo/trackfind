@@ -165,7 +165,6 @@
           "study_ref",
           "technique",
           "sample_ref",
-          "aggregated_from",
           "lab_protocol_description",
           "compute_protocol_description"
         ],
@@ -272,11 +271,6 @@
             ],
             "pattern": "^(.*)$"
           },
-          "aggregated_from": {
-            "$id": "#/items/properties/experiments/properties/aggregated_from",
-            "type": "array",
-            "title": "The Aggregated_from Schema"
-          },
           "lab_protocol_description": {
             "$id": "#/items/properties/experiments/properties/lab_protocol_description",
             "type": "string",
@@ -317,7 +311,6 @@
             "title": "The Contact Schema",
             "required": [
               "name",
-              "orcid",
               "e-mail"
             ],
             "properties": {
@@ -328,16 +321,6 @@
                 "default": "",
                 "examples": [
                   "ENCODE DCC"
-                ],
-                "pattern": "^(.*)$"
-              },
-              "orcid": {
-                "$id": "#/items/properties/studies/properties/contact/properties/orcid",
-                "type": "string",
-                "title": "The Orcid Schema",
-                "default": "",
-                "examples": [
-                  "0000-0000-0000-0000"
                 ],
                 "pattern": "^(.*)$"
               },
@@ -409,6 +392,7 @@
           "file_format",
           "label_short",
           "content_type",
+          "raw_file_ids",
           "experiment_ref",
           "genome_assembly"
         ],
@@ -564,6 +548,22 @@
                 ],
                 "pattern": "^(.*)$"
               }
+            }
+          },
+          "raw_file_ids": {
+            "$id": "#/items/properties/tracks/properties/raw_file_ids",
+            "type": "array",
+            "title": "The Raw_file_ids Schema",
+            "items": {
+              "$id": "#/items/properties/tracks/properties/raw_file_ids/items",
+              "type": "string",
+              "title": "The Items Schema",
+              "default": "",
+              "examples": [
+                "encode: ENCFF207FGO",
+                "encode:ENCFF842FEQ"
+              ],
+              "pattern": "^(.*)$"
             }
           },
           "experiment_ref": {

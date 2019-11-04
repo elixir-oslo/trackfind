@@ -78,13 +78,13 @@ public class SchemaServiceTest {
                     "    \"'content_type'->'term_value'\"\n" +
                     "  ],\n" +
                     "  \"collection_info\": [\n" +
+                    "    \"'source_repo'->'local_id'\",\n" +
                     "    \"'orig_metadata_url'\",\n" +
                     "    \"'contact'->'e-mail'\",\n" +
-                    "    \"'description_url'->'source_repo'->'local_id'\",\n" +
+                    "    \"'source_repo'->'repo_url'\",\n" +
                     "    \"'contact'->'orcid'\",\n" +
                     "    \"'contact'->'name'\",\n" +
                     "    \"'long_name'\",\n" +
-                    "    \"'description_url'->'source_repo'->'repo_url'\",\n" +
                     "    \"'short_name'\",\n" +
                     "    \"'description_url'\"\n" +
                     "  ]\n" +
