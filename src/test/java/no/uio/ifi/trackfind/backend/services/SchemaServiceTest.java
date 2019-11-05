@@ -56,6 +56,7 @@ public class SchemaServiceTest {
                     "    \"'phenotype'->'term_url'\",\n" +
                     "    \"'sample_type'->'term_value'\",\n" +
                     "    \"'global_id'\",\n" +
+                    "    \"'phenotype'->'@schema'\",\n" +
                     "    \"'tissue_type'->'term_url'\",\n" +
                     "    \"'local_id'\"\n" +
                     "  ],\n" +
