@@ -29,7 +29,7 @@ public class BlueprintHubInitializer implements ApplicationListener<ApplicationR
         String name = blueprintDataProvider.getName();
         Collection<TfHub> trackHubs = trackFindService.getTrackHubs(name, true);
         if (CollectionUtils.isEmpty(trackHubs)) {
-            trackFindService.activateHubs(Collections.singleton(new TfHub(name, name, blueprintDataProvider.getFetchURI())));
+            trackFindService.activateHubs(Collections.singleton(new TfHub(name, name, blueprintDataProvider.getFetchURI(name))));
             blueprintDataProvider.crawlRemoteRepository(name);
             Collection<TfObjectType> objectTypes = metamodelService.getObjectTypes(name, name);
             TfObjectType experiments = objectTypes.stream().filter(ot -> ot.getName().equalsIgnoreCase("experiments")).findAny().orElseThrow(RuntimeException::new);

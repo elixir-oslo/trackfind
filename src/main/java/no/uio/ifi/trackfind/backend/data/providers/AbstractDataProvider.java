@@ -73,7 +73,7 @@ public abstract class AbstractDataProvider implements DataProvider {
      */
     @Override
     public Collection<TfHub> getAllTrackHubs() {
-        return Collections.singleton(new TfHub(getName(), getName(), getFetchURI()));
+        return Collections.singleton(new TfHub(getName(), getName(), getFetchURI(null)));
     }
 
     /**

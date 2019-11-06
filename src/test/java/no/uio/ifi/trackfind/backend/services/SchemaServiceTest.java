@@ -18,11 +18,6 @@ public class SchemaServiceTest {
 
     public static final String ATTRIBUTES =
             "{\n" +
-                    "  \"doc_info\": [\n" +
-                    "    \"'doc_url'\",\n" +
-                    "    \"'doc_date'\",\n" +
-                    "    \"'doc_version'\"\n" +
-                    "  ],\n" +
                     "  \"experiments\": [\n" +
                     "    \"'@schema'\",\n" +
                     "    \"'aggregated_from'\",\n" +
@@ -77,17 +72,6 @@ public class SchemaServiceTest {
                     "    \"'label_short'\",\n" +
                     "    \"'raw_file_ids'\",\n" +
                     "    \"'content_type'->'term_value'\"\n" +
-                    "  ],\n" +
-                    "  \"collection_info\": [\n" +
-                    "    \"'source_repo'->'local_id'\",\n" +
-                    "    \"'orig_metadata_url'\",\n" +
-                    "    \"'contact'->'e-mail'\",\n" +
-                    "    \"'source_repo'->'repo_url'\",\n" +
-                    "    \"'contact'->'orcid'\",\n" +
-                    "    \"'contact'->'name'\",\n" +
-                    "    \"'long_name'\",\n" +
-                    "    \"'short_name'\",\n" +
-                    "    \"'description_url'\"\n" +
                     "  ]\n" +
                     "}";
 

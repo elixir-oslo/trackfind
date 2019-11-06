@@ -2,6 +2,7 @@ package no.uio.ifi.trackfind.backend.data.providers.trackhub;
 
 import com.google.common.collect.HashMultimap;
 import lombok.extern.slf4j.Slf4j;
+import no.uio.ifi.fairfiller.FairFiller;
 import no.uio.ifi.trackfind.backend.data.providers.AbstractDataProvider;
 import no.uio.ifi.trackfind.backend.pojo.TfHub;
 import org.apache.commons.collections.CollectionUtils;
@@ -29,7 +30,8 @@ import java.util.stream.Collectors;
 @Transactional
 public class TrackHubRegistryDataProvider extends AbstractDataProvider {
 
-    private static final String HUBS_URL = "https://www.trackhubregistry.org/api/info/trackhubs";
+    //    private static final String HUBS_URL = "https://www.trackhubregistry.org/api/info/trackhubs";
+    private static final String HUBS_URL = "http://www-test.trackhubregistry.org/api/info/trackhubs";
 
     @Cacheable(value = "thr-hubs", key = "#root.method.name", sync = true)
     @SuppressWarnings("unchecked")
@@ -59,8 +61,8 @@ public class TrackHubRegistryDataProvider extends AbstractDataProvider {
      * {@inheritDoc}
      */
     @Override
-    public String getFetchURI() {
-        return "https://www.trackhubregistry.org/api/search/trackdb/";
+    public String getFetchURI(String hubName) {
+        return hubRepository.findByRepositoryAndName(getName(), hubName).getUri();
     }
 
     /**
@@ -69,9 +71,9 @@ public class TrackHubRegistryDataProvider extends AbstractDataProvider {
     @SuppressWarnings("unchecked")
     @Override
     protected void fetchData(String hubName) {
-        String hubURI = getFetchURI() + StringUtils.substringBetween(hubName, "(", ")");
-        HashMultimap<String, String> mapToSave = HashMultimap.create();
+        String hubURI = getFetchURI(hubName);
         log.info("Fetch URL {}", hubURI);
+        HashMultimap<String, String> mapToSave = HashMultimap.create();
         try (InputStream inputStream = new URL(hubURI).openStream();
              InputStreamReader reader = new InputStreamReader(inputStream)) {
             Map<String, Object> hub = (Map<String, Object>) gson.fromJson(reader, Map.class);
@@ -84,6 +86,19 @@ public class TrackHubRegistryDataProvider extends AbstractDataProvider {
             if (CollectionUtils.isNotEmpty(trackMaps)) {
                 for (Map<String, Object> trackMap : trackMaps) {
                     mapToSave.put("configuration", gson.toJson(trackMap));
+                }
+            }
+            hub = (Map<String, Object>) source.get("hub");
+            Map<String, Object> fairData = (Map<String, Object>) hub.get("metaFairData");
+            FairFiller fairFiller = new FairFiller();
+            for (String key : fairData.keySet()) {
+                Object value = fairData.get(key);
+                if (value instanceof Collection) {
+                    Collection collection = (Collection) value;
+                    for (Object object : collection) {
+                        fairFiller.fill((Map<String, Object>) object);
+                        mapToSave.put(key, gson.toJson(object));
+                    }
                 }
             }
         } catch (Exception e) {

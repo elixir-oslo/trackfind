@@ -21,9 +21,10 @@ public interface DataProvider {
     /**
      * Gets the URI from where to crawl the data.
      *
+     * @param hubName TfHub name.
      * @return fetch URI.
      */
-    String getFetchURI();
+    String getFetchURI(String hubName);
 
     /**
      * Gets the names of all Track Hubs by this data provider.

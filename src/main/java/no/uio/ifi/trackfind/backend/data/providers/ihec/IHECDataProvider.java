@@ -67,7 +67,7 @@ public class IHECDataProvider extends AbstractDataProvider {
      * {@inheritDoc}
      */
     @Override
-    public String getFetchURI() {
+    public String getFetchURI(String hubName) {
         return "https://epigenomesportal.ca/cgi-bin/api/getDataHub.py?data_release_id=";
     }
 
@@ -98,7 +98,7 @@ public class IHECDataProvider extends AbstractDataProvider {
         HashMultimap<String, String> mapToSave = HashMultimap.create();
         for (int releaseId : releaseIds) {
             executorService.submit(() -> {
-                try (InputStream inputStream = new URL(getFetchURI() + releaseId).openStream();
+                try (InputStream inputStream = new URL(getFetchURI(hubName) + releaseId).openStream();
                      InputStreamReader reader = new InputStreamReader(inputStream)) {
                     Map grid = gson.fromJson(reader, Map.class);
                     Map<String, Map> datasetsMap = MapUtils.getMap(grid, "datasets");

@@ -33,7 +33,7 @@ public class ENCODEDataProvider extends AbstractDataProvider {
      * {@inheritDoc}
      */
     @Override
-    public String getFetchURI() {
+    public String getFetchURI(String hubName) {
         return "https://www.encodeproject.org/search/?type=%s&limit=all&format=json";
     }
 
@@ -47,7 +47,7 @@ public class ENCODEDataProvider extends AbstractDataProvider {
         HashMultimap<String, String> mapToSave = HashMultimap.create();
         for (String type : AVAILABLE_TYPES) {
             executorService.submit(() -> {
-                try (InputStream inputStream = new URL(String.format(getFetchURI(), type)).openStream();
+                try (InputStream inputStream = new URL(String.format(getFetchURI(hubName), type)).openStream();
                      InputStreamReader reader = new InputStreamReader(inputStream)) {
                     log.info("Processing type: {}", type);
                     Map all = gson.fromJson(reader, Map.class);

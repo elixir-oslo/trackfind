@@ -27,7 +27,7 @@ public class BlueprintDataProvider extends AbstractDataProvider {
      * {@inheritDoc}
      */
     @Override
-    public String getFetchURI() {
+    public String getFetchURI(String hubName) {
         return "https://raw.githubusercontent.com/elixir-no-nels/trackfind/master/blueprint.json";
     }
 
@@ -37,7 +37,7 @@ public class BlueprintDataProvider extends AbstractDataProvider {
     @Override
     protected void fetchData(String hubName) {
         HashMultimap<String, String> mapToSave = HashMultimap.create();
-        try (InputStream inputStream = new URL(getFetchURI()).openStream();
+        try (InputStream inputStream = new URL(getFetchURI(hubName)).openStream();
              InputStreamReader reader = new InputStreamReader(inputStream)) {
             Map topMap = gson.fromJson(reader, Map.class);
             for (String category : Arrays.asList("studies", "experiments", "samples", "tracks")) {

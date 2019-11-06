@@ -29,7 +29,7 @@ public class ExampleHubInitializer implements ApplicationListener<ApplicationRea
         String name = exampleDataProvider.getName();
         Collection<TfHub> trackHubs = trackFindService.getTrackHubs(name, true);
         if (CollectionUtils.isEmpty(trackHubs)) {
-            trackFindService.activateHubs(Collections.singleton(new TfHub(name, name, exampleDataProvider.getFetchURI())));
+            trackFindService.activateHubs(Collections.singleton(new TfHub(name, name, exampleDataProvider.getFetchURI(name))));
             exampleDataProvider.crawlRemoteRepository(name);
             Collection<TfObjectType> objectTypes = metamodelService.getObjectTypes(name, name);
             TfObjectType experiments = objectTypes.stream().filter(ot -> ot.getName().equalsIgnoreCase("experiments")).findAny().orElseThrow(RuntimeException::new);

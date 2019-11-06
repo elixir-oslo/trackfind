@@ -35,7 +35,7 @@ public class FANTOMDataProvider extends AbstractDataProvider {
      * {@inheritDoc}
      */
     @Override
-    public String getFetchURI() {
+    public String getFetchURI(String hubName) {
         return "http://fantom.gsc.riken.jp/5/datafiles/latest/basic/";
     }
 
@@ -45,7 +45,7 @@ public class FANTOMDataProvider extends AbstractDataProvider {
     @Override
     protected void fetchData(String hubName) throws Exception {
         log.info("Collecting directories...");
-        String fetchURI = getFetchURI();
+        String fetchURI = getFetchURI(hubName);
         Document root = Jsoup.parse(new URL(fetchURI), 10000);
         Set<String> dirs = root.getElementsByTag("a").parallelStream().map(e -> e.attr("href")).filter(s -> s.contains(".") && s.endsWith("/")).collect(Collectors.toSet());
         int size = dirs.size();

@@ -35,7 +35,7 @@
             "title": "The Local_id Schema",
             "default": "",
             "examples": [
-              "GEO:GSM945229"
+              "geo:GSM945229"
             ],
             "pattern": "^(.*)$"
           },
@@ -64,7 +64,7 @@
                 "title": "The Term_url Schema",
                 "default": "",
                 "examples": [
-                  "http://purl.obolibrary.org/obo/PATO_0000461"
+                  "http://purl.obolibrary.org/obo/NCIT_C14165"
                 ],
                 "pattern": "^(.*)$"
               },
@@ -74,7 +74,7 @@
                 "title": "The Term_value Schema",
                 "default": "",
                 "examples": [
-                  "normal"
+                  "Normal"
                 ],
                 "pattern": "^(.*)$"
               }
@@ -216,7 +216,7 @@
             "title": "The Global_id Schema",
             "default": "",
             "examples": [
-              "GEO:GSE35583"
+              "geo:GSE35583"
             ],
             "pattern": "^(.*)$"
           },
@@ -267,7 +267,7 @@
             "title": "The Sample_ref Schema",
             "default": "",
             "examples": [
-              "GEO:GSM945229"
+              "geo:GSM945229"
             ],
             "pattern": "^(.*)$"
           },
@@ -352,7 +352,7 @@
             "title": "The Global_id Schema",
             "default": "",
             "examples": [
-              "GEO:GSE35583"
+              "geo:GSE35583"
             ],
             "pattern": "^(.*)$"
           },
@@ -372,7 +372,7 @@
             "title": "The Publication Schema",
             "default": "",
             "examples": [
-              "22955617"
+              "pubmed:22955617"
             ],
             "pattern": "^(.*)$"
           }
@@ -607,7 +607,7 @@
             "title": "The Local_id Schema",
             "default": "",
             "examples": [
-              "GEO:GSM945229"
+              "geo:GSM945229"
             ],
             "pattern": "^(.*)$"
           },
@@ -636,7 +636,7 @@
                 "title": "The Term_url Schema",
                 "default": "",
                 "examples": [
-                  "http://purl.obolibrary.org/obo/PATO_0000461"
+                  "http://purl.obolibrary.org/obo/NCIT_C14165"
                 ],
                 "pattern": "^(.*)$"
               },
@@ -646,7 +646,7 @@
                 "title": "The Term_value Schema",
                 "default": "",
                 "examples": [
-                  "normal"
+                  "Normal"
                 ],
                 "pattern": "^(.*)$"
               }

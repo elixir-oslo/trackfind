@@ -17,7 +17,7 @@ class Tests {
     fun setup() {
         RestAssured.baseURI = "http://localhost"
         RestAssured.basePath = "/api/v1"
-        RestAssured.port = 80
+        RestAssured.port = 8080
     }
 
     @Test

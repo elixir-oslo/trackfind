@@ -27,7 +27,8 @@ import java.util.Set;
 @Service
 public class SchemaService {
 
-    public static final String SCHEMA_URL = "https://raw.githubusercontent.com/fairtracks/fairtracks_standard/master/json/schema/fairtracks.schema.json";
+//    public static final String SCHEMA_URL = "https://raw.githubusercontent.com/fairtracks/fairtracks_standard/master/json/schema/fairtracks.schema.json";
+    public static final String SCHEMA_URL = "https://raw.githubusercontent.com/fairtracks/fairtracks_standard/e083bf78928bab0d79327e6b6c2c4c32cfb93c39/json/schema/fairtracks.schema.json";
 
     protected String separator;
 
