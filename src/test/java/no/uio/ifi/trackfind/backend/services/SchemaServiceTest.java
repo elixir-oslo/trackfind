@@ -18,19 +18,34 @@ public class SchemaServiceTest {
 
     public static final String ATTRIBUTES =
             "{\n" +
+                    "  \"doc_info\": [\n" +
+                    "    \"'doc_url'\",\n" +
+                    "    \"'doc_date'\",\n" +
+                    "    \"'doc_version'\"\n" +
+                    "  ],\n" +
                     "  \"experiments\": [\n" +
-                    "    \"'@schema'\",\n" +
                     "    \"'aggregated_from'\",\n" +
-                    "    \"'sample_ref'\",\n" +
-                    "    \"'target'->'term_url'\",\n" +
+                    "    \"'target'->'phenotype'->'@schema'\",\n" +
+                    "    \"'target'->'macromolecular_structure'->'term_label'\",\n" +
+                    "    \"'target'->'gene_product_type'->'term_label'\",\n" +
+                    "    \"'technique'->'term_id'\",\n" +
+                    "    \"'technique'->'term_label'\",\n" +
+                    "    \"'target'->'gene_id'\",\n" +
                     "    \"'study_ref'\",\n" +
-                    "    \"'global_id'\",\n" +
-                    "    \"'technique'->'term_url'\",\n" +
-                    "    \"'target'->'term_value'\",\n" +
-                    "    \"'compute_protocol_description'\",\n" +
-                    "    \"'technique'->'term_value'\",\n" +
+                    "    \"'target'->'gene_product_type'->'term_id'\",\n" +
                     "    \"'local_id'\",\n" +
-                    "    \"'lab_protocol_description'\"\n" +
+                    "    \"'@schema'\",\n" +
+                    "    \"'sample_ref'\",\n" +
+                    "    \"'target'->'sequence_feature'->'term_id'\",\n" +
+                    "    \"'target'->'phenotype'->'term_label'\",\n" +
+                    "    \"'target'->'sequence_feature'->'term_label'\",\n" +
+                    "    \"'target'->'summary'\",\n" +
+                    "    \"'global_id'\",\n" +
+                    "    \"'compute_protocol_description'\",\n" +
+                    "    \"'target'->'macromolecular_structure'->'term_id'\",\n" +
+                    "    \"'target'->'target_details'\",\n" +
+                    "    \"'lab_protocol_description'\",\n" +
+                    "    \"'target'->'phenotype'->'term_id'\"\n" +
                     "  ],\n" +
                     "  \"studies\": [\n" +
                     "    \"'@schema'\",\n" +
@@ -38,40 +53,59 @@ public class SchemaServiceTest {
                     "    \"'study_name'\",\n" +
                     "    \"'contact'->'orcid'\",\n" +
                     "    \"'contact'->'name'\",\n" +
+                    "    \"'contact'->'@schema'\",\n" +
                     "    \"'global_id'\",\n" +
                     "    \"'publication'\",\n" +
                     "    \"'local_id'\"\n" +
                     "  ],\n" +
                     "  \"samples\": [\n" +
+                    "    \"'sample_type'->'cell_type'->'term_label'\",\n" +
+                    "    \"'biospecimen_class'->'term_id'\",\n" +
+                    "    \"'sample_type'->'cell_type'->'term_id'\",\n" +
+                    "    \"'phenotype'->'term_id'\",\n" +
+                    "    \"'sample_type'->'abnormal_cell_type'->'term_id'\",\n" +
+                    "    \"'sample_type'->'organism_part'->'term_label'\",\n" +
+                    "    \"'sample_type'->'cell_line'->'term_id'\",\n" +
+                    "    \"'local_id'\",\n" +
+                    "    \"'sample_type'->'cell_line'->'term_label'\",\n" +
                     "    \"'@schema'\",\n" +
-                    "    \"'sample_type'->'term_url'\",\n" +
-                    "    \"'biomaterial_type'\",\n" +
-                    "    \"'phenotype'->'term_value'\",\n" +
-                    "    \"'tissue_type'->'term_value'\",\n" +
-                    "    \"'phenotype'->'term_url'\",\n" +
-                    "    \"'sample_type'->'term_value'\",\n" +
+                    "    \"'biospecimen_class'->'term_label'\",\n" +
                     "    \"'global_id'\",\n" +
+                    "    \"'sample_type'->'organism_part'->'term_id'\",\n" +
                     "    \"'phenotype'->'@schema'\",\n" +
-                    "    \"'tissue_type'->'term_url'\",\n" +
-                    "    \"'local_id'\"\n" +
+                    "    \"'phenotype'->'term_label'\",\n" +
+                    "    \"'sample_type'->'abnormal_cell_type'->'term_label'\",\n" +
+                    "    \"'sample_type'->'summary'\"\n" +
                     "  ],\n" +
                     "  \"tracks\": [\n" +
-                    "    \"'content_type'->'term_url'\",\n" +
                     "    \"'experiment_ref'\",\n" +
                     "    \"'genome_assembly'\",\n" +
-                    "    \"'file_format'->'term_url'\",\n" +
+                    "    \"'content_type'->'term_label'\",\n" +
+                    "    \"'file_format'->'term_id'\",\n" +
+                    "    \"'content_type'->'term_id'\",\n" +
                     "    \"'checksum'->'cs_hash'\",\n" +
                     "    \"'checksum'->'cs_method'\",\n" +
                     "    \"'local_id'\",\n" +
-                    "    \"'file_format'->'term_value'\",\n" +
                     "    \"'file_url'\",\n" +
                     "    \"'@schema'\",\n" +
+                    "    \"'file_format'->'term_label'\",\n" +
                     "    \"'label_long'\",\n" +
                     "    \"'file_name'\",\n" +
                     "    \"'global_id'\",\n" +
                     "    \"'label_short'\",\n" +
-                    "    \"'raw_file_ids'\",\n" +
-                    "    \"'content_type'->'term_value'\"\n" +
+                    "    \"'raw_file_ids'\"\n" +
+                    "  ],\n" +
+                    "  \"collection_info\": [\n" +
+                    "    \"'source_repo'->'local_id'\",\n" +
+                    "    \"'orig_metadata_url'\",\n" +
+                    "    \"'contact'->'e-mail'\",\n" +
+                    "    \"'source_repo'->'repo_url'\",\n" +
+                    "    \"'contact'->'orcid'\",\n" +
+                    "    \"'contact'->'name'\",\n" +
+                    "    \"'contact'->'@schema'\",\n" +
+                    "    \"'long_name'\",\n" +
+                    "    \"'short_name'\",\n" +
+                    "    \"'description_url'\"\n" +
                     "  ]\n" +
                     "}";
 
@@ -82,7 +116,10 @@ public class SchemaServiceTest {
     @Before
     public void setUp() {
         gson = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
-        schemaService = new SchemaService("->");
+        schemaService = new SchemaService(
+                "https://raw.githubusercontent.com/fairtracks/fairtracks_standard/master/json/schema/fairtracks.schema.json",
+                "->"
+        );
     }
 
     @Test

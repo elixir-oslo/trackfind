@@ -27,18 +27,18 @@ import java.util.Set;
 @Service
 public class SchemaService {
 
-//    public static final String SCHEMA_URL = "https://raw.githubusercontent.com/fairtracks/fairtracks_standard/master/json/schema/fairtracks.schema.json";
-    public static final String SCHEMA_URL = "https://raw.githubusercontent.com/fairtracks/fairtracks_standard/e083bf78928bab0d79327e6b6c2c4c32cfb93c39/json/schema/fairtracks.schema.json";
-
+    protected String schemaLocation;
     protected String separator;
 
     private Schema schema;
     private Multimap<String, String> attributes = HashMultimap.create();
 
     @Autowired
-    public SchemaService(@Value("${trackfind.separator}") String separator) {
+    public SchemaService(@Value("${trackfind.schema-location}") String schemaLocation,
+                         @Value("${trackfind.separator}") String separator) {
+        this.schemaLocation = schemaLocation;
         this.separator = separator;
-        try (InputStream inputStream = new URL(SCHEMA_URL).openStream()) {
+        try (InputStream inputStream = new URL(schemaLocation).openStream()) {
             JSONObject rawSchema = new JSONObject(new JSONTokener(inputStream));
             this.schema = SchemaLoader.load(rawSchema);
             gatherAttributes(null, "", schema);
@@ -93,8 +93,15 @@ public class SchemaService {
         }
         if (StringUtils.isNotEmpty(objectType) && Character.isLetterOrDigit(objectType.charAt(0))) {
             int separatorLength = separator.length();
-            attributes.put(objectType, path.isEmpty() ? path : path.substring(separatorLength));
+            String attribute = path.isEmpty() ? path : path.substring(separatorLength);
+            if (StringUtils.isNoneEmpty(attribute)) {
+                attributes.put(objectType, attribute);
+            }
         }
+    }
+
+    public String getSchemaLocation() {
+        return schemaLocation;
     }
 
     public Schema getSchema() {

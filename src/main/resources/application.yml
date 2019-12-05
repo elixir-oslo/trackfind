@@ -51,6 +51,7 @@ gsuite:
 trackfind:
   admin: ${ADMIN_ELIXIR_ID}
   separator: ->
+  schema-location: ${SCHEMA_LOCATION:https://raw.githubusercontent.com/fairtracks/fairtracks_standard/master/json/schema/fairtracks.schema.json}
   scripting:
     language: CoffeeScript
     variables:

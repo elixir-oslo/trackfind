@@ -30,6 +30,7 @@ public class EPICOValidationService implements ValidationService {
 
     public static final String EPICO_VALIDATION_URL = "http://fairtracks.bsc.es/api/validate";
 
+    private SchemaService schemaService;
     private JdbcTemplate jdbcTemplate;
     private MetamodelService metamodelService;
     private VersionRepository versionRepository;
@@ -39,7 +40,7 @@ public class EPICOValidationService implements ValidationService {
     /**
      * {@inheritDoc}
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
     public String validate(String repository, String hubName) {
         Map<String, Object> hubContent = new HashMap<>();
@@ -49,7 +50,7 @@ public class EPICOValidationService implements ValidationService {
             List<Map> results = result.stream().map(e -> e.values().iterator().next()).map(e -> gson.fromJson(String.valueOf(e), Map.class)).collect(Collectors.toList());
             hubContent.put(objectType.getName(), results);
         }
-        hubContent.put("@schema", SchemaService.SCHEMA_URL);
+        hubContent.put("@schema", schemaService.schemaLocation);
         TfVersion version = objectTypes.iterator().next().getVersion();
         try {
             String resultJSON = restTemplate.postForObject(EPICO_VALIDATION_URL, hubContent, String.class);
@@ -63,6 +64,11 @@ public class EPICOValidationService implements ValidationService {
             versionRepository.save(version);
             return "Validation error: " + e.getMessage();
         }
+    }
+
+    @Autowired
+    public void setSchemaService(SchemaService schemaService) {
+        this.schemaService = schemaService;
     }
 
     @Autowired
