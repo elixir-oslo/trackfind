@@ -5,6 +5,6 @@ RUN mvn install -DskipTests
 
 FROM openjdk:8-jre-alpine
 
-COPY --from=builder /target/*-SNAPSHOT.jar trackfind.jar
+COPY --from=builder /target/trackfind-*.jar trackfind.jar
 
 CMD ["java", "-jar", "trackfind.jar"]
