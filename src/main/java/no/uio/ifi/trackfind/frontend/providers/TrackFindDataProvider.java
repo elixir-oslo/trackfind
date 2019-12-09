@@ -85,7 +85,7 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
                     if (attributes.contains(path)) {
                         treeNode.setChildren(metamodelService.getValues(repository, hubName, category, path, null));
                     } else {
-                        Collection<String> subAttributes = metamodelService.getAttributesFlat(repository, hubName, category, path);
+                        Collection<String> subAttributes = metamodelService.getAttributes(repository, hubName, category, path);
                         treeNode.setChildren(subAttributes);
                     }
                 }

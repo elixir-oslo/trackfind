@@ -69,7 +69,7 @@ public class MetamodelService {
     }
 
     protected String buildFilteredMetamodelQuery(Set<Long> ids) {
-        String schemaSQL = null;
+        String schemaSQL;
         try {
             schemaSQL = IOUtils.resourceToString("/schema.sql", Charset.defaultCharset());
         } catch (IOException e) {
