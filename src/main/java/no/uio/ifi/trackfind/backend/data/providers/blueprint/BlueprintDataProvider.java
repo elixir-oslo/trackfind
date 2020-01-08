@@ -34,6 +34,7 @@ public class BlueprintDataProvider extends AbstractDataProvider {
     /**
      * {@inheritDoc}
      */
+    @SuppressWarnings("rawtypes")
     @Override
     protected void fetchData(String hubName) {
         HashMultimap<String, String> mapToSave = HashMultimap.create();
@@ -46,6 +47,8 @@ public class BlueprintDataProvider extends AbstractDataProvider {
                     mapToSave.put(category, gson.toJson(object));
                 }
             }
+            mapToSave.put("doc_info", gson.toJson(topMap.get("doc_info")));
+            mapToSave.put("collection_info", gson.toJson(topMap.get("collection_info")));
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
