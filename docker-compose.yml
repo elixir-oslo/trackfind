@@ -16,6 +16,11 @@ services:
     ports:
       - 5000:5000
 
+  augmentation:
+    image: fairtracks/fairtracks_autogenerate_rest
+    ports:
+      - 6000:5000
+
   trackfind:
     image: nels/trackfind:latest
     depends_on:
