@@ -20,8 +20,15 @@ public class SchemaServiceTest {
             "{\n" +
                     "  \"doc_info\": [\n" +
                     "    \"'doc_url'\",\n" +
+                    "    \"'doc_ontology_versions'->'http://www.ebi.ac.uk/efo/efo.owl'\",\n" +
+                    "    \"'doc_ontology_versions'->'http://purl.obolibrary.org/obo/cl.owl'\",\n" +
+                    "    \"'doc_version'\",\n" +
+                    "    \"'doc_ontology_versions'->'http://purl.obolibrary.org/obo/obi.owl'\",\n" +
+                    "    \"'doc_ontology_versions'->'http://edamontology.org/EDAM.owl'\",\n" +
+                    "    \"'doc_ontology_versions'->'http://purl.obolibrary.org/obo/so.owl'\",\n" +
                     "    \"'doc_date'\",\n" +
-                    "    \"'doc_version'\"\n" +
+                    "    \"'doc_ontology_versions'->'http://purl.obolibrary.org/obo/ncit.owl'\",\n" +
+                    "    \"'doc_ontology_versions'->'http://purl.obolibrary.org/obo/uberon.owl'\"\n" +
                     "  ],\n" +
                     "  \"experiments\": [\n" +
                     "    \"'aggregated_from'\",\n" +
