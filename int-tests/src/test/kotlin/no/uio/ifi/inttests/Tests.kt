@@ -79,7 +79,7 @@ class Tests {
 
     @Test
     fun testGetValues() {
-        given().`when`().get("/values/$EXAMPLE/$EXAMPLE/samples?path=sample_type->cell_line")
+        given().`when`().get("/values/$EXAMPLE/$EXAMPLE/samples?path=sample_type->cell_line->term_label")
             .then()
             .statusCode(HttpStatus.SC_OK)
             .assertThat()
@@ -93,7 +93,7 @@ class Tests {
 
     @Test
     fun testGetValuesWithFilter() {
-        given().`when`().get("/values/$EXAMPLE/$EXAMPLE/tracks?path=file_format->term_value&filter=ENCODE")
+        given().`when`().get("/values/$EXAMPLE/$EXAMPLE/tracks?path=file_format->term_label&filter=ENCODE")
             .then()
             .statusCode(HttpStatus.SC_OK)
             .assertThat()
@@ -107,7 +107,7 @@ class Tests {
 
     @Test
     fun testSearchJSON() {
-        given().`when`().get("/search/$EXAMPLE/$EXAMPLE?query=samples.content->'biomaterial_type' ? 'primary cell'")
+        given().`when`().get("/search/$EXAMPLE/$EXAMPLE?query=samples.content->'sample_type'->'cell_line'->'term_label' ? 'H1-hESC'")
             .then()
             .statusCode(HttpStatus.SC_OK)
             .assertThat()
@@ -124,7 +124,7 @@ class Tests {
                     "Accept" to "text/plain"
                 )
             )
-            .`when`().get("/search/$EXAMPLE/$EXAMPLE?query=samples.content->'biomaterial_type' ? 'primary cell'")
+            .`when`().get("/search/$EXAMPLE/$EXAMPLE?query=samples.content->'sample_type'->'cell_line'->'term_label' ? 'H1-hESC'")
             .then()
             .statusCode(HttpStatus.SC_OK)
             .extract().asString()
