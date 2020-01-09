@@ -28,7 +28,8 @@ public class SchemaServiceTest {
                     "    \"'doc_ontology_versions'->'http://purl.obolibrary.org/obo/so.owl'\",\n" +
                     "    \"'doc_date'\",\n" +
                     "    \"'doc_ontology_versions'->'http://purl.obolibrary.org/obo/ncit.owl'\",\n" +
-                    "    \"'doc_ontology_versions'->'http://purl.obolibrary.org/obo/uberon.owl'\"\n" +
+                    "    \"'doc_ontology_versions'->'http://purl.obolibrary.org/obo/uberon.owl'\",\n" +
+                    "    \"'local_id'\"\n" +
                     "  ],\n" +
                     "  \"experiments\": [\n" +
                     "    \"'aggregated_from'\",\n" +
@@ -57,6 +58,7 @@ public class SchemaServiceTest {
                     "  \"studies\": [\n" +
                     "    \"'@schema'\",\n" +
                     "    \"'contact'->'e-mail'\",\n" +
+                    "    \"'collection_ref'\",\n" +
                     "    \"'study_name'\",\n" +
                     "    \"'contact'->'orcid'\",\n" +
                     "    \"'contact'->'name'\",\n" +
@@ -72,6 +74,7 @@ public class SchemaServiceTest {
                     "    \"'phenotype'->'term_id'\",\n" +
                     "    \"'sample_type'->'abnormal_cell_type'->'term_id'\",\n" +
                     "    \"'sample_type'->'organism_part'->'term_label'\",\n" +
+                    "    \"'species_id'\",\n" +
                     "    \"'sample_type'->'cell_line'->'term_id'\",\n" +
                     "    \"'local_id'\",\n" +
                     "    \"'sample_type'->'cell_line'->'term_label'\",\n" +
@@ -81,37 +84,40 @@ public class SchemaServiceTest {
                     "    \"'sample_type'->'organism_part'->'term_id'\",\n" +
                     "    \"'phenotype'->'@schema'\",\n" +
                     "    \"'phenotype'->'term_label'\",\n" +
+                    "    \"'species_name'\",\n" +
                     "    \"'sample_type'->'abnormal_cell_type'->'term_label'\",\n" +
                     "    \"'sample_type'->'summary'\"\n" +
                     "  ],\n" +
                     "  \"tracks\": [\n" +
                     "    \"'experiment_ref'\",\n" +
-                    "    \"'genome_assembly'\",\n" +
-                    "    \"'content_type'->'term_label'\",\n" +
                     "    \"'file_format'->'term_id'\",\n" +
-                    "    \"'content_type'->'term_id'\",\n" +
                     "    \"'checksum'->'cs_hash'\",\n" +
                     "    \"'checksum'->'cs_method'\",\n" +
                     "    \"'local_id'\",\n" +
                     "    \"'file_url'\",\n" +
                     "    \"'@schema'\",\n" +
                     "    \"'file_format'->'term_label'\",\n" +
+                    "    \"'assembly_name'\",\n" +
+                    "    \"'type_of_condensed_data'\",\n" +
                     "    \"'label_long'\",\n" +
                     "    \"'file_name'\",\n" +
+                    "    \"'assembly_id'\",\n" +
+                    "    \"'geometric_track_type'\",\n" +
                     "    \"'global_id'\",\n" +
                     "    \"'label_short'\",\n" +
                     "    \"'raw_file_ids'\"\n" +
                     "  ],\n" +
                     "  \"collection_info\": [\n" +
-                    "    \"'source_repo'->'local_id'\",\n" +
                     "    \"'orig_metadata_url'\",\n" +
                     "    \"'contact'->'e-mail'\",\n" +
-                    "    \"'source_repo'->'repo_url'\",\n" +
+                    "    \"'doc_ref'\",\n" +
                     "    \"'contact'->'orcid'\",\n" +
                     "    \"'contact'->'name'\",\n" +
                     "    \"'contact'->'@schema'\",\n" +
                     "    \"'long_name'\",\n" +
+                    "    \"'source_repo_url'\",\n" +
                     "    \"'short_name'\",\n" +
+                    "    \"'local_id'\",\n" +
                     "    \"'description_url'\"\n" +
                     "  ]\n" +
                     "}";
