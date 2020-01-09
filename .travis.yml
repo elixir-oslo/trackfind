@@ -11,9 +11,8 @@ cache:
 
 env:
   - DOCKER_COMPOSE_VERSION=1.24.0
-  - MAVEN_VERSION=3.6.1
 
-install: mvn install --no-transfer-progress
+install: mvn install -B
 
 before_script:
   - sudo rm /usr/local/bin/docker-compose
