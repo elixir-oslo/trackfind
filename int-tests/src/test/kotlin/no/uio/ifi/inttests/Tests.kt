@@ -52,10 +52,11 @@ class Tests {
             .body(
                 "",
                 hasItems(
+                    "phenotype",
                     "local_id",
                     "global_id",
-                    "biomaterial_type",
-                    "sample_type"
+                    "sample_type",
+                    "biospecimen_class"
                 )
             )
     }
@@ -69,15 +70,16 @@ class Tests {
             .body(
                 "",
                 hasItems(
-                    "term_value",
-                    "term_url"
+                    "summary",
+                    "cell_line",
+                    "organism_part"
                 )
             )
     }
 
     @Test
     fun testGetValues() {
-        given().`when`().get("/values/$EXAMPLE/$EXAMPLE/samples?path=sample_type->term_value")
+        given().`when`().get("/values/$EXAMPLE/$EXAMPLE/samples?path=sample_type->cell_line")
             .then()
             .statusCode(HttpStatus.SC_OK)
             .assertThat()

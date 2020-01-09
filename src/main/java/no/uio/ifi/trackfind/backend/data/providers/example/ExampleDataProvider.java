@@ -28,7 +28,7 @@ public class ExampleDataProvider extends AbstractDataProvider {
      */
     @Override
     public String getFetchURI(String hubName) {
-        return "https://raw.githubusercontent.com/fairtracks/fairtracks_standard/master/json/examples/fairtracks.example.json";
+        return "https://raw.githubusercontent.com/fairtracks/fairtracks_standard/v1/1.0/json/examples/fairtracks.example.json";
     }
 
     /**
@@ -46,7 +46,8 @@ public class ExampleDataProvider extends AbstractDataProvider {
                     mapToSave.put(category, gson.toJson(object));
                 }
             }
-
+            mapToSave.put("doc_info", gson.toJson(topMap.get("doc_info")));
+            mapToSave.put("collection_info", gson.toJson(topMap.get("collection_info")));
             // fake category (for test)
             List objects = (List) topMap.get("samples");
             for (Object object : objects) {
