@@ -34,7 +34,7 @@ public class TrackHubRegistryDataProvider extends AbstractDataProvider {
     private static final String HUBS_URL = "http://www-test.trackhubregistry.org/api/info/trackhubs";
 
     @Cacheable(value = "thr-hubs", key = "#root.method.name", sync = true)
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
     public Collection<TfHub> getAllTrackHubs() {
         try (InputStream inputStream = new URL(HUBS_URL).openStream();
@@ -47,6 +47,8 @@ public class TrackHubRegistryDataProvider extends AbstractDataProvider {
                 for (Map trackDB : trackDBs) {
                     String uri = String.valueOf(trackDB.get("uri"));
                     String id = StringUtils.substringAfterLast(uri, "/");
+                    // Use "trackDBID" as a local_id in collection_info
+                    // local_id in doc_info
                     internalHubs.add(new TfHub(getName(), String.format("%s (%s)", name, id), uri));
                 }
                 return internalHubs;
