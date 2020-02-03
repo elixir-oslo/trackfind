@@ -76,17 +76,21 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
                 treeNode.setLevel(parent.getLevel() + 1);
                 String path = treeNode.getPath().replace(prefix, "");
                 treeNode.setAttribute(attributes.parallelStream().anyMatch(a -> a.startsWith(path)));
-                if (parent.isStandard()) {
-                    treeNode.setStandard(schemaAttributes.get(category).parallelStream().map(a -> a.replace("'", "")).anyMatch(a -> a.startsWith(path)));
-                }
                 treeNode.setArray(arrayOfObjectsAttributes.contains(path));
                 treeNode.setType(attributeTypes.get(path));
                 if (treeNode.isAttribute()) {
+                    if (parent.isStandard()) {
+                        treeNode.setStandard(schemaAttributes.get(category).parallelStream().map(a -> a.replace("'", "")).anyMatch(a -> a.startsWith(path)));
+                    }
                     if (attributes.contains(path)) {
                         treeNode.setChildren(metamodelService.getValues(repository, hubName, category, path, null));
                     } else {
                         Collection<String> subAttributes = metamodelService.getAttributes(repository, hubName, category, path);
                         treeNode.setChildren(subAttributes);
+                    }
+                } else {
+                    if (parent.isStandard()) {
+                        treeNode.setStandard(true);
                     }
                 }
                 return treeNode;
