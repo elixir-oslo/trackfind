@@ -22,7 +22,7 @@ services:
       - 6000:5000
 
   trackfind:
-    image: nels/trackfind:latest
+    image: elixiroslo/trackfind:latest
     depends_on:
       - db
     environment:

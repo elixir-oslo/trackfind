@@ -44,6 +44,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.Charset;
 import java.sql.SQLException;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
@@ -109,7 +112,7 @@ public class TrackFindMainUI extends AbstractUI {
 
         tabSheet.addSelectedTabChangeListener((TabSheet.SelectedTabChangeListener) event -> refreshCategoriesCheckList());
 
-        Panel treePanel = new Panel("Model browser", tabSheet);
+        Panel treePanel = new Panel("Select metadata value(s)", tabSheet);
         treePanel.setSizeFull();
 
 //        TextField attributesFilterTextField = createFilter(true);
@@ -217,7 +220,7 @@ public class TrackFindMainUI extends AbstractUI {
             }
         });
 
-        Button clearAllButton = new Button("Clear all");
+        Button clearAllButton = new Button("Clear search query");
         clearAllButton.setSizeFull();
         clearAllButton.addClickListener((Button.ClickListener) event -> queryTextArea.clear());
 
@@ -238,7 +241,7 @@ public class TrackFindMainUI extends AbstractUI {
         searchButton.setWidth(100, Unit.PERCENTAGE);
         searchButton.setEnabled(false);
 
-        limitTextField = new TextField("Limit", "10");
+        limitTextField = new TextField("Max. number of results", "10");
         limitTextField.setWidth(100, Unit.PERCENTAGE);
         limitTextField.setValueChangeMode(ValueChangeMode.EAGER);
         limitTextField.addValueChangeListener((HasValue.ValueChangeListener<String>) valueChangeEvent -> {
@@ -262,7 +265,7 @@ public class TrackFindMainUI extends AbstractUI {
         searchLayout.setWidth("100%");
         searchLayout.setComponentAlignment(searchButton, Alignment.BOTTOM_RIGHT);
 
-        Panel categoriesChecklistPanel = new Panel("Categories", new VerticalLayout(categoriesChecklist));
+        Panel categoriesChecklistPanel = new Panel("Filter categories to search in", new VerticalLayout(categoriesChecklist));
         categoriesChecklistPanel.setSizeFull();
         VerticalLayout queryLayout = new VerticalLayout(queryPanel, clearAllButton, categoriesChecklistPanel, searchLayout);
         queryLayout.setExpandRatio(queryPanel, 0.4f);
@@ -308,15 +311,15 @@ public class TrackFindMainUI extends AbstractUI {
         }
 
         exportGSuiteButton.setEnabled(true);
-        exportGSuiteButton.setCaption("Export (" + numberOfResults + ") entries as GSuite file");
+        exportGSuiteButton.setCaption("Export results (" + numberOfResults + " items) as GSuite file");
         exportJSONButton.setEnabled(true);
-        exportJSONButton.setCaption("Export (" + numberOfResults + ") entries as JSON file");
+        exportJSONButton.setCaption("Export results (" + numberOfResults + " items) as JSON file");
 
-        gSuiteFileDownloader.setFileDownloadResource(getStreamResource(null, ".gsuite"));
-        jsonFileDownloader.setFileDownloadResource(getStreamResource(jsonResult, ".json"));
+        gSuiteFileDownloader.setFileDownloadResource(getStreamResource(null, "gsuite"));
+        jsonFileDownloader.setFileDownloadResource(getStreamResource(jsonResult, "json"));
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private TreeData<ResultTreeItemWrapper> getResultsTreeData() {
         TreeData<ResultTreeItemWrapper> treeData = new TreeData<>();
         int i = 0;
@@ -329,7 +332,7 @@ public class TrackFindMainUI extends AbstractUI {
         return treeData;
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private void fillResultTree(TreeData<ResultTreeItemWrapper> treeData, ResultTreeItemWrapper parent, Object content) {
         if (content instanceof Map) {
             Map<String, Object> map = (Map<String, Object>) content;
@@ -356,7 +359,7 @@ public class TrackFindMainUI extends AbstractUI {
         return new StreamResource(null, null) {
             @Override
             public StreamSource getStreamSource() {
-                if (".json".equalsIgnoreCase(extension)) {
+                if ("json".equalsIgnoreCase(extension)) {
                     return (StreamResource.StreamSource) () -> new ByteArrayInputStream(content.getBytes(Charset.defaultCharset()));
                 } else {
                     String gSuiteResult = gSuiteService.apply(results);
@@ -366,7 +369,16 @@ public class TrackFindMainUI extends AbstractUI {
 
             @Override
             public String getFilename() {
-                return Calendar.getInstance().getTime().toString() + extension;
+                TfHub currentHub = getCurrentHub();
+                String displayName = currentHub.getDisplayName();
+                if (StringUtils.isEmpty(displayName)) {
+                    displayName = currentHub.getName();
+                }
+                String timestamp = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mmX")
+                        .withZone(ZoneOffset.UTC)
+                        .format(Instant.now());
+                String count = String.valueOf(results.size());
+                return String.format("TF-%s-%s-%sx.%s", displayName, timestamp, count, extension);
             }
 
             @Override

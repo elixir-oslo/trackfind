@@ -102,7 +102,7 @@ public class TrackFindCurationUI extends AbstractUI {
             loadMappings();
         });
 
-        Panel treePanel = new Panel("Model browser", tabSheet);
+        Panel treePanel = new Panel("Select metadata value(s)", tabSheet);
         treePanel.setSizeFull();
 
         addStaticMappingButton.setEnabled(false);
