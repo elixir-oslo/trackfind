@@ -62,16 +62,16 @@ public abstract class AbstractUI extends UI {
     }
 
     protected HorizontalLayout buildFooterLayout() {
-        Link nels = new Link(null, new ExternalResource("https://nels.bioinfo.no/"));
-        nels.setIcon(new ThemeResource("images/nels.png"));
-        Link elixir = new Link(null, new ExternalResource("https://www.elixir-norway.org/"));
+        Link fairtracks = new Link(null, new ExternalResource("https://fairtracks.github.io/"));
+        fairtracks.setIcon(new ThemeResource("images/fairtracks.png"));
+        Link elixir = new Link(null, new ExternalResource("https://www.elixir.no/"));
         elixir.setIcon(new ThemeResource("images/elixir.png"));
         Link uio = new Link(null, new ExternalResource("https://www.mn.uio.no/ifi/english/research/groups/bmi/"));
         uio.setIcon(new ThemeResource("images/uio.png"));
 
-        HorizontalLayout leftFooterLayout = new HorizontalLayout(nels, elixir, uio);
+        HorizontalLayout leftFooterLayout = new HorizontalLayout(fairtracks, elixir, uio);
         leftFooterLayout.setHeight("100%");
-        leftFooterLayout.setComponentAlignment(nels, Alignment.MIDDLE_LEFT);
+        leftFooterLayout.setComponentAlignment(fairtracks, Alignment.MIDDLE_LEFT);
         leftFooterLayout.setComponentAlignment(elixir, Alignment.MIDDLE_LEFT);
         leftFooterLayout.setComponentAlignment(uio, Alignment.MIDDLE_LEFT);
 
