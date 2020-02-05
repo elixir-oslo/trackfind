@@ -36,9 +36,11 @@ public class BlueprintHubInitializer implements ApplicationListener<ApplicationR
             TfObjectType samples = objectTypes.stream().filter(ot -> ot.getName().equalsIgnoreCase("samples")).findAny().orElseThrow(RuntimeException::new);
             TfObjectType studies = objectTypes.stream().filter(ot -> ot.getName().equalsIgnoreCase("studies")).findAny().orElseThrow(RuntimeException::new);
             TfObjectType tracks = objectTypes.stream().filter(ot -> ot.getName().equalsIgnoreCase("tracks")).findAny().orElseThrow(RuntimeException::new);
+            TfObjectType collectionInfo = objectTypes.stream().filter(ot -> ot.getName().equalsIgnoreCase("collection_info")).findAny().orElseThrow(RuntimeException::new);
             metamodelService.addReference(new TfReference(null, tracks, "'experiment_ref'", experiments, "'local_id'"));
             metamodelService.addReference(new TfReference(null, experiments, "'sample_ref'", samples, "'local_id'"));
             metamodelService.addReference(new TfReference(null, experiments, "'study_ref'", studies, "'local_id'"));
+            metamodelService.addReference(new TfReference(null, studies, "'collection_ref'", collectionInfo, "'local_id'"));
         }
     }
 
