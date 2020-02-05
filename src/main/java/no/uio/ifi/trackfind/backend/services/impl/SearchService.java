@@ -37,6 +37,7 @@ public class SearchService {
 
     private Connection connection;
 
+    @SuppressWarnings("ConstantConditions")
     @PostConstruct
     private void init() throws SQLException {
         if (jdbcTemplate.queryForObject(Queries.CHECK_SEARCH_USER_EXISTS, Integer.TYPE) == 0) {
@@ -80,6 +81,9 @@ public class SearchService {
                                       Collection<String> objectTypeNamesToSelect,
                                       String query,
                                       long limit) {
+        // temporary WA
+        objectTypeNamesToSelect.add("doc_info");
+
         StringBuilder fullQuery = new StringBuilder("SELECT DISTINCT ");
 
         for (String objectTypeName : objectTypeNamesToSelect) {

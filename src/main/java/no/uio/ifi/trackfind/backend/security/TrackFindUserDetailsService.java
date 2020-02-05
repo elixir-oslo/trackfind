@@ -32,9 +32,8 @@ public class TrackFindUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Map<String, String> userDetails = new Gson().fromJson(username, Map.class);
         String elixirId = userDetails.get("oidc_claim_sub");
-        User anonymousUser = new User("Anonymous", "Anonymous", false, false, false, false, AuthorityUtils.NO_AUTHORITIES);
         if (StringUtils.isEmpty(elixirId)) {
-            return anonymousUser;
+            return new User("Anonymous", "Anonymous", false, false, false, false, AuthorityUtils.NO_AUTHORITIES);
         }
         TfUser user = userRepository.findByElixirId(elixirId);
         if (user == null && StringUtils.isNotEmpty(username)) {
@@ -43,7 +42,7 @@ public class TrackFindUserDetailsService implements UserDetailsService {
                 user = userRepository.save(generatedUser);
                 log.info("New user saved: {}", user);
             } else {
-                return anonymousUser;
+                return generatedUser;
             }
         }
         return user;
