@@ -16,7 +16,7 @@ We believe the TrackFind track search engine and metadata FAIRification service 
 
 
 ## Development
-TrackFind is written in **Java 8** and uses **Maven 3** as a build-tool.
+TrackFind is written in **Java 13** and uses **Maven 3** as a build-tool.
 
 ## Deployment
 
