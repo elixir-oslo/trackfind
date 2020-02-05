@@ -28,7 +28,7 @@ public class BlueprintDataProvider extends AbstractDataProvider {
      */
     @Override
     public String getFetchURI(String hubName) {
-        return "https://raw.githubusercontent.com/elixir-no-nels/trackfind/master/blueprint.json";
+        return "https://raw.githubusercontent.com/elixir-oslo/trackfind/master/blueprint.json";
     }
 
     /**
