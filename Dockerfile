@@ -1,4 +1,4 @@
-FROM maven:3.6.1-jdk-8-alpine as builder
+FROM maven:3.6.1-jdk-13-alpine as builder
 
 COPY pom.xml .
 
@@ -9,7 +9,7 @@ COPY src/ /src/
 # Here we skip tests to save time, because if this image is being built - tests have already passed...
 RUN mvn install -DskipTests --no-transfer-progress
 
-FROM openjdk:8-jre-alpine
+FROM openjdk:13-alpine
 
 COPY --from=builder /target/trackfind-*.jar trackfind.jar
 

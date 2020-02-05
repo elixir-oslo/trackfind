@@ -5,8 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.netopyr.coffee4java.CoffeeScriptEngine;
 import com.netopyr.coffee4java.CoffeeScriptEngineFactory;
 import de.codecentric.boot.admin.client.config.ClientProperties;
-import de.codecentric.boot.admin.client.registration.ApplicationFactory;
-import de.codecentric.boot.admin.client.registration.ApplicationRegistrator;
+import de.codecentric.boot.admin.client.registration.BlockingRegistrationClient;
 import de.codecentric.boot.admin.server.web.client.HttpHeadersProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.python.util.PythonInterpreter;
@@ -43,7 +42,7 @@ public class BeanDefinitions {
     }
 
     @Bean
-    public ApplicationRegistrator registrator(ClientProperties client, ApplicationFactory applicationFactory) {
+    public BlockingRegistrationClient registrationClient(ClientProperties client) {
         RestTemplateBuilder builder = new RestTemplateBuilder()
                 .setConnectTimeout(client.getConnectTimeout())
                 .setReadTimeout(client.getReadTimeout())
@@ -51,10 +50,10 @@ public class BeanDefinitions {
                     request.getHeaders().set("oidc_claim_sub", adminElixirId);
                     return execution.execute(request, body);
                 });
-        if (client.getUsername() != null) {
+        if (client.getUsername() != null && client.getPassword() != null) {
             builder = builder.basicAuthentication(client.getUsername(), client.getPassword());
         }
-        return new ApplicationRegistrator(builder.build(), client, applicationFactory);
+        return new BlockingRegistrationClient(builder.build());
     }
 
     @Bean
