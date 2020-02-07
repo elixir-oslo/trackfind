@@ -33,6 +33,7 @@ services:
       - ADMIN_ELIXIR_ID
       - INFLUX_ENABLED
       - INFLUX_URI
+      - INFLUX_DB
       - INFLUX_USER
       - INFLUX_PASSWORD
 
