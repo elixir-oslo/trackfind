@@ -70,7 +70,7 @@ public class SearchService {
             objectTypesToSelect = categories;
         }
 
-        String fullQueryString = buildSearchQuery(repository, hub, references, objectTypesFromReferences, objectTypesToSelect, query, limit);
+        String fullQueryString = buildSearchQuery(repository, hub, references, objectTypesFromReferences, new HashSet<>(objectTypesToSelect), query, limit);
         return executeSearchQuery(fullQueryString);
     }
 
