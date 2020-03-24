@@ -37,12 +37,6 @@ WHERE tf_users.admin = TRUE
   AND tf_users.id <> user_id
 $$;
 
-ALTER TABLE tf_users
-    DROP CONSTRAINT IF EXISTS check_at_least_one_active_admin;
-
-ALTER TABLE tf_users
-    ADD CONSTRAINT check_at_least_one_active_admin CHECK ( check_at_least_one_active_admin(id, active, admin) );
-
 CREATE TABLE IF NOT EXISTS tf_hubs
 (
     id           BIGSERIAL PRIMARY KEY,
@@ -173,56 +167,56 @@ CREATE INDEX IF NOT EXISTS tf_current_objects_content_index
         USING gin (content);
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS tf_metamodel AS
-    WITH RECURSIVE collect_metadata AS (SELECT tf_current_objects.object_type_id,
-                                               first_level.key,
-                                               first_level.value,
-                                               jsonb_typeof(first_level.value) AS type
-                                        FROM tf_current_objects,
-                                             jsonb_each(tf_current_objects.content) first_level
+WITH RECURSIVE collect_metadata AS (SELECT tf_current_objects.object_type_id,
+                                           first_level.key,
+                                           first_level.value,
+                                           jsonb_typeof(first_level.value) AS type
+                                    FROM tf_current_objects,
+                                         jsonb_each(tf_current_objects.content) first_level
 
-                                        UNION ALL
+                                    UNION ALL
 
-                                        (WITH prev_level AS (
-                                            SELECT *
-                                            FROM collect_metadata
-                                        )
-                                         SELECT prev_level.object_type_id,
-                                                concat(prev_level.key, '->', current_level.key),
-                                                current_level.value,
-                                                jsonb_typeof(current_level.value) AS type
-                                         FROM prev_level,
-                                              jsonb_each(prev_level.value) AS current_level
-                                         WHERE prev_level.type = 'object'
+                                    (WITH prev_level AS (
+                                        SELECT *
+                                        FROM collect_metadata
+                                    )
+                                     SELECT prev_level.object_type_id,
+                                            concat(prev_level.key, '->', current_level.key),
+                                            current_level.value,
+                                            jsonb_typeof(current_level.value) AS type
+                                     FROM prev_level,
+                                          jsonb_each(prev_level.value) AS current_level
+                                     WHERE prev_level.type = 'object'
 
-                                         UNION ALL
+                                     UNION ALL
 
-                                         SELECT prev_level.object_type_id,
-                                                concat(prev_level.key, '->', current_level.key),
-                                                current_level.value,
-                                                jsonb_typeof(current_level.value) AS type
-                                         FROM prev_level,
-                                              jsonb_array_elements(prev_level.value) AS entry,
-                                              jsonb_each(entry) AS current_level
-                                         WHERE prev_level.type = 'array'
-                                           AND jsonb_typeof(entry) = 'object'
+                                     SELECT prev_level.object_type_id,
+                                            concat(prev_level.key, '->', current_level.key),
+                                            current_level.value,
+                                            jsonb_typeof(current_level.value) AS type
+                                     FROM prev_level,
+                                          jsonb_array_elements(prev_level.value) AS entry,
+                                          jsonb_each(entry) AS current_level
+                                     WHERE prev_level.type = 'array'
+                                       AND jsonb_typeof(entry) = 'object'
 
-                                         UNION ALL
+                                     UNION ALL
 
-                                         SELECT prev_level.object_type_id,
-                                                prev_level.key,
-                                                entry,
-                                                jsonb_typeof(entry) AS type
-                                         FROM prev_level,
-                                              jsonb_array_elements(prev_level.value) AS entry
-                                         WHERE prev_level.type = 'array'
-                                           AND jsonb_typeof(entry) <> 'object'))
-    SELECT DISTINCT object_type_id,
-                    key                                                 AS attribute,
-                    array_to_json(ARRAY [collect_metadata.value]) ->> 0 AS value,
-                    type
-    FROM collect_metadata
-    WHERE collect_metadata.type NOT IN ('object', 'array')
-    WITH DATA;
+                                     SELECT prev_level.object_type_id,
+                                            prev_level.key,
+                                            entry,
+                                            jsonb_typeof(entry) AS type
+                                     FROM prev_level,
+                                          jsonb_array_elements(prev_level.value) AS entry
+                                     WHERE prev_level.type = 'array'
+                                       AND jsonb_typeof(entry) <> 'object'))
+SELECT DISTINCT object_type_id,
+                key                                                 AS attribute,
+                array_to_json(ARRAY [collect_metadata.value]) ->> 0 AS value,
+                type
+FROM collect_metadata
+WHERE collect_metadata.type NOT IN ('object', 'array')
+WITH DATA;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS tf_attributes AS
 SELECT DISTINCT object_type_id, attribute
@@ -232,54 +226,54 @@ CREATE INDEX IF NOT EXISTS tf_attributes_object_type_id_attribute_index
     ON tf_attributes (object_type_id, attribute);
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS tf_array_of_objects AS
-    WITH RECURSIVE collect_metadata AS (SELECT tf_current_objects.object_type_id,
-                                               first_level.key,
-                                               NULL                            AS prev_key,
-                                               first_level.value,
-                                               jsonb_typeof(first_level.value) AS type
-                                        FROM tf_current_objects,
-                                             jsonb_each(tf_current_objects.content) first_level
+WITH RECURSIVE collect_metadata AS (SELECT tf_current_objects.object_type_id,
+                                           first_level.key,
+                                           NULL                            AS prev_key,
+                                           first_level.value,
+                                           jsonb_typeof(first_level.value) AS type
+                                    FROM tf_current_objects,
+                                         jsonb_each(tf_current_objects.content) first_level
 
-                                        UNION ALL
+                                    UNION ALL
 
-                                        (WITH prev_level AS (
-                                            SELECT *
-                                            FROM collect_metadata
-                                        )
-                                         SELECT prev_level.object_type_id,
-                                                concat(prev_level.key, '->', current_level.key),
-                                                NULL                              AS prev_key,
-                                                current_level.value,
-                                                jsonb_typeof(current_level.value) AS type
-                                         FROM prev_level,
-                                              jsonb_each(prev_level.value) AS current_level
-                                         WHERE prev_level.type = 'object'
+                                    (WITH prev_level AS (
+                                        SELECT *
+                                        FROM collect_metadata
+                                    )
+                                     SELECT prev_level.object_type_id,
+                                            concat(prev_level.key, '->', current_level.key),
+                                            NULL                              AS prev_key,
+                                            current_level.value,
+                                            jsonb_typeof(current_level.value) AS type
+                                     FROM prev_level,
+                                          jsonb_each(prev_level.value) AS current_level
+                                     WHERE prev_level.type = 'object'
 
-                                         UNION ALL
+                                     UNION ALL
 
-                                         SELECT prev_level.object_type_id,
-                                                concat(prev_level.key, '->', current_level.key),
-                                                prev_level.key                    AS prev_key,
-                                                current_level.value,
-                                                jsonb_typeof(current_level.value) AS type
-                                         FROM prev_level,
-                                              jsonb_array_elements(prev_level.value) AS entry,
-                                              jsonb_each(entry) AS current_level
-                                         WHERE prev_level.type = 'array'
-                                           AND jsonb_typeof(entry) = 'object'
+                                     SELECT prev_level.object_type_id,
+                                            concat(prev_level.key, '->', current_level.key),
+                                            prev_level.key                    AS prev_key,
+                                            current_level.value,
+                                            jsonb_typeof(current_level.value) AS type
+                                     FROM prev_level,
+                                          jsonb_array_elements(prev_level.value) AS entry,
+                                          jsonb_each(entry) AS current_level
+                                     WHERE prev_level.type = 'array'
+                                       AND jsonb_typeof(entry) = 'object'
 
-                                         UNION ALL
+                                     UNION ALL
 
-                                         SELECT prev_level.object_type_id,
-                                                prev_level.key,
-                                                NULL                AS prev_key,
-                                                entry,
-                                                jsonb_typeof(entry) AS type
-                                         FROM prev_level,
-                                              jsonb_array_elements(prev_level.value) AS entry
-                                         WHERE prev_level.type = 'array'
-                                           AND jsonb_typeof(entry) <> 'object'))
-    SELECT DISTINCT object_type_id, prev_key AS attribute
-    FROM collect_metadata
-    WHERE prev_key IS NOT NULL
-    WITH DATA;
+                                     SELECT prev_level.object_type_id,
+                                            prev_level.key,
+                                            NULL                AS prev_key,
+                                            entry,
+                                            jsonb_typeof(entry) AS type
+                                     FROM prev_level,
+                                          jsonb_array_elements(prev_level.value) AS entry
+                                     WHERE prev_level.type = 'array'
+                                       AND jsonb_typeof(entry) <> 'object'))
+SELECT DISTINCT object_type_id, prev_key AS attribute
+FROM collect_metadata
+WHERE prev_key IS NOT NULL
+WITH DATA;

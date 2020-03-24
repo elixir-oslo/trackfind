@@ -1,4 +1,4 @@
-package no.uio.ifi.trackfind.backend.filters;
+package no.uio.ifi.trackfind.backend.security.filters;
 
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;

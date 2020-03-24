@@ -13,4 +13,11 @@ public interface Queries {
 
     String CREATE_SEARCH_USER = "CREATE USER search PASSWORD 'search'; GRANT SELECT ON tf_current_objects TO search;";
 
+    String ADD_AT_LEST_ONE_ADMIN_CONSTRAINT = "" +
+            "ALTER TABLE tf_users\n" +
+            "    DROP CONSTRAINT IF EXISTS check_at_least_one_active_admin;" +
+            "ALTER TABLE tf_users\n" +
+            "    ADD CONSTRAINT check_at_least_one_active_admin CHECK ( check_at_least_one_active_admin(id, active, admin) );" +
+            "";
+
 }

@@ -1,6 +1,6 @@
 package no.uio.ifi.trackfind.backend.configuration;
 
-import no.uio.ifi.trackfind.backend.filters.SecurityFilter;
+import no.uio.ifi.trackfind.backend.security.filters.SecurityFilter;
 import no.uio.ifi.trackfind.backend.security.TrackFindAuthenticationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -23,18 +23,6 @@ import java.util.List;
 @Configuration
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
-    public static String[] PROTECTED_RESOURCES = new String[]{
-            "/actuator/**",
-            "/login/**",
-            "/curation/**",
-            "/hubs/**",
-            "/monitor/**",
-            "/references/**",
-            "/versions/**",
-            "/users/**",
-            "/admin/**"
-    };
-
     private TrackFindAuthenticationProvider authenticationProvider;
 
     @Override
@@ -50,7 +38,17 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         List<RequestMatcher> protectedMatchers = new ArrayList<>();
-        for (String protectedResource : PROTECTED_RESOURCES) {
+        for (String protectedResource : new String[]{
+                "/actuator/**",
+                "/login/**",
+                "/curation/**",
+                "/hubs/**",
+                "/monitor/**",
+                "/references/**",
+                "/versions/**",
+                "/users/**",
+                "/admin/**"
+        }) {
             for (HttpMethod httpMethod : HttpMethod.values()) {
                 protectedMatchers.add(new AntPathRequestMatcher(protectedResource, httpMethod.toString(), false));
             }
@@ -63,7 +61,17 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                         BasicAuthenticationFilter.class
                 )
                 .authorizeRequests()
-                .antMatchers(PROTECTED_RESOURCES).hasRole("ADMIN");
+                .antMatchers("/login/**").hasAnyRole("USER", "ADMIN")
+                .antMatchers(new String[]{
+                        "/actuator/**",
+                        "/curation/**",
+                        "/hubs/**",
+                        "/monitor/**",
+                        "/references/**",
+                        "/versions/**",
+                        "/users/**",
+                        "/admin/**"
+                }).hasRole("ADMIN");
     }
 
     @Bean(name = BeanIds.AUTHENTICATION_MANAGER)

@@ -2,11 +2,13 @@ package no.uio.ifi.trackfind.backend.security;
 
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
+import no.uio.ifi.trackfind.backend.pojo.Queries;
 import no.uio.ifi.trackfind.backend.pojo.TfUser;
 import no.uio.ifi.trackfind.backend.repositories.UserRepository;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -25,6 +27,7 @@ public class TrackFindUserDetailsService implements UserDetailsService {
     private String adminElixirId;
 
     private UserRepository userRepository;
+    private JdbcTemplate jdbcTemplate;
 
     // Note that username is not really a username here, it's a JSON serialized map of OIDC parameters
     @SuppressWarnings("unchecked")
@@ -41,6 +44,9 @@ public class TrackFindUserDetailsService implements UserDetailsService {
             if (generatedUser.getUsername() != null) {
                 user = userRepository.save(generatedUser);
                 log.info("New user saved: {}", user);
+                if (user.isAdmin()) {
+                    jdbcTemplate.execute(Queries.ADD_AT_LEST_ONE_ADMIN_CONSTRAINT);
+                }
             } else {
                 return generatedUser;
             }
@@ -113,6 +119,11 @@ public class TrackFindUserDetailsService implements UserDetailsService {
     @Autowired
     public void setUserRepository(UserRepository userRepository) {
         this.userRepository = userRepository;
+    }
+
+    @Autowired
+    public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
     }
 
 }
