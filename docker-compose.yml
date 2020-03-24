@@ -4,6 +4,8 @@ services:
 
   db:
     image: postgres:10.5
+#    ports:
+#      - 5432:5432
     environment:
       - POSTGRES_DB=trackfind
       - POSTGRES_USER
@@ -12,12 +14,12 @@ services:
       - db:/var/lib/postgresql/data
 
   gsuite:
-    image: nels/rest_gsuite:latest
+    image: fairtracks/fairtracks_json_to_gsuite:latest
     ports:
       - 5000:5000
 
   augmentation:
-    image: fairtracks/fairtracks_autogenerate_rest
+    image: fairtracks/fairtracks_autogenerate_rest:latest
     ports:
       - 6000:5000
 

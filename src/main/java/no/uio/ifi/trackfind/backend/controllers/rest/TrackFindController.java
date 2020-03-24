@@ -37,7 +37,7 @@ public class TrackFindController {
      *
      * @return Collection of repositories.
      */
-    @GetMapping(path = "/repositories", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping(path = "/repositories", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Collection<String>> getRepositories() {
         return ResponseEntity.ok(trackFindService.getTrackHubs(true).stream().map(TfHub::getRepository).collect(Collectors.toSet()));
     }
@@ -47,7 +47,7 @@ public class TrackFindController {
      *
      * @return Collection of Track Hub names.
      */
-    @GetMapping(path = "/hubs/{repository}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping(path = "/hubs/{repository}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Collection<String>> getHubs(
             @PathVariable String repository
     ) {
@@ -61,7 +61,7 @@ public class TrackFindController {
      * @param hub        Track hub name.
      * @return Metamodel in tree form.
      */
-    @GetMapping(path = "/metamodel/{repository}/{hub}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping(path = "/metamodel/{repository}/{hub}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map> getMetamodel(
             @PathVariable String repository,
             @PathVariable String hub,
@@ -85,7 +85,7 @@ public class TrackFindController {
      * @param hub        Track Hub name.
      * @return List of attributes.
      */
-    @GetMapping(path = "/categories/{repository}/{hub}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping(path = "/categories/{repository}/{hub}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Collection<String>> getCategories(
             @PathVariable String repository,
             @PathVariable String hub) {
@@ -101,7 +101,7 @@ public class TrackFindController {
      * @param path       Path to the attribute to get sub-attributes for (optional).
      * @return List of attributes.
      */
-    @GetMapping(path = "/attributes/{repository}/{hub}/{category}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping(path = "/attributes/{repository}/{hub}/{category}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Collection<String>> getAttributes(
             @PathVariable String repository,
             @PathVariable String hub,
@@ -121,7 +121,7 @@ public class TrackFindController {
      * @param query      Optional search query to filter out objects before collecting available values.
      * @return List of values.
      */
-    @GetMapping(path = "/values/{repository}/{hub}/{category}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping(path = "/values/{repository}/{hub}/{category}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Collection<String>> getValues(
             @PathVariable String repository,
             @PathVariable String hub,
@@ -146,7 +146,7 @@ public class TrackFindController {
      * @param limit      Max number of entries to return.
      * @return Search results by version.
      */
-    @GetMapping(path = "/search/{repository}/{hub}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping(path = "/search/{repository}/{hub}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Collection<SearchResult>> searchJSON(
             @PathVariable String repository,
             @PathVariable String hub,
