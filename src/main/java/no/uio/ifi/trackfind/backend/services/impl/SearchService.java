@@ -83,6 +83,7 @@ public class SearchService {
                                       long limit) {
         // temporary WA
         objectTypeNamesToSelect.add("doc_info");
+        objectTypeNamesToSelect.add("collection_info");
 
         StringBuilder fullQuery = new StringBuilder("SELECT DISTINCT ");
 

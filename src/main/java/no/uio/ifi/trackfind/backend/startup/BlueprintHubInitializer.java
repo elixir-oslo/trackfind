@@ -40,7 +40,7 @@ public class BlueprintHubInitializer implements ApplicationListener<ApplicationR
             metamodelService.addReference(new TfReference(null, tracks, "'experiment_ref'", experiments, "'local_id'"));
             metamodelService.addReference(new TfReference(null, experiments, "'sample_ref'", samples, "'local_id'"));
             metamodelService.addReference(new TfReference(null, experiments, "'study_ref'", studies, "'local_id'"));
-            metamodelService.addReference(new TfReference(null, studies, "'collection_ref'", collectionInfo, "'local_id'"));
+//            metamodelService.addReference(new TfReference(null, studies, "'collection_ref'", collectionInfo, "'local_id'"));
         }
     }
 

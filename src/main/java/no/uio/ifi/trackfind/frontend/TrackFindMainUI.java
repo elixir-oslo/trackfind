@@ -112,7 +112,7 @@ public class TrackFindMainUI extends AbstractUI {
 
         tabSheet.addSelectedTabChangeListener((TabSheet.SelectedTabChangeListener) event -> refreshCategoriesCheckList());
 
-        Panel treePanel = new Panel("Select metadata value(s)", tabSheet);
+        Panel treePanel = new Panel("1. Select metadata value(s)", tabSheet);
         treePanel.setSizeFull();
 
 //        TextField attributesFilterTextField = createFilter(true);
@@ -196,7 +196,7 @@ public class TrackFindMainUI extends AbstractUI {
         resultsTree.setItemCaptionGenerator((ItemCaptionGenerator<ResultTreeItemWrapper>) ResultTreeItemWrapper::getValue);
         resultsTree.setStyleGenerator((StyleGenerator<ResultTreeItemWrapper>) item -> item.isLeaf() ? "value-tree-node" : null);
 
-        Panel resultsPanel = new Panel("Results", resultsTree);
+        Panel resultsPanel = new Panel("3. Results", resultsTree);
         resultsPanel.setSizeFull();
         VerticalLayout resultsLayout = new VerticalLayout(resultsPanel, exportGSuiteButton, exportJSONButton);
         resultsLayout.setSizeFull();
@@ -235,7 +235,7 @@ public class TrackFindMainUI extends AbstractUI {
             TextAreaDropListener textAreaDropListener = new TextAreaDropListener(queryTextArea, separator);
             dropTarget.addDropListener(textAreaDropListener);
         }
-        Panel queryPanel = new Panel("Search query", queryTextArea);
+        Panel queryPanel = new Panel("2. Search query", queryTextArea);
         queryPanel.setSizeFull();
 
         searchButton.setWidth(100, Unit.PERCENTAGE);
