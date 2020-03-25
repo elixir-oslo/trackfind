@@ -70,8 +70,35 @@ public class SearchService {
             objectTypesToSelect = categories;
         }
 
-        String fullQueryString = buildSearchQuery(repository, hub, references, objectTypesFromReferences, new HashSet<>(objectTypesToSelect), query, limit);
+        String fullQueryString = buildSearchQuery(repository, hub, references, objectTypesFromReferences, new HashSet<>(objectTypesToSelect), query, limit, false);
         return executeSearchQuery(fullQueryString);
+    }
+
+    /**
+     * Counts entries returned by provided query.
+     *
+     * @param repository Repository name.
+     * @param hub        Track TfHub name.
+     * @param query      Search query.
+     * @param categories Comma-separated categories.
+     * @return Count of entries.
+     */
+    @Cacheable(value = "count", sync = true)
+    public int count(String repository, String hub, String query, Collection<String> categories) throws SQLException {
+        Collection<TfReference> references = metamodelService.getReferences(repository, hub);
+
+        Collection<TfObjectType> objectTypesFromReferences = new HashSet<>();
+        references.forEach(r -> objectTypesFromReferences.addAll(Arrays.asList(r.getFromObjectType(), r.getToObjectType())));
+
+        Collection<String> objectTypesToSelect;
+        if (CollectionUtils.isEmpty(categories)) {
+            objectTypesToSelect = objectTypesFromReferences.stream().map(TfObjectType::getName).collect(Collectors.toSet());
+        } else {
+            objectTypesToSelect = categories;
+        }
+
+        String fullQueryString = buildSearchQuery(repository, hub, references, objectTypesFromReferences, new HashSet<>(objectTypesToSelect), query, 0, true);
+        return executeCountQuery(fullQueryString);
     }
 
     protected String buildSearchQuery(String repository,
@@ -80,19 +107,20 @@ public class SearchService {
                                       Collection<TfObjectType> objectTypesFromReferences,
                                       Collection<String> objectTypeNamesToSelect,
                                       String query,
-                                      long limit) {
+                                      long limit,
+                                      boolean count) {
         // temporary WA
         objectTypeNamesToSelect.add("doc_info");
         objectTypeNamesToSelect.add("collection_info");
 
-        StringBuilder fullQuery = new StringBuilder("SELECT DISTINCT ");
+        StringBuilder fullQuery = new StringBuilder("SELECT ");
 
-        for (String objectTypeName : objectTypeNamesToSelect) {
-            fullQuery.append(objectTypeName).append(".content ").append("\"").append(objectTypeName).append("_content\", ");
-            fullQuery.append(objectTypeName).append(".id ").append(objectTypeName).append("_id, ");
+        if (!count) {
+            addDistinctClause(objectTypeNamesToSelect, fullQuery);
+        } else {
+            fullQuery.append("COUNT(*) ");
         }
 
-        fullQuery.setLength(fullQuery.length() - 2);
         fullQuery.append("\nFROM ");
 
         if (CollectionUtils.isNotEmpty(objectTypeNamesToSelect)) {
@@ -159,6 +187,17 @@ public class SearchService {
         return fullQuery.toString().replaceAll("\\?", "\\?\\?");
     }
 
+    private void addDistinctClause(Collection<String> objectTypeNamesToSelect, StringBuilder fullQuery) {
+        fullQuery.append("DISTINCT ");
+
+        for (String objectTypeName : objectTypeNamesToSelect) {
+            fullQuery.append(objectTypeName).append(".content ").append("\"").append(objectTypeName).append("_content\", ");
+            fullQuery.append(objectTypeName).append(".id ").append(objectTypeName).append("_id, ");
+        }
+
+        fullQuery.setLength(fullQuery.length() - 2);
+    }
+
     protected Pair<Set<Long>, Collection<SearchResult>> executeSearchQuery(String fullQueryString) throws SQLException {
         log.info("Executing search query: {}", fullQueryString);
         PreparedStatement preparedStatement = connection.prepareStatement(fullQueryString);
@@ -184,6 +223,14 @@ public class SearchService {
             results.add(searchResult);
         }
         return Pair.of(ids, results);
+    }
+
+    protected int executeCountQuery(String fullQueryString) throws SQLException {
+        log.info("Executing count query: {}", fullQueryString);
+        PreparedStatement preparedStatement = connection.prepareStatement(fullQueryString);
+        ResultSet resultSet = preparedStatement.executeQuery();
+        resultSet.next();
+        return resultSet.getInt(1);
     }
 
     @Value("${spring.datasource.url}")

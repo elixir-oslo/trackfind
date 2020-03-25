@@ -74,6 +74,7 @@ public class TrackFindMainUI extends AbstractUI {
     private CheckBoxGroup<String> categoriesChecklist = new CheckBoxGroup<>();
     private TextArea queryTextArea;
     private TextField limitTextField;
+    private Panel resultsPanel;
     private Tree<ResultTreeItemWrapper> resultsTree = new Tree<>();
     private Collection<SearchResult> results = new ArrayList<>();
     private String jsonResult;
@@ -196,7 +197,7 @@ public class TrackFindMainUI extends AbstractUI {
         resultsTree.setItemCaptionGenerator((ItemCaptionGenerator<ResultTreeItemWrapper>) ResultTreeItemWrapper::getValue);
         resultsTree.setStyleGenerator((StyleGenerator<ResultTreeItemWrapper>) item -> item.isLeaf() ? "value-tree-node" : null);
 
-        Panel resultsPanel = new Panel("3. Results", resultsTree);
+        resultsPanel = new Panel("3. Results", resultsTree);
         resultsPanel.setSizeFull();
         VerticalLayout resultsLayout = new VerticalLayout(resultsPanel, exportGSuiteButton, exportJSONButton);
         resultsLayout.setSizeFull();
@@ -286,14 +287,17 @@ public class TrackFindMainUI extends AbstractUI {
         TfHub hub = getCurrentHub();
         String limit = limitTextField.getValue();
         limit = StringUtils.isEmpty(limit) ? "0" : limit;
+        int count = 0;
         try {
             results = searchService.search(hub.getRepository(), hub.getName(), query, categoriesChecklist.getSelectedItems(), Long.parseLong(limit)).getValue();
+            count = searchService.count(hub.getRepository(), hub.getName(), query, categoriesChecklist.getSelectedItems());
         } catch (SQLException e) {
             results = Collections.emptyList();
             log.error(e.getMessage(), e);
         }
         if (results.isEmpty()) {
             resultsTree.setItems(Collections.emptyList());
+            resultsPanel.setCaption("3. Results");
             exportGSuiteButton.setEnabled(false);
             exportGSuiteButton.setCaption("Export as GSuite file");
             exportJSONButton.setEnabled(false);
@@ -301,6 +305,7 @@ public class TrackFindMainUI extends AbstractUI {
             Notification.show("Nothing found for such request");
             return;
         }
+        resultsPanel.setCaption(String.format("3. Results: %s out of %s", results.size(), count));
         resultsTree.setDataProvider(new TreeDataProvider<>(getResultsTreeData()));
         resultsTree.getDataProvider().refreshAll();
         int numberOfResults = results.size();
