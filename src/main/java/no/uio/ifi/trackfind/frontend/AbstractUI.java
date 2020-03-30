@@ -142,10 +142,21 @@ public abstract class AbstractUI extends UI {
     }
 
     @SuppressWarnings("unchecked")
+    protected TreeFilter getCurrentFilter() {
+        TrackFindTree<TreeNode> currentTree = getCurrentTree();
+        return (TreeFilter) ((TreeGrid<TreeNode>) currentTree.getCompositionRoot()).getDataCommunicator().getFilter();
+    }
+
+    @SuppressWarnings("unchecked")
+    protected void setCurrentFilter(TreeFilter filter) {
+        TrackFindTree<TreeNode> currentTree = getCurrentTree();
+        ((TreeGrid<TreeNode>) currentTree.getCompositionRoot()).getDataCommunicator().setFilter(filter);
+    }
+
     protected TextField createFilter(boolean attributes) {
         TextField attributesFilterTextField = new TextField(attributes ? "Filter attributes" : "Filter values", (HasValue.ValueChangeListener<String>) event -> {
             TrackFindTree<TreeNode> currentTree = getCurrentTree();
-            TreeFilter filter = (TreeFilter) ((TreeGrid<TreeNode>) currentTree.getCompositionRoot()).getFilter();
+            TreeFilter filter = getCurrentFilter();
             if (attributes) {
                 filter.setAttributesFilter(event.getValue());
             } else {

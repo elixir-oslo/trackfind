@@ -6,7 +6,10 @@ import com.vaadin.annotations.Title;
 import com.vaadin.annotations.Widgetset;
 import com.vaadin.data.HasValue;
 import com.vaadin.data.TreeData;
+import com.vaadin.data.provider.HierarchicalQuery;
 import com.vaadin.data.provider.TreeDataProvider;
+import com.vaadin.event.CollapseEvent;
+import com.vaadin.event.ExpandEvent;
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.event.ShortcutListener;
 import com.vaadin.server.*;
@@ -35,6 +38,7 @@ import no.uio.ifi.trackfind.frontend.listeners.AddToQueryButtonClickListener;
 import no.uio.ifi.trackfind.frontend.listeners.TextAreaDropListener;
 import no.uio.ifi.trackfind.frontend.listeners.TreeItemClickListener;
 import no.uio.ifi.trackfind.frontend.listeners.TreeSelectionListener;
+import no.uio.ifi.trackfind.frontend.providers.TrackFindDataProvider;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -48,6 +52,8 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 
 /**
  * Main Vaadin UI of the application.
@@ -64,11 +70,23 @@ import java.util.*;
 @Slf4j
 public class TrackFindMainUI extends AbstractUI {
 
+    public static Map<String, List<String>> SHORTCUTS = Map.of(
+            "Cell/Tissue type", List.of("samples", "sample_type", "summary"),
+            "Experiment type", List.of("experiments", "technique", "term_label"),
+            "Genome assembly", List.of("tracks", "assembly_name"),
+            "Target", List.of("experiments", "target", "summary"),
+            "File format", List.of("tracks", "file_format", "term_label"),
+            "Type of condensed data", List.of("tracks", "type_of_condensed_data"),
+            "Phenotype", List.of("samples", "phenotype", "term_label"),
+            "Geometric track type", List.of("tracks", "geometric_track_type")
+    );
+
     private ObjectMapper mapper;
     private MetamodelService metamodelService;
     private GSuiteService gSuiteService;
     private SearchService searchService;
 
+    private List<TreeNode> expandedItems = new CopyOnWriteArrayList<>();
     private Button exportGSuiteButton = new Button("Export as GSuite file");
     private Button exportJSONButton = new Button("Export as JSON file");
     private CheckBoxGroup<String> categoriesChecklist = new CheckBoxGroup<>();
@@ -111,8 +129,6 @@ public class TrackFindMainUI extends AbstractUI {
             tabSheet.addTab(tree, hub.getDisplayName() != null ? hub.getDisplayName() : hub.getName());
         }
 
-        tabSheet.addSelectedTabChangeListener((TabSheet.SelectedTabChangeListener) event -> refreshCategoriesCheckList());
-
         Panel treePanel = new Panel("1. Select metadata value(s)", tabSheet);
         treePanel.setSizeFull();
 
@@ -121,10 +137,26 @@ public class TrackFindMainUI extends AbstractUI {
 
         CheckBox standardCheckbox = new CheckBox("Show only FAIRtracks attributes");
         standardCheckbox.addValueChangeListener((HasValue.ValueChangeListener<Boolean>) event -> {
-            TrackFindTree<TreeNode> currentTree = getCurrentTree();
-            TreeFilter filter = (TreeFilter) ((TreeGrid<TreeNode>) currentTree.getCompositionRoot()).getFilter();
+            TreeFilter filter = getCurrentFilter();
             filter.setStandard(event.getValue());
-            currentTree.getDataProvider().refreshAll();
+            getCurrentTree().getDataProvider().refreshAll();
+        });
+
+        tabSheet.addSelectedTabChangeListener((TabSheet.SelectedTabChangeListener) event -> refreshCategoriesCheckList());
+
+        ComboBox<String> shortcuts = new ComboBox<>("Shortcuts", SHORTCUTS.keySet());
+        shortcuts.setWidth("100%");
+        shortcuts.addValueChangeListener((HasValue.ValueChangeListener<String>) valueChangeEvent -> {
+            if (StringUtils.isEmpty(valueChangeEvent.getValue())) {
+                return;
+            }
+            TrackFindTree<TreeNode> currentTree = getCurrentTree();
+            currentTree.getSelectedItems().forEach(currentTree::deselect);
+            currentTree.collapse(expandedItems);
+            List<String> path = SHORTCUTS.get(valueChangeEvent.getValue());
+            List<TreeNode> nodesToExpand = getNodesByPath(path);
+            currentTree.expand(nodesToExpand);
+            currentTree.select(nodesToExpand.get(nodesToExpand.size() - 1));
         });
 
         Button addToQueryButton = new Button("Add to query ➚ (⌥: OR, ⇧: NOT)");
@@ -133,10 +165,35 @@ public class TrackFindMainUI extends AbstractUI {
         addToQueryButton.addClickListener(addToQueryButtonClickListener);
         addToQueryButton.setWidth(100, Unit.PERCENTAGE);
 
-        VerticalLayout treeLayout = new VerticalLayout(treePanel, standardCheckbox, valuesFilterTextField, addToQueryButton);
+        VerticalLayout treeLayout = new VerticalLayout(treePanel, standardCheckbox, valuesFilterTextField, shortcuts, addToQueryButton);
         treeLayout.setSizeFull();
         treeLayout.setExpandRatio(treePanel, 1f);
         return treeLayout;
+    }
+
+    protected List<TreeNode> getRootNodes() {
+        TrackFindTree<TreeNode> currentTree = getCurrentTree();
+        TrackFindDataProvider dataProvider = (TrackFindDataProvider) currentTree.getDataProvider();
+        TreeFilter filter = getCurrentFilter();
+        return dataProvider.fetch(new HierarchicalQuery<>(filter, null)).collect(Collectors.toList());
+    }
+
+    protected List<TreeNode> getNodesByParent(TreeNode parent) {
+        TrackFindTree<TreeNode> currentTree = getCurrentTree();
+        TrackFindDataProvider dataProvider = (TrackFindDataProvider) currentTree.getDataProvider();
+        TreeFilter filter = getCurrentFilter();
+        return dataProvider.fetch(new HierarchicalQuery<>(filter, parent)).collect(Collectors.toList());
+    }
+
+    protected List<TreeNode> getNodesByPath(List<String> path) {
+        List<TreeNode> result = new ArrayList<>();
+        List<TreeNode> nodes = getRootNodes();
+        for (String value : path) {
+            TreeNode treeNode = nodes.stream().filter(n -> n.getValue().equals(value)).findAny().orElseThrow(RuntimeException::new);
+            result.add(treeNode);
+            nodes = getNodesByParent(treeNode);
+        }
+        return result;
     }
 
     @SuppressWarnings("unchecked")
@@ -147,7 +204,7 @@ public class TrackFindMainUI extends AbstractUI {
         tree.addItemClickListener(new TreeItemClickListener(tree));
         TreeGrid<TreeNode> treeGrid = (TreeGrid<TreeNode>) tree.getCompositionRoot();
         TreeFilter filter = new TreeFilter(hub, false, "", "");
-        treeGrid.setFilter(filter);
+        treeGrid.getDataCommunicator().setFilter(filter);
         tree.addSelectionListener(new TreeSelectionListener(tree, filter, new KeyboardInterceptorExtension(tree)));
         tree.setSizeFull();
         tree.setStyleGenerator((StyleGenerator<TreeNode>) item -> {
@@ -161,6 +218,9 @@ public class TrackFindMainUI extends AbstractUI {
                 return "value-tree-node";
             }
         });
+
+        tree.addExpandListener((ExpandEvent.ExpandListener<TreeNode>) event -> expandedItems.add(event.getExpandedItem()));
+        tree.addCollapseListener((CollapseEvent.CollapseListener<TreeNode>) event -> expandedItems.remove(event.getCollapsedItem()));
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (!(authentication instanceof AnonymousAuthenticationToken)) {

@@ -21,8 +21,8 @@ import com.vaadin.event.CollapseEvent;
 import com.vaadin.event.CollapseEvent.CollapseListener;
 import com.vaadin.event.ExpandEvent;
 import com.vaadin.event.ExpandEvent.ExpandListener;
-import com.vaadin.server.SerializablePredicate;
 import com.vaadin.shared.Registration;
+import com.vaadin.shared.ui.grid.ScrollDestination;
 import com.vaadin.shared.ui.treegrid.*;
 import com.vaadin.ui.declarative.DesignAttributeHandler;
 import com.vaadin.ui.declarative.DesignContext;
@@ -36,6 +36,9 @@ import java.util.stream.Stream;
 
 /**
  * A grid component for displaying hierarchical tabular data.
+ * <p>
+ * Visual hierarchy depth positioning of rows is done via styles, see
+ * <code>_treegrid.scss</code> from Valo theme.
  *
  * @param <T> the grid bean type
  * @author Vaadin Ltd
@@ -121,14 +124,6 @@ public class TreeGrid<T> extends Grid<T>
         }, dataCommunicator);
     }
 
-    public void setFilter(SerializablePredicate<T> filter) {
-        getDataCommunicator().setFilter(filter);
-    }
-
-    public Object getFilter() {
-        return getDataCommunicator().getFilter();
-    }
-
     /**
      * Creates a {@code TreeGrid} using a custom {@link PropertySet}
      * implementation for creating a default set of columns and for resolving
@@ -175,6 +170,26 @@ public class TreeGrid<T> extends Grid<T>
                 getRpcProxy(FocusRpc.class).focusCell(parentIndex, cellIndex);
             }
         });
+    }
+
+    /**
+     * This method is inherited from Grid but should never be called directly
+     * with a TreeGrid
+     */
+    @Override
+    @Deprecated
+    public void scrollTo(int row) throws IllegalArgumentException {
+        super.scrollTo(row);
+    }
+
+    /**
+     * This method is inherited from Grid but should never be called directly
+     * with a TreeGrid
+     */
+    @Deprecated
+    @Override
+    public void scrollTo(int row, ScrollDestination destination) {
+        super.scrollTo(row, destination);
     }
 
     /**
@@ -434,13 +449,12 @@ public class TreeGrid<T> extends Grid<T>
         if (depth < 0) {
             return;
         }
-
         HierarchicalDataCommunicator<T> communicator = getDataCommunicator();
         items.forEach(item -> {
             if (communicator.hasChildren(item)) {
                 collapseRecursively(
                         getDataProvider().fetchChildren(
-                                new HierarchicalQuery<>(null, item)),
+                                new HierarchicalQuery(communicator.getFilter(), item)),
                         depth - 1);
 
                 communicator.collapse(item, false);

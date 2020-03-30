@@ -194,7 +194,7 @@ public class TrackFindCurationUI extends AbstractUI {
         });
 
         TreeGrid<TreeNode> treeGrid = (TreeGrid<TreeNode>) tree.getCompositionRoot();
-        treeGrid.setFilter(new TreeFilter(hub, false, "", ""));
+        treeGrid.getDataCommunicator().setFilter(new TreeFilter(hub, false, "", ""));
 
         return tree;
     }

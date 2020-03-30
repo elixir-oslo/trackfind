@@ -26,6 +26,10 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
     private MetamodelService metamodelService;
     private SchemaService schemaService;
 
+    public Stream<TreeNode> fetch(HierarchicalQuery<TreeNode, SerializablePredicate<TreeNode>> query) {
+        return fetchChildrenFromBackEnd(query);
+    }
+
     /**
      * {@inheritDoc}
      */
