@@ -129,22 +129,8 @@ public class TrackFindMainUI extends AbstractUI {
             tabSheet.addTab(tree, hub.getDisplayName() != null ? hub.getDisplayName() : hub.getName());
         }
 
-        Panel treePanel = new Panel("1. Select metadata value(s)", tabSheet);
-        treePanel.setSizeFull();
-
-//        TextField attributesFilterTextField = createFilter(true);
-        TextField valuesFilterTextField = createFilter(false);
-
-        CheckBox standardCheckbox = new CheckBox("Show only FAIRtracks attributes");
-        standardCheckbox.addValueChangeListener((HasValue.ValueChangeListener<Boolean>) event -> {
-            TreeFilter filter = getCurrentFilter();
-            filter.setStandard(event.getValue());
-            getCurrentTree().getDataProvider().refreshAll();
-        });
-
-        tabSheet.addSelectedTabChangeListener((TabSheet.SelectedTabChangeListener) event -> refreshCategoriesCheckList());
-
-        ComboBox<String> shortcuts = new ComboBox<>("Shortcuts", SHORTCUTS.keySet());
+        ComboBox<String> shortcuts = new ComboBox<>();
+        shortcuts.setItems(SHORTCUTS.keySet());
         shortcuts.setWidth("100%");
         shortcuts.addValueChangeListener((HasValue.ValueChangeListener<String>) valueChangeEvent -> {
             if (StringUtils.isEmpty(valueChangeEvent.getValue())) {
@@ -159,13 +145,30 @@ public class TrackFindMainUI extends AbstractUI {
             currentTree.select(nodesToExpand.get(nodesToExpand.size() - 1));
         });
 
+        VerticalLayout selectionLayout = new VerticalLayout(shortcuts, tabSheet);
+
+        Panel treePanel = new Panel("1. Select metadata value(s)", selectionLayout);
+        treePanel.setSizeFull();
+
+//        TextField attributesFilterTextField = createFilter(true);
+        TextField valuesFilterTextField = createFilter(false);
+
+        CheckBox standardCheckbox = new CheckBox("Show only FAIRtracks attributes");
+        standardCheckbox.addValueChangeListener((HasValue.ValueChangeListener<Boolean>) event -> {
+            TreeFilter filter = getCurrentFilter();
+            filter.setStandard(event.getValue());
+            getCurrentTree().getDataProvider().refreshAll();
+        });
+
+        tabSheet.addSelectedTabChangeListener((TabSheet.SelectedTabChangeListener) event -> refreshCategoriesCheckList());
+
         Button addToQueryButton = new Button("Add to query ➚ (⌥: OR, ⇧: NOT)");
         KeyboardInterceptorExtension keyboardInterceptorExtension = new KeyboardInterceptorExtension(addToQueryButton);
         AddToQueryButtonClickListener addToQueryButtonClickListener = new AddToQueryButtonClickListener(this, keyboardInterceptorExtension, separator);
         addToQueryButton.addClickListener(addToQueryButtonClickListener);
         addToQueryButton.setWidth(100, Unit.PERCENTAGE);
 
-        VerticalLayout treeLayout = new VerticalLayout(treePanel, standardCheckbox, valuesFilterTextField, shortcuts, addToQueryButton);
+        VerticalLayout treeLayout = new VerticalLayout(treePanel, standardCheckbox, valuesFilterTextField, addToQueryButton);
         treeLayout.setSizeFull();
         treeLayout.setExpandRatio(treePanel, 1f);
         return treeLayout;
