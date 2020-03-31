@@ -12,7 +12,6 @@ import com.vaadin.event.CollapseEvent;
 import com.vaadin.event.ExpandEvent;
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.event.ShortcutListener;
-import com.vaadin.event.selection.SelectionListener;
 import com.vaadin.server.*;
 import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.shared.ui.ValueChangeMode;
@@ -40,6 +39,7 @@ import no.uio.ifi.trackfind.frontend.listeners.TextAreaDropListener;
 import no.uio.ifi.trackfind.frontend.listeners.TreeItemClickListener;
 import no.uio.ifi.trackfind.frontend.listeners.TreeSelectionListener;
 import no.uio.ifi.trackfind.frontend.providers.TrackFindDataProvider;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -143,8 +143,12 @@ public class TrackFindMainUI extends AbstractUI {
             currentTree.collapse(expandedItems);
             List<String> path = SHORTCUTS.get(valueChangeEvent.getValue());
             List<TreeNode> nodesToExpand = getNodesByPath(path);
-            currentTree.expand(nodesToExpand);
-            currentTree.select(nodesToExpand.get(nodesToExpand.size() - 1));
+            if (CollectionUtils.isNotEmpty(nodesToExpand)) {
+                currentTree.expand(nodesToExpand);
+                currentTree.select(nodesToExpand.get(nodesToExpand.size() - 1));
+            } else {
+                Notification.show("Shortcut not found in the current hub.");
+            }
         });
 
         VerticalLayout selectionLayout = new VerticalLayout(shortcuts, tabSheet);
@@ -194,11 +198,11 @@ public class TrackFindMainUI extends AbstractUI {
         List<TreeNode> result = new ArrayList<>();
         List<TreeNode> nodes = getRootNodes();
         for (String value : path) {
-            TreeNode treeNode = nodes.stream().filter(n -> n.getValue().equals(value)).findAny().orElseThrow(RuntimeException::new);
+            TreeNode treeNode = nodes.stream().filter(n -> n.getValue().equals(value)).findAny().orElse(null);
             result.add(treeNode);
             nodes = getNodesByParent(treeNode);
         }
-        return result;
+        return result.stream().filter(Objects::nonNull).collect(Collectors.toList());
     }
 
     @SuppressWarnings("unchecked")
