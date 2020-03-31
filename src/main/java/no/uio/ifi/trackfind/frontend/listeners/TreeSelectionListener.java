@@ -7,6 +7,7 @@ import com.vaadin.event.selection.SelectionEvent;
 import com.vaadin.event.selection.SelectionListener;
 import com.vaadin.event.selection.SingleSelectionEvent;
 import com.vaadin.server.SerializablePredicate;
+import com.vaadin.ui.Button;
 import no.uio.ifi.trackfind.backend.data.TreeNode;
 import no.uio.ifi.trackfind.frontend.components.KeyboardInterceptorExtension;
 import no.uio.ifi.trackfind.frontend.components.TrackFindTree;
@@ -26,6 +27,7 @@ public class TreeSelectionListener implements SelectionListener<TreeNode> {
 
     private TrackFindTree<TreeNode> tree;
     private TreeFilter filter;
+    private Button addToQueryButton;
     private KeyboardInterceptorExtension keyboardInterceptorExtension;
 
     /**
@@ -34,9 +36,13 @@ public class TreeSelectionListener implements SelectionListener<TreeNode> {
      * @param tree                         Vaadin Tree.
      * @param keyboardInterceptorExtension KeyboardInterceptorExtension.
      */
-    public TreeSelectionListener(TrackFindTree<TreeNode> tree, TreeFilter filter, KeyboardInterceptorExtension keyboardInterceptorExtension) {
+    public TreeSelectionListener(TrackFindTree<TreeNode> tree,
+                                 TreeFilter filter,
+                                 Button addToQueryButton,
+                                 KeyboardInterceptorExtension keyboardInterceptorExtension) {
         this.tree = tree;
         this.filter = filter;
+        this.addToQueryButton = addToQueryButton;
         this.keyboardInterceptorExtension = keyboardInterceptorExtension;
     }
 
@@ -47,6 +53,8 @@ public class TreeSelectionListener implements SelectionListener<TreeNode> {
     @Override
     public void selectionChange(SelectionEvent<TreeNode> event) {
         Set<TreeNode> selectedItems = event.getAllSelectedItems();
+        boolean valueSelected = event.getAllSelectedItems().stream().anyMatch(n -> !n.isAttribute());
+        addToQueryButton.setEnabled(valueSelected);
         if (event instanceof SingleSelectionEvent) {
             return;
         }

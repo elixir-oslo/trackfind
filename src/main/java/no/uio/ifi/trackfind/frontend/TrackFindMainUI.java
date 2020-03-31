@@ -12,6 +12,7 @@ import com.vaadin.event.CollapseEvent;
 import com.vaadin.event.ExpandEvent;
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.event.ShortcutListener;
+import com.vaadin.event.selection.SelectionListener;
 import com.vaadin.server.*;
 import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.shared.ui.ValueChangeMode;
@@ -86,6 +87,7 @@ public class TrackFindMainUI extends AbstractUI {
     private GSuiteService gSuiteService;
     private SearchService searchService;
 
+    private Button addToQueryButton = new Button("Add to query ➚ (⌥: OR, ⇧: NOT)");
     private List<TreeNode> expandedItems = new CopyOnWriteArrayList<>();
     private Button exportGSuiteButton = new Button("Export as GSuite file");
     private Button exportJSONButton = new Button("Export as JSON file");
@@ -162,7 +164,7 @@ public class TrackFindMainUI extends AbstractUI {
 
         tabSheet.addSelectedTabChangeListener((TabSheet.SelectedTabChangeListener) event -> refreshCategoriesCheckList());
 
-        Button addToQueryButton = new Button("Add to query ➚ (⌥: OR, ⇧: NOT)");
+        addToQueryButton.setEnabled(false);
         KeyboardInterceptorExtension keyboardInterceptorExtension = new KeyboardInterceptorExtension(addToQueryButton);
         AddToQueryButtonClickListener addToQueryButtonClickListener = new AddToQueryButtonClickListener(this, keyboardInterceptorExtension, separator);
         addToQueryButton.addClickListener(addToQueryButtonClickListener);
@@ -208,7 +210,7 @@ public class TrackFindMainUI extends AbstractUI {
         TreeGrid<TreeNode> treeGrid = (TreeGrid<TreeNode>) tree.getCompositionRoot();
         TreeFilter filter = new TreeFilter(hub, false, "", "");
         treeGrid.getDataCommunicator().setFilter(filter);
-        tree.addSelectionListener(new TreeSelectionListener(tree, filter, new KeyboardInterceptorExtension(tree)));
+        tree.addSelectionListener(new TreeSelectionListener(tree, filter, addToQueryButton, new KeyboardInterceptorExtension(tree)));
         tree.setSizeFull();
         tree.setStyleGenerator((StyleGenerator<TreeNode>) item -> {
             if (item.isAttribute()) {
