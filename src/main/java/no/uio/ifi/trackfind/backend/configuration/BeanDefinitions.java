@@ -8,7 +8,6 @@ import de.codecentric.boot.admin.client.config.ClientProperties;
 import de.codecentric.boot.admin.client.registration.BlockingRegistrationClient;
 import de.codecentric.boot.admin.server.web.client.HttpHeadersProvider;
 import lombok.extern.slf4j.Slf4j;
-import org.python.util.PythonInterpreter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
@@ -17,7 +16,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -73,15 +71,6 @@ public class BeanDefinitions {
     @Bean
     public CoffeeScriptEngine coffeeScriptEngine() {
         return (CoffeeScriptEngine) new CoffeeScriptEngineFactory().getScriptEngine();
-    }
-
-    @Bean
-    public PythonInterpreter pythonInterpreter() {
-        Properties props = new Properties();
-        props.put("python.import.site", "false");
-        Properties systemProperties = System.getProperties();
-        PythonInterpreter.initialize(systemProperties, props, new String[0]);
-        return new PythonInterpreter();
     }
 
     @Bean

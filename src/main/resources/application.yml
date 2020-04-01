@@ -3,11 +3,10 @@ logging:
     org.springframework: ERROR
     com.vaadin: ERROR
     org.hibernate: ERROR
-  file: console.log
+  file.name: console.log
 
 server:
   port: 8080
-  use-forward-headers: true
   error.whitelabel.enabled: false
 
 management:
