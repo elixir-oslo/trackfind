@@ -41,7 +41,7 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
         String hubName = hub.getName();
         Map<String, Map<String, Object>> metamodelTree;
         metamodelTree = metamodelService.getMetamodelTree(repository, hubName);
-        Map<String, Collection<String>> schemaAttributes = schemaService.getAttributes();
+        Map<String, Collection<SchemaService.Attribute>> schemaAttributes = schemaService.getAttributes();
         Optional<TreeNode> parentOptional = query.getParentOptional();
         if (!parentOptional.isPresent()) {
             return metamodelTree.keySet().stream().map(c -> {
@@ -84,7 +84,7 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
                 treeNode.setType(attributeTypes.get(path));
                 if (treeNode.isAttribute()) {
                     if (parent.isStandard()) {
-                        treeNode.setStandard(schemaAttributes.get(category).parallelStream().map(a -> a.replace("'", "")).anyMatch(a -> a.startsWith(path)));
+                        treeNode.setStandard(schemaAttributes.get(category).parallelStream().map(a -> a.getPath().replace("'", "")).anyMatch(a -> a.startsWith(path)));
                     }
                     if (attributes.contains(path)) {
                         treeNode.setChildren(metamodelService.getValues(repository, hubName, category, path, null));

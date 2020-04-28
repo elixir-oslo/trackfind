@@ -29,6 +29,7 @@ import no.uio.ifi.trackfind.backend.pojo.TfHub;
 import no.uio.ifi.trackfind.backend.pojo.TfObjectType;
 import no.uio.ifi.trackfind.backend.services.impl.GSuiteService;
 import no.uio.ifi.trackfind.backend.services.impl.MetamodelService;
+import no.uio.ifi.trackfind.backend.services.impl.SchemaService;
 import no.uio.ifi.trackfind.backend.services.impl.SearchService;
 import no.uio.ifi.trackfind.frontend.components.KeyboardInterceptorExtension;
 import no.uio.ifi.trackfind.frontend.components.ResultTreeItemWrapper;
@@ -121,7 +122,6 @@ public class TrackFindMainUI extends AbstractUI {
 //        tracker.extend(getUI());
     }
 
-    @SuppressWarnings("unchecked")
     protected VerticalLayout buildTreeLayout() {
         tabSheet = new TabSheet();
         tabSheet.setSizeFull();
@@ -211,6 +211,27 @@ public class TrackFindMainUI extends AbstractUI {
         tree.setDataProvider(trackFindDataProvider);
         tree.setSelectionMode(Grid.SelectionMode.MULTI);
         tree.addItemClickListener(new TreeItemClickListener(tree));
+        tree.setItemDescriptionGenerator((DescriptionGenerator<TreeNode>) treeNode -> {
+            if (!treeNode.isStandard()) {
+                return null;
+            }
+            if (treeNode.getParent() == null) { // category
+                Map<String, String> categories = schemaService.getCategories();
+                if (categories.containsKey(treeNode.getCategory())) {
+                    return categories.get(treeNode.getCategory());
+                }
+                return null;
+            }
+            Collection<SchemaService.Attribute> attributes = schemaService.getAttributes().get(treeNode.getCategory());
+            Optional<SchemaService.Attribute> optionalAttribute = attributes
+                    .stream()
+                    .filter(a -> (treeNode.getCategory() + separator + a.getPath().replace("'", "")).equals(treeNode.getPath()))
+                    .findAny();
+            if (optionalAttribute.isEmpty()) {
+                return null;
+            }
+            return optionalAttribute.get().getDescription();
+        });
         TreeGrid<TreeNode> treeGrid = (TreeGrid<TreeNode>) tree.getCompositionRoot();
         TreeFilter filter = new TreeFilter(hub, false, "", "");
         treeGrid.getDataCommunicator().setFilter(filter);

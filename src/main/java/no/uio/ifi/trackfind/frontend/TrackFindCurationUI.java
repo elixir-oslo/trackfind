@@ -21,6 +21,7 @@ import no.uio.ifi.trackfind.backend.pojo.TfMapping;
 import no.uio.ifi.trackfind.backend.pojo.TfObjectType;
 import no.uio.ifi.trackfind.backend.pojo.TfVersion;
 import no.uio.ifi.trackfind.backend.services.impl.MetamodelService;
+import no.uio.ifi.trackfind.backend.services.impl.SchemaService;
 import no.uio.ifi.trackfind.frontend.components.TrackFindTree;
 import no.uio.ifi.trackfind.frontend.filters.TreeFilter;
 import no.uio.ifi.trackfind.frontend.providers.VersionsDataProvider;
@@ -34,6 +35,7 @@ import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.Collection;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Curation Vaadin UI of the application.
@@ -149,7 +151,7 @@ public class TrackFindCurationUI extends AbstractUI {
                 attributesComboBox.setEnabled(false);
             } else {
                 attributesComboBox.setEnabled(true);
-                attributesComboBox.setItems(schemaService.getAttributes().get(value));
+                attributesComboBox.setItems(schemaService.getAttributes().get(value).stream().map(SchemaService.Attribute::getPath).collect(Collectors.toSet()));
             }
         });
 

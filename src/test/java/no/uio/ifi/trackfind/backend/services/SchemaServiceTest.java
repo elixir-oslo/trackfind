@@ -19,106 +19,400 @@ public class SchemaServiceTest {
     public static final String ATTRIBUTES =
             "{\n" +
                     "  \"doc_info\": [\n" +
-                    "    \"'doc_url'\",\n" +
-                    "    \"'doc_ontology_versions'->'http://www.ebi.ac.uk/efo/efo.owl'\",\n" +
-                    "    \"'doc_ontology_versions'->'http://purl.obolibrary.org/obo/cl.owl'\",\n" +
-                    "    \"'doc_version'\",\n" +
-                    "    \"'doc_ontology_versions'->'http://purl.obolibrary.org/obo/obi.owl'\",\n" +
-                    "    \"'doc_ontology_versions'->'http://edamontology.org/EDAM.owl'\",\n" +
-                    "    \"'doc_ontology_versions'->'http://purl.obolibrary.org/obo/so.owl'\",\n" +
-                    "    \"'doc_date'\",\n" +
-                    "    \"'doc_ontology_versions'->'http://purl.obolibrary.org/obo/ncit.owl'\",\n" +
-                    "    \"'doc_ontology_versions'->'http://purl.obolibrary.org/obo/uberon.owl'\",\n" +
-                    "    \"'local_id'\"\n" +
+                    "    {\n" +
+                    "      \"path\": \"'doc_url'\",\n" +
+                    "      \"description\": \"URL to this FAIRtracks JSON document\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'doc_version'\",\n" +
+                    "      \"description\": \"Version of this FAIRtracks JSON document\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'doc_ontology_versions'\",\n" +
+                    "      \"description\": \"URLs to the version of the ontologies used in the JSON document\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'doc_date'\",\n" +
+                    "      \"description\": \"Creation date of this version of this FAIRtracks document\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'local_id'\",\n" +
+                    "      \"description\": \"Identifier for this FAIRtracks JSON document (within the TrackFind database)\"\n" +
+                    "    }\n" +
                     "  ],\n" +
                     "  \"experiments\": [\n" +
-                    "    \"'aggregated_from'\",\n" +
-                    "    \"'target'->'phenotype'->'@schema'\",\n" +
-                    "    \"'target'->'macromolecular_structure'->'term_label'\",\n" +
-                    "    \"'target'->'gene_product_type'->'term_label'\",\n" +
-                    "    \"'technique'->'term_id'\",\n" +
-                    "    \"'technique'->'term_label'\",\n" +
-                    "    \"'target'->'gene_id'\",\n" +
-                    "    \"'study_ref'\",\n" +
-                    "    \"'target'->'gene_product_type'->'term_id'\",\n" +
-                    "    \"'local_id'\",\n" +
-                    "    \"'@schema'\",\n" +
-                    "    \"'sample_ref'\",\n" +
-                    "    \"'target'->'sequence_feature'->'term_id'\",\n" +
-                    "    \"'target'->'phenotype'->'term_label'\",\n" +
-                    "    \"'target'->'sequence_feature'->'term_label'\",\n" +
-                    "    \"'target'->'summary'\",\n" +
-                    "    \"'global_id'\",\n" +
-                    "    \"'compute_protocol_description'\",\n" +
-                    "    \"'target'->'macromolecular_structure'->'term_id'\",\n" +
-                    "    \"'target'->'target_details'\",\n" +
-                    "    \"'lab_protocol_description'\",\n" +
-                    "    \"'target'->'phenotype'->'term_id'\"\n" +
+                    "    {\n" +
+                    "      \"path\": \"'sample_ref'\",\n" +
+                    "      \"description\": \"Reference to the sample of the experiment (using the submitter-local identifier of the sample)\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'global_id'\",\n" +
+                    "      \"description\": \"Global experiment identifier, resolvable by identifiers.org\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'aggregated_from'\",\n" +
+                    "      \"description\": \"References to external experiments used as basis for aggregated data generation (using global experiment identifiers, resolvable by identifiers.org)\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'target'->'gene_product_type'->'term_id'\",\n" +
+                    "      \"description\": \"URL linking to an ontology term\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'local_id'\",\n" +
+                    "      \"description\": \"Submitter-local identifier (within investigation/hub) for experiment (in CURIE-format, if applicable)\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'technique'->'term_label'\",\n" +
+                    "      \"description\": \"Exact value according to the ontology used\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'target'->'phenotype'->'term_label'\",\n" +
+                    "      \"description\": \"Exact value according to the ontology used\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'target'->'sequence_feature'->'term_id'\",\n" +
+                    "      \"description\": \"URL linking to an ontology term\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'technique'\",\n" +
+                    "      \"description\": \"Main technique used in experiment (e.g., laboratory, computational or statistical technique)\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'target'->'gene_product_type'->'term_label'\",\n" +
+                    "      \"description\": \"Exact value according to the ontology used\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'target'->'sequence_feature'->'term_label'\",\n" +
+                    "      \"description\": \"Exact value according to the ontology used\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'target'->'macromolecular_structure'->'term_label'\",\n" +
+                    "      \"description\": \"Exact value according to the ontology used\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'target'->'gene_id'\",\n" +
+                    "      \"description\": \"HGNC identifier for gene targeted by the experiment (e.g., specific transcription factor used as ChIP-seq antibody).\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'lab_protocol_description'\",\n" +
+                    "      \"description\": \"Free-text description of lab protocol, or URL to such description\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'target'->'target_details'\",\n" +
+                    "      \"description\": \"Important details about the target of the experiment (to be included in the 'target' property)\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'technique'->'term_id'\",\n" +
+                    "      \"description\": \"URL linking to an ontology term\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'target'->'phenotype'\",\n" +
+                    "      \"description\": \"Main phenotype (e.g. disease) connected to the sample\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'target'->'gene_product_type'\",\n" +
+                    "      \"description\": \"Gene product type targeted by the experiment (e.g., miRNA)\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'target'\",\n" +
+                    "      \"description\": \"Main target of the experiment\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'compute_protocol_description'\",\n" +
+                    "      \"description\": \"Free-text description of computational protocol, or URL to such description\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'target'->'sequence_feature'\",\n" +
+                    "      \"description\": \"Sequence feature targeted by the experiment\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'target'->'macromolecular_structure'\",\n" +
+                    "      \"description\": \"Macromolecular structure targeted by the experiment (e.g., chromatin strucure)\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'study_ref'\",\n" +
+                    "      \"description\": \"Reference to the study that generated the sample (using the submitter-local identifier of the study)\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'target'->'phenotype'->'@schema'\",\n" +
+                    "      \"description\": \"The JSON Schema absolute URL. Used to link JSON data to a JSON schema. Must match the value of '$id' in the linked schema\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'target'->'phenotype'->'term_id'\",\n" +
+                    "      \"description\": \"URL linking to an ontology term\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'target'->'summary'\",\n" +
+                    "      \"description\": \"Summary of 'target', copied from 'sequence_feature', 'gene_id', 'gene_product', or 'macromolecular_structure' (and adding 'target_detail'), according to 'technique'\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'target'->'macromolecular_structure'->'term_id'\",\n" +
+                    "      \"description\": \"URL linking to an ontology term\"\n" +
+                    "    }\n" +
                     "  ],\n" +
                     "  \"studies\": [\n" +
-                    "    \"'@schema'\",\n" +
-                    "    \"'contact'->'e-mail'\",\n" +
-                    "    \"'collection_ref'\",\n" +
-                    "    \"'study_name'\",\n" +
-                    "    \"'contact'->'orcid'\",\n" +
-                    "    \"'contact'->'name'\",\n" +
-                    "    \"'contact'->'@schema'\",\n" +
-                    "    \"'global_id'\",\n" +
-                    "    \"'publication'\",\n" +
-                    "    \"'local_id'\"\n" +
+                    "    {\n" +
+                    "      \"path\": \"'contact'->'@schema'\",\n" +
+                    "      \"description\": \"The JSON Schema absolute URL. Used to link JSON data to a JSON schema. Must match the value of '$id' in the linked schema\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'publication'\",\n" +
+                    "      \"description\": \"Pubmed identifier (dataset or publication)\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'local_id'\",\n" +
+                    "      \"description\": \"Submitter-local identifier (within the track collection) for the study\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'study_name'\",\n" +
+                    "      \"description\": \"Name of the study\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'contact'\",\n" +
+                    "      \"description\": \"Contact information for study\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'contact'->'orcid'\",\n" +
+                    "      \"description\": \"ORCID to contact person\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'global_id'\",\n" +
+                    "      \"description\": \"Global study identifier, resolvable by identifiers.org\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'contact'->'name'\",\n" +
+                    "      \"description\": \"Name of contact person/organization\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'collection_ref'\",\n" +
+                    "      \"description\": \"Reference to the track collection containing the study (using the submitter-local identifier of the collection)\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'contact'->'e-mail'\",\n" +
+                    "      \"description\": \"E-mail to contact person/organization\"\n" +
+                    "    }\n" +
                     "  ],\n" +
                     "  \"samples\": [\n" +
-                    "    \"'sample_type'->'cell_type'->'term_label'\",\n" +
-                    "    \"'biospecimen_class'->'term_id'\",\n" +
-                    "    \"'sample_type'->'cell_type'->'term_id'\",\n" +
-                    "    \"'phenotype'->'term_id'\",\n" +
-                    "    \"'sample_type'->'abnormal_cell_type'->'term_id'\",\n" +
-                    "    \"'sample_type'->'organism_part'->'term_label'\",\n" +
-                    "    \"'species_id'\",\n" +
-                    "    \"'sample_type'->'cell_line'->'term_id'\",\n" +
-                    "    \"'local_id'\",\n" +
-                    "    \"'sample_type'->'cell_line'->'term_label'\",\n" +
-                    "    \"'@schema'\",\n" +
-                    "    \"'biospecimen_class'->'term_label'\",\n" +
-                    "    \"'global_id'\",\n" +
-                    "    \"'sample_type'->'organism_part'->'term_id'\",\n" +
-                    "    \"'phenotype'->'@schema'\",\n" +
-                    "    \"'phenotype'->'term_label'\",\n" +
-                    "    \"'species_name'\",\n" +
-                    "    \"'sample_type'->'abnormal_cell_type'->'term_label'\",\n" +
-                    "    \"'sample_type'->'summary'\"\n" +
+                    "    {\n" +
+                    "      \"path\": \"'sample_type'->'cell_type'->'term_label'\",\n" +
+                    "      \"description\": \"Exact value according to the ontology used\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'sample_type'->'summary'\",\n" +
+                    "      \"description\": \"Summary of 'sample_type', copied from 'cell_type', 'abnormal_cell_type', 'cell_line', or 'organism_part', according to 'biospecimen_class'\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'sample_type'->'cell_line'->'term_id'\",\n" +
+                    "      \"description\": \"URL linking to an ontology term\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'species_name'\",\n" +
+                    "      \"description\": \"Species name according to the NCBI Taxonomy database (https://www.ncbi.nlm.nih.gov/taxonomy)\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'sample_type'->'cell_type'\",\n" +
+                    "      \"description\": \"Cell type of isolated normal cells in the sample. This property should only be used if biospecimen_class is set to \\\"Cell\\\".\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'sample_type'->'cell_line'\",\n" +
+                    "      \"description\": \"Cultured cell line used in the sample. This property should only be used if biospecimen_class is set to \\\"Cell Line\\\".\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'sample_type'->'cell_line'->'term_label'\",\n" +
+                    "      \"description\": \"Exact value according to the ontology used\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'biospecimen_class'->'term_id'\",\n" +
+                    "      \"description\": \"URL linking to an ontology term\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'local_id'\",\n" +
+                    "      \"description\": \"Submitter-local identifier (within investigation/hub) for sample (in CURIE-format, if applicable)\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'biospecimen_class'->'term_label'\",\n" +
+                    "      \"description\": \"Exact value according to the ontology used\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'phenotype'->'term_label'\",\n" +
+                    "      \"description\": \"Exact value according to the ontology used\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'phenotype'\",\n" +
+                    "      \"description\": \"Main phenotype (e.g. disease) connected to the sample\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'phenotype'->'@schema'\",\n" +
+                    "      \"description\": \"The JSON Schema absolute URL. Used to link JSON data to a JSON schema. Must match the value of '$id' in the linked schema\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'sample_type'->'organism_part'\",\n" +
+                    "      \"description\": \"Part of organism (typically tissue or organ) from which the sample was taken, or cell line was derived from. This property  must be used is biospecimen_class is set to \\\"Organism Part\\\", but can also be used for the other values of biospecimen_class.\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'sample_type'->'abnormal_cell_type'->'term_id'\",\n" +
+                    "      \"description\": \"URL linking to an ontology term\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'sample_type'->'cell_type'->'term_id'\",\n" +
+                    "      \"description\": \"URL linking to an ontology term\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'species_id'\",\n" +
+                    "      \"description\": \"Species identifier, resolvable by identifiers.org\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'sample_type'\",\n" +
+                    "      \"description\": \"The type of the sample\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'sample_type'->'organism_part'->'term_id'\",\n" +
+                    "      \"description\": \"URL linking to an ontology term\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'sample_type'->'abnormal_cell_type'\",\n" +
+                    "      \"description\": \"Cell type of isolated abnormal cells in the sample. This property should only be used if biospecimen_class is set to \\\"Abnormal Cell\\\".\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'sample_type'->'abnormal_cell_type'->'term_label'\",\n" +
+                    "      \"description\": \"Exact value according to the ontology used\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'sample_type'->'organism_part'->'term_label'\",\n" +
+                    "      \"description\": \"Exact value according to the ontology used\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'phenotype'->'term_id'\",\n" +
+                    "      \"description\": \"URL linking to an ontology term\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'biospecimen_class'\",\n" +
+                    "      \"description\": \"Main type of structural unit to be used for classification of the sample\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'global_id'\",\n" +
+                    "      \"description\": \"Global sample identifier, resolvable by identifiers.org\"\n" +
+                    "    }\n" +
                     "  ],\n" +
                     "  \"tracks\": [\n" +
-                    "    \"'experiment_ref'\",\n" +
-                    "    \"'file_format'->'term_id'\",\n" +
-                    "    \"'checksum'->'cs_hash'\",\n" +
-                    "    \"'checksum'->'cs_method'\",\n" +
-                    "    \"'local_id'\",\n" +
-                    "    \"'file_url'\",\n" +
-                    "    \"'@schema'\",\n" +
-                    "    \"'file_format'->'term_label'\",\n" +
-                    "    \"'assembly_name'\",\n" +
-                    "    \"'type_of_condensed_data'\",\n" +
-                    "    \"'label_long'\",\n" +
-                    "    \"'file_name'\",\n" +
-                    "    \"'assembly_id'\",\n" +
-                    "    \"'geometric_track_type'\",\n" +
-                    "    \"'global_id'\",\n" +
-                    "    \"'label_short'\",\n" +
-                    "    \"'raw_file_ids'\"\n" +
+                    "    {\n" +
+                    "      \"path\": \"'file_name'\",\n" +
+                    "      \"description\": \"Name of the track file\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'checksum'->'cs_hash'\",\n" +
+                    "      \"description\": \"Checksum of track file, using the method described in cs_method\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'global_id'\",\n" +
+                    "      \"description\": \"Global track identifier, resolvable by identifiers.org [to be created by us]\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'geometric_track_type'\",\n" +
+                    "      \"description\": \"Geometric type of track, according to the delineation of tracks into one of fifteen logical track types based upon their core informational properties (see doi:10.1186/1471-2105-12-494) \"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'file_format'\",\n" +
+                    "      \"description\": \"File format of the track data file\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'local_id'\",\n" +
+                    "      \"description\": \"Submitter-local identifier (within investigation/hub) for study (in CURIE-format, if applicable)\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'type_of_condensed_data'\",\n" +
+                    "      \"description\": \"Type of condensed track data: Track data, by definition, is formed downstream of some data condensation process. However, the condensed data vary in form and content, technically speaking, and thus in their interpretation. Still, there is a limited set of common types of condensed track data which are able to describe the vast majority of track files\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'label_short'\",\n" +
+                    "      \"description\": \"A short label of the track file. Suggested maximum length is 17 characters\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'experiment_ref'\",\n" +
+                    "      \"description\": \"Reference to the experiment of the track (using the submitter-local identifier of the sample)\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'assembly_name'\",\n" +
+                    "      \"description\": \"Genome assembly name or synonym, according to the NCBI Assembly database. For tracks following UCSC-style chromosome names (e.g., \\\"chr1\\\"), the UCSC synonym should be used instead of the official name\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'file_format'->'term_id'\",\n" +
+                    "      \"description\": \"URL linking to an ontology term\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'label_long'\",\n" +
+                    "      \"description\": \"A long label of the track file. Suggested maximum length is 80 characters\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'file_url'\",\n" +
+                    "      \"description\": \"A URL to the track data file\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'raw_file_ids'\",\n" +
+                    "      \"description\": \"List of identifiers to raw data files used to create track (typically BAM), resolvable by identifiers.org\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'assembly_id'\",\n" +
+                    "      \"description\": \"Genome assembly identifier, resolvable by identifiers.org. Tracks should be annotated with the lowest version of the reference genome that contains all the sequences referenced by the track. Also, GCF (Refseq) ids should be preferred to GCA (Genbank) ids\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'file_format'->'term_label'\",\n" +
+                    "      \"description\": \"Exact value according to the ontology used\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'checksum'->'cs_method'\",\n" +
+                    "      \"description\": \"Method of checksum generation\"\n" +
+                    "    }\n" +
                     "  ],\n" +
                     "  \"collection_info\": [\n" +
-                    "    \"'orig_metadata_url'\",\n" +
-                    "    \"'contact'->'e-mail'\",\n" +
-                    "    \"'doc_ref'\",\n" +
-                    "    \"'contact'->'orcid'\",\n" +
-                    "    \"'contact'->'name'\",\n" +
-                    "    \"'contact'->'@schema'\",\n" +
-                    "    \"'long_name'\",\n" +
-                    "    \"'source_repo_url'\",\n" +
-                    "    \"'short_name'\",\n" +
-                    "    \"'local_id'\",\n" +
-                    "    \"'description_url'\"\n" +
+                    "    {\n" +
+                    "      \"path\": \"'contact'->'@schema'\",\n" +
+                    "      \"description\": \"The JSON Schema absolute URL. Used to link JSON data to a JSON schema. Must match the value of '$id' in the linked schema\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'long_name'\",\n" +
+                    "      \"description\": \"Long name of the track collection. Suggested maximum length is 80 characters\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'short_name'\",\n" +
+                    "      \"description\": \"Short name of the track collection. Suggested maximum length is 17 characters\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'local_id'\",\n" +
+                    "      \"description\": \"Submitter-local identifier (within track repository) for the collection\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'description_url'\",\n" +
+                    "      \"description\": \"URL to a web page or file describing the track collection\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'contact'->'orcid'\",\n" +
+                    "      \"description\": \"ORCID to contact person\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'source_repo_url'\",\n" +
+                    "      \"description\": \"URL to the track repository containing the collection (e.g., the Track Hub Registry)\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'contact'->'name'\",\n" +
+                    "      \"description\": \"Name of contact person/organization\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'contact'\",\n" +
+                    "      \"description\": \"Contact information for the track collection\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'doc_ref'\",\n" +
+                    "      \"description\": \"Reference to the JSON document containing the study (using the  identifier of the document)\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'contact'->'e-mail'\",\n" +
+                    "      \"description\": \"E-mail to contact person/organization\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'orig_metadata_url'\",\n" +
+                    "      \"description\": \"URL to track collection metadata in its original form (might contain more than the relevant metadata)\"\n" +
+                    "    }\n" +
                     "  ]\n" +
                     "}";
 
@@ -137,7 +431,7 @@ public class SchemaServiceTest {
 
     @Test
     public void getAttributesTest() {
-        Map<String, Collection<String>> attributes = schemaService.getAttributes();
+        Map<String, Collection<SchemaService.Attribute>> attributes = schemaService.getAttributes();
         String actual = gson.toJson(attributes);
         assertEquals(ATTRIBUTES, actual);
     }

@@ -2,6 +2,9 @@ package no.uio.ifi.trackfind.backend.services.impl;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -15,10 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
 import java.net.URL;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Service for loading JSON schema.
@@ -30,8 +30,9 @@ public class SchemaService {
     protected String schemaLocation;
     protected String separator;
 
-    private Schema schema;
-    private Multimap<String, String> attributes = HashMultimap.create();
+    private final Schema schema;
+    private final Map<String, String> categories = new HashMap<>();
+    private final Multimap<String, Attribute> attributes = HashMultimap.create();
 
     @Autowired
     public SchemaService(@Value("${trackfind.schema-location}") String schemaLocation,
@@ -41,7 +42,7 @@ public class SchemaService {
         try (InputStream inputStream = new URL(schemaLocation).openStream()) {
             JSONObject rawSchema = new JSONObject(new JSONTokener(inputStream));
             this.schema = SchemaLoader.load(rawSchema);
-            gatherAttributes(null, "", schema);
+            gatherAttributes(null, "", this.schema);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             throw new RuntimeException(e.getMessage(), e);
@@ -49,6 +50,14 @@ public class SchemaService {
     }
 
     private void gatherAttributes(String objectType, String path, Schema schema) {
+        if (StringUtils.isNotEmpty(objectType) && Character.isLetterOrDigit(objectType.charAt(0))) {
+            int separatorLength = separator.length();
+            String attribute = path.isEmpty() ? path : path.substring(separatorLength);
+            String description = schema.getDescription();
+            if (StringUtils.isNoneEmpty(attribute) && Character.isLetterOrDigit(attribute.charAt(1)) && StringUtils.isNoneEmpty(description)) {
+                attributes.put(objectType, new Attribute(attribute, description));
+            }
+        }
         if (schema instanceof ObjectSchema) {
             Map<String, Schema> propertySchemas = ((ObjectSchema) schema).getPropertySchemas();
             Set<Map.Entry<String, Schema>> entries = propertySchemas.entrySet();
@@ -59,6 +68,7 @@ public class SchemaService {
                                 path + separator + "'" + entry.getKey() + "'",
                                 entry.getValue());
                     } else {
+                        categories.put(entry.getKey(), entry.getValue().getDescription());
                         gatherAttributes(entry.getKey(),
                                 path,
                                 entry.getValue());
@@ -91,13 +101,6 @@ public class SchemaService {
             gatherAttributes(objectType, path, ((ReferenceSchema) schema).getReferredSchema());
             return;
         }
-        if (StringUtils.isNotEmpty(objectType) && Character.isLetterOrDigit(objectType.charAt(0))) {
-            int separatorLength = separator.length();
-            String attribute = path.isEmpty() ? path : path.substring(separatorLength);
-            if (StringUtils.isNoneEmpty(attribute)) {
-                attributes.put(objectType, attribute);
-            }
-        }
     }
 
     public String getSchemaLocation() {
@@ -109,12 +112,29 @@ public class SchemaService {
     }
 
     /**
+     * Returns categories from JSON schema.
+     *
+     * @return Map of category names to their descriptions.
+     */
+    public Map<String, String> getCategories() {
+        return categories;
+    }
+
+    /**
      * Returns attributes from JSON schema.
      *
-     * @return Collection of attributes.
+     * @return Collection of attributes with their description.
      */
-    public Map<String, Collection<String>> getAttributes() {
+    public Map<String, Collection<Attribute>> getAttributes() {
         return Collections.unmodifiableMap(attributes.asMap());
+    }
+
+    @EqualsAndHashCode
+    @AllArgsConstructor
+    @Data
+    public static class Attribute {
+        private String path;
+        private String description;
     }
 
 }
