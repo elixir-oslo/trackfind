@@ -28,6 +28,10 @@
     background-color: ghostwhite;
   }
 
+  .v-tree8-row-focused::before {
+    border: transparent;
+  }
+
   .green {
     background-color: #9eff61;
   }
