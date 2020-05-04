@@ -4,14 +4,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Title;
 import com.vaadin.annotations.Widgetset;
+import com.vaadin.component.VaadinClipboard;
+import com.vaadin.component.VaadinClipboardImpl;
 import com.vaadin.data.HasValue;
 import com.vaadin.data.TreeData;
 import com.vaadin.data.provider.HierarchicalQuery;
 import com.vaadin.data.provider.TreeDataProvider;
-import com.vaadin.event.CollapseEvent;
-import com.vaadin.event.ExpandEvent;
-import com.vaadin.event.ShortcutAction;
-import com.vaadin.event.ShortcutListener;
+import com.vaadin.event.*;
 import com.vaadin.server.*;
 import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.shared.ui.ValueChangeMode;
@@ -48,6 +47,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.io.ByteArrayInputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.sql.SQLException;
 import java.time.Instant;
@@ -126,8 +127,47 @@ public class TrackFindMainUI extends AbstractUI {
         tabSheet = new TabSheet();
         tabSheet.setSizeFull();
 
+        VerticalLayout popupContent = new VerticalLayout();
+        Button copyButton = new Button("Copy");
+        copyButton.setWidthFull();
+        copyButton.addClickListener((Button.ClickListener) clickEvent -> {
+            VaadinClipboard vaadinClipboard = VaadinClipboardImpl.GetInstance();
+            vaadinClipboard.copyToClipboard(getCurrentTree().getSelectedItems().iterator().next().getValue(), b -> {
+                // do nothing
+            });
+        });
+        popupContent.addComponent(copyButton);
+        Button visitButton = new Button("Visit");
+        visitButton.setWidthFull();
+        visitButton.addClickListener((Button.ClickListener) clickEvent -> {
+            String value = getCurrentTree().getSelectedItems().iterator().next().getValue();
+            try {
+                new URL(value);
+                getUI().getPage().open(value, "_blank");
+            } catch (MalformedURLException e) {
+                // do nothing
+            }
+        });
+        popupContent.addComponent(visitButton);
+        popupContent.setSpacing(false);
+        popupContent.setMargin(false);
+
+        PopupView popup = new PopupView(null, popupContent);
+        popup.setStyleName("pp", true);
+        popup.addPopupVisibilityListener((PopupView.PopupVisibilityListener) popupVisibilityEvent -> {
+            if (popupVisibilityEvent.isPopupVisible()) {
+                String value = getCurrentTree().getSelectedItems().iterator().next().getValue();
+                try {
+                    new URL(value);
+                    visitButton.setVisible(true);
+                } catch (MalformedURLException e) {
+                    visitButton.setVisible(false);
+                }
+            }
+        });
         for (TfHub hub : trackFindService.getTrackHubs(true)) {
             TrackFindTree<TreeNode> tree = buildMetamodelTree(hub);
+            tree.addContextClickListener((ContextClickEvent.ContextClickListener) contextClickEvent -> popup.setPopupVisible(!getCurrentTree().getSelectedItems().isEmpty()));
             tabSheet.addTab(tree, hub.getDisplayName() != null ? hub.getDisplayName() : hub.getName());
         }
 
@@ -151,8 +191,8 @@ public class TrackFindMainUI extends AbstractUI {
             }
         });
 
-        VerticalLayout selectionLayout = new VerticalLayout(shortcuts, tabSheet);
-
+        VerticalLayout selectionLayout = new VerticalLayout(shortcuts, popup, tabSheet);
+        selectionLayout.setSpacing(false);
         Panel treePanel = new Panel("1. Select metadata value(s)", selectionLayout);
         treePanel.setSizeFull();
 

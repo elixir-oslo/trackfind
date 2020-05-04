@@ -191,9 +191,14 @@
             <version>0.8.15</version>
         </dependency>
         <dependency>
-            <groupId>org.vaadin.addons</groupId>
-            <artifactId>googleanalyticstracker</artifactId>
-            <version>4.0.1</version>
+            <groupId>com.vaadin.component</groupId>
+            <artifactId>vaadinClipboard</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.vaadin</groupId>
+            <artifactId>vaadin-context-menu</artifactId>
+            <version>3.0.2</version>
         </dependency>
 
 

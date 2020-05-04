@@ -8,4 +8,10 @@
     <source path="no/uio/ifi/trackfind/frontend/components/client"></source>
 
     <inherits name="org.vaadin.aceeditor.AceEditorWidgetSet" />
+
+    <inherits name="com.vaadin.contextmenu.WidgetSet" />
+
+    
+
+    <inherits name="com.vaadin.component.WidgetSet" />
 </module>
