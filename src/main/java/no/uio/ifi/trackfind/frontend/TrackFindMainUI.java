@@ -89,6 +89,8 @@ public class TrackFindMainUI extends AbstractUI {
     private GSuiteService gSuiteService;
     private SearchService searchService;
 
+    private Button copyButton = new Button("Copy");
+    private Button visitButton = new Button("Visit");
     private Button addToQueryButton = new Button("Add to query ➚ (⌥: OR, ⇧: NOT)");
     private List<TreeNode> expandedItems = new CopyOnWriteArrayList<>();
     private Button exportGSuiteButton = new Button("Export as GSuite file");
@@ -127,18 +129,19 @@ public class TrackFindMainUI extends AbstractUI {
         tabSheet = new TabSheet();
         tabSheet.setSizeFull();
 
-        VerticalLayout popupContent = new VerticalLayout();
-        Button copyButton = new Button("Copy");
+//        VerticalLayout popupContent = new VerticalLayout();
         copyButton.setWidthFull();
+        copyButton.setEnabled(false);
         copyButton.addClickListener((Button.ClickListener) clickEvent -> {
             VaadinClipboard vaadinClipboard = VaadinClipboardImpl.GetInstance();
             vaadinClipboard.copyToClipboard(getCurrentTree().getSelectedItems().iterator().next().getValue(), b -> {
                 // do nothing
             });
         });
-        popupContent.addComponent(copyButton);
-        Button visitButton = new Button("Visit");
+//        popupContent.addComponent(copyButton);
+
         visitButton.setWidthFull();
+        visitButton.setEnabled(false);
         visitButton.addClickListener((Button.ClickListener) clickEvent -> {
             String value = getCurrentTree().getSelectedItems().iterator().next().getValue();
             try {
@@ -148,26 +151,26 @@ public class TrackFindMainUI extends AbstractUI {
                 // do nothing
             }
         });
-        popupContent.addComponent(visitButton);
-        popupContent.setSpacing(false);
-        popupContent.setMargin(false);
+//        popupContent.addComponent(visitButton);
+//        popupContent.setSpacing(false);
+//        popupContent.setMargin(false);
 
-        PopupView popup = new PopupView(null, popupContent);
-        popup.setStyleName("pp", true);
-        popup.addPopupVisibilityListener((PopupView.PopupVisibilityListener) popupVisibilityEvent -> {
-            if (popupVisibilityEvent.isPopupVisible()) {
-                String value = getCurrentTree().getSelectedItems().iterator().next().getValue();
-                try {
-                    new URL(value);
-                    visitButton.setVisible(true);
-                } catch (MalformedURLException e) {
-                    visitButton.setVisible(false);
-                }
-            }
-        });
+//        PopupView popup = new PopupView(null, popupContent);
+//        popup.setStyleName("pp", true);
+//        popup.addPopupVisibilityListener((PopupView.PopupVisibilityListener) popupVisibilityEvent -> {
+//            if (popupVisibilityEvent.isPopupVisible()) {
+//                String value = getCurrentTree().getSelectedItems().iterator().next().getValue();
+//                try {
+//                    new URL(value);
+//                    visitButton.setVisible(true);
+//                } catch (MalformedURLException e) {
+//                    visitButton.setVisible(false);
+//                }
+//            }
+//        });
         for (TfHub hub : trackFindService.getTrackHubs(true)) {
             TrackFindTree<TreeNode> tree = buildMetamodelTree(hub);
-            tree.addContextClickListener((ContextClickEvent.ContextClickListener) contextClickEvent -> popup.setPopupVisible(!getCurrentTree().getSelectedItems().isEmpty()));
+//            tree.addContextClickListener((ContextClickEvent.ContextClickListener) contextClickEvent -> popup.setPopupVisible(!getCurrentTree().getSelectedItems().isEmpty()));
             tabSheet.addTab(tree, hub.getDisplayName() != null ? hub.getDisplayName() : hub.getName());
         }
 
@@ -190,8 +193,7 @@ public class TrackFindMainUI extends AbstractUI {
                 Notification.show("Shortcut not found in the current hub.");
             }
         });
-
-        VerticalLayout selectionLayout = new VerticalLayout(shortcuts, popup, tabSheet);
+        VerticalLayout selectionLayout = new VerticalLayout(shortcuts, tabSheet);
         selectionLayout.setSpacing(false);
         Panel treePanel = new Panel("1. Select metadata value(s)", selectionLayout);
         treePanel.setSizeFull();
@@ -199,7 +201,7 @@ public class TrackFindMainUI extends AbstractUI {
 //        TextField attributesFilterTextField = createFilter(true);
         TextField valuesFilterTextField = createFilter(false);
 
-        CheckBox standardCheckbox = new CheckBox("Show only FAIRtracks attributes");
+        CheckBox standardCheckbox = new CheckBox("Only FAIRtracks attributes");
         standardCheckbox.addValueChangeListener((HasValue.ValueChangeListener<Boolean>) event -> {
             TreeFilter filter = getCurrentFilter();
             filter.setStandard(event.getValue());
@@ -214,7 +216,12 @@ public class TrackFindMainUI extends AbstractUI {
         addToQueryButton.addClickListener(addToQueryButtonClickListener);
         addToQueryButton.setWidth(100, Unit.PERCENTAGE);
 
-        VerticalLayout treeLayout = new VerticalLayout(treePanel, standardCheckbox, valuesFilterTextField, addToQueryButton);
+        HorizontalLayout copyVisitButtonsLayout = new HorizontalLayout(standardCheckbox, copyButton, visitButton);
+        copyVisitButtonsLayout.setComponentAlignment(standardCheckbox, Alignment.MIDDLE_LEFT);
+        copyVisitButtonsLayout.setComponentAlignment(copyButton, Alignment.MIDDLE_LEFT);
+        copyVisitButtonsLayout.setComponentAlignment(visitButton, Alignment.MIDDLE_LEFT);
+
+        VerticalLayout treeLayout = new VerticalLayout(treePanel, copyVisitButtonsLayout, valuesFilterTextField, addToQueryButton);
         treeLayout.setSizeFull();
         treeLayout.setExpandRatio(treePanel, 1f);
         return treeLayout;
@@ -275,7 +282,7 @@ public class TrackFindMainUI extends AbstractUI {
         TreeGrid<TreeNode> treeGrid = (TreeGrid<TreeNode>) tree.getCompositionRoot();
         TreeFilter filter = new TreeFilter(hub, false, "", "");
         treeGrid.getDataCommunicator().setFilter(filter);
-        tree.addSelectionListener(new TreeSelectionListener(tree, filter, addToQueryButton, new KeyboardInterceptorExtension(tree)));
+        tree.addSelectionListener(new TreeSelectionListener(tree, filter, copyButton, visitButton, addToQueryButton, new KeyboardInterceptorExtension(tree)));
         tree.setSizeFull();
         tree.setStyleGenerator((StyleGenerator<TreeNode>) item -> {
             if (item.isAttribute()) {

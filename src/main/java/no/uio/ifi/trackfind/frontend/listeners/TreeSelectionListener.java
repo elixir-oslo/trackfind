@@ -14,6 +14,8 @@ import no.uio.ifi.trackfind.frontend.components.TrackFindTree;
 import no.uio.ifi.trackfind.frontend.filters.TreeFilter;
 import org.springframework.util.CollectionUtils;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -27,6 +29,8 @@ public class TreeSelectionListener implements SelectionListener<TreeNode> {
 
     private TrackFindTree<TreeNode> tree;
     private TreeFilter filter;
+    private Button copyButton;
+    private Button visitButton;
     private Button addToQueryButton;
     private KeyboardInterceptorExtension keyboardInterceptorExtension;
 
@@ -34,14 +38,21 @@ public class TreeSelectionListener implements SelectionListener<TreeNode> {
      * Constructor that injects Tree and KeyboardInterceptorExtension to the instance.
      *
      * @param tree                         Vaadin Tree.
+     * @param copyButton                   Copies selected tree element.
+     * @param visitButton                  Visits the link in the selected tree element.
+     * @param addToQueryButton             Adds selected tree element to the query.
      * @param keyboardInterceptorExtension KeyboardInterceptorExtension.
      */
     public TreeSelectionListener(TrackFindTree<TreeNode> tree,
                                  TreeFilter filter,
+                                 Button copyButton,
+                                 Button visitButton,
                                  Button addToQueryButton,
                                  KeyboardInterceptorExtension keyboardInterceptorExtension) {
         this.tree = tree;
         this.filter = filter;
+        this.copyButton = copyButton;
+        this.visitButton = visitButton;
         this.addToQueryButton = addToQueryButton;
         this.keyboardInterceptorExtension = keyboardInterceptorExtension;
     }
@@ -54,6 +65,16 @@ public class TreeSelectionListener implements SelectionListener<TreeNode> {
     public void selectionChange(SelectionEvent<TreeNode> event) {
         Set<TreeNode> selectedItems = event.getAllSelectedItems();
         boolean valueSelected = event.getAllSelectedItems().stream().anyMatch(n -> !n.isAttribute());
+        boolean linkSelected = event.getAllSelectedItems().stream().anyMatch(n -> {
+            try {
+                new URL(n.toString());
+                return true;
+            } catch (MalformedURLException e) {
+                return false;
+            }
+        });
+        copyButton.setEnabled(valueSelected);
+        visitButton.setEnabled(valueSelected && linkSelected);
         addToQueryButton.setEnabled(valueSelected);
         if (event instanceof SingleSelectionEvent) {
             return;
