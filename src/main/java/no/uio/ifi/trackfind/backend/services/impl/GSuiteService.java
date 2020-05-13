@@ -1,83 +1,66 @@
 package no.uio.ifi.trackfind.backend.services.impl;
 
 import com.google.gson.Gson;
+import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.pojo.SearchResult;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.function.Function;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Service for querying remote GSuite service for performing JSON to GSuite conversion.
  */
-// TODO: cover with tests
+@Slf4j
 @Service
-public class GSuiteService implements Function<Collection<SearchResult>, String> {
+public class GSuiteService {
 
     private Gson gson;
     private SchemaService schemaService;
     private RestTemplate loadBalancedRestTemplate;
 
+    @Value("${trackfind.separator}")
+    protected String separator;
+
     /**
      * Convert searchResults to GSuite.
      *
      * @param searchResults Datasets to convert.
+     * @param attributes    Attributes to keep (the rest is discarded).
      * @return GSuite string.
      */
     @Cacheable(value = "gsuite", sync = true)
-    @Override
-    public String apply(Collection<SearchResult> searchResults) {
-//        sortJSON(searchResults);
+    public String apply(Collection<SearchResult> searchResults, String[] attributes) {
+        if (attributes.length != 0) {
+            filterAttributes(searchResults, attributes);
+        }
         HttpEntity<Collection<SearchResult>> request = new HttpEntity<>(searchResults);
         return loadBalancedRestTemplate.postForObject("http://gsuite/togsuite", request, String.class);
     }
 
-//    protected void sortJSON(Collection<SearchResult> searchResults) {
-//        for (SearchResult searchResult : searchResults) {
-//            searchResult.setContent(sortJSON(searchResult.getContent()));
-//        }
-//    }
-//
-//    protected String sortJSON(String fairContent) {
-//        Map mapContent = gson.fromJson(fairContent, Map.class);
-//        mapContent = sortMap("", mapContent);
-//        return gson.toJson(mapContent);
-//    }
-//
-//    @SuppressWarnings("unchecked")
-//    protected Map sortMap(String path, Map mapContent) {
-//        TreeMap sortedMap = new TreeMap((o1, o2) -> {
-//            String key1 = path + o1.toString();
-//            String key2 = path + o2.toString();
-//            List<String> attributes = schemaService.getAttributes();
-//            String fullKey1 = attributes.stream().filter(a -> a.startsWith(key1)).findFirst().orElse("");
-//            String fullKey2 = attributes.stream().filter(a -> a.startsWith(key2)).findFirst().orElse("");
-//            if (StringUtils.isEmpty(fullKey1) || StringUtils.isEmpty(fullKey2)) {
-//                if (StringUtils.isEmpty(fullKey1) && StringUtils.isEmpty(fullKey2)) {
-//                    return fullKey1.compareTo(fullKey2);
-//                } else {
-//                    return Long.compare(fullKey1.length(), fullKey2.length());
-//                }
-//            } else {
-//                long index1 = attributes.indexOf(fullKey1);
-//                long index2 = attributes.indexOf(fullKey2);
-//                return Long.compare(index1, index2);
-//            }
-//        });
-//        for (Object key : mapContent.keySet()) {
-//            Object value = mapContent.get(key);
-//            if (value instanceof Map) {
-//                sortedMap.put(key, sortMap(path + key + properties.getLevelsSeparator(), (Map) value));
-//            } else {
-//                sortedMap.put(key, value);
-//            }
-//        }
-//        return sortedMap;
-//    }
+    protected void filterAttributes(Collection<SearchResult> searchResults, String[] attributes) {
+        try {
+            Set<String> categoriesToKeep = Arrays.stream(attributes).map(a -> a.split(separator)[0].replace(".content", "")).collect(Collectors.toSet());
+            for (SearchResult searchResult : searchResults) {
+                Set<String> categories = new HashSet<>(searchResult.getContent().keySet());
+                for (String category : categories) {
+                    if (!categoriesToKeep.contains(category)) {
+                        searchResult.getContent().remove(category);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+    }
 
     @Autowired
     public void setGson(Gson gson) {

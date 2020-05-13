@@ -198,6 +198,7 @@ public class SearchService {
         fullQuery.setLength(fullQuery.length() - 2);
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     protected Pair<Set<Long>, Collection<SearchResult>> executeSearchQuery(String fullQueryString) throws SQLException {
         log.info("Executing search query: {}", fullQueryString);
         PreparedStatement preparedStatement = connection.prepareStatement(fullQueryString);
@@ -218,7 +219,7 @@ public class SearchService {
             for (String objectTypeName : objectTypesToSelect) {
                 String json = resultSet.getString(objectTypeName);
                 ids.add(resultSet.getLong(objectTypeName.replace("_content", "_id")));
-                searchResult.getContent().put(objectTypeName.replace("_content", ""), gson.fromJson(json, Map.class));
+                searchResult.getContent().put(objectTypeName.replace("_content", ""), new HashMap(gson.fromJson(json, Map.class)));
             }
             results.add(searchResult);
         }

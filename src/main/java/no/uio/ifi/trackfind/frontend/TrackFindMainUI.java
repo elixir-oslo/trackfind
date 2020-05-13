@@ -216,7 +216,7 @@ public class TrackFindMainUI extends AbstractUI {
         addToQueryButton.addClickListener(addToQueryButtonClickListener);
         addToQueryButton.setWidth(100, Unit.PERCENTAGE);
 
-        HorizontalLayout copyVisitButtonsLayout = new HorizontalLayout(standardCheckbox, copyButton, visitButton);
+        HorizontalLayout copyVisitButtonsLayout = new HorizontalLayout(copyButton, visitButton, standardCheckbox);
         copyVisitButtonsLayout.setComponentAlignment(standardCheckbox, Alignment.MIDDLE_LEFT);
         copyVisitButtonsLayout.setComponentAlignment(copyButton, Alignment.MIDDLE_LEFT);
         copyVisitButtonsLayout.setComponentAlignment(visitButton, Alignment.MIDDLE_LEFT);
@@ -504,7 +504,7 @@ public class TrackFindMainUI extends AbstractUI {
                 if ("json".equalsIgnoreCase(extension)) {
                     return (StreamResource.StreamSource) () -> new ByteArrayInputStream(content.getBytes(Charset.defaultCharset()));
                 } else {
-                    String gSuiteResult = gSuiteService.apply(results);
+                    String gSuiteResult = gSuiteService.apply(results, new String[]{});
                     return (StreamResource.StreamSource) () -> new ByteArrayInputStream(gSuiteResult.getBytes(Charset.defaultCharset()));
                 }
             }

@@ -167,6 +167,7 @@ public class TrackFindController {
      * @param hub        Track TfHub name.
      * @param query      Search query.
      * @param categories Comma-separated categories.
+     * @param attributes Comma-separated attributes (paths).
      * @param limit      Max number of entries to return. 0 for unlimited.
      * @return Search results by version.
      */
@@ -176,10 +177,11 @@ public class TrackFindController {
             @PathVariable String hub,
             @RequestParam String query,
             @RequestParam(required = false, defaultValue = "") String categories,
+            @RequestParam(required = false, defaultValue = "") String attributes,
             @RequestParam(required = false, defaultValue = "0") long limit) {
         try {
             Collection<SearchResult> datasets = searchService.search(repository, hub, query, Arrays.stream(StringUtils.split(categories, ",")).map(String::trim).collect(Collectors.toSet()), limit).getValue();
-            return ResponseEntity.ok(gSuiteService.apply(datasets));
+            return ResponseEntity.ok(gSuiteService.apply(datasets, attributes.split(",")));
         } catch (SQLException e) {
             return ResponseEntity.badRequest().body(null);
         }
