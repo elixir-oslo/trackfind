@@ -504,7 +504,7 @@ public class TrackFindMainUI extends AbstractUI {
                 if ("json".equalsIgnoreCase(extension)) {
                     return (StreamResource.StreamSource) () -> new ByteArrayInputStream(content.getBytes(Charset.defaultCharset()));
                 } else {
-                    String gSuiteResult = gSuiteService.apply(results, new String[]{});
+                    String gSuiteResult = gSuiteService.apply(results, "");
                     return (StreamResource.StreamSource) () -> new ByteArrayInputStream(gSuiteResult.getBytes(Charset.defaultCharset()));
                 }
             }

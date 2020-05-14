@@ -181,7 +181,7 @@ public class TrackFindController {
             @RequestParam(required = false, defaultValue = "0") long limit) {
         try {
             Collection<SearchResult> datasets = searchService.search(repository, hub, query, Arrays.stream(StringUtils.split(categories, ",")).map(String::trim).collect(Collectors.toSet()), limit).getValue();
-            return ResponseEntity.ok(gSuiteService.apply(datasets, attributes.split(",")));
+            return ResponseEntity.ok(gSuiteService.apply(datasets, attributes));
         } catch (SQLException e) {
             return ResponseEntity.badRequest().body(null);
         }
