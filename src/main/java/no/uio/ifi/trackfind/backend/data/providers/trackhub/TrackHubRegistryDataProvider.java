@@ -2,7 +2,6 @@ package no.uio.ifi.trackfind.backend.data.providers.trackhub;
 
 import com.google.common.collect.HashMultimap;
 import lombok.extern.slf4j.Slf4j;
-import no.uio.ifi.fairfiller.FairFiller;
 import no.uio.ifi.trackfind.backend.data.providers.AbstractDataProvider;
 import no.uio.ifi.trackfind.backend.pojo.TfHub;
 import org.apache.commons.collections.CollectionUtils;
@@ -92,13 +91,11 @@ public class TrackHubRegistryDataProvider extends AbstractDataProvider {
             }
             hub = (Map<String, Object>) source.get("hub");
             Map<String, Object> fairData = (Map<String, Object>) hub.get("metaFairData");
-            FairFiller fairFiller = new FairFiller();
             for (String key : fairData.keySet()) {
                 Object value = fairData.get(key);
                 if (value instanceof Collection) {
                     Collection collection = (Collection) value;
                     for (Object object : collection) {
-                        fairFiller.fill((Map<String, Object>) object);
                         mapToSave.put(key, gson.toJson(object));
                     }
                 }
