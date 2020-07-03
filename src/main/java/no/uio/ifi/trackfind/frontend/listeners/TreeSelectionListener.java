@@ -66,11 +66,12 @@ public class TreeSelectionListener implements SelectionListener<TreeNode> {
         Set<TreeNode> selectedItems = event.getAllSelectedItems();
         boolean valueSelected = event.getAllSelectedItems().stream().anyMatch(n -> !n.isAttribute());
         boolean linkSelected = event.getAllSelectedItems().stream().anyMatch(n -> {
+            String value = n.toString();
             try {
-                new URL(n.toString());
+                new URL(value);
                 return true;
             } catch (MalformedURLException e) {
-                return false;
+                return value.contains(":");
             }
         });
         copyButton.setEnabled(valueSelected);

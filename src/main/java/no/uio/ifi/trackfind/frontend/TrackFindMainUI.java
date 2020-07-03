@@ -10,7 +10,10 @@ import com.vaadin.data.HasValue;
 import com.vaadin.data.TreeData;
 import com.vaadin.data.provider.HierarchicalQuery;
 import com.vaadin.data.provider.TreeDataProvider;
-import com.vaadin.event.*;
+import com.vaadin.event.CollapseEvent;
+import com.vaadin.event.ExpandEvent;
+import com.vaadin.event.ShortcutAction;
+import com.vaadin.event.ShortcutListener;
 import com.vaadin.server.*;
 import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.shared.ui.ValueChangeMode;
@@ -148,7 +151,9 @@ public class TrackFindMainUI extends AbstractUI {
                 new URL(value);
                 getUI().getPage().open(value, "_blank");
             } catch (MalformedURLException e) {
-                // do nothing
+                if (value.contains(":")) {
+                    getUI().getPage().open("http://identifiers.org/resolve?query=" + value, "_blank");
+                }
             }
         });
 //        popupContent.addComponent(visitButton);
