@@ -20,27 +20,63 @@ public class SchemaServiceTest {
             "{\n" +
                     "  \"doc_info\": [\n" +
                     "    {\n" +
-                    "      \"path\": \"'doc_url'\",\n" +
-                    "      \"description\": \"URL to this FAIRtracks JSON document\"\n" +
-                    "    },\n" +
-                    "    {\n" +
-                    "      \"path\": \"'doc_version'\",\n" +
-                    "      \"description\": \"Version of this FAIRtracks JSON document\"\n" +
+                    "      \"path\": \"'doc_ontology_versions'->'http://purl.obolibrary.org/obo/so.owl'\",\n" +
+                    "      \"description\": \"URL to the version of \\\"Sequence types and features ontology\\\" used in the JSON document\"\n" +
                     "    },\n" +
                     "    {\n" +
                     "      \"path\": \"'doc_ontology_versions'\",\n" +
                     "      \"description\": \"URLs to the version of the ontologies used in the JSON document\"\n" +
                     "    },\n" +
                     "    {\n" +
+                    "      \"path\": \"'doc_ontology_versions'->'http://purl.obolibrary.org/obo/obi.owl'\",\n" +
+                    "      \"description\": \"URL to the version of \\\"Ontology for Biomedical Investigations\\\" used in the JSON document\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'doc_ontology_versions'->'http://edamontology.org/EDAM.owl'\",\n" +
+                    "      \"description\": \"URL to the version of \\\"Bioinformatics operations, data types, formats, identifiers and topics\\\" (EDAM Ontology) used in the JSON document\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'doc_ontology_versions'->'http://purl.obolibrary.org/obo/cl.owl'\",\n" +
+                    "      \"description\": \"URL to the version of \\\"Cell Ontology\\\" used in the JSON document\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'doc_version'\",\n" +
+                    "      \"description\": \"Version of this FAIRtracks JSON document\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'doc_ontology_versions'->'http://www.ebi.ac.uk/efo/efo.owl'\",\n" +
+                    "      \"description\": \"URL to the version of \\\"Experimental Factor Ontology\\\" used in the JSON document\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'local_id'\",\n" +
+                    "      \"description\": \"Submitter-local identifier (within  track repository) for current FAIRtracks document (in CURIE-format, if applicable)\"\n" +
+                    "    },\n" +
+                    "    {\n" +
                     "      \"path\": \"'doc_date'\",\n" +
                     "      \"description\": \"Creation date of this version of this FAIRtracks document\"\n" +
                     "    },\n" +
                     "    {\n" +
-                    "      \"path\": \"'local_id'\",\n" +
-                    "      \"description\": \"Identifier for this FAIRtracks JSON document (within the TrackFind database)\"\n" +
+                    "      \"path\": \"'doc_url'\",\n" +
+                    "      \"description\": \"URL to this FAIRtracks JSON document\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'has_augmented_metadata'\",\n" +
+                    "      \"description\": \"Set to true if the metadata properties with augmented=true is set in the JSON document, as returned by the fairtracks_augment service\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'doc_ontology_versions'->'http://purl.obolibrary.org/obo/uberon.owl'\",\n" +
+                    "      \"description\": \"URL to the version of  \\\"Uber-anatomy ontology\\\" used in the JSON document\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'doc_ontology_versions'->'http://purl.obolibrary.org/obo/ncit.owl'\",\n" +
+                    "      \"description\": \"URL to the version of \\\"NCI Thesaurus OBO Edition\\\" used in the JSON document\"\n" +
                     "    }\n" +
                     "  ],\n" +
                     "  \"experiments\": [\n" +
+                    "    {\n" +
+                    "      \"path\": \"'target'->'phenotype'->'@schema'\",\n" +
+                    "      \"description\": \"The absolute URL of the 'current' version of the relevant FAIRtracks JSON schema within the same major version as the JSON document follows (which should ensure compatibility). Must match the value of '$id' in the linked schema\"\n" +
+                    "    },\n" +
                     "    {\n" +
                     "      \"path\": \"'sample_ref'\",\n" +
                     "      \"description\": \"Reference to the sample of the experiment (using the submitter-local identifier of the sample)\"\n" +
@@ -134,10 +170,6 @@ public class SchemaServiceTest {
                     "      \"description\": \"Reference to the study that generated the sample (using the submitter-local identifier of the study)\"\n" +
                     "    },\n" +
                     "    {\n" +
-                    "      \"path\": \"'target'->'phenotype'->'@schema'\",\n" +
-                    "      \"description\": \"The JSON Schema absolute URL. Used to link JSON data to a JSON schema. Must match the value of '$id' in the linked schema\"\n" +
-                    "    },\n" +
-                    "    {\n" +
                     "      \"path\": \"'target'->'phenotype'->'term_id'\",\n" +
                     "      \"description\": \"URL linking to an ontology term\"\n" +
                     "    },\n" +
@@ -151,10 +183,6 @@ public class SchemaServiceTest {
                     "    }\n" +
                     "  ],\n" +
                     "  \"studies\": [\n" +
-                    "    {\n" +
-                    "      \"path\": \"'contact'->'@schema'\",\n" +
-                    "      \"description\": \"The JSON Schema absolute URL. Used to link JSON data to a JSON schema. Must match the value of '$id' in the linked schema\"\n" +
-                    "    },\n" +
                     "    {\n" +
                     "      \"path\": \"'publication'\",\n" +
                     "      \"description\": \"Pubmed identifier (dataset or publication)\"\n" +
@@ -188,6 +216,10 @@ public class SchemaServiceTest {
                     "      \"description\": \"Reference to the track collection containing the study (using the submitter-local identifier of the collection)\"\n" +
                     "    },\n" +
                     "    {\n" +
+                    "      \"path\": \"'contact'->'@schema'\",\n" +
+                    "      \"description\": \"The absolute URL of the 'current' version of the relevant FAIRtracks JSON schema within the same major version as the JSON document follows (which should ensure compatibility). Must match the value of '$id' in the linked schema\"\n" +
+                    "    },\n" +
+                    "    {\n" +
                     "      \"path\": \"'contact'->'e-mail'\",\n" +
                     "      \"description\": \"E-mail to contact person/organization\"\n" +
                     "    }\n" +
@@ -196,6 +228,10 @@ public class SchemaServiceTest {
                     "    {\n" +
                     "      \"path\": \"'sample_type'->'cell_type'->'term_label'\",\n" +
                     "      \"description\": \"Exact value according to the ontology used\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'phenotype'->'@schema'\",\n" +
+                    "      \"description\": \"The absolute URL of the 'current' version of the relevant FAIRtracks JSON schema within the same major version as the JSON document follows (which should ensure compatibility). Must match the value of '$id' in the linked schema\"\n" +
                     "    },\n" +
                     "    {\n" +
                     "      \"path\": \"'sample_type'->'summary'\",\n" +
@@ -240,10 +276,6 @@ public class SchemaServiceTest {
                     "    {\n" +
                     "      \"path\": \"'phenotype'\",\n" +
                     "      \"description\": \"Main phenotype (e.g. disease) connected to the sample\"\n" +
-                    "    },\n" +
-                    "    {\n" +
-                    "      \"path\": \"'phenotype'->'@schema'\",\n" +
-                    "      \"description\": \"The JSON Schema absolute URL. Used to link JSON data to a JSON schema. Must match the value of '$id' in the linked schema\"\n" +
                     "    },\n" +
                     "    {\n" +
                     "      \"path\": \"'sample_type'->'organism_part'\",\n" +
@@ -366,10 +398,6 @@ public class SchemaServiceTest {
                     "  ],\n" +
                     "  \"collection_info\": [\n" +
                     "    {\n" +
-                    "      \"path\": \"'contact'->'@schema'\",\n" +
-                    "      \"description\": \"The JSON Schema absolute URL. Used to link JSON data to a JSON schema. Must match the value of '$id' in the linked schema\"\n" +
-                    "    },\n" +
-                    "    {\n" +
                     "      \"path\": \"'long_name'\",\n" +
                     "      \"description\": \"Long name of the track collection. Suggested maximum length is 80 characters\"\n" +
                     "    },\n" +
@@ -400,6 +428,10 @@ public class SchemaServiceTest {
                     "    {\n" +
                     "      \"path\": \"'contact'\",\n" +
                     "      \"description\": \"Contact information for the track collection\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'contact'->'@schema'\",\n" +
+                    "      \"description\": \"The absolute URL of the 'current' version of the relevant FAIRtracks JSON schema within the same major version as the JSON document follows (which should ensure compatibility). Must match the value of '$id' in the linked schema\"\n" +
                     "    },\n" +
                     "    {\n" +
                     "      \"path\": \"'doc_ref'\",\n" +
