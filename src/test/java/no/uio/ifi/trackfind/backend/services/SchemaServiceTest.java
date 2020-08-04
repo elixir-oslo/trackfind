@@ -18,60 +18,6 @@ public class SchemaServiceTest {
 
     public static final String ATTRIBUTES =
             "{\n" +
-                    "  \"doc_info\": [\n" +
-                    "    {\n" +
-                    "      \"path\": \"'doc_ontology_versions'->'http://purl.obolibrary.org/obo/so.owl'\",\n" +
-                    "      \"description\": \"URL to the version of \\\"Sequence types and features ontology\\\" used in the JSON document\"\n" +
-                    "    },\n" +
-                    "    {\n" +
-                    "      \"path\": \"'doc_ontology_versions'\",\n" +
-                    "      \"description\": \"URLs to the version of the ontologies used in the JSON document\"\n" +
-                    "    },\n" +
-                    "    {\n" +
-                    "      \"path\": \"'doc_ontology_versions'->'http://purl.obolibrary.org/obo/obi.owl'\",\n" +
-                    "      \"description\": \"URL to the version of \\\"Ontology for Biomedical Investigations\\\" used in the JSON document\"\n" +
-                    "    },\n" +
-                    "    {\n" +
-                    "      \"path\": \"'doc_ontology_versions'->'http://edamontology.org/EDAM.owl'\",\n" +
-                    "      \"description\": \"URL to the version of \\\"Bioinformatics operations, data types, formats, identifiers and topics\\\" (EDAM Ontology) used in the JSON document\"\n" +
-                    "    },\n" +
-                    "    {\n" +
-                    "      \"path\": \"'doc_ontology_versions'->'http://purl.obolibrary.org/obo/cl.owl'\",\n" +
-                    "      \"description\": \"URL to the version of \\\"Cell Ontology\\\" used in the JSON document\"\n" +
-                    "    },\n" +
-                    "    {\n" +
-                    "      \"path\": \"'doc_version'\",\n" +
-                    "      \"description\": \"Version of this FAIRtracks JSON document\"\n" +
-                    "    },\n" +
-                    "    {\n" +
-                    "      \"path\": \"'doc_ontology_versions'->'http://www.ebi.ac.uk/efo/efo.owl'\",\n" +
-                    "      \"description\": \"URL to the version of \\\"Experimental Factor Ontology\\\" used in the JSON document\"\n" +
-                    "    },\n" +
-                    "    {\n" +
-                    "      \"path\": \"'local_id'\",\n" +
-                    "      \"description\": \"Submitter-local identifier (within  track repository) for current FAIRtracks document (in CURIE-format, if applicable)\"\n" +
-                    "    },\n" +
-                    "    {\n" +
-                    "      \"path\": \"'doc_date'\",\n" +
-                    "      \"description\": \"Creation date of this version of this FAIRtracks document\"\n" +
-                    "    },\n" +
-                    "    {\n" +
-                    "      \"path\": \"'doc_url'\",\n" +
-                    "      \"description\": \"URL to this FAIRtracks JSON document\"\n" +
-                    "    },\n" +
-                    "    {\n" +
-                    "      \"path\": \"'has_augmented_metadata'\",\n" +
-                    "      \"description\": \"Set to true if the metadata properties with augmented=true is set in the JSON document, as returned by the fairtracks_augment service\"\n" +
-                    "    },\n" +
-                    "    {\n" +
-                    "      \"path\": \"'doc_ontology_versions'->'http://purl.obolibrary.org/obo/uberon.owl'\",\n" +
-                    "      \"description\": \"URL to the version of  \\\"Uber-anatomy ontology\\\" used in the JSON document\"\n" +
-                    "    },\n" +
-                    "    {\n" +
-                    "      \"path\": \"'doc_ontology_versions'->'http://purl.obolibrary.org/obo/ncit.owl'\",\n" +
-                    "      \"description\": \"URL to the version of \\\"NCI Thesaurus OBO Edition\\\" used in the JSON document\"\n" +
-                    "    }\n" +
-                    "  ],\n" +
                     "  \"experiments\": [\n" +
                     "    {\n" +
                     "      \"path\": \"'target'->'phenotype'->'@schema'\",\n" +
@@ -180,48 +126,6 @@ public class SchemaServiceTest {
                     "    {\n" +
                     "      \"path\": \"'target'->'macromolecular_structure'->'term_id'\",\n" +
                     "      \"description\": \"URL linking to an ontology term\"\n" +
-                    "    }\n" +
-                    "  ],\n" +
-                    "  \"studies\": [\n" +
-                    "    {\n" +
-                    "      \"path\": \"'publication'\",\n" +
-                    "      \"description\": \"Pubmed identifier (dataset or publication)\"\n" +
-                    "    },\n" +
-                    "    {\n" +
-                    "      \"path\": \"'local_id'\",\n" +
-                    "      \"description\": \"Submitter-local identifier (within the track collection) for the study\"\n" +
-                    "    },\n" +
-                    "    {\n" +
-                    "      \"path\": \"'study_name'\",\n" +
-                    "      \"description\": \"Name of the study\"\n" +
-                    "    },\n" +
-                    "    {\n" +
-                    "      \"path\": \"'contact'\",\n" +
-                    "      \"description\": \"Contact information for study\"\n" +
-                    "    },\n" +
-                    "    {\n" +
-                    "      \"path\": \"'contact'->'orcid'\",\n" +
-                    "      \"description\": \"ORCID to contact person\"\n" +
-                    "    },\n" +
-                    "    {\n" +
-                    "      \"path\": \"'global_id'\",\n" +
-                    "      \"description\": \"Global study identifier, resolvable by identifiers.org\"\n" +
-                    "    },\n" +
-                    "    {\n" +
-                    "      \"path\": \"'contact'->'name'\",\n" +
-                    "      \"description\": \"Name of contact person/organization\"\n" +
-                    "    },\n" +
-                    "    {\n" +
-                    "      \"path\": \"'collection_ref'\",\n" +
-                    "      \"description\": \"Reference to the track collection containing the study (using the submitter-local identifier of the collection)\"\n" +
-                    "    },\n" +
-                    "    {\n" +
-                    "      \"path\": \"'contact'->'@schema'\",\n" +
-                    "      \"description\": \"The absolute URL of the 'current' version of the relevant FAIRtracks JSON schema within the same major version as the JSON document follows (which should ensure compatibility). Must match the value of '$id' in the linked schema\"\n" +
-                    "    },\n" +
-                    "    {\n" +
-                    "      \"path\": \"'contact'->'e-mail'\",\n" +
-                    "      \"description\": \"E-mail to contact person/organization\"\n" +
                     "    }\n" +
                     "  ],\n" +
                     "  \"samples\": [\n" +
@@ -394,6 +298,102 @@ public class SchemaServiceTest {
                     "    {\n" +
                     "      \"path\": \"'checksum'->'cs_method'\",\n" +
                     "      \"description\": \"Method of checksum generation\"\n" +
+                    "    }\n" +
+                    "  ],\n" +
+                    "  \"doc_info\": [\n" +
+                    "    {\n" +
+                    "      \"path\": \"'doc_ontology_versions'->'http://purl.obolibrary.org/obo/so.owl'\",\n" +
+                    "      \"description\": \"URL to the version of \\\"Sequence types and features ontology\\\" used in the JSON document\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'doc_ontology_versions'\",\n" +
+                    "      \"description\": \"URLs to the version of the ontologies used in the JSON document\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'doc_ontology_versions'->'http://purl.obolibrary.org/obo/obi.owl'\",\n" +
+                    "      \"description\": \"URL to the version of \\\"Ontology for Biomedical Investigations\\\" used in the JSON document\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'doc_ontology_versions'->'http://edamontology.org/EDAM.owl'\",\n" +
+                    "      \"description\": \"URL to the version of \\\"Bioinformatics operations, data types, formats, identifiers and topics\\\" (EDAM Ontology) used in the JSON document\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'doc_ontology_versions'->'http://purl.obolibrary.org/obo/cl.owl'\",\n" +
+                    "      \"description\": \"URL to the version of \\\"Cell Ontology\\\" used in the JSON document\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'doc_version'\",\n" +
+                    "      \"description\": \"Version of this FAIRtracks JSON document\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'doc_ontology_versions'->'http://www.ebi.ac.uk/efo/efo.owl'\",\n" +
+                    "      \"description\": \"URL to the version of \\\"Experimental Factor Ontology\\\" used in the JSON document\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'local_id'\",\n" +
+                    "      \"description\": \"Submitter-local identifier (within  track repository) for current FAIRtracks document (in CURIE-format, if applicable)\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'doc_date'\",\n" +
+                    "      \"description\": \"Creation date of this version of this FAIRtracks document\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'doc_url'\",\n" +
+                    "      \"description\": \"URL to this FAIRtracks JSON document\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'has_augmented_metadata'\",\n" +
+                    "      \"description\": \"Set to true if the metadata properties with augmented=true is set in the JSON document, as returned by the fairtracks_augment service\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'doc_ontology_versions'->'http://purl.obolibrary.org/obo/uberon.owl'\",\n" +
+                    "      \"description\": \"URL to the version of  \\\"Uber-anatomy ontology\\\" used in the JSON document\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'doc_ontology_versions'->'http://purl.obolibrary.org/obo/ncit.owl'\",\n" +
+                    "      \"description\": \"URL to the version of \\\"NCI Thesaurus OBO Edition\\\" used in the JSON document\"\n" +
+                    "    }\n" +
+                    "  ],\n" +
+                    "  \"studies\": [\n" +
+                    "    {\n" +
+                    "      \"path\": \"'publication'\",\n" +
+                    "      \"description\": \"Pubmed identifier (dataset or publication)\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'local_id'\",\n" +
+                    "      \"description\": \"Submitter-local identifier (within the track collection) for the study\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'study_name'\",\n" +
+                    "      \"description\": \"Name of the study\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'contact'\",\n" +
+                    "      \"description\": \"Contact information for study\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'contact'->'orcid'\",\n" +
+                    "      \"description\": \"ORCID to contact person\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'global_id'\",\n" +
+                    "      \"description\": \"Global study identifier, resolvable by identifiers.org\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'contact'->'name'\",\n" +
+                    "      \"description\": \"Name of contact person/organization\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'collection_ref'\",\n" +
+                    "      \"description\": \"Reference to the track collection containing the study (using the submitter-local identifier of the collection)\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'contact'->'@schema'\",\n" +
+                    "      \"description\": \"The absolute URL of the 'current' version of the relevant FAIRtracks JSON schema within the same major version as the JSON document follows (which should ensure compatibility). Must match the value of '$id' in the linked schema\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"path\": \"'contact'->'e-mail'\",\n" +
+                    "      \"description\": \"E-mail to contact person/organization\"\n" +
                     "    }\n" +
                     "  ],\n" +
                     "  \"collection_info\": [\n" +
