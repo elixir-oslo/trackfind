@@ -65,17 +65,9 @@ public class TreeSelectionListener implements SelectionListener<TreeNode> {
     public void selectionChange(SelectionEvent<TreeNode> event) {
         Set<TreeNode> selectedItems = event.getAllSelectedItems();
         boolean valueSelected = event.getAllSelectedItems().stream().anyMatch(n -> !n.isAttribute());
-        boolean linkSelected = event.getAllSelectedItems().stream().anyMatch(n -> {
-            String value = n.toString();
-            try {
-                new URL(value);
-                return true;
-            } catch (MalformedURLException e) {
-                return value.contains(":");
-            }
-        });
+        boolean hasIcon = event.getAllSelectedItems().stream().anyMatch(n -> n.getIcon() != null);
         copyButton.setEnabled(valueSelected);
-        visitButton.setEnabled(valueSelected && linkSelected);
+        visitButton.setEnabled(valueSelected && hasIcon);
         addToQueryButton.setEnabled(valueSelected);
         if (event instanceof SingleSelectionEvent) {
             return;

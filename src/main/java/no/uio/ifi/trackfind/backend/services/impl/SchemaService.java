@@ -55,7 +55,12 @@ public class SchemaService {
             String attribute = path.isEmpty() ? path : path.substring(separatorLength);
             String description = schema.getDescription();
             if (StringUtils.isNoneEmpty(attribute) && Character.isLetterOrDigit(attribute.charAt(1)) && StringUtils.isNoneEmpty(description)) {
-                attributes.put(objectType, new Attribute(attribute, description));
+                String icon = null;
+                Map<String, Object> unprocessedProperties = schema.getUnprocessedProperties();
+                if (unprocessedProperties.containsKey("ontologyTermPair")) {
+                    icon = "📖";
+                }
+                attributes.put(objectType, new Attribute(attribute, description, icon));
             }
         }
         if (schema instanceof ObjectSchema) {
@@ -135,6 +140,7 @@ public class SchemaService {
     public static class Attribute {
         private String path;
         private String description;
+        private String icon;
     }
 
 }

@@ -116,7 +116,7 @@ public abstract class MoveAttributeValueHandler {
     }
 
     protected String getValue(TreeNode item) {
-        return "'" + item.toString() + "'";
+        return "'" + item.getValue() + "'";
     }
 
 }

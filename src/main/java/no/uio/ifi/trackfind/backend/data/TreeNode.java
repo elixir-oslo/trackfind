@@ -15,6 +15,7 @@ import java.util.Collection;
 public class TreeNode implements Comparable<TreeNode> {
 
     private TreeFilter treeFilter;
+    private String icon;
     private String category;
     private String value;
     private boolean attribute;
@@ -41,9 +42,9 @@ public class TreeNode implements Comparable<TreeNode> {
     @EqualsAndHashCode.Include
     public String getPath() {
         if (parent == null) {
-            return toString();
+            return value;
         }
-        return parent.getPath() + separator + toString();
+        return parent.getPath() + separator + value;
     }
 
     /**
@@ -53,9 +54,9 @@ public class TreeNode implements Comparable<TreeNode> {
      */
     public String getSQLPath() {
         if (parent == null) {
-            return toString() + ".content";
+            return value + ".content";
         }
-        return parent.getSQLPath() + (array ? separator + "*" : "") + separator + "'" + toString() + "'";
+        return parent.getSQLPath() + (array ? separator + "*" : "") + separator + "'" + value + "'";
     }
 
     /**
@@ -71,7 +72,7 @@ public class TreeNode implements Comparable<TreeNode> {
      */
     @Override
     public String toString() {
-        return value;
+        return (icon == null ? "" : icon + " ") + value;
     }
 
 }

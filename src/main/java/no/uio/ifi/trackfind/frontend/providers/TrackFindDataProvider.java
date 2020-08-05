@@ -12,6 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
@@ -70,11 +72,20 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
             Map<String, String> attributeTypes = metamodelService.getAttributeTypes(repository, hubName, category);
             Collection<String> children = parent.getChildren();
             String prefix = category + separator;
+            Collection<SchemaService.Attribute> standardAttributes = schemaService.getAttributes().get(category);
             return children.stream().map(c -> {
                 TreeNode treeNode = new TreeNode();
                 treeNode.setTreeFilter(treeFilter);
                 treeNode.setCategory(category);
                 treeNode.setValue(c);
+                try {
+                    new URL(c);
+                    treeNode.setIcon("🔗");
+                } catch (MalformedURLException ignored) {
+                    if (treeNode.getValue().contains(":")) {
+                        treeNode.setIcon("🌐");
+                    }
+                }
                 treeNode.setParent(parent);
                 treeNode.setSeparator(separator);
                 treeNode.setLevel(parent.getLevel() + 1);
@@ -84,7 +95,7 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
                 treeNode.setType(attributeTypes.get(path));
                 if (treeNode.isAttribute()) {
                     if (parent.isStandard()) {
-                        treeNode.setStandard(schemaAttributes.get(category).parallelStream().map(a -> a.getPath().replace("'", "")).anyMatch(a -> a.startsWith(path)));
+                        treeNode.setStandard(standardAttributes.parallelStream().map(a -> a.getPath().replace("'", "")).anyMatch(a -> a.startsWith(path)));
                     }
                     if (attributes.contains(path)) {
                         treeNode.setChildren(metamodelService.getValues(repository, hubName, category, path, null));
@@ -94,6 +105,11 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
                     }
                 } else {
                     if (parent.isStandard()) {
+                        String parentPath = parent.getParent().getPath().replace(prefix, "");
+                        Optional<SchemaService.Attribute> standardAttribute = standardAttributes.parallelStream().filter(a -> a.getPath().replace("'", "").equals(parentPath)).findAny();
+                        if (standardAttribute.isPresent() && standardAttribute.get().getIcon() != null) {
+                            treeNode.setIcon(standardAttribute.get().getIcon());
+                        }
                         treeNode.setStandard(true);
                     }
                 }
