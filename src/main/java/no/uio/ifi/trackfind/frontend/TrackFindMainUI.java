@@ -1,5 +1,6 @@
 package no.uio.ifi.trackfind.frontend;
 
+import alexh.weak.Dynamic;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Title;
@@ -103,6 +104,7 @@ public class TrackFindMainUI extends AbstractUI {
     private TextField limitTextField;
     private Panel resultsPanel;
     private Tree<ResultTreeItemWrapper> resultsTree = new Tree<>();
+    private Grid<SearchResult> resultsTable = new Grid<>(SearchResult.class);
     private Collection<SearchResult> results = new ArrayList<>();
     private String jsonResult;
     private FileDownloader gSuiteFileDownloader;
@@ -156,26 +158,9 @@ public class TrackFindMainUI extends AbstractUI {
                 }
             }
         });
-//        popupContent.addComponent(visitButton);
-//        popupContent.setSpacing(false);
-//        popupContent.setMargin(false);
 
-//        PopupView popup = new PopupView(null, popupContent);
-//        popup.setStyleName("pp", true);
-//        popup.addPopupVisibilityListener((PopupView.PopupVisibilityListener) popupVisibilityEvent -> {
-//            if (popupVisibilityEvent.isPopupVisible()) {
-//                String value = getCurrentTree().getSelectedItems().iterator().next().getValue();
-//                try {
-//                    new URL(value);
-//                    visitButton.setVisible(true);
-//                } catch (MalformedURLException e) {
-//                    visitButton.setVisible(false);
-//                }
-//            }
-//        });
         for (TfHub hub : trackFindService.getTrackHubs(true)) {
             TrackFindTree<TreeNode> tree = buildMetamodelTree(hub);
-//            tree.addContextClickListener((ContextClickEvent.ContextClickListener) contextClickEvent -> popup.setPopupVisible(!getCurrentTree().getSelectedItems().isEmpty()));
             tabSheet.addTab(tree, hub.getDisplayName() != null ? hub.getDisplayName() : hub.getName());
         }
 
@@ -335,11 +320,27 @@ public class TrackFindMainUI extends AbstractUI {
         jsonFileDownloader = new FileDownloader(new ExternalResource(""));
         jsonFileDownloader.extend(exportJSONButton);
 
+        TabSheet resultsTabs = new TabSheet();
+        resultsTabs.addTab(resultsTable, "Table view");
+        resultsTabs.addTab(resultsTree, "Tree view");
+
+        resultsTable.setSizeFull();
+        int i = 0;
+        for (Map.Entry<String, List<String>> shortcut : SHORTCUTS.entrySet()) {
+            resultsTable.addColumn(sr ->
+                    {
+                        String path = String.join(".", shortcut.getValue());
+                        return Dynamic.from(sr.getContent()).dget(path).asString();
+                    }
+            ).setCaption(shortcut.getKey()).setId(String.valueOf(i++));
+        }
+        resultsTable.removeColumn("content");
+
         resultsTree.setSizeFull();
         resultsTree.setItemCaptionGenerator((ItemCaptionGenerator<ResultTreeItemWrapper>) ResultTreeItemWrapper::getValue);
         resultsTree.setStyleGenerator((StyleGenerator<ResultTreeItemWrapper>) item -> item.isLeaf() ? "value-tree-node" : null);
 
-        resultsPanel = new Panel("3. Results", resultsTree);
+        resultsPanel = new Panel("3. Results", resultsTabs);
         resultsPanel.setSizeFull();
         VerticalLayout resultsLayout = new VerticalLayout(resultsPanel, exportGSuiteButton, exportJSONButton);
         resultsLayout.setSizeFull();
@@ -438,6 +439,7 @@ public class TrackFindMainUI extends AbstractUI {
             log.error(e.getMessage(), e);
         }
         if (results.isEmpty()) {
+            resultsTable.setItems(Collections.emptyList());
             resultsTree.setItems(Collections.emptyList());
             resultsPanel.setCaption("3. Results");
             exportGSuiteButton.setEnabled(false);
@@ -448,6 +450,7 @@ public class TrackFindMainUI extends AbstractUI {
             return;
         }
         resultsPanel.setCaption(String.format("3. Results: %s out of %s", results.size(), count));
+        resultsTable.setItems(results);
         resultsTree.setDataProvider(new TreeDataProvider<>(getResultsTreeData()));
         resultsTree.getDataProvider().refreshAll();
         int numberOfResults = results.size();
