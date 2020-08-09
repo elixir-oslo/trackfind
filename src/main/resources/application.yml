@@ -24,14 +24,6 @@ management:
 
 spring:
   application.name: TrackFind
-  boot.admin:
-    context-path: /admin
-    client:
-      url: http://localhost:8080/admin
-      instance:
-        name: TrackFind
-        management-base-url: http://localhost:8080
-        service-base-url: http://localhost:8080
   jackson.serialization.indent-output: true
   datasource:
     url: jdbc:postgresql://${DB_INSTANCE:localhost}:${DB_PORT:5432}/${POSTGRES_DB:trackfind}?stringtype=unspecified

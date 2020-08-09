@@ -1,6 +1,5 @@
 package no.uio.ifi.trackfind;
 
-import de.codecentric.boot.admin.server.config.EnableAdminServer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -20,7 +19,6 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableTransactionManagement
 @EnableHystrix
 @EnableHystrixDashboard
-@EnableAdminServer
 public class TrackFindApplication {
 
     public static void main(String[] args) {

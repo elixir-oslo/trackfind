@@ -127,7 +127,6 @@ public abstract class AbstractUI extends UI {
                 menu.addItem("References", (MenuBar.Command) selectedItem -> Page.getCurrent().setLocation("/references"));
                 menu.addItem("Curation", (MenuBar.Command) selectedItem -> Page.getCurrent().setLocation("/curation"));
                 menu.addItem("Users", (MenuBar.Command) selectedItem -> Page.getCurrent().setLocation("/users"));
-                menu.addItem("Admin", (MenuBar.Command) selectedItem -> Page.getCurrent().setLocation("/admin"));
                 leftHeaderLayout.addComponent(menuBar);
                 leftHeaderLayout.setMargin(true);
             }

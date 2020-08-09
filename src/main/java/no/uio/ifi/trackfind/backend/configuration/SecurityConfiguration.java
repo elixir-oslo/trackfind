@@ -46,8 +46,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 "/monitor/**",
                 "/references/**",
                 "/versions/**",
-                "/users/**",
-                "/admin/**"
+                "/users/**"
         }) {
             for (HttpMethod httpMethod : HttpMethod.values()) {
                 protectedMatchers.add(new AntPathRequestMatcher(protectedResource, httpMethod.toString(), false));
@@ -69,8 +68,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                         "/monitor/**",
                         "/references/**",
                         "/versions/**",
-                        "/users/**",
-                        "/admin/**"
+                        "/users/**"
                 }).hasRole("ADMIN");
     }
 
