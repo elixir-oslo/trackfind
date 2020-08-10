@@ -44,7 +44,7 @@ import no.uio.ifi.trackfind.frontend.listeners.TreeItemClickListener;
 import no.uio.ifi.trackfind.frontend.listeners.TreeSelectionListener;
 import no.uio.ifi.trackfind.frontend.providers.TrackFindDataProvider;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -148,13 +148,31 @@ public class TrackFindMainUI extends AbstractUI {
         visitButton.setWidthFull();
         visitButton.setEnabled(false);
         visitButton.addClickListener((Button.ClickListener) clickEvent -> {
-            String value = getCurrentTree().getSelectedItems().iterator().next().getValue();
+            TreeNode treeNode = getCurrentTree().getSelectedItems().iterator().next();
+            String value = treeNode.getValue();
             try {
                 new URL(value);
                 getUI().getPage().open(value, "_blank");
             } catch (MalformedURLException e) {
                 if (value.contains(":")) {
                     getUI().getPage().open("http://identifiers.org/resolve?query=" + value, "_blank");
+                } else {
+                    String category = treeNode.getPath().split(separator)[0];
+                    String query = treeNode.getSQLPath();
+                    try {
+                        Collection<SearchResult> searchResults = searchService.search(
+                                getCurrentHub().getRepository(),
+                                getCurrentHub().getName(),
+                                query.replaceAll("'term_label'->", "'term_label' ? "),
+                                List.of(category),
+                                1
+                        ).getValue();
+                        SearchResult searchResult = searchResults.iterator().next();
+                        String termIDPath = StringUtils.substringBeforeLast(treeNode.getPath().replaceAll("term_label", "term_id"), separator);
+                        String termID = Dynamic.from(searchResult.getContent()).get(termIDPath, separator).asString();
+                        getUI().getPage().open(termID, "_blank");
+                    } catch (SQLException ignored) {
+                    }
                 }
             }
         });
