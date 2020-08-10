@@ -56,9 +56,15 @@ public class SchemaService {
             String description = schema.getDescription();
             if (StringUtils.isNoneEmpty(attribute) && Character.isLetterOrDigit(attribute.charAt(1)) && StringUtils.isNoneEmpty(description)) {
                 String icon = null;
-                Map<String, Object> unprocessedProperties = schema.getUnprocessedProperties();
-                if (unprocessedProperties.containsKey("ontologyTermPair")) {
-                    icon = "📖";
+                if (schema instanceof StringSchema && ((StringSchema) schema).getFormatValidator().formatName().equalsIgnoreCase("uri")) {
+                    icon = "🔗";
+                } else if (schema.getDescription().contains("identifiers.org")) {
+                    icon = "🌐";
+                } else {
+                    Map<String, Object> unprocessedProperties = schema.getUnprocessedProperties();
+                    if (unprocessedProperties.containsKey("ontologyTermPair")) {
+                        icon = "📖";
+                    }
                 }
                 attributes.put(objectType, new Attribute(attribute, description, icon));
             }

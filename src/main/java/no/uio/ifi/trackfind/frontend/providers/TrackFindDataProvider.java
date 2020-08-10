@@ -78,14 +78,6 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
                 treeNode.setTreeFilter(treeFilter);
                 treeNode.setCategory(category);
                 treeNode.setValue(c);
-                try {
-                    new URL(c);
-                    treeNode.setIcon("🔗");
-                } catch (MalformedURLException ignored) {
-                    if (treeNode.getValue().contains(":")) {
-                        treeNode.setIcon("🌐");
-                    }
-                }
                 treeNode.setParent(parent);
                 treeNode.setSeparator(separator);
                 treeNode.setLevel(parent.getLevel() + 1);
@@ -95,6 +87,10 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
                 treeNode.setType(attributeTypes.get(path));
                 if (treeNode.isAttribute()) {
                     if (parent.isStandard()) {
+                        Optional<SchemaService.Attribute> standardAttribute = standardAttributes.parallelStream().filter(a -> a.getPath().replace("'", "").equals(path)).findAny();
+                        if (standardAttribute.isPresent() && standardAttribute.get().getIcon() != null) {
+                            treeNode.setIcon(standardAttribute.get().getIcon());
+                        }
                         treeNode.setStandard(standardAttributes.parallelStream().map(a -> a.getPath().replace("'", "")).anyMatch(a -> a.startsWith(path)));
                     }
                     if (attributes.contains(path)) {
@@ -105,8 +101,19 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
                     }
                 } else {
                     if (parent.isStandard()) {
-                        String parentPath = parent.getParent().getPath().replace(prefix, "");
-                        Optional<SchemaService.Attribute> standardAttribute = standardAttributes.parallelStream().filter(a -> a.getPath().replace("'", "").equals(parentPath)).findAny();
+                        String parentPath = parent.getPath().replace(prefix, "");
+                        Optional<SchemaService.Attribute> standardAttribute = standardAttributes.parallelStream().filter(a -> {
+                            String substitutedPath = a.getPath().replace("'", "");
+                            return substitutedPath.equals(parentPath);
+                        }).findAny();
+                        if (standardAttribute.isPresent() && standardAttribute.get().getIcon() != null) {
+                            treeNode.setIcon(standardAttribute.get().getIcon());
+                        }
+                        String grandParentPath = parent.getParent().getPath().replace(prefix, "");
+                        standardAttribute = standardAttributes.parallelStream().filter(a -> {
+                            String substitutedPath = a.getPath().replace("'", "");
+                            return substitutedPath.equals(grandParentPath);
+                        }).findAny();
                         if (standardAttribute.isPresent() && standardAttribute.get().getIcon() != null) {
                             treeNode.setIcon(standardAttribute.get().getIcon());
                         }
