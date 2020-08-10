@@ -4,8 +4,8 @@ services:
 
   db:
     image: postgres:10.5
-#    ports:
-#      - 5432:5432
+    ports:
+      - 5432:5432
     environment:
       - POSTGRES_DB=trackfind
       - POSTGRES_USER
@@ -23,35 +23,35 @@ services:
     ports:
       - 6000:5000
 
-  trackfind:
-    image: elixiroslo/trackfind:latest
-    depends_on:
-      - db
-    environment:
-      - SPRING_PROFILES_ACTIVE
-      - DB_INSTANCE=db
-      - POSTGRES_USER
-      - POSTGRES_PASSWORD
-      - ADMIN_ELIXIR_ID
-      - INFLUX_ENABLED
-      - INFLUX_URI
-      - INFLUX_DB
-      - INFLUX_USER
-      - INFLUX_PASSWORD
-
-  apache:
-    image: nels/apache-elixir-aai:latest
-    ports:
-      - 80:80
-      - 443:443
-    environment:
-      - SERVER_NAME
-      - PROXY_PASS=http://trackfind:8080/
-      - ELIXIR_AAI_CLIENT_ID
-      - ELIXIR_AAI_CLIENT_SECRET
-      - SCOPES="openid profile email"
-      - PROTECTED_RESOURCES=/login,/hubs,/references,/curation,/users,/monitor,/admin,/actuator
-      - SSL_ENGINE
+#  trackfind:
+#    image: elixiroslo/trackfind:latest
+#    depends_on:
+#      - db
+#    environment:
+#      - SPRING_PROFILES_ACTIVE
+#      - DB_INSTANCE=db
+#      - POSTGRES_USER
+#      - POSTGRES_PASSWORD
+#      - ADMIN_ELIXIR_ID
+#      - INFLUX_ENABLED
+#      - INFLUX_URI
+#      - INFLUX_DB
+#      - INFLUX_USER
+#      - INFLUX_PASSWORD
+#
+#  apache:
+#    image: nels/apache-elixir-aai:latest
+#    ports:
+#      - 80:80
+#      - 443:443
+#    environment:
+#      - SERVER_NAME
+#      - PROXY_PASS=http://trackfind:8080/
+#      - ELIXIR_AAI_CLIENT_ID
+#      - ELIXIR_AAI_CLIENT_SECRET
+#      - SCOPES="openid profile email"
+#      - PROTECTED_RESOURCES=/login,/hubs,/references,/curation,/users,/monitor,/admin,/actuator
+#      - SSL_ENGINE
 #    volumes:
 #      - /etc/letsencrypt/live/<site>/fullchain.pem:/etc/ssl/certs/fullchain.pem
 #      - /etc/letsencrypt/live/<site>/privkey.pem:/etc/ssl/private/privkey.pem
