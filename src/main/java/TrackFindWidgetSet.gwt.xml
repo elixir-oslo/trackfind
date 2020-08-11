@@ -14,4 +14,10 @@
     
 
     <inherits name="com.vaadin.component.WidgetSet" />
+
+    
+
+    
+
+    <inherits name="org.vaadin.sliderpanel.WidgetSet" />
 </module>

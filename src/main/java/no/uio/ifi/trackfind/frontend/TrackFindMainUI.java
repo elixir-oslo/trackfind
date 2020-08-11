@@ -50,6 +50,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+//import org.vaadin.addons.collapsiblepanel.CollapsiblePanel;
+//import org.vaadin.addons.stackpanel.StackPanel;
+import org.vaadin.sliderpanel.SliderPanel;
+import org.vaadin.sliderpanel.SliderPanelBuilder;
+import org.vaadin.sliderpanel.client.SliderMode;
+import org.vaadin.sliderpanel.client.SliderTabPosition;
 
 import java.io.ByteArrayInputStream;
 import java.net.MalformedURLException;
@@ -437,12 +443,16 @@ public class TrackFindMainUI extends AbstractUI {
         searchLayout.setWidth("100%");
         searchLayout.setComponentAlignment(searchButton, Alignment.BOTTOM_RIGHT);
 
-        Panel categoriesChecklistPanel = new Panel("Filter categories to search in", new VerticalLayout(categoriesChecklist));
-        categoriesChecklistPanel.setSizeFull();
-        VerticalLayout queryLayout = new VerticalLayout(queryPanel, clearAllButton, categoriesChecklistPanel, searchLayout);
+        SliderPanel topSlider = new SliderPanelBuilder(categoriesChecklist)
+                .expanded(false)
+                .mode(SliderMode.TOP)
+                .caption("Filter categories to search in")
+                .tabPosition(SliderTabPosition.MIDDLE)
+                .build();
+        VerticalLayout queryLayout = new VerticalLayout(queryPanel, clearAllButton, topSlider, searchLayout);
         queryLayout.setExpandRatio(queryPanel, 0.4f);
         queryLayout.setExpandRatio(clearAllButton, 0.1f);
-        queryLayout.setExpandRatio(categoriesChecklistPanel, 0.4f);
+        queryLayout.setExpandRatio(topSlider, 0.4f);
         queryLayout.setExpandRatio(searchLayout, 0.1f);
         queryLayout.setSizeFull();
         queryLayout.setExpandRatio(queryPanel, 1f);
