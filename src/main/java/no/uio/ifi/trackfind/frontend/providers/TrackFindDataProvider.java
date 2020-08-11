@@ -85,9 +85,14 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
                 treeNode.setAttribute(attributes.parallelStream().anyMatch(a -> a.startsWith(path)));
                 treeNode.setArray(arrayOfObjectsAttributes.contains(path));
                 treeNode.setType(attributeTypes.get(path));
+                String parentPath = parent.getPath().replace(prefix, "");
                 if (treeNode.isAttribute()) {
                     if (parent.isStandard()) {
                         Optional<SchemaService.Attribute> standardAttribute = standardAttributes.parallelStream().filter(a -> a.getPath().replace("'", "").equals(path)).findAny();
+                        if (standardAttribute.isPresent() && standardAttribute.get().getIcon() != null) {
+                            treeNode.setIcon(standardAttribute.get().getIcon());
+                        }
+                        standardAttribute = standardAttributes.parallelStream().filter(a -> a.getPath().replace("'", "").equals(parentPath)).findAny();
                         if (standardAttribute.isPresent() && standardAttribute.get().getIcon() != null) {
                             treeNode.setIcon(standardAttribute.get().getIcon());
                         }
@@ -101,7 +106,6 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
                     }
                 } else {
                     if (parent.isStandard()) {
-                        String parentPath = parent.getPath().replace(prefix, "");
                         Optional<SchemaService.Attribute> standardAttribute = standardAttributes.parallelStream().filter(a -> {
                             String substitutedPath = a.getPath().replace("'", "");
                             return substitutedPath.equals(parentPath);

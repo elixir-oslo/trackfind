@@ -9,6 +9,7 @@ import com.vaadin.component.VaadinClipboard;
 import com.vaadin.component.VaadinClipboardImpl;
 import com.vaadin.data.HasValue;
 import com.vaadin.data.TreeData;
+import com.vaadin.data.provider.HierarchicalDataCommunicator;
 import com.vaadin.data.provider.HierarchicalQuery;
 import com.vaadin.data.provider.TreeDataProvider;
 import com.vaadin.event.CollapseEvent;
@@ -93,8 +94,8 @@ public class TrackFindMainUI extends AbstractUI {
     private GSuiteService gSuiteService;
     private SearchService searchService;
 
-    private Button copyButton = new Button("Copy");
-    private Button visitButton = new Button("Visit");
+    private Button copyButton = new Button("Copy to clipboard");
+    private Button visitButton = new Button("Open in a new tab");
     private Button addToQueryButton = new Button("Add to query ➚ (⌥: OR, ⇧: NOT)");
     private List<TreeNode> expandedItems = new CopyOnWriteArrayList<>();
     private Button exportGSuiteButton = new Button("Export as GSuite file");
@@ -118,6 +119,7 @@ public class TrackFindMainUI extends AbstractUI {
         VerticalLayout queryLayout = buildQueryLayout();
         VerticalLayout resultsLayout = buildResultsLayout();
         HorizontalLayout mainLayout = buildMainLayout(treeLayout, queryLayout, resultsLayout);
+        mainLayout.setMargin(new MarginInfo(true, true, true, true));
         HorizontalLayout footerLayout = buildFooterLayout();
         VerticalLayout outerLayout = buildOuterLayout(headerLayout, mainLayout, footerLayout);
         setContent(outerLayout);
@@ -125,9 +127,6 @@ public class TrackFindMainUI extends AbstractUI {
         implementationVersion = implementationVersion == null ? "dev" : implementationVersion;
         Page currentPage = Page.getCurrent();
         currentPage.setTitle("TrackFind: " + implementationVersion);
-//        GoogleAnalyticsTracker tracker = new GoogleAnalyticsTracker("UA-143208550-1");
-//        tracker.trackPageview("/");
-//        tracker.extend(getUI());
     }
 
     protected VerticalLayout buildTreeLayout() {
@@ -182,9 +181,8 @@ public class TrackFindMainUI extends AbstractUI {
             tabSheet.addTab(tree, hub.getDisplayName() != null ? hub.getDisplayName() : hub.getName());
         }
 
-        ComboBox<String> shortcuts = new ComboBox<>();
+        ComboBox<String> shortcuts = new ComboBox<>("Shortcuts");
         shortcuts.setItems(SHORTCUTS.keySet());
-        shortcuts.setWidth("100%");
         shortcuts.addValueChangeListener((HasValue.ValueChangeListener<String>) valueChangeEvent -> {
             if (StringUtils.isEmpty(valueChangeEvent.getValue())) {
                 return;
@@ -201,20 +199,27 @@ public class TrackFindMainUI extends AbstractUI {
                 Notification.show("Shortcut not found in the current hub.");
             }
         });
-        VerticalLayout selectionLayout = new VerticalLayout(shortcuts, tabSheet);
-        selectionLayout.setSpacing(false);
-        Panel treePanel = new Panel("1. Select metadata value(s)", selectionLayout);
-        treePanel.setSizeFull();
 
-//        TextField attributesFilterTextField = createFilter(true);
-        TextField valuesFilterTextField = createFilter(false);
-
-        CheckBox standardCheckbox = new CheckBox("Only FAIRtracks attributes");
+        CheckBox standardCheckbox = new CheckBox("Show only FAIRtracks attributes");
         standardCheckbox.addValueChangeListener((HasValue.ValueChangeListener<Boolean>) event -> {
             TreeFilter filter = getCurrentFilter();
             filter.setStandard(event.getValue());
             getCurrentTree().getDataProvider().refreshAll();
         });
+        VerticalLayout checkboxLayout = new VerticalLayout(standardCheckbox);
+        checkboxLayout.setSizeFull();
+        checkboxLayout.setComponentAlignment(standardCheckbox, Alignment.BOTTOM_LEFT);
+        checkboxLayout.setMargin(false);
+        HorizontalLayout shortcutsLayout = new HorizontalLayout(shortcuts, checkboxLayout);
+        shortcutsLayout.setMargin(false);
+        VerticalLayout selectionLayout = new VerticalLayout(shortcutsLayout, tabSheet);
+        selectionLayout.setSizeFull();
+        selectionLayout.setExpandRatio(tabSheet, 1);
+        Panel treePanel = new Panel("1. Select metadata value(s)", selectionLayout);
+        treePanel.setSizeFull();
+
+//        TextField attributesFilterTextField = createFilter(true);
+        TextField valuesFilterTextField = createFilter(false);
 
         tabSheet.addSelectedTabChangeListener((TabSheet.SelectedTabChangeListener) event -> refreshCategoriesCheckList());
 
@@ -224,10 +229,10 @@ public class TrackFindMainUI extends AbstractUI {
         addToQueryButton.addClickListener(addToQueryButtonClickListener);
         addToQueryButton.setWidth(100, Unit.PERCENTAGE);
 
-        HorizontalLayout copyVisitButtonsLayout = new HorizontalLayout(copyButton, visitButton, standardCheckbox);
-        copyVisitButtonsLayout.setComponentAlignment(standardCheckbox, Alignment.MIDDLE_LEFT);
-        copyVisitButtonsLayout.setComponentAlignment(copyButton, Alignment.MIDDLE_LEFT);
-        copyVisitButtonsLayout.setComponentAlignment(visitButton, Alignment.MIDDLE_LEFT);
+        HorizontalLayout copyVisitButtonsLayout = new HorizontalLayout(copyButton, visitButton);
+        copyVisitButtonsLayout.setWidthFull();
+        copyVisitButtonsLayout.setExpandRatio(copyButton, 1);
+        copyVisitButtonsLayout.setExpandRatio(visitButton, 1);
 
         VerticalLayout treeLayout = new VerticalLayout(treePanel, copyVisitButtonsLayout, valuesFilterTextField, addToQueryButton);
         treeLayout.setSizeFull();
@@ -317,9 +322,12 @@ public class TrackFindMainUI extends AbstractUI {
     }
 
     private HorizontalLayout buildMainLayout(VerticalLayout treeLayout, VerticalLayout queryLayout, VerticalLayout resultsLayout) {
-        MarginInfo marginInfo = new MarginInfo(true, true, false, true);
-        treeLayout.setMargin(marginInfo);
-        resultsLayout.setMargin(marginInfo);
+        treeLayout.setMargin(false);
+        treeLayout.setSizeFull();
+        queryLayout.setMargin(new MarginInfo(false, true, true, true));
+        queryLayout.setSizeFull();
+        resultsLayout.setMargin(false);
+        resultsLayout.setSizeFull();
         HorizontalLayout mainLayout = new HorizontalLayout(treeLayout, queryLayout, resultsLayout);
         mainLayout.setSizeFull();
         return mainLayout;
@@ -339,6 +347,7 @@ public class TrackFindMainUI extends AbstractUI {
         jsonFileDownloader.extend(exportJSONButton);
 
         TabSheet resultsTabs = new TabSheet();
+        tabSheet.setSizeFull();
         resultsTabs.addTab(resultsTable, "Table view");
         resultsTabs.addTab(resultsTree, "Tree view");
 
@@ -359,6 +368,7 @@ public class TrackFindMainUI extends AbstractUI {
         resultsTree.setStyleGenerator((StyleGenerator<ResultTreeItemWrapper>) item -> item.isLeaf() ? "value-tree-node" : null);
 
         resultsPanel = new Panel("3. Results", resultsTabs);
+        resultsPanel.getContent().setSizeFull();
         resultsPanel.setSizeFull();
         VerticalLayout resultsLayout = new VerticalLayout(resultsPanel, exportGSuiteButton, exportJSONButton);
         resultsLayout.setSizeFull();
