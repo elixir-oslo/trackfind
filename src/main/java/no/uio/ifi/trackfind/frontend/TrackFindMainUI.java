@@ -54,6 +54,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 //import org.vaadin.addons.stackpanel.StackPanel;
 import org.vaadin.sliderpanel.SliderPanel;
 import org.vaadin.sliderpanel.SliderPanelBuilder;
+import org.vaadin.sliderpanel.SliderPanelStyles;
 import org.vaadin.sliderpanel.client.SliderMode;
 import org.vaadin.sliderpanel.client.SliderTabPosition;
 
@@ -448,6 +449,8 @@ public class TrackFindMainUI extends AbstractUI {
                 .mode(SliderMode.TOP)
                 .caption("Filter categories to search in")
                 .tabPosition(SliderTabPosition.MIDDLE)
+                .style(SliderPanelStyles.COLOR_WHITE, SliderPanelStyles.ICON_BLACK)
+                .autoCollapseSlider(true)
                 .build();
         VerticalLayout queryLayout = new VerticalLayout(queryPanel, clearAllButton, topSlider, searchLayout);
         queryLayout.setExpandRatio(queryPanel, 0.4f);
