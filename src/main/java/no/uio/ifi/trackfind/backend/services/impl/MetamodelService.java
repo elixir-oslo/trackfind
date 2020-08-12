@@ -114,7 +114,7 @@ public class MetamodelService {
     public Collection<TfObjectType> getObjectTypes(String repository, String hub) {
         TfHub hubEntity = hubRepository.findByRepositoryAndName(repository, hub);
         Optional<TfVersion> currentVersionOptional = hubEntity.getCurrentVersion();
-        if (!currentVersionOptional.isPresent()) {
+        if (currentVersionOptional.isEmpty()) {
             return Collections.emptyList();
         }
         TfVersion currentVersion = currentVersionOptional.get();
@@ -125,7 +125,7 @@ public class MetamodelService {
     public Optional<TfObjectType> findObjectTypeByName(String repository, String hub, String objectTypeName) {
         TfHub hubEntity = hubRepository.findByRepositoryAndName(repository, hub);
         Optional<TfVersion> currentVersionOptional = hubEntity.getCurrentVersion();
-        if (!currentVersionOptional.isPresent()) {
+        if (currentVersionOptional.isEmpty()) {
             return Optional.empty();
         }
         TfVersion currentVersion = currentVersionOptional.get();
@@ -141,6 +141,7 @@ public class MetamodelService {
                 objectType.getId());
     }
 
+    @SuppressWarnings("rawtypes")
     @Cacheable(value = "metamodel-attribute-types", sync = true)
     public Map<String, String> getAttributeTypes(String repository, String hub, String category) {
         TfObjectType objectType = metamodelService.getObjectTypes(repository, hub).stream().filter(c -> c.getName().equals(category)).findAny().orElseThrow(RuntimeException::new);
@@ -196,7 +197,7 @@ public class MetamodelService {
     public Collection<TfReference> getReferences(String repository, String hub) {
         TfHub currentHub = hubRepository.findByRepositoryAndName(repository, hub);
         Optional<TfVersion> currentVersionOptional = currentHub.getCurrentVersion();
-        if (!currentVersionOptional.isPresent()) {
+        if (currentVersionOptional.isEmpty()) {
             return Collections.emptyList();
         }
         TfVersion currentVersion = currentVersionOptional.get();
@@ -232,7 +233,7 @@ public class MetamodelService {
     public void copyReferencesFromAnotherVersionToCurrentVersion(String repository, String hubName, TfVersion sourceVersion) {
         TfHub hub = hubRepository.findByRepositoryAndName(repository, hubName);
         Optional<TfVersion> currentVersionOptional = hub.getCurrentVersion();
-        if (!currentVersionOptional.isPresent()) {
+        if (currentVersionOptional.isEmpty()) {
             return;
         }
         TfVersion currentVersion = currentVersionOptional.get();
@@ -264,7 +265,7 @@ public class MetamodelService {
     public void copyMappingsFromAnotherVersionToCurrentVersion(String repository, String hubName, TfVersion sourceVersion) {
         TfHub hub = hubRepository.findByRepositoryAndName(repository, hubName);
         Optional<TfVersion> currentVersionOptional = hub.getCurrentVersion();
-        if (!currentVersionOptional.isPresent()) {
+        if (currentVersionOptional.isEmpty()) {
             return;
         }
         TfVersion currentVersion = currentVersionOptional.get();
@@ -292,7 +293,7 @@ public class MetamodelService {
     public Collection<TfMapping> getMappings(String repository, String hubName) {
         TfHub hub = hubRepository.findByRepositoryAndName(repository, hubName);
         Optional<TfVersion> currentVersionOptional = hub.getCurrentVersion();
-        if (!currentVersionOptional.isPresent()) {
+        if (currentVersionOptional.isEmpty()) {
             return Collections.emptyList();
         }
         TfVersion currentVersion = currentVersionOptional.get();
@@ -317,7 +318,7 @@ public class MetamodelService {
         TfMapping neighbour;
         if (up) {
             Optional<TfMapping> optionalNeighbour = mappingsRepository.findByVersionAndOrderNumber(version, mapping.getOrderNumber() - 1);
-            if (!optionalNeighbour.isPresent()) {
+            if (optionalNeighbour.isEmpty()) {
                 return;
             }
             neighbour = optionalNeighbour.get();
@@ -325,7 +326,7 @@ public class MetamodelService {
             mapping.setOrderNumber(mapping.getOrderNumber() - 1);
         } else {
             Optional<TfMapping> optionalNeighbour = mappingsRepository.findByVersionAndOrderNumber(version, mapping.getOrderNumber() + 1);
-            if (!optionalNeighbour.isPresent()) {
+            if (optionalNeighbour.isEmpty()) {
                 return;
             }
             neighbour = optionalNeighbour.get();
