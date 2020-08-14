@@ -67,14 +67,14 @@ public class TrackFindController {
             @PathVariable String hub,
             @RequestParam(required = false, defaultValue = "false") boolean flat) {
         if (flat) {
-            Map<String, Multimap<String, String>> metamodelFlat = metamodelService.getMetamodelFlat(repository, hub, null);
+            Map<String, Multimap<String, String>> metamodelFlat = metamodelService.getMetamodelFlat(repository, hub, null, null);
             Map<String, Map<String, Collection<String>>> result = new HashMap<>();
             for (String key : metamodelFlat.keySet()) {
                 result.put(key, metamodelFlat.get(key).asMap());
             }
             return ResponseEntity.ok(result);
         } else {
-            return ResponseEntity.ok(metamodelService.getMetamodelTree(repository, hub));
+            return ResponseEntity.ok(metamodelService.getMetamodelTree(repository, hub, null));
         }
     }
 
@@ -127,13 +127,13 @@ public class TrackFindController {
             @PathVariable String hub,
             @PathVariable String category,
             @RequestParam String path,
-            @RequestParam(required = false, defaultValue = "") String filter,
+            @RequestParam(required = false) String filter,
             @RequestParam(required = false) String query) throws SQLException {
         Set<Long> ids = null;
         if (query != null) {
             ids = searchService.search(repository, hub, query, null, 0).getKey();
         }
-        return ResponseEntity.ok(metamodelService.getValues(repository, hub, category, path, ids).stream().filter(v -> v.toLowerCase().contains(filter.toLowerCase())).collect(Collectors.toSet()));
+        return ResponseEntity.ok(metamodelService.getValues(repository, hub, category, path, filter, ids));
     }
 
     /**

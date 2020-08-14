@@ -12,8 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
@@ -42,7 +40,7 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
         String repository = hub.getRepository();
         String hubName = hub.getName();
         Map<String, Map<String, Object>> metamodelTree;
-        metamodelTree = metamodelService.getMetamodelTree(repository, hubName);
+        metamodelTree = metamodelService.getMetamodelTree(repository, hubName, treeFilter.getValuesFilter());
         Map<String, Collection<SchemaService.Attribute>> schemaAttributes = schemaService.getAttributes();
         Optional<TreeNode> parentOptional = query.getParentOptional();
         if (parentOptional.isEmpty()) {
@@ -99,7 +97,7 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
                         treeNode.setStandard(standardAttributes.parallelStream().map(a -> a.getPath().replace("'", "")).anyMatch(a -> a.startsWith(path)));
                     }
                     if (attributes.contains(path)) {
-                        treeNode.setChildren(metamodelService.getValues(repository, hubName, category, path, null));
+                        treeNode.setChildren(metamodelService.getValues(repository, hubName, category, path, treeFilter.getValuesFilter(), null));
                     } else {
                         Collection<String> subAttributes = metamodelService.getAttributes(repository, hubName, category, path);
                         treeNode.setChildren(subAttributes);

@@ -45,7 +45,7 @@ public class MetamodelService {
     protected ApplicationEventPublisher applicationEventPublisher;
 
     @Cacheable(value = "metamodel-flat", sync = true)
-    public Map<String, Multimap<String, String>> getMetamodelFlat(String repository, String hub, Set<Long> ids) {
+    public Map<String, Multimap<String, String>> getMetamodelFlat(String repository, String hub, String valuesFilter, Set<Long> ids) {
         String fromClause = "tf_metamodel";
         if (CollectionUtils.isNotEmpty(ids)) {
             fromClause = "(" + buildFilteredMetamodelQuery(ids) + ") AS foo";
@@ -57,10 +57,13 @@ public class MetamodelService {
                 resultSet -> {
                     Map<String, Multimap<String, String>> result = new HashMap<>();
                     while (resultSet.next()) {
+                        String value = resultSet.getString("value");
+                        if (valuesFilter != null && !value.toLowerCase().contains(valuesFilter.toLowerCase())) {
+                            continue;
+                        }
                         long objectTypeId = resultSet.getLong("object_type_id");
                         String objectTypeName = objectTypesMap.get(objectTypeId);
                         String attribute = resultSet.getString("attribute");
-                        String value = resultSet.getString("value");
                         result.computeIfAbsent(objectTypeName, k -> HashMultimap.create()).put(attribute, value);
                     }
                     return result;
@@ -84,10 +87,10 @@ public class MetamodelService {
 
     @SuppressWarnings("unchecked")
     @Cacheable(value = "metamodel-tree", sync = true)
-    public Map<String, Map<String, Object>> getMetamodelTree(String repository, String hub) {
+    public Map<String, Map<String, Object>> getMetamodelTree(String repository, String hub, String valuesFilter) {
         Map<String, Map<String, Object>> result = new HashMap<>();
         Collection<TfObjectType> objectTypes = metamodelService.getObjectTypes(repository, hub);
-        Map<String, Multimap<String, String>> fullMetamodelFlat = metamodelService.getMetamodelFlat(repository, hub, null);
+        Map<String, Multimap<String, String>> fullMetamodelFlat = metamodelService.getMetamodelFlat(repository, hub, valuesFilter, null);
         for (TfObjectType objectType : objectTypes) {
             if (!fullMetamodelFlat.containsKey(objectType.getName())) {
                 continue;
@@ -187,8 +190,8 @@ public class MetamodelService {
     }
 
     @Cacheable(value = "metamodel-values", sync = true)
-    public Collection<String> getValues(String repository, String hub, String category, String path, Set<Long> ids) {
-        Map<String, Multimap<String, String>> metamodelFlat = metamodelService.getMetamodelFlat(repository, hub, ids);
+    public Collection<String> getValues(String repository, String hub, String category, String path, String valuesFilter, Set<Long> ids) {
+        Map<String, Multimap<String, String>> metamodelFlat = metamodelService.getMetamodelFlat(repository, hub, valuesFilter, ids);
         Multimap<String, String> metamodel = metamodelFlat.get(category);
         return metamodel.get(path).parallelStream().collect(Collectors.toSet());
     }
