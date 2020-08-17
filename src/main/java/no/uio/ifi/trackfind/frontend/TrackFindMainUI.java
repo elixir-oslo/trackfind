@@ -51,8 +51,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-//import org.vaadin.addons.collapsiblepanel.CollapsiblePanel;
-//import org.vaadin.addons.stackpanel.StackPanel;
 import org.vaadin.sliderpanel.SliderPanel;
 import org.vaadin.sliderpanel.SliderPanelBuilder;
 import org.vaadin.sliderpanel.SliderPanelStyles;
@@ -102,6 +100,10 @@ public class TrackFindMainUI extends AbstractUI {
     private GSuiteService gSuiteService;
     private SearchService searchService;
 
+    private SliderPanel treeSlider;
+    CheckBox standardCheckbox = new CheckBox("Show only FAIRtracks attributes");
+    private TextField attributesFilterTextField;
+    private TextField valuesFilterTextField;
     private Button copyButton = new Button("Copy text to clipboard");
     private Button visitButton = new Button("Open reference in a new tab");
     private Button addToQueryButton = new Button("Add to query ➚ (⌥: OR, ⇧: NOT)");
@@ -135,6 +137,23 @@ public class TrackFindMainUI extends AbstractUI {
         implementationVersion = implementationVersion == null ? "dev" : implementationVersion;
         Page currentPage = Page.getCurrent();
         currentPage.setTitle("TrackFind: " + implementationVersion);
+    }
+
+    protected TextField createFilter(boolean attributes) {
+        TextField attributesFilterTextField = new TextField(attributes ? "Filter attributes" : "Filter values", (HasValue.ValueChangeListener<String>) event -> {
+            TrackFindTree<TreeNode> currentTree = getCurrentTree();
+            TreeFilter filter = getCurrentFilter();
+            if (attributes) {
+                filter.setAttributesFilter(event.getValue());
+            } else {
+                filter.setValuesFilter(event.getValue());
+            }
+            currentTree.getDataProvider().refreshAll();
+            updateTreeSliderCaption();
+        });
+        attributesFilterTextField.setValueChangeMode(ValueChangeMode.EAGER);
+        attributesFilterTextField.setWidth(100, Unit.PERCENTAGE);
+        return attributesFilterTextField;
     }
 
     protected VerticalLayout buildTreeLayout() {
@@ -210,11 +229,11 @@ public class TrackFindMainUI extends AbstractUI {
             }
         });
 
-        CheckBox standardCheckbox = new CheckBox("Show only FAIRtracks attributes");
         standardCheckbox.addValueChangeListener((HasValue.ValueChangeListener<Boolean>) event -> {
             TreeFilter filter = getCurrentFilter();
             filter.setStandard(event.getValue());
             getCurrentTree().getDataProvider().refreshAll();
+            updateTreeSliderCaption();
         });
         VerticalLayout selectionLayout = new VerticalLayout(shortcuts, tabSheet);
         selectionLayout.setSizeFull();
@@ -236,8 +255,8 @@ public class TrackFindMainUI extends AbstractUI {
         copyVisitButtonsLayout.setExpandRatio(copyButton, 1);
         copyVisitButtonsLayout.setExpandRatio(visitButton, 1);
 
-        TextField attributesFilterTextField = createFilter(true);
-        TextField valuesFilterTextField = createFilter(false);
+        attributesFilterTextField = createFilter(true);
+        valuesFilterTextField = createFilter(false);
 
         final boolean[] expanded = {false};
         Button expandCollapseAllButton = new Button("Expand/collapse all", (Button.ClickListener) event -> {
@@ -253,11 +272,12 @@ public class TrackFindMainUI extends AbstractUI {
         VerticalLayout optionsLayout = new VerticalLayout(standardCheckbox, attributesFilterTextField, valuesFilterTextField, expandCollapseAllButton);
         optionsLayout.setSizeFull();
 
-        SliderPanel treeSlider = new SliderPanelBuilder(optionsLayout)
+        treeSlider = new SliderPanelBuilder(optionsLayout)
                 .zIndex(10000)
                 .expanded(false)
                 .mode(SliderMode.LEFT)
                 .caption("Options")
+                .flowInContent(true)
                 .tabPosition(SliderTabPosition.BEGINNING)
                 .style(SliderPanelStyles.COLOR_WHITE, SliderPanelStyles.ICON_BLACK)
                 .build();
@@ -271,7 +291,15 @@ public class TrackFindMainUI extends AbstractUI {
         return treeLayout;
     }
 
-    protected List<TreeNode> getRootNodes() {
+    private void updateTreeSliderCaption() {
+        if (standardCheckbox.getValue() || !attributesFilterTextField.isEmpty() || !valuesFilterTextField.isEmpty()) {
+            treeSlider.setCaption("Options *");
+        } else {
+            treeSlider.setCaption("Options");
+        }
+    }
+
+    private List<TreeNode> getRootNodes() {
         TrackFindTree<TreeNode> currentTree = getCurrentTree();
         TrackFindDataProvider dataProvider = (TrackFindDataProvider) currentTree.getDataProvider();
         TreeFilter filter = getCurrentFilter();
@@ -353,7 +381,7 @@ public class TrackFindMainUI extends AbstractUI {
     }
 
     private HorizontalLayout buildMainLayout(VerticalLayout treeLayout, VerticalLayout queryLayout, VerticalLayout resultsLayout) {
-        treeLayout.setMargin(false);
+        treeLayout.setMargin(new MarginInfo(false, true, false, false));
         treeLayout.setSizeFull();
         queryLayout.setMargin(false);
         queryLayout.setSizeFull();

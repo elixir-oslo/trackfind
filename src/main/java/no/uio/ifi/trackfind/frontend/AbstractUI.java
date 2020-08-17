@@ -155,22 +155,6 @@ public abstract class AbstractUI extends UI {
         ((TreeGrid<TreeNode>) currentTree.getCompositionRoot()).getDataCommunicator().setFilter(filter);
     }
 
-    protected TextField createFilter(boolean attributes) {
-        TextField attributesFilterTextField = new TextField(attributes ? "Filter attributes" : "Filter values", (HasValue.ValueChangeListener<String>) event -> {
-            TrackFindTree<TreeNode> currentTree = getCurrentTree();
-            TreeFilter filter = getCurrentFilter();
-            if (attributes) {
-                filter.setAttributesFilter(event.getValue());
-            } else {
-                filter.setValuesFilter(event.getValue());
-            }
-            currentTree.getDataProvider().refreshAll();
-        });
-        attributesFilterTextField.setValueChangeMode(ValueChangeMode.EAGER);
-        attributesFilterTextField.setWidth(100, Unit.PERCENTAGE);
-        return attributesFilterTextField;
-    }
-
     @Autowired
     public void setSchemaService(SchemaService schemaService) {
         this.schemaService = schemaService;
