@@ -190,6 +190,8 @@ public class TrackFindMainUI extends AbstractUI {
         }
 
         ComboBox<String> shortcuts = new ComboBox<>("Shortcuts");
+        shortcuts.setWidthFull();
+        shortcuts.setStyleName(ValoTheme.COMBOBOX_TINY);
         shortcuts.setItems(SHORTCUTS.keySet());
         shortcuts.addValueChangeListener((HasValue.ValueChangeListener<String>) valueChangeEvent -> {
             if (StringUtils.isEmpty(valueChangeEvent.getValue())) {
@@ -214,20 +216,12 @@ public class TrackFindMainUI extends AbstractUI {
             filter.setStandard(event.getValue());
             getCurrentTree().getDataProvider().refreshAll();
         });
-        VerticalLayout checkboxLayout = new VerticalLayout(standardCheckbox);
-        checkboxLayout.setSizeFull();
-        checkboxLayout.setComponentAlignment(standardCheckbox, Alignment.BOTTOM_LEFT);
-        checkboxLayout.setMargin(false);
-        HorizontalLayout shortcutsLayout = new HorizontalLayout(shortcuts, checkboxLayout);
-        shortcutsLayout.setMargin(false);
-        VerticalLayout selectionLayout = new VerticalLayout(shortcutsLayout, tabSheet);
+        VerticalLayout selectionLayout = new VerticalLayout(shortcuts, tabSheet);
         selectionLayout.setSizeFull();
         selectionLayout.setExpandRatio(tabSheet, 1);
+        selectionLayout.setSpacing(false);
         Panel treePanel = new Panel("1. Select metadata value(s)", selectionLayout);
         treePanel.setSizeFull();
-
-//        TextField attributesFilterTextField = createFilter(true);
-        TextField valuesFilterTextField = createFilter(false);
 
         tabSheet.addSelectedTabChangeListener((TabSheet.SelectedTabChangeListener) event -> refreshCategoriesCheckList());
 
@@ -242,9 +236,27 @@ public class TrackFindMainUI extends AbstractUI {
         copyVisitButtonsLayout.setExpandRatio(copyButton, 1);
         copyVisitButtonsLayout.setExpandRatio(visitButton, 1);
 
-        VerticalLayout treeLayout = new VerticalLayout(treePanel, copyVisitButtonsLayout, valuesFilterTextField, addToQueryButton);
+        TextField attributesFilterTextField = createFilter(true);
+        TextField valuesFilterTextField = createFilter(false);
+
+        VerticalLayout optionsLayout = new VerticalLayout(standardCheckbox, attributesFilterTextField, valuesFilterTextField);
+        optionsLayout.setSizeFull();
+
+        SliderPanel treeSlider = new SliderPanelBuilder(optionsLayout)
+                .zIndex(10000)
+                .expanded(false)
+                .mode(SliderMode.LEFT)
+                .caption("Options")
+                .tabPosition(SliderTabPosition.BEGINNING)
+                .style(SliderPanelStyles.COLOR_WHITE, SliderPanelStyles.ICON_BLACK)
+                .build();
+
+        HorizontalLayout sliderLayout = new HorizontalLayout(treePanel, treeSlider);
+        sliderLayout.setExpandRatio(treePanel, 1f);
+        sliderLayout.setSizeFull();
+        VerticalLayout treeLayout = new VerticalLayout(sliderLayout, copyVisitButtonsLayout, addToQueryButton);
         treeLayout.setSizeFull();
-        treeLayout.setExpandRatio(treePanel, 1f);
+        treeLayout.setExpandRatio(sliderLayout, 1f);
         return treeLayout;
     }
 
@@ -332,7 +344,7 @@ public class TrackFindMainUI extends AbstractUI {
     private HorizontalLayout buildMainLayout(VerticalLayout treeLayout, VerticalLayout queryLayout, VerticalLayout resultsLayout) {
         treeLayout.setMargin(false);
         treeLayout.setSizeFull();
-        queryLayout.setMargin(new MarginInfo(false, true, true, true));
+        queryLayout.setMargin(false);
         queryLayout.setSizeFull();
         resultsLayout.setMargin(false);
         resultsLayout.setSizeFull();
@@ -401,7 +413,7 @@ public class TrackFindMainUI extends AbstractUI {
         });
 
         Button clearAllButton = new Button("Clear search query");
-        clearAllButton.setSizeFull();
+        clearAllButton.setWidthFull();
         clearAllButton.addClickListener((Button.ClickListener) event -> queryTextArea.clear());
 
         Button searchButton = new Button("Search ➚", (Button.ClickListener) clickEvent -> executeQuery(queryTextArea.getValue()));
@@ -445,7 +457,7 @@ public class TrackFindMainUI extends AbstractUI {
         searchLayout.setWidth("100%");
         searchLayout.setComponentAlignment(searchButton, Alignment.BOTTOM_RIGHT);
 
-        SliderPanel topSlider = new SliderPanelBuilder(categoriesChecklist)
+        SliderPanel querySlider = new SliderPanelBuilder(categoriesChecklist)
                 .expanded(false)
                 .mode(SliderMode.TOP)
                 .caption("Filter categories to search in")
@@ -453,11 +465,8 @@ public class TrackFindMainUI extends AbstractUI {
                 .style(SliderPanelStyles.COLOR_WHITE, SliderPanelStyles.ICON_BLACK)
                 .autoCollapseSlider(true)
                 .build();
-        VerticalLayout queryLayout = new VerticalLayout(queryPanel, clearAllButton, topSlider, searchLayout);
-        queryLayout.setExpandRatio(queryPanel, 0.4f);
-        queryLayout.setExpandRatio(clearAllButton, 0.1f);
-        queryLayout.setExpandRatio(topSlider, 0.4f);
-        queryLayout.setExpandRatio(searchLayout, 0.1f);
+        VerticalLayout queryLayout = new VerticalLayout(queryPanel, clearAllButton, querySlider, searchLayout);
+        queryLayout.setExpandRatio(queryPanel, 1f);
         queryLayout.setSizeFull();
         queryLayout.setExpandRatio(queryPanel, 1f);
         return queryLayout;

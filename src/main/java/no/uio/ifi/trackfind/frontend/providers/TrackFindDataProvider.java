@@ -40,7 +40,7 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
         String repository = hub.getRepository();
         String hubName = hub.getName();
         Map<String, Map<String, Object>> metamodelTree;
-        metamodelTree = metamodelService.getMetamodelTree(repository, hubName, treeFilter.getValuesFilter());
+        metamodelTree = metamodelService.getMetamodelTree(repository, hubName, treeFilter.getAttributesFilter(), treeFilter.getValuesFilter());
         Map<String, Collection<SchemaService.Attribute>> schemaAttributes = schemaService.getAttributes();
         Optional<TreeNode> parentOptional = query.getParentOptional();
         if (parentOptional.isEmpty()) {
@@ -58,7 +58,7 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
                 treeNode.setArray(false);
                 treeNode.setType("string");
                 return treeNode;
-            }).filter(treeFilter).skip(query.getOffset()).limit(query.getLimit()).sorted();
+            }).skip(query.getOffset()).limit(query.getLimit()).sorted();
         } else {
             TreeNode parent = parentOptional.get();
             if (!parent.isAttribute()) {
@@ -97,7 +97,7 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
                         treeNode.setStandard(standardAttributes.parallelStream().map(a -> a.getPath().replace("'", "")).anyMatch(a -> a.startsWith(path)));
                     }
                     if (attributes.contains(path)) {
-                        treeNode.setChildren(metamodelService.getValues(repository, hubName, category, path, treeFilter.getValuesFilter(), null));
+                        treeNode.setChildren(metamodelService.getValues(repository, hubName, category, path, treeFilter.getAttributesFilter(), treeFilter.getValuesFilter(), null));
                     } else {
                         Collection<String> subAttributes = metamodelService.getAttributes(repository, hubName, category, path);
                         treeNode.setChildren(subAttributes);
@@ -123,7 +123,7 @@ public class TrackFindDataProvider extends AbstractBackEndHierarchicalDataProvid
                     }
                 }
                 return treeNode;
-            }).filter(treeFilter).skip(query.getOffset()).limit(query.getLimit()).sorted();
+            }).skip(query.getOffset()).limit(query.getLimit()).sorted();
         }
     }
 
