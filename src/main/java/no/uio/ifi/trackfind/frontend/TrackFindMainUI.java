@@ -25,6 +25,7 @@ import com.vaadin.spring.annotation.SpringUI;
 import com.vaadin.ui.*;
 import com.vaadin.ui.components.grid.TreeGridDragSource;
 import com.vaadin.ui.dnd.DropTargetExtension;
+import com.vaadin.ui.themes.ValoTheme;
 import com.vaadin.util.FileTypeResolver;
 import lombok.extern.slf4j.Slf4j;
 import no.uio.ifi.trackfind.backend.data.TreeNode;
@@ -101,8 +102,8 @@ public class TrackFindMainUI extends AbstractUI {
     private GSuiteService gSuiteService;
     private SearchService searchService;
 
-    private Button copyButton = new Button("Copy to clipboard");
-    private Button visitButton = new Button("Open in a new tab");
+    private Button copyButton = new Button("Copy text to clipboard");
+    private Button visitButton = new Button("Open reference in a new tab");
     private Button addToQueryButton = new Button("Add to query ➚ (⌥: OR, ⇧: NOT)");
     private List<TreeNode> expandedItems = new CopyOnWriteArrayList<>();
     private Button exportGSuiteButton = new Button("Export as GSuite file");
@@ -140,7 +141,7 @@ public class TrackFindMainUI extends AbstractUI {
         tabSheet = new TabSheet();
         tabSheet.setSizeFull();
 
-//        VerticalLayout popupContent = new VerticalLayout();
+        copyButton.setStyleName(ValoTheme.BUTTON_TINY);
         copyButton.setWidthFull();
         copyButton.setEnabled(false);
         copyButton.addClickListener((Button.ClickListener) clickEvent -> {
@@ -149,8 +150,8 @@ public class TrackFindMainUI extends AbstractUI {
                 // do nothing
             });
         });
-//        popupContent.addComponent(copyButton);
 
+        visitButton.setStyleName(ValoTheme.BUTTON_TINY);
         visitButton.setWidthFull();
         visitButton.setEnabled(false);
         visitButton.addClickListener((Button.ClickListener) clickEvent -> {
