@@ -364,7 +364,7 @@ public class TrackFindMainUI extends AbstractUI {
             resultsTable.addColumn(sr ->
                     {
                         String path = String.join(".", shortcut.getValue());
-                        return Dynamic.from(sr.getContent()).dget(path).asString();
+                        return Dynamic.from(sr.getContent()).dget(path).asOptional().orElse("");
                     }
             ).setCaption(shortcut.getKey()).setId(String.valueOf(i++));
         }
