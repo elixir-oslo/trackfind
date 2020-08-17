@@ -239,7 +239,18 @@ public class TrackFindMainUI extends AbstractUI {
         TextField attributesFilterTextField = createFilter(true);
         TextField valuesFilterTextField = createFilter(false);
 
-        VerticalLayout optionsLayout = new VerticalLayout(standardCheckbox, attributesFilterTextField, valuesFilterTextField);
+        final boolean[] expanded = {false};
+        Button expandCollapseAllButton = new Button("Expand/collapse all", (Button.ClickListener) event -> {
+            if (expanded[0]) {
+                getCurrentTree().collapseRecursively(getRootNodes(), 100);
+                expanded[0] = false;
+            } else {
+                getCurrentTree().expandRecursively(getRootNodes(), 100);
+                expanded[0] = true;
+            }
+        });
+
+        VerticalLayout optionsLayout = new VerticalLayout(standardCheckbox, attributesFilterTextField, valuesFilterTextField, expandCollapseAllButton);
         optionsLayout.setSizeFull();
 
         SliderPanel treeSlider = new SliderPanelBuilder(optionsLayout)

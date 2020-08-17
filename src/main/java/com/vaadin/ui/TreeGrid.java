@@ -375,7 +375,7 @@ public class TreeGrid<T> extends Grid<T>
 
                 expandRecursively(
                         getDataProvider().fetchChildren(
-                                new HierarchicalQuery<>(null, item)),
+                                new HierarchicalQuery(communicator.getFilter(), item)),
                         depth - 1);
             }
         });
