@@ -9,6 +9,9 @@ on:
 jobs:
   build:
 
+    strategy:
+      fail-fast: true
+
     runs-on: ubuntu-latest
 
     env:
@@ -35,6 +38,8 @@ jobs:
       run: docker build -t elixiroslo/trackfind:latest .
     - name: Run Docker Compose
       run: docker-compose up -d
+    - name: PS list
+      run: docker-compose ps
     - name: Wait for containers to start
       run: |
         RETRY_TIMES=0
@@ -51,3 +56,6 @@ jobs:
       run: |
         cd int-tests
         mvn test -B -ntp
+    - name: Logs
+      if: failure()
+      run: docker-compose logs
