@@ -41,7 +41,7 @@ jobs:
       run: docker build -t elixiroslo/trackfind:latest .
     - name: Run Docker Compose
       run: docker-compose up -d
-    - name: PS list
+    - name: Process list
       run: docker-compose ps
     - name: Wait for containers to start
       run: |
@@ -55,6 +55,7 @@ jobs:
         sleep 10;
         done
         done
+        sleep 60
     - name: Run integration tests
       run: |
         cd int-tests
