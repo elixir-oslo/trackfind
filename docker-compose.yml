@@ -57,9 +57,9 @@ services:
       - SCOPES="openid profile email"
       - PROTECTED_RESOURCES=/login,/hubs,/references,/curation,/users,/monitor,/actuator
       - SSL_ENGINE
-    volumes:
-      - /etc/letsencrypt/live/<site>/fullchain.pem:/etc/ssl/certs/fullchain.pem
-      - /etc/letsencrypt/live/<site>/privkey.pem:/etc/ssl/private/privkey.pem
+#    volumes:
+#      - /etc/letsencrypt/live/<site>/fullchain.pem:/etc/ssl/certs/fullchain.pem
+#      - /etc/letsencrypt/live/<site>/privkey.pem:/etc/ssl/private/privkey.pem
 
 volumes:
   db:
