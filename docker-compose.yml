@@ -21,7 +21,7 @@ services:
       - 5000:5000
 
   augmentation:
-    image: fairtracks/fairtracks_autogenerate_rest:latest
+    image: fairtracks/fairtracks_augment:latest
     container_name: augmentation
     ports:
       - 6000:5000
