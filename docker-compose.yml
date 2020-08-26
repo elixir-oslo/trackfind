@@ -4,6 +4,7 @@ services:
 
   db:
     image: postgres:10.5
+    container_name: db
 #    ports:
 #      - 5432:5432
     environment:
@@ -15,16 +16,19 @@ services:
 
   gsuite:
     image: fairtracks/fairtracks_json_to_gsuite:latest
+    container_name: gsuite
     ports:
       - 5000:5000
 
   augmentation:
     image: fairtracks/fairtracks_autogenerate_rest:latest
+    container_name: augmentation
     ports:
       - 6000:5000
 
   trackfind:
     image: elixiroslo/trackfind:latest
+    container_name: trackfind
     depends_on:
       - db
     environment:
@@ -41,6 +45,7 @@ services:
 
   apache:
     image: nels/apache-elixir-aai:latest
+    container_name: apache
     ports:
       - 80:80
       - 443:443
@@ -50,7 +55,7 @@ services:
       - ELIXIR_AAI_CLIENT_ID
       - ELIXIR_AAI_CLIENT_SECRET
       - SCOPES="openid profile email"
-      - PROTECTED_RESOURCES=/login,/hubs,/references,/curation,/users,/monitor,/admin,/actuator
+      - PROTECTED_RESOURCES=/login,/hubs,/references,/curation,/users,/monitor,/actuator
       - SSL_ENGINE
     volumes:
       - /etc/letsencrypt/live/<site>/fullchain.pem:/etc/ssl/certs/fullchain.pem

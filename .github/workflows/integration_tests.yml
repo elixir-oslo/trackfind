@@ -1,0 +1,53 @@
+name: Integration tests
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    env:
+      SSL_ENGINE: off
+      SERVER_NAME: localhost
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
+
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up JDK 13
+      uses: actions/setup-java@v1
+      with:
+        java-version: 13
+    - name: Cache local Maven repository
+      uses: actions/cache@v2
+      with:
+        path: ~/.m2/repository
+        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+        restore-keys: |
+          ${{ runner.os }}-maven-
+    - name: Build container
+      run: docker build -t elixiroslo/trackfind:latest .
+    - name: Run Docker Compose
+      run: docker-compose up -d
+    - name: Wait for containers to start
+      run: |
+        RETRY_TIMES=0
+        for p in db trackind gsutie augmentation apache
+        do
+        until docker ps -f name=$p --format {{.Status}} | grep "Up "
+        do echo "waiting for $p to become ready"
+        RETRY_TIMES=$((RETRY_TIMES+1));
+        if [ $RETRY_TIMES -eq 30 ]; then exit 1; fi
+        sleep 10;
+        done
+        done
+    - name: Run integration tests
+      run: |
+        cd int-tests
+        mvn test -B -ntp
