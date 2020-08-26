@@ -19,6 +19,9 @@ jobs:
       SERVER_NAME: localhost
       POSTGRES_USER: test
       POSTGRES_PASSWORD: test
+      ADMIN_ELIXIR_ID: ${{ secrets.ADMIN_ELIXIR_ID }}
+      ELIXIR_AAI_CLIENT_ID: ${{ secrets.ELIXIR_AAI_CLIENT_ID }}
+      ELIXIR_AAI_CLIENT_SECRET: ${{ secrets.ELIXIR_AAI_CLIENT_SECRET }}
 
 
     steps:
