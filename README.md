@@ -1,8 +1,8 @@
 # TrackFind
 
+![Unit tests](https://github.com/elixir-oslo/trackfind/workflows/Unit%20tests/badge.svg)
+![Integration tests](https://github.com/elixir-oslo/trackfind/workflows/Integration%20tests/badge.svg)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/c3f38d6ea0184dab99bf012a04892c4c)](https://www.codacy.com/app/dtitov/trackfind?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=elixir-no-nels/trackfind&amp;utm_campaign=Badge_Grade)
-[![Dependabot Status](https://api.dependabot.com/badges/status?host=github&repo=elixir-oslo/trackfind)](https://dependabot.com)
-[![Build Status](https://travis-ci.org/elixir-oslo/trackfind.svg?branch=master)](https://travis-ci.org/elixir-oslo/trackfind)
 [![Docker Pulls](https://img.shields.io/docker/pulls/elixiroslo/trackfind.svg)](https://hub.docker.com/r/elixiroslo/trackfind/)
 
 ## About
