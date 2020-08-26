@@ -43,7 +43,7 @@ jobs:
     - name: Wait for containers to start
       run: |
         RETRY_TIMES=0
-        for p in db trackind gsutie augmentation apache
+        for p in db gsutie augmentation apache trackfind
         do
         until docker ps -f name=$p --format {{.Status}} | grep "Up "
         do echo "waiting for $p to become ready"
