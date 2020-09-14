@@ -65,16 +65,18 @@ public class TrackFindController {
     public ResponseEntity<Map> getMetamodel(
             @PathVariable String repository,
             @PathVariable String hub,
+            @RequestParam(required = false) String attributesFilter,
+            @RequestParam(required = false) String valuesFilter,
             @RequestParam(required = false, defaultValue = "false") boolean flat) {
         if (flat) {
-            Map<String, Multimap<String, String>> metamodelFlat = metamodelService.getMetamodelFlat(repository, hub, null, null, null);
+            Map<String, Multimap<String, String>> metamodelFlat = metamodelService.getMetamodelFlat(repository, hub, attributesFilter, valuesFilter, null);
             Map<String, Map<String, Collection<String>>> result = new HashMap<>();
             for (String key : metamodelFlat.keySet()) {
                 result.put(key, metamodelFlat.get(key).asMap());
             }
             return ResponseEntity.ok(result);
         } else {
-            return ResponseEntity.ok(metamodelService.getMetamodelTree(repository, hub, null, null));
+            return ResponseEntity.ok(metamodelService.getMetamodelTree(repository, hub, attributesFilter, valuesFilter));
         }
     }
 

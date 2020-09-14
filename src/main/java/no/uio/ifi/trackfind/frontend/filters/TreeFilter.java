@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import no.uio.ifi.trackfind.backend.data.TreeNode;
 import no.uio.ifi.trackfind.backend.pojo.TfHub;
+import org.springframework.util.CollectionUtils;
 
 /**
  * Filter for the Vaadin tree.
@@ -20,7 +21,7 @@ public class TreeFilter implements SerializablePredicate<TreeNode> {
 
     @Override
     public boolean test(TreeNode treeNode) {
-        if (!treeNode.isAttribute() && !treeNode.getValue().toLowerCase().contains(valuesFilter.toLowerCase())) {
+        if (treeNode.isAttribute() && CollectionUtils.isEmpty(treeNode.getChildren())) {
             return false;
         }
         return !standard || treeNode.isStandard();
