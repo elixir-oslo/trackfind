@@ -44,7 +44,7 @@ services:
       - INFLUX_PASSWORD
 
   apache:
-    image: nels/apache-elixir-aai:latest
+    image: fairtracks/apache-elixir-aai:latest
     container_name: apache
     ports:
       - 80:80
