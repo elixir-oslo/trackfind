@@ -24,7 +24,9 @@ services:
     image: fairtracks/fairtracks_augment:latest
     container_name: augmentation
     ports:
-      - 6000:5000
+#      - 6000:5000
+      - 5001:5000
+    restart: always
 
   trackfind:
     image: elixiroslo/trackfind:latest
@@ -47,8 +49,8 @@ services:
     image: fairtracks/apache-elixir-aai:latest
     container_name: apache
     ports:
-      - 80:80
-      - 443:443
+      - 8080:80
+#      - 443:443
     environment:
       - SERVER_NAME
       - PROXY_PASS=http://trackfind:8080/
@@ -58,8 +60,8 @@ services:
       - PROTECTED_RESOURCES=/login,/hubs,/references,/curation,/users,/monitor,/actuator
       - SSL_ENGINE
 #    volumes:
-#      - /etc/letsencrypt/live/<site>/fullchain.pem:/etc/ssl/certs/fullchain.pem
-#      - /etc/letsencrypt/live/<site>/privkey.pem:/etc/ssl/private/privkey.pem
+#      - /etc/letsencrypt/live/trackfind.elixir.no/fullchain.pem:/etc/ssl/certs/fullchain.pem
+#      - /etc/letsencrypt/live/trackfind.elixir.no/privkey.pem:/etc/ssl/private/privkey.pem
 
 volumes:
   db:
